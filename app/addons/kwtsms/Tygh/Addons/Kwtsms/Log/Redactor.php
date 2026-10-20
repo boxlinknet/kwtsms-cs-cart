@@ -72,7 +72,9 @@ class Redactor
     }
 
     /**
-     * D7: replaces each secret value (OTP code, reset link) with ******. Literal match, longest first.
+     * D7: replaces each secret value (OTP code, reset link) with ******. Literal match, longest first,
+     * in every form redact() knows (a link inside a raw JSON request is written https:\/\/...).
+     * 2026-10-20 21:35 +03: forms added, they were raw only, task 596.
      *
      * @param array<mixed> $secret_values
      */
@@ -81,10 +83,7 @@ class Redactor
         #[\SensitiveParameter]
         array $secret_values
     ): string {
-        $map = [];
-        foreach (self::plainSecrets($secret_values) as $secret) {
-            $map[$secret] = self::MASK;
-        }
+        $map = self::replacementMap(self::plainSecrets($secret_values), self::MASK);
 
         return $map === [] ? $text : strtr($text, $map);
     }
@@ -118,13 +117,13 @@ class Redactor
      *
      * @return array<string, string>
      */
-    private static function replacementMap(array $plain): array
+    private static function replacementMap(array $plain, string $replacement = self::REPLACEMENT): array
     {
         $map = [];
         foreach ($plain as $secret) {
             foreach (self::forms($secret) as $form) {
                 if ($form !== '') {
-                    $map[$form] = self::REPLACEMENT;
+                    $map[$form] = $replacement;
                 }
             }
         }

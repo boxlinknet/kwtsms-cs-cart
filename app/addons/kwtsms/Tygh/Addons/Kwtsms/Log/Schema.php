@@ -30,7 +30,9 @@ final class Schema
     private const INT = 4294967295;
     private const SMALL = 65535;
     private const TEXT = 65535;
-    private const MEDIUM = 16777215;
+    // 2026-10-20 21:33 +03: the columns are mediumtext, but the raw request and response are capped at 64 KB
+    // (PRD 6.8: a proxy error page must not fill the table), task 596.
+    private const RAW = 65535;
 
     /**
      * @var array<string, array{table: string, pk: string, columns: array<string, array{0: string, 1: int}>,
@@ -72,8 +74,8 @@ final class Schema
                 'points_charged' => ['d', 0],
                 'balance_after' => ['d', 0],
                 'api_unix_ts' => ['i', self::INT],
-                'api_request' => ['t', self::MEDIUM],
-                'api_response' => ['t', self::MEDIUM],
+                'api_request' => ['t', self::RAW],
+                'api_response' => ['t', self::RAW],
                 'duration_ms' => ['i', self::INT],
             ],
             'defaults' => [
