@@ -26,7 +26,8 @@
  *            markDone($id); markExpired($id); markHeld($id) (TLS failure: kept, never due, resent by hand).
  *            Outbox::backoff($attempts) -> 30, 60, 120, then 300 s. enqueue() returns 0 when the row could not
  *            be written (the caller records a failure, never a silent deferral).
- *            Test seams (protected): insertRow(), updateRow(), selectRow(), selectDue().
+ *            Test seams (protected): insertRow(), updateRow(), selectRow(), selectDue(). dueSql($now, $limit) is the
+ *            SQL text of due() for EXPLAIN / ANALYZE (2026-10-21 00:34 +03, Task 1.6, task 596).
  * DEPENDS:   CS-Cart db_query(), db_get_row(), db_get_array(); Log\Redactor, Log\ReportsFailures.
  */
 
@@ -50,6 +51,13 @@ class Outbox
 
     /** Transactional rows expire this long after they were queued. */
     public const TTL_SECONDS = 1800;
+
+    /**
+     * The due rows: one range of the (status, retry_at) index, already in retry_at order.
+     * 2026-10-21 00:34 +03: one pattern for selectDue() and dueSql(), Task 1.6, task 596.
+     */
+    private const DUE_SQL = 'SELECT * FROM ?:kwtsms_outbox WHERE status = ?s AND retry_at <= ?i'
+        . ' ORDER BY retry_at ASC, outbox_id ASC LIMIT ?i';
 
     /** The message and phones columns are text (64 KB); a JSON longer than this is refused. */
     private const MAX_JSON_BYTES = 60000;
@@ -244,15 +252,20 @@ class Outbox
      */
     protected function selectDue(int $now, int $limit): array
     {
-        $rows = db_get_array(
-            'SELECT * FROM ?:kwtsms_outbox WHERE status = ?s AND retry_at <= ?i'
-            . ' ORDER BY retry_at ASC, outbox_id ASC LIMIT ?i',
-            self::STATUS_PENDING,
-            $now,
-            $limit
-        );
+        $rows = db_get_array(self::DUE_SQL, self::STATUS_PENDING, $now, $limit);
 
         return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * The exact query of due(), as SQL text with the table prefix, for EXPLAIN / ANALYZE only.
+     * 2026-10-21 00:34 +03: added (index evidence), Task 1.6, task 596.
+     */
+    public function dueSql(int $now, int $limit): string
+    {
+        $sql = (string) db_quote(self::DUE_SQL, self::STATUS_PENDING, $now, $limit);
+
+        return str_replace('?:', (string) \Tygh\Registry::get('config.table_prefix'), $sql);
     }
 
     // ------------------------------------------------------------------ internals
