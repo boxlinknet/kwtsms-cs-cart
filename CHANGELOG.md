@@ -41,3 +41,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   the rest of the request is deferred, three failing requests in a row pause sending for 5 minutes.
 <!-- 2026-10-20 23:20 +03: fix round 1 of Task 1.5 (R19: per database; M8: the breaker opening is logged), task 596 -->
 - Plain-language reasons for every kwtSMS error code and for the add-on's own failures, in English and Arabic.
+<!-- 2026-10-21 00:40 +03: entries for the send pipeline, the outbox and the service wiring (Task 1.6), task 596 -->
+- One send pipeline for every SMS: global switch, configured account, suspension, abuse caps (per number and
+  store-wide per day), number checks, duplicates, allowed countries, coverage, one cleaning of the final text,
+  length, credits (one live balance check at most every 10 minutes), pilot mode, quiet hours and a budget of 20
+  API calls per page request. Every recipient gets one plain outcome and one log row; every API call one message
+  row, with one-time codes masked and no credential.
+- Outbox for sends that cannot go out now (gateway unreachable, queue full, account suspended, quiet hours,
+  request budget): retried with back-off of 30 s, 1, 2 and 5 minutes, expired after 30 minutes, never sent twice.
+- Admin notice and e-mail when the store-wide daily SMS limit is reached (once per day), when the balance drops
+  under the alert level, and when the account is suspended.
+- `fn_kwtsms_send()` for other add-ons, with the hooks `kwtsms_send_pre` (edit or cancel) and `kwtsms_send_post`.
