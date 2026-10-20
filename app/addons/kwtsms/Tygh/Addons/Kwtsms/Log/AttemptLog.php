@@ -76,7 +76,7 @@ class AttemptLog
      * @param string[] $outcomes Count only these outcomes; empty = any
      *
      * @throws \InvalidArgumentException For any other field (it would have no index)
-     * @throws \RuntimeException         When the count cannot be read (2026-10-20 22:19 +03, Task 1.4 fix round 1,
+     * @throws \RuntimeException         When the count cannot be read (2026-10-20 22:17 +03, Task 1.4 fix round 1,
      *                                   task 596): it is never returned as 0, because the caller would then skip
      *                                   the abuse cap; the send pipeline's boundary decides
      */

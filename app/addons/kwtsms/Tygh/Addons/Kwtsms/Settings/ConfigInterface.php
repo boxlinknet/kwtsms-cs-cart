@@ -161,7 +161,7 @@ interface ConfigInterface
 
     /**
      * Replaces the cron key with 32 random hex characters. The only code that writes cron_key: no save()
-     * mode accepts a key a caller chose (2026-10-20 22:21 +03, Task 1.4 fix round 1, task 596).
+     * mode accepts a key a caller chose (2026-10-20 22:18 +03, Task 1.4 fix round 1, task 596).
      *
      * @return string The new key
      *

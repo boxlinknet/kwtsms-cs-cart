@@ -66,7 +66,7 @@ class DbLogStore implements LogStoreInterface
     }
 
     /**
-     * 2026-10-20 22:18 +03: a result that is not an array of rows throws instead of reading as "no rows"
+     * 2026-10-20 22:17 +03: a result that is not an array of rows throws instead of reading as "no rows"
      * (Task 1.4 fix round 1, task 596).
      *
      * @throws \RuntimeException
@@ -82,7 +82,7 @@ class DbLogStore implements LogStoreInterface
     }
 
     /**
-     * 2026-10-20 22:18 +03: a result that is not a number throws instead of reading as 0. A failed count read
+     * 2026-10-20 22:17 +03: a result that is not a number throws instead of reading as 0. A failed count read
      * as 0 would make the abuse caps (AttemptLog::countRecent) skip themselves (Task 1.4 fix round 1, task 596).
      *
      * @throws \RuntimeException

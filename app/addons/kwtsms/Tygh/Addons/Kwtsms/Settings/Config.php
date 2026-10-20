@@ -82,7 +82,7 @@ class Config implements ConfigInterface
     /**
      * Which keys each save mode may write, in the order they are validated and written. enabled comes
      * last so that a sender_id saved in the same request counts when "configured" is checked.
-     * 2026-10-20 22:21 +03: no mode names cron_key. The key is written by regenerateCronKey() alone, so a caller
+     * 2026-10-20 22:18 +03: no mode names cron_key. The key is written by regenerateCronKey() alone, so a caller
      * can never choose one (Task 1.4 fix round 1, task 596).
      *
      * @var array<string, string[]>
@@ -414,7 +414,7 @@ class Config implements ConfigInterface
                 $stored = $mode === 'logout'
                     ? $this->normalizeClear($key, $values[$key])
                     : $this->normalize($key, $values[$key]);
-                // 2026-10-20 22:27 +03: enabled = Y is refused when the same request empties the sender or asks
+                // 2026-10-20 22:26 +03: enabled = Y is refused when the same request empties the sender or asks
                 // for one that was refused or could not be saved, task 596 (Task 1.4 fix round 1).
                 if (
                     $key === 'enabled'
@@ -441,7 +441,7 @@ class Config implements ConfigInterface
     }
 
     /**
-     * 2026-10-20 22:21 +03: writes the new key straight to the backend (task 596). The backend throws a
+     * 2026-10-20 22:18 +03: writes the new key straight to the backend (task 596). The backend throws a
      * RuntimeException that names the key only when it cannot save it; the old key stays.
      */
     public function regenerateCronKey(): string
@@ -552,7 +552,7 @@ class Config implements ConfigInterface
             case 'codes':
                 $codes = $this->tokens($value, '/^[0-9]{1,4}$/D', true);
 
-                // 2026-10-20 22:27 +03: every code is a calling code of the phone rules table, task 596.
+                // 2026-10-20 22:26 +03: every code is a calling code of the phone rules table, task 596.
                 return ($codes === null || $codes === [] || array_filter($codes, [$this, 'isCountryCode']) !== $codes)
                     ? null
                     : implode(',', $codes);
@@ -634,7 +634,7 @@ class Config implements ConfigInterface
      * Admin numbers: separated by commas, semicolons or line breaks; each one is checked by
      * PhoneNormalizer::validateInput() with the default country as hint (a local number gets the country code,
      * a landline or a malformed number is refused) and stored normalized, without repeats. One bad number
-     * refuses the whole list. 2026-10-20 22:27 +03, task 596 (Task 1.4 fix round 1).
+     * refuses the whole list. 2026-10-20 22:26 +03, task 596 (Task 1.4 fix round 1).
      *
      * @param mixed $value
      */
