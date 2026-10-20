@@ -712,3 +712,602 @@ msgstr "Customer SMS have stopped"
 msgctxt "Languages::kwtsms.alert.balance_zero.text"
 msgid "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
 msgstr "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
+
+# 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
+# kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
+# kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.
+msgctxt "Languages::kwtsms.status.label"
+msgid "kwtSMS status"
+msgstr "kwtSMS status"
+
+msgctxt "Languages::kwtsms.status.account"
+msgid "Account"
+msgstr "Account"
+
+msgctxt "Languages::kwtsms.status.paused"
+msgid "Paused"
+msgstr "Paused"
+
+msgctxt "Languages::kwtsms.status.connected"
+msgid "Connected"
+msgstr "Connected"
+
+msgctxt "Languages::kwtsms.status.not_connected"
+msgid "Not connected"
+msgstr "Not connected"
+
+msgctxt "Languages::kwtsms.status.sms"
+msgid "SMS"
+msgstr "SMS"
+
+msgctxt "Languages::kwtsms.status.on"
+msgid "On"
+msgstr "On"
+
+msgctxt "Languages::kwtsms.status.off"
+msgid "Off"
+msgstr "Off"
+
+msgctxt "Languages::kwtsms.status.test_mode"
+msgid "Test mode"
+msgstr "Test mode"
+
+msgctxt "Languages::kwtsms.status.balance"
+msgid "Balance"
+msgstr "Balance"
+
+msgctxt "Languages::kwtsms.status.not_ready"
+msgid "SMS can't go out yet. [reason]"
+msgstr "SMS can't go out yet. [reason]"
+
+msgctxt "Languages::kwtsms.nav.label"
+msgid "kwtSMS pages"
+msgstr "kwtSMS pages"
+
+msgctxt "Languages::kwtsms.nav.settings"
+msgid "Settings"
+msgstr "Settings"
+
+msgctxt "Languages::kwtsms.settings.title"
+msgid "kwtSMS settings"
+msgstr "kwtSMS settings"
+
+msgctxt "Languages::kwtsms.settings.suspended"
+msgid "Sending is paused. [reason]"
+msgstr "Sending is paused. [reason]"
+
+msgctxt "Languages::kwtsms.settings.retry_now"
+msgid "Retry now"
+msgstr "Retry now"
+
+msgctxt "Languages::kwtsms.settings.relogin"
+msgid "The saved API password can't be read, so sending is paused. Log in again."
+msgstr "The saved API password can't be read, so sending is paused. Log in again."
+
+msgctxt "Languages::kwtsms.settings.daily_cap_tripped"
+msgid "The daily SMS limit stopped sending today."
+msgstr "The daily SMS limit stopped sending today."
+
+msgctxt "Languages::kwtsms.settings.resume_now"
+msgid "Resume sending"
+msgstr "Resume sending"
+
+msgctxt "Languages::kwtsms.settings.account"
+msgid "kwtSMS account"
+msgstr "kwtSMS account"
+
+msgctxt "Languages::kwtsms.settings.logged_in_as"
+msgid "Logged in as"
+msgstr "Logged in as"
+
+msgctxt "Languages::kwtsms.settings.balance"
+msgid "Balance"
+msgstr "Balance"
+
+msgctxt "Languages::kwtsms.settings.balance_available"
+msgid "Available"
+msgstr "Available"
+
+msgctxt "Languages::kwtsms.settings.balance_purchased"
+msgid "Purchased"
+msgstr "Purchased"
+
+msgctxt "Languages::kwtsms.settings.checked_at"
+msgid "Checked"
+msgstr "Checked"
+
+msgctxt "Languages::kwtsms.settings.last_sync"
+msgid "Last sync"
+msgstr "Last sync"
+
+msgctxt "Languages::kwtsms.settings.never"
+msgid "Never"
+msgstr "Never"
+
+msgctxt "Languages::kwtsms.settings.refresh_balance"
+msgid "Refresh balance"
+msgstr "Refresh balance"
+
+msgctxt "Languages::kwtsms.settings.sync"
+msgid "Sync now"
+msgstr "Sync now"
+
+msgctxt "Languages::kwtsms.settings.change_account"
+msgid "Change account"
+msgstr "Change account"
+
+msgctxt "Languages::kwtsms.settings.change_account_help"
+msgid "Log in with another API user. The current account stays connected until the new login works."
+msgstr "Log in with another API user. The current account stays connected until the new login works."
+
+msgctxt "Languages::kwtsms.settings.disconnect"
+msgid "Disconnect"
+msgstr "Disconnect"
+
+msgctxt "Languages::kwtsms.settings.disconnect_confirm"
+msgid "Disconnect kwtSMS? All SMS stop until you log in again."
+msgstr "Disconnect kwtSMS? All SMS stop until you log in again."
+
+msgctxt "Languages::kwtsms.settings.api_username"
+msgid "API username"
+msgstr "API username"
+
+msgctxt "Languages::kwtsms.settings.api_password"
+msgid "API password"
+msgstr "API password"
+
+msgctxt "Languages::kwtsms.settings.api_user_help"
+msgid "Use the API user from kwtsms.com > Account > API, not your account mobile number or website login."
+msgstr "Use the API user from kwtsms.com > Account > API, not your account mobile number or website login."
+
+msgctxt "Languages::kwtsms.settings.login"
+msgid "Log in"
+msgstr "Log in"
+
+msgctxt "Languages::kwtsms.settings.sender"
+msgid "Sender ID"
+msgstr "Sender ID"
+
+msgctxt "Languages::kwtsms.settings.sender_none"
+msgid "Log in to load the Sender IDs of your kwtSMS account."
+msgstr "Log in to load the Sender IDs of your kwtSMS account."
+
+msgctxt "Languages::kwtsms.settings.sender_empty_list"
+msgid "Your kwtSMS account has no Sender ID yet. Request one at kwtsms.com, then sync."
+msgstr "Your kwtSMS account has no Sender ID yet. Request one at kwtsms.com, then sync."
+
+msgctxt "Languages::kwtsms.settings.sender_choose"
+msgid "Choose a Sender ID"
+msgstr "Choose a Sender ID"
+
+msgctxt "Languages::kwtsms.settings.sender_test_warning"
+msgid "KWT-SMS is the kwtSMS test sender. Delivery is delayed and it does not reach Virgin or DND-listed numbers. Register a private transactional Sender ID."
+msgstr "KWT-SMS is the kwtSMS test sender. Delivery is delayed and it does not reach Virgin or DND-listed numbers. Register a private transactional Sender ID."
+
+msgctxt "Languages::kwtsms.settings.sender_type_transactional"
+msgid "Transactional"
+msgstr "Transactional"
+
+msgctxt "Languages::kwtsms.settings.sender_type_promotional"
+msgid "Promotional"
+msgstr "Promotional"
+
+msgctxt "Languages::kwtsms.settings.sender_type_help"
+msgid "Order messages need a transactional Sender ID."
+msgstr "Order messages need a transactional Sender ID."
+
+msgctxt "Languages::kwtsms.settings.promotional_warning"
+msgid "A promotional Sender ID doesn't reach numbers on the do-not-disturb (DND) list, so some customers won't get their order SMS."
+msgstr "A promotional Sender ID doesn't reach numbers on the do-not-disturb (DND) list, so some customers won't get their order SMS."
+
+msgctxt "Languages::kwtsms.settings.general"
+msgid "Sending"
+msgstr "Sending"
+
+msgctxt "Languages::kwtsms.settings.enabled_label"
+msgid "Send SMS from this store"
+msgstr "Send SMS from this store"
+
+msgctxt "Languages::kwtsms.settings.enabled_help"
+msgid "The main switch. Each message type also has its own switch in Administration > Notifications."
+msgstr "The main switch. Each message type also has its own switch in Administration > Notifications."
+
+msgctxt "Languages::kwtsms.settings.enable_blocked"
+msgid "SMS can't be turned on yet. [reason]"
+msgstr "SMS can't be turned on yet. [reason]"
+
+msgctxt "Languages::kwtsms.settings.test_mode_label"
+msgid "Send as test messages"
+msgstr "Send as test messages"
+
+msgctxt "Languages::kwtsms.settings.test_mode_help"
+msgid "kwtSMS accepts test messages but doesn't deliver them. Each one holds credits in your kwtSMS queue until you delete it."
+msgstr "kwtSMS accepts test messages but doesn't deliver them. Each one holds credits in your kwtSMS queue until you delete it."
+
+msgctxt "Languages::kwtsms.settings.ack_test_sender"
+msgid "I understand that KWT-SMS delays delivery and doesn't reach Virgin or DND-listed numbers."
+msgstr "I understand that KWT-SMS delays delivery and doesn't reach Virgin or DND-listed numbers."
+
+msgctxt "Languages::kwtsms.settings.pilot_mode_label"
+msgid "Send real SMS only to the admin numbers"
+msgstr "Send real SMS only to the admin numbers"
+
+msgctxt "Languages::kwtsms.settings.pilot_mode_help"
+msgid "Use it for a first live run. Messages to anyone else are logged and not sent."
+msgstr "Use it for a first live run. Messages to anyone else are logged and not sent."
+
+msgctxt "Languages::kwtsms.settings.default_country_help"
+msgid "Its code is added to a number typed without one when the digit count fits that country, so 98765432 becomes 96598765432 for Kuwait."
+msgstr "Its code is added to a number typed without one when the digit count fits that country, so 98765432 becomes 96598765432 for Kuwait."
+
+msgctxt "Languages::kwtsms.settings.customer_countries_help"
+msgid "Customers get SMS only on numbers from these countries. The default country is always included. Hold Ctrl or Cmd to select more than one."
+msgstr "Customers get SMS only on numbers from these countries. The default country is always included. Hold Ctrl or Cmd to select more than one."
+
+msgctxt "Languages::kwtsms.settings.placed_statuses_help"
+msgid "Paid statuses always send the new order SMS. Tick any other status that should too."
+msgstr "Paid statuses always send the new order SMS. Tick any other status that should too."
+
+msgctxt "Languages::kwtsms.settings.max_pages_help"
+msgid "In SMS pages. A longer order message isn't sent. One page holds 160 English or 70 Arabic characters."
+msgstr "In SMS pages. A longer order message isn't sent. One page holds 160 English or 70 Arabic characters."
+
+msgctxt "Languages::kwtsms.settings.limits"
+msgid "Limits"
+msgstr "Limits"
+
+msgctxt "Languages::kwtsms.settings.cap_store_day_help"
+msgid "When the store reaches this number, sending stops until midnight or until you resume it."
+msgstr "When the store reaches this number, sending stops until midnight or until you resume it."
+
+msgctxt "Languages::kwtsms.settings.low_balance_help"
+msgid "Alert below this many credits. Leave it empty to use 3 days of your usual sending, at least 100."
+msgstr "Alert below this many credits. Leave it empty to use 3 days of your usual sending, at least 100."
+
+msgctxt "Languages::kwtsms.settings.quiet_hours"
+msgid "Quiet hours"
+msgstr "Quiet hours"
+
+msgctxt "Languages::kwtsms.settings.quiet_hours_label"
+msgid "Hold customer status SMS at night"
+msgstr "Hold customer status SMS at night"
+
+msgctxt "Languages::kwtsms.settings.quiet_hours_help"
+msgid "Status updates wait until quiet hours end. New order SMS always go out at once."
+msgstr "Status updates wait until quiet hours end. New order SMS always go out at once."
+
+msgctxt "Languages::kwtsms.settings.logs"
+msgid "Logs"
+msgstr "Logs"
+
+msgctxt "Languages::kwtsms.settings.log_level_info"
+msgid "Normal"
+msgstr "Normal"
+
+msgctxt "Languages::kwtsms.settings.log_level_debug"
+msgid "Debug (every step)"
+msgstr "Debug (every step)"
+
+msgctxt "Languages::kwtsms.settings.days"
+msgid "days"
+msgstr "days"
+
+msgctxt "Languages::kwtsms.settings.retention_help"
+msgid "Enter 0 to keep everything."
+msgstr "Enter 0 to keep everything."
+
+msgctxt "Languages::kwtsms.settings.cron"
+msgid "Cron"
+msgstr "Cron"
+
+msgctxt "Languages::kwtsms.settings.cron_command"
+msgid "Crontab line"
+msgstr "Crontab line"
+
+msgctxt "Languages::kwtsms.settings.cron_help"
+msgid "Run it every minute. It sends queued SMS and syncs with kwtSMS once a day."
+msgstr "Run it every minute. It sends queued SMS and syncs with kwtSMS once a day."
+
+msgctxt "Languages::kwtsms.settings.cron_last_run"
+msgid "Last run"
+msgstr "Last run"
+
+msgctxt "Languages::kwtsms.settings.cron_never"
+msgid "Never. Add the crontab line to your server."
+msgstr "Never. Add the crontab line to your server."
+
+msgctxt "Languages::kwtsms.settings.cron_url_label"
+msgid "Allow running the cron by URL"
+msgstr "Allow running the cron by URL"
+
+msgctxt "Languages::kwtsms.settings.cron_url_help"
+msgid "For hosts without a crontab. Each request must send the cron key below."
+msgstr "For hosts without a crontab. Each request must send the cron key below."
+
+msgctxt "Languages::kwtsms.settings.cron_key"
+msgid "Cron key"
+msgstr "Cron key"
+
+msgctxt "Languages::kwtsms.settings.regenerate_key"
+msgid "Regenerate key"
+msgstr "Regenerate key"
+
+msgctxt "Languages::kwtsms.settings.regenerate_confirm"
+msgid "Regenerate the cron key? A scheduler that uses the old key stops working until you update it."
+msgstr "Regenerate the cron key? A scheduler that uses the old key stops working until you update it."
+
+msgctxt "Languages::kwtsms.settings.field.enabled"
+msgid "Send SMS"
+msgstr "Send SMS"
+
+msgctxt "Languages::kwtsms.settings.field.test_mode"
+msgid "Test mode"
+msgstr "Test mode"
+
+msgctxt "Languages::kwtsms.settings.field.pilot_mode"
+msgid "Pilot mode"
+msgstr "Pilot mode"
+
+msgctxt "Languages::kwtsms.settings.field.default_country_code"
+msgid "Default country"
+msgstr "Default country"
+
+msgctxt "Languages::kwtsms.settings.field.customer_sms_countries"
+msgid "Customer SMS countries"
+msgstr "Customer SMS countries"
+
+msgctxt "Languages::kwtsms.settings.field.placed_status_extra"
+msgid "Also count as a new order"
+msgstr "Also count as a new order"
+
+msgctxt "Languages::kwtsms.settings.field.max_pages_notification"
+msgid "Longest order SMS"
+msgstr "Longest order SMS"
+
+msgctxt "Languages::kwtsms.settings.field.sender_id"
+msgid "Sender ID"
+msgstr "Sender ID"
+
+msgctxt "Languages::kwtsms.settings.field.sender_type"
+msgid "Sender ID type"
+msgstr "Sender ID type"
+
+msgctxt "Languages::kwtsms.settings.field.cap_recipient_hour"
+msgid "SMS per customer number per hour"
+msgstr "SMS per customer number per hour"
+
+msgctxt "Languages::kwtsms.settings.field.cap_recipient_day"
+msgid "SMS per customer number per day"
+msgstr "SMS per customer number per day"
+
+msgctxt "Languages::kwtsms.settings.field.cap_admin_day"
+msgid "SMS per admin number per day"
+msgstr "SMS per admin number per day"
+
+msgctxt "Languages::kwtsms.settings.field.cap_store_day"
+msgid "SMS per day for the whole store"
+msgstr "SMS per day for the whole store"
+
+msgctxt "Languages::kwtsms.settings.field.low_balance_threshold"
+msgid "Low balance alert"
+msgstr "Low balance alert"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_enabled"
+msgid "Quiet hours"
+msgstr "Quiet hours"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_from"
+msgid "Start"
+msgstr "Start"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_to"
+msgid "End"
+msgstr "End"
+
+msgctxt "Languages::kwtsms.settings.field.log_level"
+msgid "Log detail"
+msgstr "Log detail"
+
+msgctxt "Languages::kwtsms.settings.field.retention_messages_days"
+msgid "Keep sent messages"
+msgstr "Keep sent messages"
+
+msgctxt "Languages::kwtsms.settings.field.retention_attempts_days"
+msgid "Keep delivery attempts"
+msgstr "Keep delivery attempts"
+
+msgctxt "Languages::kwtsms.settings.field.retention_debug_days"
+msgid "Keep the debug log"
+msgstr "Keep the debug log"
+
+msgctxt "Languages::kwtsms.settings.field.cron_url_enabled"
+msgid "Cron by URL"
+msgstr "Cron by URL"
+
+msgctxt "Languages::kwtsms.settings.saved"
+msgid "Settings saved"
+msgstr "Settings saved"
+
+msgctxt "Languages::kwtsms.settings.not_saved"
+msgid "Not saved: [field]. [reason]"
+msgstr "Not saved: [field]. [reason]"
+
+msgctxt "Languages::kwtsms.settings.ack_required"
+msgid "Test mode is still on. To turn it off while KWT-SMS is the Sender ID, tick the confirmation under Test mode."
+msgstr "Test mode is still on. To turn it off while KWT-SMS is the Sender ID, tick the confirmation under Test mode."
+
+msgctxt "Languages::kwtsms.settings.enable_refused"
+msgid "SMS are still off. [reason]"
+msgstr "SMS are still off. [reason]"
+
+msgctxt "Languages::kwtsms.settings.sync_failed"
+msgid "The sync with kwtSMS failed. The add-on keeps its saved data and tries again later."
+msgstr "The sync with kwtSMS failed. The add-on keeps its saved data and tries again later."
+
+msgctxt "Languages::kwtsms.settings.synced"
+msgid "Synced with kwtSMS"
+msgstr "Synced with kwtSMS"
+
+msgctxt "Languages::kwtsms.settings.disconnected"
+msgid "Disconnected from kwtSMS. SMS are off until you log in again."
+msgstr "Disconnected from kwtSMS. SMS are off until you log in again."
+
+msgctxt "Languages::kwtsms.settings.disconnect_failed"
+msgid "Disconnect didn't finish and some settings weren't cleared. Check the add-on log, then try again."
+msgstr "Disconnect didn't finish and some settings weren't cleared. Check the add-on log, then try again."
+
+msgctxt "Languages::kwtsms.settings.balance_refreshed"
+msgid "Balance updated: [balance] credits"
+msgstr "Balance updated: [balance] credits"
+
+msgctxt "Languages::kwtsms.settings.balance_not_refreshed"
+msgid "The balance couldn't be updated. Check the add-on log, then try again."
+msgstr "The balance couldn't be updated. Check the add-on log, then try again."
+
+msgctxt "Languages::kwtsms.settings.resumed"
+msgid "kwtSMS answers again. Sending resumed."
+msgstr "kwtSMS answers again. Sending resumed."
+
+msgctxt "Languages::kwtsms.settings.not_suspended"
+msgid "Sending isn't paused."
+msgstr "Sending isn't paused."
+
+msgctxt "Languages::kwtsms.settings.still_suspended"
+msgid "Sending is still paused. [reason]"
+msgstr "Sending is still paused. [reason]"
+
+msgctxt "Languages::kwtsms.settings.resumed_daily_cap"
+msgid "Sending resumed. Today's count starts again now."
+msgstr "Sending resumed. Today's count starts again now."
+
+msgctxt "Languages::kwtsms.settings.key_regenerated"
+msgid "New cron key saved. Update your scheduler with it."
+msgstr "New cron key saved. Update your scheduler with it."
+
+msgctxt "Languages::kwtsms.settings.key_not_regenerated"
+msgid "The new cron key couldn't be saved. The old key still works. Check the add-on log."
+msgstr "The new cron key couldn't be saved. The old key still works. Check the add-on log."
+
+msgctxt "Languages::kwtsms.settings.failed"
+msgid "This action couldn't be completed. Check the add-on log, then try again."
+msgstr "This action couldn't be completed. Check the add-on log, then try again."
+
+msgctxt "Languages::kwtsms.reason.no_credentials"
+msgid "Log in to kwtSMS first."
+msgstr "Log in to kwtSMS first."
+
+msgctxt "Languages::kwtsms.reason.relogin_required"
+msgid "Log in to kwtSMS again."
+msgstr "Log in to kwtSMS again."
+
+msgctxt "Languages::kwtsms.reason.not_logged_in"
+msgid "Log in to kwtSMS first."
+msgstr "Log in to kwtSMS first."
+
+msgctxt "Languages::kwtsms.reason.no_sender_ids"
+msgid "Your kwtSMS account has no Sender ID yet."
+msgstr "Your kwtSMS account has no Sender ID yet."
+
+msgctxt "Languages::kwtsms.reason.sender_not_in_list"
+msgid "Choose a Sender ID."
+msgstr "Choose a Sender ID."
+
+msgctxt "Languages::kwtsms.reason.sender_banned"
+msgid "kwtSMS banned this Sender ID. Choose another one."
+msgstr "kwtSMS banned this Sender ID. Choose another one."
+
+msgctxt "Languages::kwtsms.reason.unknown_country"
+msgid "Choose a country from the list."
+msgstr "Choose a country from the list."
+
+msgctxt "Languages::kwtsms.reason.sender_unknown"
+msgid "Choose a Sender ID from the list."
+msgstr "Choose a Sender ID from the list."
+
+msgctxt "Languages::kwtsms.reason.invalid"
+msgid "The value isn't valid."
+msgstr "The value isn't valid."
+
+msgctxt "Languages::kwtsms.test_sms.title"
+msgid "Send a test SMS"
+msgstr "Send a test SMS"
+
+msgctxt "Languages::kwtsms.test_sms.phone"
+msgid "Mobile number"
+msgstr "Mobile number"
+
+msgctxt "Languages::kwtsms.test_sms.intl"
+msgid "The number includes its country code"
+msgstr "The number includes its country code"
+
+msgctxt "Languages::kwtsms.test_sms.intl_help"
+msgid "If not ticked, a local number gets the default country code: [country]."
+msgstr "If not ticked, a local number gets the default country code: [country]."
+
+msgctxt "Languages::kwtsms.test_sms.suffix"
+msgid "Extra text"
+msgstr "Extra text"
+
+msgctxt "Languages::kwtsms.test_sms.suffix_help"
+msgid "Optional, up to [max] characters."
+msgstr "Optional, up to [max] characters."
+
+msgctxt "Languages::kwtsms.test_sms.text"
+msgid "Message"
+msgstr "Message"
+
+msgctxt "Languages::kwtsms.test_sms.send"
+msgid "Send test SMS"
+msgstr "Send test SMS"
+
+msgctxt "Languages::kwtsms.test_sms.limit_help"
+msgid "Up to [max] test SMS an hour."
+msgstr "Up to [max] test SMS an hour."
+
+msgctxt "Languages::kwtsms.test_sms.phone_required"
+msgid "Enter a mobile number."
+msgstr "Enter a mobile number."
+
+msgctxt "Languages::kwtsms.test_sms.suffix_too_long"
+msgid "The extra text can be up to [max] characters."
+msgstr "The extra text can be up to [max] characters."
+
+msgctxt "Languages::kwtsms.test_sms.capped"
+msgid "The limit of [max] test SMS an hour is reached. Try again later."
+msgstr "The limit of [max] test SMS an hour is reached. Try again later."
+
+msgctxt "Languages::kwtsms.test_sms.unavailable"
+msgid "The test SMS limit couldn't be checked, so nothing was sent. Try again in a minute."
+msgstr "The test SMS limit couldn't be checked, so nothing was sent. Try again in a minute."
+
+msgctxt "Languages::kwtsms.test_sms.result"
+msgid "Test SMS result"
+msgstr "Test SMS result"
+
+msgctxt "Languages::kwtsms.test_sms.to"
+msgid "To"
+msgstr "To"
+
+msgctxt "Languages::kwtsms.test_sms.outcome"
+msgid "Result"
+msgstr "Result"
+
+msgctxt "Languages::kwtsms.test_sms.details"
+msgid "Details"
+msgstr "Details"
+
+msgctxt "Languages::kwtsms.test_sms.msg_id"
+msgid "Message ID"
+msgstr "Message ID"
+
+msgctxt "Languages::kwtsms.test_sms.points"
+msgid "Credits charged"
+msgstr "Credits charged"
+
+msgctxt "Languages::kwtsms.test_sms.balance_after"
+msgid "Balance after"
+msgstr "Balance after"
+
+msgctxt "Languages::kwtsms.test_sms.test_note"
+msgid "Accepted but not delivered. Delete it from your kwtSMS queue to get the credits back."
+msgstr "Accepted but not delivered. Delete it from your kwtSMS queue to get the credits back."

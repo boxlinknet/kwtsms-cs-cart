@@ -712,3 +712,602 @@ msgstr "توقفت رسائل العملاء"
 msgctxt "Languages::kwtsms.alert.balance_zero.text"
 msgid "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
 msgstr "رصيد kwtSMS صفر، لذلك لا ترسل أي رسائل. اشحن حسابك في kwtsms.com."
+
+# 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
+# kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
+# kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.
+msgctxt "Languages::kwtsms.status.label"
+msgid "kwtSMS status"
+msgstr "حالة kwtSMS"
+
+msgctxt "Languages::kwtsms.status.account"
+msgid "Account"
+msgstr "الحساب"
+
+msgctxt "Languages::kwtsms.status.paused"
+msgid "Paused"
+msgstr "متوقف مؤقتا"
+
+msgctxt "Languages::kwtsms.status.connected"
+msgid "Connected"
+msgstr "متصل"
+
+msgctxt "Languages::kwtsms.status.not_connected"
+msgid "Not connected"
+msgstr "غير متصل"
+
+msgctxt "Languages::kwtsms.status.sms"
+msgid "SMS"
+msgstr "الرسائل"
+
+msgctxt "Languages::kwtsms.status.on"
+msgid "On"
+msgstr "مفعل"
+
+msgctxt "Languages::kwtsms.status.off"
+msgid "Off"
+msgstr "متوقف"
+
+msgctxt "Languages::kwtsms.status.test_mode"
+msgid "Test mode"
+msgstr "وضع الاختبار"
+
+msgctxt "Languages::kwtsms.status.balance"
+msgid "Balance"
+msgstr "الرصيد"
+
+msgctxt "Languages::kwtsms.status.not_ready"
+msgid "SMS can't go out yet. [reason]"
+msgstr "لا يمكن إرسال الرسائل بعد. [reason]"
+
+msgctxt "Languages::kwtsms.nav.label"
+msgid "kwtSMS pages"
+msgstr "صفحات kwtSMS"
+
+msgctxt "Languages::kwtsms.nav.settings"
+msgid "Settings"
+msgstr "الإعدادات"
+
+msgctxt "Languages::kwtsms.settings.title"
+msgid "kwtSMS settings"
+msgstr "إعدادات kwtSMS"
+
+msgctxt "Languages::kwtsms.settings.suspended"
+msgid "Sending is paused. [reason]"
+msgstr "الإرسال متوقف مؤقتا. [reason]"
+
+msgctxt "Languages::kwtsms.settings.retry_now"
+msgid "Retry now"
+msgstr "أعد المحاولة الآن"
+
+msgctxt "Languages::kwtsms.settings.relogin"
+msgid "The saved API password can't be read, so sending is paused. Log in again."
+msgstr "تعذرت قراءة كلمة مرور API المحفوظة، لذلك توقف الإرسال. سجل الدخول مرة أخرى."
+
+msgctxt "Languages::kwtsms.settings.daily_cap_tripped"
+msgid "The daily SMS limit stopped sending today."
+msgstr "أوقف الحد اليومي للرسائل الإرسال اليوم."
+
+msgctxt "Languages::kwtsms.settings.resume_now"
+msgid "Resume sending"
+msgstr "استئناف الإرسال"
+
+msgctxt "Languages::kwtsms.settings.account"
+msgid "kwtSMS account"
+msgstr "حساب kwtSMS"
+
+msgctxt "Languages::kwtsms.settings.logged_in_as"
+msgid "Logged in as"
+msgstr "مسجل الدخول باسم"
+
+msgctxt "Languages::kwtsms.settings.balance"
+msgid "Balance"
+msgstr "الرصيد"
+
+msgctxt "Languages::kwtsms.settings.balance_available"
+msgid "Available"
+msgstr "المتاح"
+
+msgctxt "Languages::kwtsms.settings.balance_purchased"
+msgid "Purchased"
+msgstr "المشترى"
+
+msgctxt "Languages::kwtsms.settings.checked_at"
+msgid "Checked"
+msgstr "آخر تحقق"
+
+msgctxt "Languages::kwtsms.settings.last_sync"
+msgid "Last sync"
+msgstr "آخر مزامنة"
+
+msgctxt "Languages::kwtsms.settings.never"
+msgid "Never"
+msgstr "لم يحدث"
+
+msgctxt "Languages::kwtsms.settings.refresh_balance"
+msgid "Refresh balance"
+msgstr "تحديث الرصيد"
+
+msgctxt "Languages::kwtsms.settings.sync"
+msgid "Sync now"
+msgstr "مزامنة الآن"
+
+msgctxt "Languages::kwtsms.settings.change_account"
+msgid "Change account"
+msgstr "تغيير الحساب"
+
+msgctxt "Languages::kwtsms.settings.change_account_help"
+msgid "Log in with another API user. The current account stays connected until the new login works."
+msgstr "سجل الدخول بمستخدم API آخر. يبقى الحساب الحالي متصلا حتى ينجح تسجيل الدخول الجديد."
+
+msgctxt "Languages::kwtsms.settings.disconnect"
+msgid "Disconnect"
+msgstr "قطع الاتصال"
+
+msgctxt "Languages::kwtsms.settings.disconnect_confirm"
+msgid "Disconnect kwtSMS? All SMS stop until you log in again."
+msgstr "قطع الاتصال بـ kwtSMS؟ تتوقف جميع الرسائل حتى تسجل الدخول مرة أخرى."
+
+msgctxt "Languages::kwtsms.settings.api_username"
+msgid "API username"
+msgstr "اسم مستخدم API"
+
+msgctxt "Languages::kwtsms.settings.api_password"
+msgid "API password"
+msgstr "كلمة مرور API"
+
+msgctxt "Languages::kwtsms.settings.api_user_help"
+msgid "Use the API user from kwtsms.com > Account > API, not your account mobile number or website login."
+msgstr "استخدم مستخدم API من kwtsms.com > الحساب > API، وليس رقم جوال الحساب أو بيانات دخول الموقع."
+
+msgctxt "Languages::kwtsms.settings.login"
+msgid "Log in"
+msgstr "تسجيل الدخول"
+
+msgctxt "Languages::kwtsms.settings.sender"
+msgid "Sender ID"
+msgstr "معرف المرسل"
+
+msgctxt "Languages::kwtsms.settings.sender_none"
+msgid "Log in to load the Sender IDs of your kwtSMS account."
+msgstr "سجل الدخول لتحميل معرفات المرسل في حساب kwtSMS."
+
+msgctxt "Languages::kwtsms.settings.sender_empty_list"
+msgid "Your kwtSMS account has no Sender ID yet. Request one at kwtsms.com, then sync."
+msgstr "لا يوجد معرف مرسل في حساب kwtSMS بعد. اطلب واحدا من kwtsms.com ثم نفذ المزامنة."
+
+msgctxt "Languages::kwtsms.settings.sender_choose"
+msgid "Choose a Sender ID"
+msgstr "اختر معرف المرسل"
+
+msgctxt "Languages::kwtsms.settings.sender_test_warning"
+msgid "KWT-SMS is the kwtSMS test sender. Delivery is delayed and it does not reach Virgin or DND-listed numbers. Register a private transactional Sender ID."
+msgstr "KWT-SMS هو مرسل الاختبار في kwtSMS. يتأخر التسليم ولا يصل إلى أرقام Virgin أو الأرقام المسجلة في قائمة عدم الإزعاج. سجل معرف مرسل خاصا للرسائل التشغيلية."
+
+msgctxt "Languages::kwtsms.settings.sender_type_transactional"
+msgid "Transactional"
+msgstr "تشغيلي"
+
+msgctxt "Languages::kwtsms.settings.sender_type_promotional"
+msgid "Promotional"
+msgstr "ترويجي"
+
+msgctxt "Languages::kwtsms.settings.sender_type_help"
+msgid "Order messages need a transactional Sender ID."
+msgstr "رسائل الطلبات تحتاج إلى معرف مرسل تشغيلي."
+
+msgctxt "Languages::kwtsms.settings.promotional_warning"
+msgid "A promotional Sender ID doesn't reach numbers on the do-not-disturb (DND) list, so some customers won't get their order SMS."
+msgstr "معرف المرسل الترويجي لا يصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)، لذلك لن يستلم بعض العملاء رسائل طلباتهم."
+
+msgctxt "Languages::kwtsms.settings.general"
+msgid "Sending"
+msgstr "الإرسال"
+
+msgctxt "Languages::kwtsms.settings.enabled_label"
+msgid "Send SMS from this store"
+msgstr "إرسال الرسائل من هذا المتجر"
+
+msgctxt "Languages::kwtsms.settings.enabled_help"
+msgid "The main switch. Each message type also has its own switch in Administration > Notifications."
+msgstr "المفتاح الرئيسي. لكل نوع رسالة مفتاح خاص أيضا في الإدارة > الإشعارات."
+
+msgctxt "Languages::kwtsms.settings.enable_blocked"
+msgid "SMS can't be turned on yet. [reason]"
+msgstr "لا يمكن تفعيل الرسائل بعد. [reason]"
+
+msgctxt "Languages::kwtsms.settings.test_mode_label"
+msgid "Send as test messages"
+msgstr "الإرسال كرسائل اختبار"
+
+msgctxt "Languages::kwtsms.settings.test_mode_help"
+msgid "kwtSMS accepts test messages but doesn't deliver them. Each one holds credits in your kwtSMS queue until you delete it."
+msgstr "تقبل kwtSMS رسائل الاختبار لكنها لا تسلمها. تحتجز كل رسالة نقاطا في قائمة الانتظار في kwtSMS حتى تحذفها."
+
+msgctxt "Languages::kwtsms.settings.ack_test_sender"
+msgid "I understand that KWT-SMS delays delivery and doesn't reach Virgin or DND-listed numbers."
+msgstr "أفهم أن KWT-SMS يؤخر التسليم ولا يصل إلى أرقام Virgin أو الأرقام المسجلة في قائمة عدم الإزعاج."
+
+msgctxt "Languages::kwtsms.settings.pilot_mode_label"
+msgid "Send real SMS only to the admin numbers"
+msgstr "إرسال رسائل حقيقية إلى أرقام المدير فقط"
+
+msgctxt "Languages::kwtsms.settings.pilot_mode_help"
+msgid "Use it for a first live run. Messages to anyone else are logged and not sent."
+msgstr "استخدمه لأول تشغيل فعلي. تسجل الرسائل الموجهة لأي شخص آخر ولا ترسل."
+
+msgctxt "Languages::kwtsms.settings.default_country_help"
+msgid "Its code is added to a number typed without one when the digit count fits that country, so 98765432 becomes 96598765432 for Kuwait."
+msgstr "يضاف رمزها إلى الرقم المكتوب بدون رمز دولة عندما يناسب عدد أرقامه تلك الدولة، فيصبح 98765432 هو 96598765432 للكويت."
+
+msgctxt "Languages::kwtsms.settings.customer_countries_help"
+msgid "Customers get SMS only on numbers from these countries. The default country is always included. Hold Ctrl or Cmd to select more than one."
+msgstr "يستلم العملاء الرسائل فقط على أرقام هذه الدول. الدولة الافتراضية مضمنة دائما. اضغط Ctrl أو Cmd لاختيار أكثر من دولة."
+
+msgctxt "Languages::kwtsms.settings.placed_statuses_help"
+msgid "Paid statuses always send the new order SMS. Tick any other status that should too."
+msgstr "الحالات المدفوعة ترسل دائما رسالة الطلب الجديد. حدد أي حالة أخرى يجب أن ترسلها أيضا."
+
+msgctxt "Languages::kwtsms.settings.max_pages_help"
+msgid "In SMS pages. A longer order message isn't sent. One page holds 160 English or 70 Arabic characters."
+msgstr "بعدد صفحات الرسالة. لا ترسل رسالة الطلب الأطول من ذلك. تتسع الصفحة الواحدة لـ 160 حرفا إنجليزيا أو 70 حرفا عربيا."
+
+msgctxt "Languages::kwtsms.settings.limits"
+msgid "Limits"
+msgstr "الحدود"
+
+msgctxt "Languages::kwtsms.settings.cap_store_day_help"
+msgid "When the store reaches this number, sending stops until midnight or until you resume it."
+msgstr "عندما يصل المتجر إلى هذا العدد يتوقف الإرسال حتى منتصف الليل أو حتى تستأنفه."
+
+msgctxt "Languages::kwtsms.settings.low_balance_help"
+msgid "Alert below this many credits. Leave it empty to use 3 days of your usual sending, at least 100."
+msgstr "تنبيه عندما يقل الرصيد عن هذا العدد من النقاط. اتركه فارغا لاستخدام 3 أيام من إرسالك المعتاد، و100 على الأقل."
+
+msgctxt "Languages::kwtsms.settings.quiet_hours"
+msgid "Quiet hours"
+msgstr "ساعات الهدوء"
+
+msgctxt "Languages::kwtsms.settings.quiet_hours_label"
+msgid "Hold customer status SMS at night"
+msgstr "تأجيل رسائل حالة الطلب للعملاء ليلا"
+
+msgctxt "Languages::kwtsms.settings.quiet_hours_help"
+msgid "Status updates wait until quiet hours end. New order SMS always go out at once."
+msgstr "تنتظر تحديثات الحالة حتى تنتهي ساعات الهدوء. رسائل الطلب الجديد ترسل فورا دائما."
+
+msgctxt "Languages::kwtsms.settings.logs"
+msgid "Logs"
+msgstr "السجلات"
+
+msgctxt "Languages::kwtsms.settings.log_level_info"
+msgid "Normal"
+msgstr "عادي"
+
+msgctxt "Languages::kwtsms.settings.log_level_debug"
+msgid "Debug (every step)"
+msgstr "تصحيح الأخطاء (كل خطوة)"
+
+msgctxt "Languages::kwtsms.settings.days"
+msgid "days"
+msgstr "يوما"
+
+msgctxt "Languages::kwtsms.settings.retention_help"
+msgid "Enter 0 to keep everything."
+msgstr "أدخل 0 للاحتفاظ بكل شيء."
+
+msgctxt "Languages::kwtsms.settings.cron"
+msgid "Cron"
+msgstr "المهمة المجدولة"
+
+msgctxt "Languages::kwtsms.settings.cron_command"
+msgid "Crontab line"
+msgstr "سطر crontab"
+
+msgctxt "Languages::kwtsms.settings.cron_help"
+msgid "Run it every minute. It sends queued SMS and syncs with kwtSMS once a day."
+msgstr "شغله كل دقيقة. يرسل الرسائل المنتظرة ويزامن مع kwtSMS مرة في اليوم."
+
+msgctxt "Languages::kwtsms.settings.cron_last_run"
+msgid "Last run"
+msgstr "آخر تشغيل"
+
+msgctxt "Languages::kwtsms.settings.cron_never"
+msgid "Never. Add the crontab line to your server."
+msgstr "لم يحدث. أضف سطر crontab إلى الخادم."
+
+msgctxt "Languages::kwtsms.settings.cron_url_label"
+msgid "Allow running the cron by URL"
+msgstr "السماح بتشغيل المهمة المجدولة من رابط"
+
+msgctxt "Languages::kwtsms.settings.cron_url_help"
+msgid "For hosts without a crontab. Each request must send the cron key below."
+msgstr "للاستضافات التي لا توفر crontab. يجب أن يرسل كل طلب مفتاح المهمة أدناه."
+
+msgctxt "Languages::kwtsms.settings.cron_key"
+msgid "Cron key"
+msgstr "مفتاح المهمة المجدولة"
+
+msgctxt "Languages::kwtsms.settings.regenerate_key"
+msgid "Regenerate key"
+msgstr "إنشاء مفتاح جديد"
+
+msgctxt "Languages::kwtsms.settings.regenerate_confirm"
+msgid "Regenerate the cron key? A scheduler that uses the old key stops working until you update it."
+msgstr "إنشاء مفتاح جديد للمهمة المجدولة؟ يتوقف أي مجدول يستخدم المفتاح القديم حتى تحدثه."
+
+msgctxt "Languages::kwtsms.settings.field.enabled"
+msgid "Send SMS"
+msgstr "إرسال الرسائل"
+
+msgctxt "Languages::kwtsms.settings.field.test_mode"
+msgid "Test mode"
+msgstr "وضع الاختبار"
+
+msgctxt "Languages::kwtsms.settings.field.pilot_mode"
+msgid "Pilot mode"
+msgstr "الوضع التجريبي"
+
+msgctxt "Languages::kwtsms.settings.field.default_country_code"
+msgid "Default country"
+msgstr "الدولة الافتراضية"
+
+msgctxt "Languages::kwtsms.settings.field.customer_sms_countries"
+msgid "Customer SMS countries"
+msgstr "دول رسائل العملاء"
+
+msgctxt "Languages::kwtsms.settings.field.placed_status_extra"
+msgid "Also count as a new order"
+msgstr "تحسب أيضا طلبا جديدا"
+
+msgctxt "Languages::kwtsms.settings.field.max_pages_notification"
+msgid "Longest order SMS"
+msgstr "أطول رسالة طلب"
+
+msgctxt "Languages::kwtsms.settings.field.sender_id"
+msgid "Sender ID"
+msgstr "معرف المرسل"
+
+msgctxt "Languages::kwtsms.settings.field.sender_type"
+msgid "Sender ID type"
+msgstr "نوع معرف المرسل"
+
+msgctxt "Languages::kwtsms.settings.field.cap_recipient_hour"
+msgid "SMS per customer number per hour"
+msgstr "رسائل لكل رقم عميل في الساعة"
+
+msgctxt "Languages::kwtsms.settings.field.cap_recipient_day"
+msgid "SMS per customer number per day"
+msgstr "رسائل لكل رقم عميل في اليوم"
+
+msgctxt "Languages::kwtsms.settings.field.cap_admin_day"
+msgid "SMS per admin number per day"
+msgstr "رسائل لكل رقم مدير في اليوم"
+
+msgctxt "Languages::kwtsms.settings.field.cap_store_day"
+msgid "SMS per day for the whole store"
+msgstr "رسائل المتجر كله في اليوم"
+
+msgctxt "Languages::kwtsms.settings.field.low_balance_threshold"
+msgid "Low balance alert"
+msgstr "تنبيه انخفاض الرصيد"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_enabled"
+msgid "Quiet hours"
+msgstr "ساعات الهدوء"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_from"
+msgid "Start"
+msgstr "البداية"
+
+msgctxt "Languages::kwtsms.settings.field.quiet_hours_to"
+msgid "End"
+msgstr "النهاية"
+
+msgctxt "Languages::kwtsms.settings.field.log_level"
+msgid "Log detail"
+msgstr "تفاصيل السجل"
+
+msgctxt "Languages::kwtsms.settings.field.retention_messages_days"
+msgid "Keep sent messages"
+msgstr "الاحتفاظ بالرسائل المرسلة"
+
+msgctxt "Languages::kwtsms.settings.field.retention_attempts_days"
+msgid "Keep delivery attempts"
+msgstr "الاحتفاظ بمحاولات الإرسال"
+
+msgctxt "Languages::kwtsms.settings.field.retention_debug_days"
+msgid "Keep the debug log"
+msgstr "الاحتفاظ بسجل تصحيح الأخطاء"
+
+msgctxt "Languages::kwtsms.settings.field.cron_url_enabled"
+msgid "Cron by URL"
+msgstr "تشغيل المهمة من رابط"
+
+msgctxt "Languages::kwtsms.settings.saved"
+msgid "Settings saved"
+msgstr "تم حفظ الإعدادات"
+
+msgctxt "Languages::kwtsms.settings.not_saved"
+msgid "Not saved: [field]. [reason]"
+msgstr "لم يحفظ: [field]. [reason]"
+
+msgctxt "Languages::kwtsms.settings.ack_required"
+msgid "Test mode is still on. To turn it off while KWT-SMS is the Sender ID, tick the confirmation under Test mode."
+msgstr "ما زال وضع الاختبار مفعلا. لإيقافه بينما KWT-SMS هو معرف المرسل، حدد خانة التأكيد أسفل وضع الاختبار."
+
+msgctxt "Languages::kwtsms.settings.enable_refused"
+msgid "SMS are still off. [reason]"
+msgstr "ما زالت الرسائل متوقفة. [reason]"
+
+msgctxt "Languages::kwtsms.settings.sync_failed"
+msgid "The sync with kwtSMS failed. The add-on keeps its saved data and tries again later."
+msgstr "فشلت المزامنة مع kwtSMS. تحتفظ الإضافة ببياناتها المحفوظة وتعيد المحاولة لاحقا."
+
+msgctxt "Languages::kwtsms.settings.synced"
+msgid "Synced with kwtSMS"
+msgstr "تمت المزامنة مع kwtSMS"
+
+msgctxt "Languages::kwtsms.settings.disconnected"
+msgid "Disconnected from kwtSMS. SMS are off until you log in again."
+msgstr "تم قطع الاتصال بـ kwtSMS. الرسائل متوقفة حتى تسجل الدخول مرة أخرى."
+
+msgctxt "Languages::kwtsms.settings.disconnect_failed"
+msgid "Disconnect didn't finish and some settings weren't cleared. Check the add-on log, then try again."
+msgstr "لم يكتمل قطع الاتصال ولم تمسح بعض الإعدادات. راجع سجل الإضافة ثم حاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.settings.balance_refreshed"
+msgid "Balance updated: [balance] credits"
+msgstr "تم تحديث الرصيد: [balance] نقطة"
+
+msgctxt "Languages::kwtsms.settings.balance_not_refreshed"
+msgid "The balance couldn't be updated. Check the add-on log, then try again."
+msgstr "تعذر تحديث الرصيد. راجع سجل الإضافة ثم حاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.settings.resumed"
+msgid "kwtSMS answers again. Sending resumed."
+msgstr "تستجيب kwtSMS مرة أخرى. تم استئناف الإرسال."
+
+msgctxt "Languages::kwtsms.settings.not_suspended"
+msgid "Sending isn't paused."
+msgstr "الإرسال غير متوقف."
+
+msgctxt "Languages::kwtsms.settings.still_suspended"
+msgid "Sending is still paused. [reason]"
+msgstr "ما زال الإرسال متوقفا. [reason]"
+
+msgctxt "Languages::kwtsms.settings.resumed_daily_cap"
+msgid "Sending resumed. Today's count starts again now."
+msgstr "تم استئناف الإرسال. يبدأ عد اليوم من جديد الآن."
+
+msgctxt "Languages::kwtsms.settings.key_regenerated"
+msgid "New cron key saved. Update your scheduler with it."
+msgstr "تم حفظ مفتاح المهمة الجديد. حدث المجدول به."
+
+msgctxt "Languages::kwtsms.settings.key_not_regenerated"
+msgid "The new cron key couldn't be saved. The old key still works. Check the add-on log."
+msgstr "تعذر حفظ مفتاح المهمة الجديد. ما زال المفتاح القديم يعمل. راجع سجل الإضافة."
+
+msgctxt "Languages::kwtsms.settings.failed"
+msgid "This action couldn't be completed. Check the add-on log, then try again."
+msgstr "تعذر إكمال هذا الإجراء. راجع سجل الإضافة ثم حاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.reason.no_credentials"
+msgid "Log in to kwtSMS first."
+msgstr "سجل الدخول إلى kwtSMS أولا."
+
+msgctxt "Languages::kwtsms.reason.relogin_required"
+msgid "Log in to kwtSMS again."
+msgstr "سجل الدخول إلى kwtSMS مرة أخرى."
+
+msgctxt "Languages::kwtsms.reason.not_logged_in"
+msgid "Log in to kwtSMS first."
+msgstr "سجل الدخول إلى kwtSMS أولا."
+
+msgctxt "Languages::kwtsms.reason.no_sender_ids"
+msgid "Your kwtSMS account has no Sender ID yet."
+msgstr "لا يوجد معرف مرسل في حساب kwtSMS بعد."
+
+msgctxt "Languages::kwtsms.reason.sender_not_in_list"
+msgid "Choose a Sender ID."
+msgstr "اختر معرف المرسل."
+
+msgctxt "Languages::kwtsms.reason.sender_banned"
+msgid "kwtSMS banned this Sender ID. Choose another one."
+msgstr "حظرت kwtSMS معرف المرسل هذا. اختر معرفا آخر."
+
+msgctxt "Languages::kwtsms.reason.unknown_country"
+msgid "Choose a country from the list."
+msgstr "اختر دولة من القائمة."
+
+msgctxt "Languages::kwtsms.reason.sender_unknown"
+msgid "Choose a Sender ID from the list."
+msgstr "اختر معرف مرسل من القائمة."
+
+msgctxt "Languages::kwtsms.reason.invalid"
+msgid "The value isn't valid."
+msgstr "القيمة غير صالحة."
+
+msgctxt "Languages::kwtsms.test_sms.title"
+msgid "Send a test SMS"
+msgstr "إرسال رسالة اختبار"
+
+msgctxt "Languages::kwtsms.test_sms.phone"
+msgid "Mobile number"
+msgstr "رقم الجوال"
+
+msgctxt "Languages::kwtsms.test_sms.intl"
+msgid "The number includes its country code"
+msgstr "الرقم يتضمن رمز الدولة"
+
+msgctxt "Languages::kwtsms.test_sms.intl_help"
+msgid "If not ticked, a local number gets the default country code: [country]."
+msgstr "إذا لم تحدد هذا الخيار، يضاف رمز الدولة الافتراضية إلى الرقم المحلي: [country]."
+
+msgctxt "Languages::kwtsms.test_sms.suffix"
+msgid "Extra text"
+msgstr "نص إضافي"
+
+msgctxt "Languages::kwtsms.test_sms.suffix_help"
+msgid "Optional, up to [max] characters."
+msgstr "اختياري، حتى [max] حرفا."
+
+msgctxt "Languages::kwtsms.test_sms.text"
+msgid "Message"
+msgstr "الرسالة"
+
+msgctxt "Languages::kwtsms.test_sms.send"
+msgid "Send test SMS"
+msgstr "إرسال رسالة الاختبار"
+
+msgctxt "Languages::kwtsms.test_sms.limit_help"
+msgid "Up to [max] test SMS an hour."
+msgstr "حتى [max] رسائل اختبار في الساعة."
+
+msgctxt "Languages::kwtsms.test_sms.phone_required"
+msgid "Enter a mobile number."
+msgstr "أدخل رقم جوال."
+
+msgctxt "Languages::kwtsms.test_sms.suffix_too_long"
+msgid "The extra text can be up to [max] characters."
+msgstr "يمكن أن يصل النص الإضافي إلى [max] حرفا."
+
+msgctxt "Languages::kwtsms.test_sms.capped"
+msgid "The limit of [max] test SMS an hour is reached. Try again later."
+msgstr "تم بلوغ حد [max] رسائل اختبار في الساعة. حاول لاحقا."
+
+msgctxt "Languages::kwtsms.test_sms.unavailable"
+msgid "The test SMS limit couldn't be checked, so nothing was sent. Try again in a minute."
+msgstr "تعذر التحقق من حد رسائل الاختبار، لذلك لم يرسل شيء. حاول مرة أخرى بعد دقيقة."
+
+msgctxt "Languages::kwtsms.test_sms.result"
+msgid "Test SMS result"
+msgstr "نتيجة رسالة الاختبار"
+
+msgctxt "Languages::kwtsms.test_sms.to"
+msgid "To"
+msgstr "إلى"
+
+msgctxt "Languages::kwtsms.test_sms.outcome"
+msgid "Result"
+msgstr "النتيجة"
+
+msgctxt "Languages::kwtsms.test_sms.details"
+msgid "Details"
+msgstr "التفاصيل"
+
+msgctxt "Languages::kwtsms.test_sms.msg_id"
+msgid "Message ID"
+msgstr "رقم الرسالة"
+
+msgctxt "Languages::kwtsms.test_sms.points"
+msgid "Credits charged"
+msgstr "النقاط المخصومة"
+
+msgctxt "Languages::kwtsms.test_sms.balance_after"
+msgid "Balance after"
+msgstr "الرصيد بعد الإرسال"
+
+msgctxt "Languages::kwtsms.test_sms.test_note"
+msgid "Accepted but not delivered. Delete it from your kwtSMS queue to get the credits back."
+msgstr "قبلت الرسالة لكنها لم تسلم. احذفها من قائمة الانتظار في kwtSMS لاسترداد النقاط."

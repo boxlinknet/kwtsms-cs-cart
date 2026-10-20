@@ -8,3 +8,228 @@ WHY:       Pages arrive in Tasks 1.10 to 1.15; every selector will sit under a "
 USAGE:     Compiled and loaded by hooks/index/styles.post.tpl.
 DEPENDS:   Nothing.
 */
+
+/*
+2026-10-21 02:07 +03: Task 1.10, task 596. Settings page styles. Everything sits under .kwtsms-page so nothing leaks
+into other admin pages. Native backend components carry the page; the brand shows in one place, the status strip
+(an orange rule on its inline-start edge, PRD 7: brand #FFA200 with text #434345, accent #79CCF2). Logical properties
+only, so the page reads right in RTL without the core's CSS flip. Usable at 1280 and 768 px.
+*/
+@kwtsms-brand: #FFA200;
+@kwtsms-brand-tint: #FFF1D6;
+@kwtsms-text: #434345;
+@kwtsms-accent: #79CCF2;
+@kwtsms-accent-tint: #E4F5FD;
+@kwtsms-line: #E3E3E6;
+@kwtsms-danger: #B42318;
+@kwtsms-danger-tint: #FDECEA;
+
+.kwtsms-page {
+    max-width: 1040px;
+
+    /* ---- navigation tabs ---- */
+    .kwtsms-nav {
+        margin-block-end: 16px;
+    }
+
+    /* ---- status strip: the one branded element ---- */
+    .kwtsms-status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 28px;
+        margin: 0 0 6px;
+        padding: 12px 16px;
+        border: 1px solid @kwtsms-line;
+        border-inline-start: 4px solid @kwtsms-brand;
+        border-radius: 4px;
+        background: #fff;
+        color: @kwtsms-text;
+    }
+    .kwtsms-status__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        dt {
+            font-weight: normal;
+            color: lighten(@kwtsms-text, 18%);
+        }
+        dd {
+            margin: 0;
+            font-weight: 600;
+        }
+    }
+    .kwtsms-status__note {
+        margin: 0 0 14px;
+    }
+    .kwtsms-badge {
+        display: inline-block;
+        padding: 1px 10px;
+        border-radius: 999px;
+        background: #F0F0F2;
+        color: @kwtsms-text;
+        font-weight: 600;
+        line-height: 20px;
+    }
+    .kwtsms-badge--ok {
+        background: @kwtsms-brand-tint;
+        box-shadow: inset 0 0 0 1px fade(@kwtsms-brand, 55%);
+    }
+    .kwtsms-badge--test {
+        background: @kwtsms-accent-tint;
+        box-shadow: inset 0 0 0 1px @kwtsms-accent;
+    }
+    .kwtsms-badge--danger {
+        background: @kwtsms-danger-tint;
+        color: @kwtsms-danger;
+    }
+
+    /* ---- sections and forms ---- */
+    .kwtsms-section {
+        margin-block-start: 8px;
+    }
+    .kwtsms-section--follow {
+        margin-block-start: -8px;
+    }
+    .kwtsms-section__note {
+        margin-inline-start: 0;
+    }
+    .kwtsms-alert {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 16px;
+        p {
+            margin: 0;
+        }
+    }
+    .kwtsms-inline-alert {
+        margin: 8px 0 0;
+        max-width: 560px;
+    }
+    .kwtsms-inline-form {
+        display: inline-block;
+        margin: 0;
+    }
+    .kwtsms-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    .kwtsms-ltr {
+        direction: ltr;
+        text-align: start;
+    }
+    .control-group input.input-large,
+    .control-group input.kwtsms-ltr {
+        width: 100%;
+        max-width: 320px;
+        box-sizing: border-box;
+    }
+    .kwtsms-select-wide {
+        width: 100%;
+        max-width: 320px;
+    }
+    .kwtsms-code {
+        width: 100%;
+        max-width: 640px;
+        box-sizing: border-box;
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+        direction: ltr;
+        text-align: left;
+    }
+    .kwtsms-checklist {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 2px 16px;
+        max-width: 640px;
+        label.checkbox {
+            margin: 0;
+        }
+    }
+    .kwtsms-unit {
+        margin-inline-start: 6px;
+        vertical-align: middle;
+    }
+    .kwtsms-static {
+        margin: 0;
+        padding-block-start: 5px;
+    }
+    .kwtsms-message {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-hint {
+        margin: 6px 0 0;
+        color: @kwtsms-danger;
+    }
+    .kwtsms-ack {
+        margin-block-start: 8px;
+        padding: 8px 12px;
+        border-inline-start: 3px solid @kwtsms-brand;
+        background: @kwtsms-brand-tint;
+        max-width: 560px;
+        label.checkbox {
+            margin: 0;
+        }
+    }
+    .kwtsms-balance span {
+        display: inline-block;
+        margin-inline-end: 16px;
+    }
+    .muted.description {
+        max-width: 640px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---- test SMS result ---- */
+    .kwtsms-result {
+        margin: 0 0 16px;
+        padding: 12px 16px;
+        border: 1px solid @kwtsms-line;
+        border-inline-start: 4px solid @kwtsms-accent;
+        border-radius: 4px;
+        max-width: 640px;
+        color: @kwtsms-text;
+    }
+    .kwtsms-result--failed,
+    .kwtsms-result--skipped {
+        border-inline-start-color: @kwtsms-danger;
+    }
+    .kwtsms-result__title {
+        margin: 0 0 8px;
+        font-size: 14px;
+    }
+    .kwtsms-result__list {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 4px 16px;
+        margin: 0;
+        dt {
+            font-weight: normal;
+            color: lighten(@kwtsms-text, 18%);
+        }
+        dd {
+            margin: 0;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+    }
+    .kwtsms-result__note {
+        margin: 10px 0 0;
+    }
+}
+
+/* Narrow screens (768 px with the admin menu open): stack labels over fields, keep everything inside the page. */
+@media (max-width: 979px) {
+    .kwtsms-page {
+        .kwtsms-status {
+            gap: 8px 18px;
+        }
+        .kwtsms-code {
+            font-size: 11px;
+        }
+    }
+}
