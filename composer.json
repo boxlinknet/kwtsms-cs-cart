@@ -1,0 +1,37 @@
+{
+    "name": "kwtsms/cscart-kwtsms",
+    "description": "Dev tooling only (tests and code standards) for the kwtSMS add-on for CS-Cart and Multi-Vendor. The add-on itself ships without Composer dependencies.",
+    "type": "project",
+    "license": "MIT",
+    "homepage": "https://www.kwtsms.com/",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpcompatibility/php-compatibility": "^9.3",
+        "phpunit/phpunit": "^9.6",
+        "squizlabs/php_codesniffer": "^3.10"
+    },
+    "autoload-dev": {
+        "psr-0": {
+            "Tygh\\Addons\\Kwtsms\\": "app/addons/kwtsms/"
+        },
+        "psr-4": {
+            "Kwtsms\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "optimize-autoloader": false,
+        "platform": {
+            "php": "7.4.33"
+        },
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

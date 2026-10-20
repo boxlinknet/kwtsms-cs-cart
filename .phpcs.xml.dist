@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+FILE:      .phpcs.xml.dist
+CREATED:   2026-10-20 18:50 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      PHP_CodeSniffer ruleset for the kwtSMS add-on: PSR-12 plus PHPCompatibility 7.4 to 8.3.
+WHY:       The add-on must run unchanged on every PHP version CS-Cart 4.18.1 to 4.21.2 supports, and
+           must follow one coding style. The ruleset also keeps `vendor/bin/phpcs` green on a tree
+           that has no add-on yet (exit 0, nothing scanned) instead of the exit 3 "file does not exist"
+           that a plain <file>app/addons/kwtsms</file> gives.
+USAGE:     vendor/bin/phpcs            (inside the php container: docker compose -f docker/compose.yml
+                                        exec -T -u www-data -w /repo php vendor/bin/phpcs)
+DEPENDS:   squizlabs/php_codesniffer, phpcompatibility/php-compatibility (composer.json, dev only).
+-->
+<ruleset name="kwtSMS CS-Cart add-on">
+    <description>PSR-12 and PHP 7.4 to 8.3 compatibility for app/addons/kwtsms.</description>
+
+    <!-- Scan from the repo root but prune everything except app/addons/kwtsms. The three patterns
+         keep only: top level "app", then "app/addons", then "app/addons/kwtsms". With no add-on yet
+         the queue is empty and phpcs exits 0. Patterns are relative to this file. -->
+    <file>.</file>
+    <exclude-pattern type="relative">^(?!app(/|$))[^/]+</exclude-pattern>
+    <exclude-pattern type="relative">^app/(?!addons(/|$))[^/]+</exclude-pattern>
+    <exclude-pattern type="relative">^app/addons/(?!kwtsms(/|$))[^/]+</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg name="basepath" value="."/>
+    <arg name="cache" value=".phpcs-cache"/>
+    <arg value="s"/>
+
+    <config name="testVersion" value="7.4-8.3"/>
+
+    <rule ref="PSR12"/>
+    <rule ref="PHPCompatibility"/>
+
+    <!-- PHPCompatibility 9.3.x (latest stable) knows PHP up to 7.4 only, so it cannot flag PHP 8
+         additions. The add-on supports PHP 7.4, so ban the PHP 8.x functions the plan names plus the
+         other 8.x string/array/runtime helpers. PHP 8 syntax (match, promotion, nullsafe, named
+         arguments, union types, enums, readonly) is NOT detected by any sniff here; `php -l` on a
+         PHP 7.4 binary is the only check for it. -->
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="str_contains" value="strpos"/>
+                <element key="str_starts_with" value="strpos"/>
+                <element key="str_ends_with" value="substr"/>
+                <element key="get_debug_type" value="gettype"/>
+                <element key="get_resource_id" value="(int)"/>
+                <element key="array_is_list" value="a manual key check"/>
+                <element key="fdiv" value="the / operator"/>
+                <element key="preg_last_error_msg" value="preg_last_error"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- CS-Cart requires `defined('BOOTSTRAP') or die(...)` at the top of every procedural file.
+         In func.php that guard (a side effect) sits next to the function declarations. -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>*/func.php</exclude-pattern>
+    </rule>
+</ruleset>
