@@ -10,12 +10,19 @@
  *            customer-typed placeholder values such as names (anti-smishing).
  * WHY:       The gateway rejects or mis-bills what it cannot carry: an empty body (ERR009), HTML (ERR027),
  *            emoji (ERR036, gw7 and gw1), more than 7 pages (ERR012). The body is cleaned locally first so
- *            a send either goes out in a form the gateway accepts or is blocked before it costs credits,
- *            and the page count shown in the admin and charged for matches the gateway's count exactly.
+ *            the page count shown in the admin and charged for matches the gateway's count exactly, and
+ *            so what is left is something the gateway accepts. Not every ERR027 shape is removed: PRD 6.2.1
+ *            keeps a lone < or > (a price such as "<10 KD"), while the gateway rejects ANY <...> span.
+ *            The spans that remain are detected by hasHtmlLikeSpan() and the CALLER blocks the send
+ *            (SmsService, outcome rejected, code LOCAL_HTML, no HTTP call).
+ *            2026-10-20 21:41 +03, fix round 1, task 596: this paragraph replaces one that claimed a send
+ *            "either goes out in a form the gateway accepts or is blocked".
  * USAGE:     All methods are static and pure (no state, no CS-Cart calls, no I/O).
  *              MessageCleaner::clean($body)                  -> cleaned body ('' means blocked_empty)
- *              MessageCleaner::cleanPlaceholderValue($name)  -> at most 20 characters, no URL, www. or
- *                                                               run of 6 or more digits
+ *              MessageCleaner::hasHtmlLikeSpan($cleaned)     -> true when a "<" is followed later by a ">"
+ *                                                               (the gateway's ERR027 rule); the caller blocks
+ *              MessageCleaner::cleanPlaceholderValue($name)  -> at most 20 characters on one line, no < or >,
+ *                                                               URL, www., domain or run of 6+ digits
  *              MessageCleaner::decodeEscapes($text)          -> literal \r\n \n \t decoded, \\ -> \
  *              MessageCleaner::isUnicode($body)              -> true when any character is above U+007F
  *              MessageCleaner::units($body)                  -> UTF-16 code units (astral = 2)
@@ -61,8 +68,28 @@
  *      are NOT decoded (PRD 6.2.1 lists only the three); the gateway decodes \uXXXX itself.
  *   9. Placeholder values (names): cleaned first (so hidden characters, entities and Arabic digits cannot
  *      hide a link), then URLs (scheme://, www., host/path), runs of 6 or more digits removed, then cut to
- *      20 code points, then trimmed.
+ *      20 code points, then trimmed. (Extended in change 12.)
  *  10. PHP 7.4 safe: no match, str_contains, named arguments; intdiv() and possessive PCRE quantifiers only.
+ *
+ * FIX ROUND 1 (2026-10-20 21:41 +03, task 596; review findings and controller rulings R13 and R14):
+ *  11. Bare domains in placeholder values. A dotted token with a label from URL_TLDS after its first label
+ *      (case-insensitive, also written evil[.]com or evil(.)com, with the path or query that follows) is
+ *      removed: "evil.com", "bit.ly", "visit evil.com now", "x.com?a=1", "evil.com.Smith". A dotted token
+ *      with a /path is removed whatever its labels. "Mr.Smith", "St.John" and "A.B" stay. A label starts with
+ *      a letter or digit, so "evil.com.-" ends at com; a query after a KEPT token is still scanned
+ *      ("a.b?q=1x.com").
+ *  12. cleanPlaceholderValue also removes every < and >, and collapses each run of whitespace (newlines and
+ *      tabs too) into one space, so a customer-typed value can never create an HTML-like span or inject a
+ *      line break. It repeats until stable, because removing a bracket can rebuild an entity ("&<>lt;"),
+ *      and the cut to 20 code points is inside that loop, because a cut can build a domain
+ *      ("abcdefghijklmnopq.coolbeans" is cut to "...q.co", which the next pass removes).
+ *  13. hasHtmlLikeSpan(): preg_match('/<[^>]*>/') === 1, the gateway's own ERR027 test (R13). Added so the
+ *      caller can block the lone-bracket shapes clean() keeps on purpose, for example "a < b > c".
+ *  14. HIDDEN gained U+034F, U+2061-U+2064, U+206A-U+206F, U+3164 and U+FFA0, so a body of invisible
+ *      characters cleans to '' and is never billed.
+ *  15. TYPOGRAPHY gained (R14): U+2012, U+2013, U+2014, U+2015 and U+2212 to "-", U+2032 to "'" and U+2033 to
+ *      '"'. One em dash would turn the whole SMS into UCS-2 (70 / 67 per page instead of 160 / 153). U+00AB,
+ *      U+00BB and U+2122 are left alone on purpose.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -86,6 +113,17 @@ class MessageCleaner
     /** Longest customer-typed placeholder value, in code points (PRD 6.2.1). */
     public const PLACEHOLDER_MAX_CHARS = 20;
 
+    /**
+     * Last labels that make a dotted token in a placeholder value a domain a phone would turn into a link
+     * (lower case; matching is case-insensitive). Anything else, such as "Mr.Smith" or "A.B", is a name.
+     * 2026-10-20 21:41 +03: added with the bare-domain rule, fix round 1, task 596.
+     */
+    public const URL_TLDS = [
+        'com', 'net', 'org', 'info', 'biz', 'xyz', 'top', 'io', 'ly', 'me', 'co', 'app', 'link', 'site',
+        'online', 'shop', 'store', 'click', 'live', 'kw', 'sa', 'ae', 'qa', 'bh', 'om', 'eg', 'uk', 'us',
+        'ru', 'cn', 'in',
+    ];
+
     /** Cleaning passes before a body that keeps changing is treated as hostile. */
     private const MAX_PASSES = 8;
 
@@ -97,8 +135,19 @@ class MessageCleaner
         '\\t' => "\t",
     ];
 
-    /** Smart quotes and the ellipsis to ASCII. */
+    /**
+     * Smart quotes, dashes, primes and the ellipsis to ASCII.
+     * 2026-10-20 21:41 +03: dashes U+2012-U+2015 and U+2212 to "-", primes U+2032 and U+2033 to ' and ",
+     * ruling R14 (an em dash forces the whole SMS to UCS-2), task 596.
+     */
     private const TYPOGRAPHY = [
+        "\u{2012}" => '-',
+        "\u{2013}" => '-',
+        "\u{2014}" => '-',
+        "\u{2015}" => '-',
+        "\u{2212}" => '-',
+        "\u{2032}" => "'",
+        "\u{2033}" => '"',
         "\u{2018}" => "'",
         "\u{2019}" => "'",
         "\u{201A}" => "'",
@@ -129,9 +178,34 @@ class MessageCleaner
 
     private const COMMENT = '~<!--.*?-->~su';
 
-    /** Hidden and bidi characters, C0 controls except TAB and LF, DEL and the C1 controls. */
-    private const HIDDEN = '/[\x{0000}-\x{0008}\x{000B}-\x{001F}\x{007F}-\x{009F}\x{00AD}\x{061C}\x{180E}'
-        . '\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}\x{2066}-\x{2069}\x{FEFF}\x{FFFC}]/u';
+    /**
+     * A dotted run of labels that does not start in the middle of a word. A label starts with a letter or
+     * digit and goes on with letters, digits and hyphens; the dot may be written [.] or (.). Leading hyphens
+     * in front of the run are swallowed ("-evil.com"). Group 1 is the run, group 2 the first character of a
+     * path, query or fragment that follows it (looked at, not consumed, so a kept run does not hide a domain
+     * in its query: "a.b?q=1x.com"). Possessive, so a long run of "a.a.a." or "a-a-a-" is scanned once.
+     * 2026-10-20 21:41 +03: bare-domain rule, fix round 1, task 596. 21:55: a label cannot be a lone
+     * hyphen (the em dash maps to "-", so "evil.com.-" must still end the run at com). 22:02: the path is a
+     * lookahead. Both found by the fuzz test.
+     */
+    private const HOST_RUN = '~(?<![\p{L}\p{N}-])-*+([\p{L}\p{N}][\p{L}\p{N}-]*+'
+        . '(?:(?:\.|\[\.\]|\(\.\))[\p{L}\p{N}][\p{L}\p{N}-]*+)++)(?=([/?#])?)~u';
+
+    /** What removeDomains() leaves where it removed a run, so the path after it can be removed too. */
+    private const REMOVED_MARK = "\x00";
+
+    /** The marker and the path, query or fragment that follows it (to the next whitespace). */
+    private const REMOVED_WITH_PATH = '~\x00(?:[/?#]\S*+)?~u';
+
+    /**
+     * Hidden and bidi characters, C0 controls except TAB and LF, DEL and the C1 controls.
+     * 2026-10-20 21:41 +03: added U+034F, U+2061-U+2064, U+206A-U+206F, U+3164 and U+FFA0 (invisible
+     * math operators, deprecated format characters, grapheme joiner and Hangul fillers), so an
+     * invisible-only body is empty and never billed, ruling R13 item 4, task 596.
+     */
+    private const HIDDEN = '/[\x{0000}-\x{0008}\x{000B}-\x{001F}\x{007F}-\x{009F}\x{00AD}\x{034F}\x{061C}\x{180E}'
+        . '\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{206A}-\x{206F}'
+        . '\x{3164}\x{FEFF}\x{FFA0}\x{FFFC}]/u';
 
     /** Spaces that are not U+0020: U+2000-U+200A, U+202F, U+205F, U+3000 and NBSP. */
     private const SPECIAL_SPACES = '/[\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}\x{00A0}]/u';
@@ -151,58 +225,41 @@ class MessageCleaner
     public static function clean(string $text): string
     {
         try {
-            $text = self::stripInvalidUtf8($text);
-            $escapesDecoded = false;
-
-            for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
-                $next = self::settleMarkup($text);
-                if (!$escapesDecoded) {
-                    // Step 4 runs once; a second decode would turn the result of "\\n" into a newline.
-                    $next = self::decodeEscapes($next);
-                    $escapesDecoded = true;
-                }
-                $next = self::normalize($next);
-
-                if ($next === $text) {
-                    return $text;
-                }
-                $text = $next;
-            }
+            return self::cleanBody($text, true);
         } catch (\UnexpectedValueException $e) {
             return '';
         }
-
-        return '';
     }
 
     /**
-     * Clean a customer-typed value that is inserted into a template (names): clean it like a body, remove
-     * URLs, "www." hosts and runs of 6 or more digits, cut to 20 code points, trim. Anti-smishing.
+     * True when the text holds a "<" followed later by a ">": the gateway's own ERR027 rule, preg_match of
+     * /<[^>]*>/. clean() keeps a lone < or > on purpose (PRD 6.2.1, "<10 KD"), but "a < b > c" or
+     * "x < y and 5 > 3" still contains such a span and the gateway rejects it. Call this AFTER clean();
+     * when it returns true the caller blocks the send locally (SmsService: outcome rejected, code
+     * LOCAL_HTML, no HTTP call) and the Templates page warns on save.
+     * 2026-10-20 21:41 +03: added, controller ruling R13 item 2, task 596.
+     */
+    public static function hasHtmlLikeSpan(string $text): bool
+    {
+        return preg_match('/<[^>]*>/', $text) === 1;
+    }
+
+    /**
+     * Clean a customer-typed value that is inserted into a template (names): clean it like a body, then
+     * remove every < and >, scheme:// URLs, "www." hosts, bare domains (a dotted token ending in one of
+     * URL_TLDS, also written [.] or (.), or any dotted token followed by a /path) and runs of 6 or more
+     * digits, collapse each run of whitespace (newlines and tabs too) into one space, cut to 20 code points
+     * and trim. Anti-smishing: a phone turns a bare domain into a link, a name cannot inject a line break
+     * or an HTML-like span. Returns '' when the value cannot be settled (fail closed).
+     * 2026-10-20 21:41 +03: bare domains, brackets and whitespace added, fix round 1, task 596.
      */
     public static function cleanPlaceholderValue(string $value): string
     {
-        $value = self::clean($value);
-        if ($value === '') {
-            return '';
-        }
-
         try {
-            for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
-                $before = $value;
-                // scheme://anything, www.anything, host.tld/path
-                $value = self::replace('~[A-Za-z][A-Za-z0-9+.-]*+://\S*+~u', '', $value);
-                $value = self::replace('~www\.\S*+~iu', '', $value);
-                $value = self::replace('~(?<![A-Za-z0-9.-])[A-Za-z0-9-]++(?:\.[A-Za-z0-9-]++)++/\S*+~u', '', $value);
-                $value = self::replace('~[0-9]{6,}~', '', $value);
-                if ($value === $before) {
-                    break;
-                }
-            }
+            return self::settlePlaceholder(self::cleanBody($value, true), self::MAX_PASSES);
         } catch (\UnexpectedValueException $e) {
             return '';
         }
-
-        return trim(mb_substr(trim($value), 0, self::PLACEHOLDER_MAX_CHARS, 'UTF-8'));
     }
 
     /**
@@ -252,6 +309,100 @@ class MessageCleaner
         $multi = $unicode ? self::UNICODE_MULTI : self::GSM_MULTI;
 
         return $units <= $single ? 1 : intdiv($units + $multi - 1, $multi);
+    }
+
+    /**
+     * The cleaning passes of PRD 6.2.1 (see the header, changes 2 and 6). The literal escapes (step 4) are
+     * decoded once, on the first pass, and only when $decodeEscapes is true: a second decode would turn the
+     * result of "\\n" into a newline.
+     *
+     * @throws \UnexpectedValueException When the text keeps changing after MAX_PASSES or PCRE fails
+     */
+    private static function cleanBody(string $text, bool $decodeEscapes): string
+    {
+        $text = self::stripInvalidUtf8($text);
+
+        for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
+            $next = self::settleMarkup($text);
+            if ($decodeEscapes) {
+                $next = self::decodeEscapes($next);
+                $decodeEscapes = false;
+            }
+            $next = self::normalize($next);
+
+            if ($next === $text) {
+                return $text;
+            }
+            $text = $next;
+        }
+
+        throw new \UnexpectedValueException('text does not settle');
+    }
+
+    /**
+     * The placeholder passes of cleanPlaceholderValue(), repeated until a whole pass changes nothing.
+     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 22:10: split out so the "does not settle" branch
+     * can be tested with a small $maxPasses.
+     *
+     * @throws \UnexpectedValueException When the value still changes after $maxPasses or PCRE fails
+     */
+    private static function settlePlaceholder(string $value, int $maxPasses): string
+    {
+        for ($pass = 0; $pass < $maxPasses; $pass++) {
+            $before = $value;
+            $value = strtr($value, ['<' => '', '>' => '']);
+            // Removing a bracket can rebuild an entity ("&<>lt;"), so the body cleaner runs again. The
+            // literal escapes were decoded once already and are not decoded a second time.
+            $value = self::cleanBody($value, false);
+            $value = self::replace('~[A-Za-z][A-Za-z0-9+.-]*+://\S*+~u', '', $value);
+            $value = self::replace('~www\.\S*+~iu', '', $value);
+            $value = self::removeDomains($value);
+            $value = self::replace('~[0-9]{6,}~', '', $value);
+            $value = trim(self::replace('/\s+/u', ' ', $value));
+            // The cut is part of the loop: cutting "abcdefghijklmnopq.coolbeans" at 20 leaves
+            // "abcdefghijklmnopq.co", a domain, which the next pass removes.
+            $value = trim(mb_substr($value, 0, self::PLACEHOLDER_MAX_CHARS, 'UTF-8'));
+            if ($value === $before) {
+                return $value;
+            }
+        }
+
+        throw new \UnexpectedValueException('placeholder value does not settle');
+    }
+
+    /**
+     * Remove bare domains from a placeholder value: a dotted run that has a label from URL_TLDS after its
+     * first label (the last label, or an earlier one: a phone links "evil.com" inside "evil.com.Smith"), or
+     * any dotted run followed by a /path. "Mr.Smith", "St.John" and "A.B" are names and stay.
+     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 21:58: any label after the first, not only the
+     * last, found by the fuzz test ("Smith" + "evil.COM" + ".Mr.Smith" built a linkable domain).
+     *
+     * @throws \UnexpectedValueException When PCRE fails
+     */
+    private static function removeDomains(string $text): string
+    {
+        $out = preg_replace_callback(self::HOST_RUN, static function (array $m): string {
+            $labels = preg_split('/\.|\[\.\]|\(\.\)/', $m[1]);
+
+            if (($m[2] ?? '') === '/') {
+                return self::REMOVED_MARK;
+            }
+            foreach (array_slice((array) $labels, 1) as $label) {
+                // A trailing hyphen is punctuation, not part of the TLD ("evil.com-").
+                $tld = strtr(rtrim($label, '-'), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+                if (in_array($tld, self::URL_TLDS, true)) {
+                    return self::REMOVED_MARK;
+                }
+            }
+
+            return $m[0];
+        }, $text);
+        if (!is_string($out)) {
+            throw new \UnexpectedValueException('PCRE error ' . preg_last_error());
+        }
+
+        // NUL cannot occur in a cleaned value, so the marker is unambiguous.
+        return self::replace(self::REMOVED_WITH_PATH, '', $out);
     }
 
     /**
