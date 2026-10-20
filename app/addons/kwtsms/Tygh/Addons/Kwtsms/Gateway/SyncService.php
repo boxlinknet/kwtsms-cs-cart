@@ -33,9 +33,9 @@
  *            the candidate credentials before anything is saved.
  *            Timeout context of the calls: cli in a CLI process, otherwise admin (an administrator is waiting).
  *            2026-10-21 01:59 +03, Task 1.7 fix round 1, task 596: a failed sync says why (the code of the last
- *            /balance/ comes from SmsService::lastBalanceError()); Change account also clears the selected Sender ID; an
- *            unreachable suspended gateway is tried once per cadence, not on every cron run; every public method
- *            logs its entry and exit at debug (sync.enter/exit, sync.stale.*, sync.due.*, sync.coverage.*,
+ *            /balance/ comes from SmsService::lastBalanceError()); Change account also clears the selected Sender ID;
+ *            an unreachable suspended gateway is tried once per cadence, not on every cron run; every public
+ *            method logs its entry and exit at debug (sync.enter/exit, sync.stale.*, sync.due.*, sync.coverage.*,
  *            sync.retry.*, sync.refresh.*, sync.probe.*, sync.login.*, sync.logout.*).
  *            Secrets: login() registers the candidate username and password, raw and trimmed, with the debug log
  *            before any line is written; nothing here logs a credential.
@@ -225,7 +225,7 @@ class SyncService
         ]);
         $this->state->clear();
         $this->note('info', 'sync.logout', 'disconnected', ['rejected' => $rejected]);
-        $this->note('debug', 'sync.logout.exit', $rejected === [] ? 'ok' : 'not all cleared', [], $this->msSince($started));
+        $this->leave('sync.logout', $started, $rejected === [] ? 'ok' : 'not all cleared');
         if ($rejected !== []) {
             throw new \RuntimeException('Disconnect could not clear these settings: ' . implode(', ', $rejected));
         }

@@ -178,7 +178,8 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         // 2026-10-21 01:13 +03: the jobs of kwtsms_cron.run behind the core lock factory (PRD 4.4), Task 1.7,
-        // task 596. The held-credits query counts the test messages of the last 30 days (index on created_at).
+        // task 596. The held-credits query counts the test messages of the last 30 days (DbLogStore, index on
+        // created_at); prune_logs also deletes final outbox rows (Outbox::pruneFinal, ruling R28).
         $app['kwtsms.cron'] = function (Container $app): CronRunner {
             return new CronRunner(
                 $app['kwtsms.config'],
@@ -192,30 +193,14 @@ class ServiceProvider implements ServiceProviderInterface
                     return $app['lock.factory']->createLock($name, $ttl);
                 },
                 $app['kwtsms.alerts'],
-                [self::class, 'heldTestCredits']
+                function () use ($app): array {
+                    return $app['kwtsms.logs.store']->heldTestCredits(time() - 30 * 86400);
+                },
+                null,
+                null,
+                [$app['kwtsms.outbox'], 'pruneFinal']
             );
         };
-    }
-
-    /**
-     * Test messages of the last 30 days that hold credits in the kwtSMS queue (PRD 6.13 test-mode notice).
-     * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
-     *
-     * @return array{messages: int, credits: float}
-     */
-    public static function heldTestCredits(): array
-    {
-        $row = db_get_row(
-            'SELECT COUNT(*) AS messages, COALESCE(SUM(points_charged), 0) AS credits FROM ?:kwtsms_messages'
-            . ' WHERE created_at >= ?i AND is_test = ?s AND points_charged > 0',
-            time() - 30 * 86400,
-            'Y'
-        );
-
-        return [
-            'messages' => is_array($row) ? (int) ($row['messages'] ?? 0) : 0,
-            'credits' => is_array($row) ? (float) ($row['credits'] ?? 0) : 0.0,
-        ];
     }
 
     /**

@@ -410,27 +410,34 @@ function fn_kwtsms_cron_run(array $jobs = []): array
 
 /**
  * Why a web request to kwtsms_cron.run must be refused, or null when it may run. EVERY web request needs the cron key,
- * a logged-in administrator included (the permission schema lets administrators reach this controller, and a GET
+ * a logged-in administrator included (the permission schema lets administrators reach this controller, and a request
  * from another site must not start a run): URL mode on, a stored key of 32+ characters, the same key in the header
  * X-Kwtsms-Cron-Key or the POST field kwtsms_cron_key, hash_equals(). The command line does not come here.
  * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
  *
- * @return string|null url_mode_off | no_stored_key | no_key | bad_key | method | error
+ * 2026-10-21 01:58 +03: POST only (PRD 10: no state change on GET). The key is checked first, so a caller without it
+ * learns nothing about the method rule; a caller WITH the key who sends another method is told so (405), Task 1.7
+ * fix round 1 item 6, task 596.
+ *
+ * @return string|null url_mode_off | no_stored_key | no_key | bad_key | method (a valid key, a method other than
+ *                     POST: answer 405) | error
  */
 function fn_kwtsms_cron_denial(): ?string
 {
     try {
-        $method = isset($_SERVER['REQUEST_METHOD']) ? (string) $_SERVER['REQUEST_METHOD'] : '';
-        if ($method !== 'GET' && $method !== 'POST') {
-            return 'method';
-        }
         $config = Tygh::$app['kwtsms.config'];
-
-        return CronKey::deny(
+        $denied = CronKey::deny(
             $config->cronUrlEnabled(),
             $config->cronKey(),
             CronKey::supplied($_SERVER, $_POST)
         );
+        if ($denied !== null) {
+            return $denied;
+        }
+
+        return (isset($_SERVER['REQUEST_METHOD']) ? (string) $_SERVER['REQUEST_METHOD'] : '') === 'POST'
+            ? null
+            : 'method';
     } catch (\Throwable $e) {
         error_log('kwtsms: cron key check failed: ' . get_class($e) . ': ' . $e->getMessage()
             . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
@@ -441,12 +448,13 @@ function fn_kwtsms_cron_denial(): ?string
 
 /**
  * A refused cron request goes to the debug log as a warning, at most once a minute (anyone can knock, and a row per
- * knock would be a way to fill the table). URL mode off and a wrong method are not logged at all.
+ * knock would be a way to fill the table). URL mode off is not logged at all. A refusal for the method means the
+ * caller HAS the key, so a misconfigured scheduler (GET instead of POST) shows up in the log.
  * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
  */
 function fn_kwtsms_cron_log_denial(string $reason): void
 {
-    if ($reason === 'url_mode_off' || $reason === 'method') {
+    if ($reason === 'url_mode_off') {
         return;
     }
     try {
@@ -466,7 +474,8 @@ function fn_kwtsms_cron_log_denial(string $reason): void
 
 /**
  * Answers a web request to kwtsms_cron.run and ends it: the status, and a JSON body that says ok or not and nothing
- * else. 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+ * else. 2026-10-21 01:13 +03: added, Task 1.7, task 596. A 405 carries "Allow: POST" (2026-10-21 01:58 +03, fix round
+ * 1 item 6).
  *
  * @return void Never returns
  */
@@ -474,6 +483,9 @@ function fn_kwtsms_cron_reply(int $status, bool $ok)
 {
     if (!headers_sent()) {
         http_response_code($status);
+        if ($status === 405) {
+            header('Allow: POST');
+        }
         header('Content-Type: application/json');
         header('Cache-Control: no-store');
         header('X-Content-Type-Options: nosniff');

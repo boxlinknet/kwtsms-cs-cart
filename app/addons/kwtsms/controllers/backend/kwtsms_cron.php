@@ -13,7 +13,9 @@
  *            authenticates EVERY web request itself with the cron key (CronKey, hash_equals): URL mode on, key in
  *            the header X-Kwtsms-Cron-Key or the POST field kwtsms_cron_key, never the query string. A refused
  *            request gets 403 and {"ok":false}, nothing is run and nothing says why. The command line (CONSOLE)
- *            needs no key.
+ *            needs no key. 2026-10-21 01:58 +03: web requests must be POST (PRD 10: no state change on GET); a
+ *            GET, PUT or DELETE that carries the right key gets 405, "Allow: POST" and {"ok":false}, Task 1.7 fix
+ *            round 1 item 6, task 596.
  * USAGE:     * * * * * www-data php /var/www/html/admin.php --dispatch=kwtsms_cron.run
  *            curl -s -X POST -H 'X-Kwtsms-Cron-Key: <key>' \
  *              'https://shop.example.com/admin.php?dispatch=kwtsms_cron.run'
@@ -39,7 +41,7 @@ if (defined('CONSOLE')) {
 $denied = fn_kwtsms_cron_denial();
 if ($denied !== null) {
     fn_kwtsms_cron_log_denial($denied);
-    fn_kwtsms_cron_reply(403, false);
+    fn_kwtsms_cron_reply($denied === 'method' ? 405 : 403, false);
 }
 
 // A caller that hangs up must not stop a run half way (the outbox rows are claimed one by one).

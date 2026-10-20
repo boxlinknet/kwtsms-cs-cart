@@ -25,13 +25,20 @@
  *            A job that throws fails only itself (logged at error as cron.job_failed, class and message and
  *            file:line, no trace); the rest still run. ok = false is what makes the CLI exit non-zero.
  *            Daily jobs keep their last run in storage key kwtsms_cron_jobs; a failed prune is retried in an hour.
+ *            2026-10-21 01:57 +03, Task 1.7 fix round 1, task 596: the drain runs with the cron flag of
+ *            SmsService::drainDue() (cli timeouts, no web request budget) over the command line AND over the URL
+ *            mode; prune_logs also deletes outbox rows in a final state (done, expired, unknown) older than 30 days
+ *            (ruling R28), works in chunks of 5,000 and stops after 120 s, to go on at the next run (the job is
+ *            stamped done only when every table is finished), so the first prune of a very large table cannot
+ *            outlive the 600 s lock.
  *            Log rows: cron.sync (info, every attempt), cron.drain_outbox (info when rows were claimed or reaped),
  *            cron.prune_logs and cron.health (info), cron.run (info when a job did work or failed, else debug).
  * DEPENDS:   Gateway\GatewayState, Gateway\SyncService, Log\{LogStoreInterface,DebugLog,Schema},
  *            Settings\ConfigInterface, Storage\KeyValueStoreInterface, Alerts\AdminAlerts. A drain callable
  *            (int $limit, float $time_budget_s): array (SmsService::drainDue), a lock factory
  *            (string $name, int $ttl): object with acquire(bool): bool and release(), a held-credits callable
- *            (): array{messages: int, credits: float}.
+ *            (): array{messages: int, credits: float}, an outbox prune callable (int $before, int $limit): int
+ *            (Queue\Outbox::pruneFinal, one chunk per call).
  */
 
 namespace Tygh\Addons\Kwtsms\Cron;
@@ -41,6 +48,7 @@ use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\LogStoreInterface;
+use Tygh\Addons\Kwtsms\Log\PrunableLogStoreInterface;
 use Tygh\Addons\Kwtsms\Log\Schema;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
@@ -63,6 +71,12 @@ class CronRunner
     public const KEY_JOBS = 'kwtsms_cron_jobs';
 
     private const DAY = 86400;
+
+    /** Seconds prune_logs may work in one run; what is left waits for the next run. */
+    public const PRUNE_BUDGET_SECONDS = 120.0;
+
+    /** Outbox rows in a final state are kept this long (ruling R28). */
+    public const OUTBOX_FINAL_DAYS = 30;
 
     /** A prune that failed is tried again after this many seconds. */
     private const RETRY_AFTER_FAILURE = 3600;
@@ -106,12 +120,16 @@ class CronRunner
     /** @var callable|null */
     private $microclock;
 
+    /** @var callable|null (int $before, int $limit): int */
+    private $prune_outbox;
+
     /**
      * @param callable      $drain        (int $limit, float $time_budget_s): array, SmsService::drainDue()
      * @param callable      $lock_factory (string $name, int $ttl): object with acquire(bool): bool and release()
      * @param callable|null $held         (): array{messages: int, credits: float}, the test messages that hold credits
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
      * @param callable|null $microclock   Returns seconds as a float (tests); null = microtime(true)
+     * @param callable|null $prune_outbox (int $before, int $limit): int, deletes one chunk of final outbox rows
      */
     public function __construct(
         ConfigInterface $config,
@@ -125,7 +143,8 @@ class CronRunner
         ?AdminAlerts $alerts = null,
         ?callable $held = null,
         ?callable $clock = null,
-        ?callable $microclock = null
+        ?callable $microclock = null,
+        ?callable $prune_outbox = null
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -139,6 +158,7 @@ class CronRunner
         $this->held = $held;
         $this->clock = $clock;
         $this->microclock = $microclock;
+        $this->prune_outbox = $prune_outbox;
     }
 
     /**
@@ -232,7 +252,9 @@ class CronRunner
             $out['suspension'] = $this->sync->retrySuspension(false, 'cli');
         }
         $left = max(0.0, self::BUDGET_SECONDS - ($this->micro() - $run_started));
-        $out['drain'] = $this->summarize(call_user_func($this->drain, self::DRAIN_ROWS, $left));
+        // true = the cron's drain: no web request budget and cli timeouts, also when the run came in over the URL
+        // mode.
+        $out['drain'] = $this->summarize(call_user_func($this->drain, self::DRAIN_ROWS, $left, true));
         $handled = $out['drain']['claimed'] + $out['drain']['reaped'];
         $this->note($handled > 0 ? 'info' : 'debug', 'cron.drain_outbox', $handled > 0 ? 'drained' : 'nothing due', [
             'drain' => $out['drain'],
@@ -309,9 +331,11 @@ class CronRunner
     }
 
     /**
-     * Daily: deletes the rows older than the retention of each log table (0 days keeps the table), in the chunks
-     * of 5,000 that LogStoreInterface::deleteOlderThan() uses. A table that fails is reported and the others still
-     * run; the whole job is then retried in an hour.
+     * Daily: deletes the rows older than the retention of each log table (0 days keeps the table) and the outbox rows
+     * in a final state older than 30 days, in chunks of 5,000. It works for at most 120 s per run: what is left waits
+     * for the next run (the job is not stamped done until every table is finished), so the first prune of a very
+     * large table cannot outlive the 600 s lock. A table that fails is reported and the others still run; the whole
+     * job is then retried in an hour.
      *
      * @return array<string,mixed>
      */
@@ -320,6 +344,8 @@ class CronRunner
         if (!$this->dailyDue('prune_logs')) {
             return ['ok' => true, 'ran' => false];
         }
+        $deadline = $this->micro() + self::PRUNE_BUDGET_SECONDS;
+        $now = $this->now();
         $retention = [
             Schema::MESSAGES => $this->config->retentionMessagesDays(),
             Schema::ATTEMPTS => $this->config->retentionAttemptsDays(),
@@ -327,26 +353,88 @@ class CronRunner
         ];
         $deleted = [];
         $errors = [];
+        $partial = false;
         foreach ($retention as $table => $days) {
             if ($days <= 0) {
                 continue;
             }
+            if ($this->micro() >= $deadline) {
+                $partial = true;
+                break;
+            }
             try {
-                $deleted[$table] = $this->logs->deleteOlderThan($table, $this->now() - $days * self::DAY);
+                $deleted[$table] = $this->pruneChunks(function (int $chunk) use ($table, $now, $days): int {
+                    return $this->logs instanceof PrunableLogStoreInterface
+                        ? $this->logs->pruneChunk($table, $now - $days * self::DAY, $chunk)
+                        : $this->logs->deleteOlderThan($table, $now - $days * self::DAY, $chunk);
+                }, $deadline, $this->logs instanceof PrunableLogStoreInterface, $partial);
             } catch (\Throwable $e) {
                 $errors[] = $table . ': ' . $this->describe($e);
                 $this->noteThrowable('cron.prune_failed', $e, ['table' => $table]);
             }
+            if ($partial) {
+                break;
+            }
         }
-        $this->stampDaily('prune_logs', $errors === []);
-        $this->note('info', 'cron.prune_logs', $errors === [] ? 'pruned' : 'prune failed in part', [
-            'deleted' => $deleted,
-            'errors' => $errors,
-        ]);
+        if (!$partial && $this->prune_outbox !== null) {
+            if ($this->micro() >= $deadline) {
+                $partial = true;
+            } else {
+                try {
+                    $before = $now - self::OUTBOX_FINAL_DAYS * self::DAY;
+                    $deleted['outbox'] = $this->pruneChunks(function (int $chunk) use ($before): int {
+                        return (int) call_user_func($this->prune_outbox, $before, $chunk);
+                    }, $deadline, true, $partial);
+                } catch (\Throwable $e) {
+                    $errors[] = 'outbox: ' . $this->describe($e);
+                    $this->noteThrowable('cron.prune_failed', $e, ['table' => 'outbox']);
+                }
+            }
+        }
+        if (!$partial) {
+            $this->stampDaily('prune_logs', $errors === []);
+        }
+        $summary = $errors === [] ? 'pruned' : 'prune failed in part';
+        $this->note(
+            'info',
+            'cron.prune_logs',
+            $partial ? 'time budget used, the rest waits for the next run' : $summary,
+            ['deleted' => $deleted, 'errors' => $errors, 'partial' => $partial]
+        );
 
-        return $errors === []
-            ? ['ok' => true, 'ran' => true, 'deleted' => $deleted]
-            : ['ok' => false, 'ran' => true, 'deleted' => $deleted, 'error' => implode('; ', $errors)];
+        return array_filter([
+            'ok' => $errors === [],
+            'ran' => true,
+            'deleted' => $deleted,
+            'partial' => $partial,
+            'error' => $errors === [] ? null : implode('; ', $errors),
+        ], static function ($value): bool {
+            return $value !== null;
+        });
+    }
+
+    /**
+     * Calls $delete (one chunk of rows per call, returns how many it deleted) until a chunk comes back short, or
+     * the deadline passes. A delete that cannot be done in chunks (a store without pruneChunk()) is called once.
+     *
+     * @param callable(int):int $delete
+     * @param bool              $chunked True when $delete deletes at most the given number of rows
+     * @param bool              $partial Set to true when the deadline stopped the work before it was done
+     */
+    private function pruneChunks(callable $delete, float $deadline, bool $chunked, bool &$partial): int
+    {
+        $chunk = LogStoreInterface::DELETE_CHUNK;
+        $total = 0;
+        do {
+            $n = (int) $delete($chunk);
+            $total += $n;
+            $more = $chunked && $n >= $chunk;
+        } while ($more && $this->micro() < $deadline);
+        if ($more) {
+            $partial = true;
+        }
+
+        return $total;
     }
 
     /**

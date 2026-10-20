@@ -52,7 +52,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Admin notice and e-mail when the store-wide daily SMS limit is reached (once per day), when the balance drops
   under the alert level, and when the account is suspended.
 - `fn_kwtsms_send()` for other add-ons, with the hooks `kwtsms_send_pre` (edit or cancel) and `kwtsms_send_post`.
-<!-- 2026-10-21 01:38 +03: entries for login, sync, suspension and the cron (Task 1.7), task 596 -->
+<!-- 2026-10-21 01:37 +03: entries for login, sync, suspension and the cron (Task 1.7), task 596 -->
 - Login to kwtSMS with one `/balance/` call: the username and the encrypted password are saved only when it is OK,
   and a wrong password, a blocked account or an unreachable gateway each get their own plain message. Changing to
   another account forgets everything cached for the old one.
@@ -62,6 +62,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - A suspended account is checked every 15 minutes (hourly when blocked) and resumes by itself when kwtSMS answers
   again; a coverage mismatch (ERR026) asks for one coverage refresh an hour.
 - Cron job `kwtsms_cron.run` for the command line (`php admin.php --dispatch=kwtsms_cron.run`, every minute) and an
-  optional URL mode: it sends the queued SMS that are due, syncs daily, prunes the logs by retention and repeats the
-  test-mode, zero-balance, suspension and Sender ID notices daily. One run at a time (core lock), the URL mode needs
-  the cron key in a header or the POST body, and the answer is only `{"ok":true}`.
+  optional URL mode: it sends the queued SMS that are due, syncs daily, prunes the logs by retention (and the sent,
+  expired and unknown outbox rows after 30 days, for at most 2 minutes a run) and repeats the test-mode,
+  zero-balance, suspension and Sender ID notices daily. One run at a time (core lock). The URL mode takes POST only,
+  needs the cron key in a header or the POST body (a GET with the right key gets 405), and the answer is only
+  `{"ok":true}`; its outbox drain has no page-request call budget and uses the command-line timeouts.
+<!-- 2026-10-21 02:04 +03: fix round 1 of Task 1.7 (POST only, outbox prune, drain context, ban lifted on a new sender), task 596 -->
+- A banned Sender ID is forgiven as soon as another one is saved; changing the account clears the selected Sender ID
+  of the old account; an unreachable suspended account is retried once per quarter hour, not on every cron run.
