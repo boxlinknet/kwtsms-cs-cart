@@ -14,8 +14,8 @@ docs/
 # Integration tests: they call the live kwtSMS API with test=1 and read credentials from .env
 tests/
 
-# Local dev environment. Required by docs/prompt.md. The dev stack is a dedicated WSL2 instance,
-# not Docker (Boss, 2026-10-20 13:28 +03); these lines only guard against stray files.
+# Local dev environment. Required by docs/prompt.md. The dev stack is the Docker Compose project
+# in docker/ (2026-10-20 18:32 +03: Boss allowed Docker at 18:06, replacing the WSL2 instance; task 596).
 docker/
 docker-compose.yml
 docker-compose.override.yml
