@@ -876,6 +876,20 @@ class SmsService
         if ($code === 'ERR035') {
             $this->alert('intl_limit', [], false, 86400);
         }
+        // 2026-10-21 01:13 +03: ERR008 suspends only the Sender ID that was used, until another one is selected
+        // (PRD 6.1, Appendix A); the account stays usable. The outcome stays "failed" with the server text. Task 1.7,
+        // task 596.
+        if ($code === 'ERR008') {
+            $sender = $this->config->senderId();
+            $this->state->banSender($sender);
+            $this->note('error', 'sms.sender_banned', $code, ['sender' => $sender]);
+            $this->alert('sender_banned', ['[sender]' => $sender], true, 86400, $sender);
+        }
+        // 2026-10-21 01:13 +03: ERR026 asks for a coverage resync; the cron performs it, at most once an hour
+        // (Appendix A), so a send never waits for /coverage/. Task 1.7, task 596.
+        if ($code === 'ERR026' && $this->state->requestCoverageResync()) {
+            $this->note('info', 'sms.coverage_resync_requested', $code, []);
+        }
         if (isset(self::CODE_OUTCOMES[$code])) {
             return $this->verdict(self::CODE_OUTCOMES[$code], $text, $code);
         }
