@@ -357,16 +357,16 @@ msgstr "أعادت kwtSMS الخطأ [code]. راجع سجل التصحيح لم
 # 2026-10-20 22:59 +03: default SMS templates, Task 1.8, task 596. Name: kwtsms.tpl.<event id>.<receiver>;
 # the event id keeps its dots. msgid and the English msgstr are the shipped default text.
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.C"
-msgid "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
-msgstr "تم استلام طلبك رقم {order_id} من {store_name}، المجموع {order_total} {currency}. شكرا لك"
+msgid "{store_name}: Thanks, order {order_id} received. Total {order_total} {currency}."
+msgstr "استلمنا طلبك رقم {order_id} من {store_name}، بقيمة {order_total} {currency}"
 
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.A"
 msgid "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
-msgstr "طلب جديد رقم {order_id} في {store_name}، {order_total} {currency}، {customer_first_name}"
+msgstr "طلب جديد رقم {order_id} في {store_name}، {order_total} {currency}"
 
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.C"
-msgid "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
-msgstr "تم استلام طلباتك رقم {order_ids} من {store_name}، المجموع {order_total} {currency}"
+msgid "{store_name}: Thanks, orders {order_ids} received. Total {order_total} {currency}."
+msgstr "استلمنا طلباتك رقم {order_ids} من {store_name}"
 
 msgctxt "Languages::kwtsms.tpl.order.status_changed.C"
 msgid "{store_name}: Order {order_id} update: {order_status}."

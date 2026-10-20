@@ -357,16 +357,16 @@ msgstr "kwtSMS returned the error [code]. Check the debug log for details."
 # 2026-10-20 22:59 +03: default SMS templates, Task 1.8, task 596. Name: kwtsms.tpl.<event id>.<receiver>;
 # the event id keeps its dots. msgid and the English msgstr are the shipped default text.
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.C"
-msgid "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
-msgstr "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
+msgid "{store_name}: Thanks, order {order_id} received. Total {order_total} {currency}."
+msgstr "{store_name}: Thanks, order {order_id} received. Total {order_total} {currency}."
 
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.A"
 msgid "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
 msgstr "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
 
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.C"
-msgid "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
-msgstr "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
+msgid "{store_name}: Thanks, orders {order_ids} received. Total {order_total} {currency}."
+msgstr "{store_name}: Thanks, orders {order_ids} received. Total {order_total} {currency}."
 
 msgctxt "Languages::kwtsms.tpl.order.status_changed.C"
 msgid "{store_name}: Order {order_id} update: {order_status}."
