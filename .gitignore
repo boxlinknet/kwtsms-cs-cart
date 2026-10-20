@@ -1,0 +1,61 @@
+# FILE:      .gitignore
+# CREATED:   2026-10-20 13:27 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      Paths that must never be committed to the kwtSMS CS-Cart add-on repository.
+# WHY:       The repo will be public. Planning docs, local tooling, test harnesses that hold
+#            real API credentials, and the Docker dev stack stay on the developer machine.
+# USAGE:     Read by git automatically.
+# DEPENDS:   Nothing.
+
+# Local planning, research and screenshots (required by docs/prompt.md)
+docs/
+
+# Integration tests: they call the live kwtSMS API with test=1 and read credentials from .env
+tests/
+
+# Local dev environment. Required by docs/prompt.md. The dev stack is a dedicated WSL2 instance,
+# not Docker (Boss, 2026-10-20 13:28 +03); these lines only guard against stray files.
+docker/
+docker-compose.yml
+docker-compose.override.yml
+
+# Assistant and session tooling
+.claude/
+claude.md
+CLAUDE.md
+napkin.md
+.remember/
+.worktrees/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Logs and caches
+*.log
+.phpunit.result.cache
+.php-cs-fixer.cache
+.phpcs-cache
+
+# Dependencies (the add-on ships without Composer dependencies)
+vendor/
+node_modules/
+
+# Build output (marketplace packages are built, never committed)
+dist/
+build/
+*.zip
+*.tgz
+*.tar.gz
+
+# IDE and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini

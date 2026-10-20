@@ -1,0 +1,17 @@
+# FILE:      .gitattributes
+# CREATED:   2026-10-20 13:27 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      Line-ending and binary rules for the repository.
+# WHY:       The working tree lives on an NTFS drive under WSL. Forcing LF keeps PHP, Smarty
+#            templates and .po files byte-identical to what CS-Cart servers (Linux) expect.
+# USAGE:     Read by git automatically.
+# DEPENDS:   Nothing.
+
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf
