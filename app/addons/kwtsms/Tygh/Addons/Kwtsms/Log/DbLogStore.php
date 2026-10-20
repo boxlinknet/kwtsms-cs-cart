@@ -65,19 +65,60 @@ class DbLogStore implements LogStoreInterface
         return is_array($row) && $row !== [] ? $row : null;
     }
 
+    /**
+     * 2026-10-20 22:18 +03: a result that is not an array of rows throws instead of reading as "no rows"
+     * (Task 1.4 fix round 1, task 596).
+     *
+     * @throws \RuntimeException
+     */
     public function select(string $table, array $filters = [], int $limit = 50, int $offset = 0): array
     {
-        $args = $this->selectArguments($table, $filters, $limit, $offset);
-        $rows = db_get_array(array_shift($args), ...$args);
+        $rows = $this->fetchRows($this->selectArguments($table, $filters, $limit, $offset));
+        if (!is_array($rows)) {
+            throw new \RuntimeException('Could not read the rows of ' . Schema::table($table));
+        }
 
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
+    /**
+     * 2026-10-20 22:18 +03: a result that is not a number throws instead of reading as 0. A failed count read
+     * as 0 would make the abuse caps (AttemptLog::countRecent) skip themselves (Task 1.4 fix round 1, task 596).
+     *
+     * @throws \RuntimeException
+     */
     public function count(string $table, array $filters = []): int
     {
-        $args = $this->countArguments($table, $filters);
+        $count = $this->fetchField($this->countArguments($table, $filters));
+        if (!is_int($count) && !(is_string($count) && ctype_digit($count))) {
+            throw new \RuntimeException('Could not count the rows of ' . Schema::table($table));
+        }
 
-        return (int) db_get_field(array_shift($args), ...$args);
+        return (int) $count;
+    }
+
+    /**
+     * The one place a list query is run (a test replaces it).
+     *
+     * @param array<int, mixed> $query Pattern first, then the values for its placeholders
+     *
+     * @return mixed
+     */
+    protected function fetchRows(array $query)
+    {
+        return db_get_array(array_shift($query), ...$query);
+    }
+
+    /**
+     * The one place a single-value query is run (a test replaces it).
+     *
+     * @param array<int, mixed> $query Pattern first, then the values for its placeholders
+     *
+     * @return mixed
+     */
+    protected function fetchField(array $query)
+    {
+        return db_get_field(array_shift($query), ...$query);
     }
 
     public function deleteByIds(string $table, array $ids): int

@@ -58,6 +58,8 @@ interface LogStoreInterface
 
     /**
      * @param array<string, mixed> $filters Same keys as select()
+     *
+     * @throws \RuntimeException When the count cannot be read (2026-10-20 22:19 +03, task 596): never 0
      */
     public function count(string $table, array $filters = []): int;
 
