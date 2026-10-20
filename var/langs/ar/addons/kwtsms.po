@@ -645,3 +645,70 @@ msgstr "تم الوصول إلى حد الرسائل الدولية"
 msgctxt "Languages::kwtsms.alert.intl_limit.text"
 msgid "kwtSMS reached the daily limit for international numbers. Those SMS weren't sent. Local numbers still go out."
 msgstr "وصلت kwtSMS إلى الحد اليومي للأرقام الدولية. لم ترسل تلك الرسائل. ما زالت الأرقام المحلية تستقبل الرسائل."
+
+# 2026-10-21 01:13 +03: Task 1.7, task 596. kwtsms.login.* are the texts of SyncService::login() (the per-code texts are
+# kwtsms.err.<code>); kwtsms.alert.<condition>.* are four more admin notices (PRD 6.13); kwtsms.cron.failed is the
+# error that makes the CLI cron exit non-zero.
+msgctxt "Languages::kwtsms.login.ok"
+msgid "Logged in to kwtSMS."
+msgstr "تم تسجيل الدخول إلى kwtSMS."
+
+msgctxt "Languages::kwtsms.login.empty"
+msgid "Enter both the API username and the API password."
+msgstr "أدخل اسم مستخدم API وكلمة مرور API معا."
+
+msgctxt "Languages::kwtsms.login.unreachable"
+msgid "Could not reach kwtSMS. Check that this server can open https://www.kwtsms.com, then try again."
+msgstr "تعذر الوصول إلى kwtSMS. تحقق من أن هذا الخادم يستطيع فتح https://www.kwtsms.com ثم حاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.login.save_failed"
+msgid "kwtSMS accepted the login, but it could not be saved. Check the add-on log and try again."
+msgstr "قبلت kwtSMS بيانات الدخول لكن تعذر حفظها. راجع سجل الإضافة وحاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.login.warn_username_long"
+msgid "The API username is longer than 15 characters. Check that you copied the API user and nothing else."
+msgstr "اسم مستخدم API أطول من 15 حرفا. تأكد من أنك نسخت مستخدم API فقط."
+
+msgctxt "Languages::kwtsms.login.warn_password_long"
+msgid "The API password is longer than 30 characters. Check that you copied the API password and nothing else."
+msgstr "كلمة مرور API أطول من 30 حرفا. تأكد من أنك نسخت كلمة مرور API فقط."
+
+msgctxt "Languages::kwtsms.login.warn_username_digits"
+msgid "The API username is all digits. It is usually not your mobile number. Use the API user from kwtsms.com > Account > API."
+msgstr "اسم مستخدم API كله أرقام. غالبا لا يكون رقم جوالك. استخدم مستخدم API من kwtsms.com > الحساب > API."
+
+msgctxt "Languages::kwtsms.cron.failed"
+msgid "kwtSMS cron run failed: [details]"
+msgstr "فشل تشغيل مهمة kwtSMS المجدولة: [details]"
+
+msgctxt "Languages::kwtsms.alert.sender_removed.title"
+msgid "Sender ID removed from your kwtSMS account"
+msgstr "تمت إزالة معرف المرسل من حساب kwtSMS"
+
+msgctxt "Languages::kwtsms.alert.sender_removed.text"
+msgid "The Sender ID [sender] is no longer on your kwtSMS account, so SMS are paused. Select another Sender ID in the kwtSMS settings."
+msgstr "معرف المرسل [sender] لم يعد موجودا في حساب kwtSMS، لذلك توقف إرسال الرسائل. اختر معرف مرسل آخر من إعدادات kwtSMS."
+
+msgctxt "Languages::kwtsms.alert.sender_banned.title"
+msgid "kwtSMS banned your Sender ID"
+msgstr "حظرت kwtSMS معرف المرسل"
+
+msgctxt "Languages::kwtsms.alert.sender_banned.text"
+msgid "kwtSMS banned the Sender ID [sender], so SMS are paused. Select another Sender ID in the kwtSMS settings."
+msgstr "حظرت kwtSMS معرف المرسل [sender]، لذلك توقف إرسال الرسائل. اختر معرف مرسل آخر من إعدادات kwtSMS."
+
+msgctxt "Languages::kwtsms.alert.test_mode.title"
+msgid "SMS test mode is on"
+msgstr "وضع اختبار الرسائل مفعل"
+
+msgctxt "Languages::kwtsms.alert.test_mode.text"
+msgid "Customers are not receiving SMS because test mode is on. [count] test messages hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
+msgstr "لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسالة اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS."
+
+msgctxt "Languages::kwtsms.alert.balance_zero.title"
+msgid "Customer SMS have stopped"
+msgstr "توقفت رسائل العملاء"
+
+msgctxt "Languages::kwtsms.alert.balance_zero.text"
+msgid "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
+msgstr "رصيد kwtSMS صفر، لذلك لا ترسل أي رسائل. اشحن حسابك في kwtsms.com."

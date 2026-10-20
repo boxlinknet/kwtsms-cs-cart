@@ -33,8 +33,15 @@ class AdminAlerts
 {
     public const KEY = 'kwtsms_alerts';
 
-    /** Conditions with language variables kwtsms.alert.<condition>.title and .text. */
-    public const CONDITIONS = ['daily_cap', 'low_balance', 'suspended', 'tls_failure', 'intl_limit'];
+    /**
+     * Conditions with language variables kwtsms.alert.<condition>.title and .text.
+     * 2026-10-21 01:13 +03: sender_removed, sender_banned (sync, ERR008), test_mode and balance_zero (the daily cron
+     * health job) added, Task 1.7, task 596.
+     */
+    public const CONDITIONS = [
+        'daily_cap', 'low_balance', 'suspended', 'tls_failure', 'intl_limit',
+        'sender_removed', 'sender_banned', 'test_mode', 'balance_zero',
+    ];
 
     /** Bookkeeping entries older than this are forgotten. */
     private const KEEP_SECONDS = 604800;

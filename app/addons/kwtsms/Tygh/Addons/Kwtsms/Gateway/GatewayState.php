@@ -173,6 +173,33 @@ class GatewayState
     }
 
     /**
+     * The entries of a list from the gateway that are valid Sender IDs (^[A-Za-z0-9 .-]{1,11}$), in order, without
+     * duplicates. The sync uses it to tell "the account has none" from "the reply held only garbage".
+     * 2026-10-21 01:05 +03: added, Task 1.7, task 596.
+     *
+     * @param array<int, mixed> $ids
+     *
+     * @return string[]
+     */
+    public static function validSenderIds(array $ids): array
+    {
+        return self::cleanList($ids, self::SENDER_PATTERN);
+    }
+
+    /**
+     * The entries of a coverage list that are valid calling-code prefixes (^[0-9]{1,4}$). 2026-10-21 01:05 +03:
+     * added, Task 1.7, task 596.
+     *
+     * @param array<int, mixed> $prefixes
+     *
+     * @return string[]
+     */
+    public static function validPrefixes(array $prefixes): array
+    {
+        return self::cleanList($prefixes, self::PREFIX_PATTERN);
+    }
+
+    /**
      * Replaces the cached list. Entries that do not match ^[A-Za-z0-9 .-]{1,11}$ and duplicates are
      * dropped. An empty list is stored as empty (a successful sync that returned none).
      *
@@ -655,8 +682,9 @@ class GatewayState
      *
      * @return string[]
      */
-    private function cleanList(?array $items, string $pattern): array
+    private static function cleanList(?array $items, string $pattern): array
     {
+        // 2026-10-21 01:05 +03: static, so validSenderIds() and validPrefixes() can use it (Task 1.7, task 596).
         $clean = [];
         foreach ((array) $items as $item) {
             if (!is_string($item) && !is_int($item)) {
