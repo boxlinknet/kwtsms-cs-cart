@@ -5,29 +5,36 @@
  * CREATED:   2026-10-20 22:25 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
- * WHAT:      The gate in front of every kwtSMS call: one global request slot every 200 ms (5 calls per
- *            second for the whole server), and the circuit breaker for transport failures.
+ * WHAT:      The gate in front of every kwtSMS call: one request slot every 200 ms (5 calls per second) for
+ *            each store database, and the circuit breaker for transport failures.
  * WHY:       PRD 6.2 steps 12-13 and 6.1: the gateway blocks an IP that goes well above its rate limit, so
- *            all PHP-FPM workers and the cron share one slot clock; and when kwtSMS is unreachable the
+ *            all PHP-FPM workers and the cron of one store share one slot clock; and when kwtSMS is unreachable the
  *            store must not wait on a dead connection for every order: after the first transport failure
  *            in a request the rest of that request is deferred without HTTP, and three consecutive
  *            failing requests open the breaker for 5 minutes.
  *            The slot clock lives in storage_data (key kwtsms_api_slot, milliseconds), guarded by the
- *            database lock GET_LOCK('kwtsms_api', 2): read the next free slot with a fresh read, reserve
- *            the one after it, release the lock, then sleep until the reserved slot. The breaker
+ *            database lock GET_LOCK('kwtsms_api_<16 hex>', 2): read the next free slot with a fresh read,
+ *            reserve the one after it, release the lock, then sleep until the reserved slot. The breaker
  *            (kwtsms_gateway_state, through GatewayState) is also written only while holding that lock, so
  *            two requests cannot overwrite each other's count. Only ONE failure is counted per request.
+ *            2026-10-20 23:18 +03, ruling R19, task 596: the lock name carries the first 16 hex digits of
+ *            md5(database name . table prefix). MariaDB locks are server wide, so without that two stores
+ *            on one server would block each other while each keeps its own slot clock in its own
+ *            storage_data. The lock and the slot clock are therefore per store database, not per server:
+ *            two stores on one server can together reach 10 calls per second.
  * USAGE:     $guard = new ApiGuard(new StorageDataStore(), $gatewayState);        // one per request
  *            $guard->blockReason();           // null | 'LOCAL_BREAKER' | 'LOCAL_DEFERRED'
  *            $guard->acquire();               // sleeps until the slot; throws ApiGuardException when blocked
  *            ... HTTP call ...
- *            $guard->recordTransportFailure();   // dns, connect, tls or timeout: once per request counts
+ *            $guard->recordTransportFailure();   // dns, connect, tls or timeout: once per request counts;
+ *                                                // returns the breaker after it, with 'opened' = this one opened it
  *            $guard->recordReached();            // any reply from the gateway: resets the failure count
- *            Constants: LOCK_NAME kwtsms_api, LOCK_WAIT_SECONDS 2, SLOT_KEY kwtsms_api_slot, SPACING_MS 200.
+ *            Constants: LOCK_PREFIX kwtsms_api_, LOCK_WAIT_SECONDS 2, SLOT_KEY kwtsms_api_slot, SPACING_MS 200.
+ *            lockName() is the full lock name for this store's database.
  *            A slot value that is not a number, is in the past, or is more than 10 s ahead (corrupt) is
  *            treated as "now", so a bad row can never stall the store. Suspension is NOT checked here:
  *            the /balance/ probe that ends a suspension has to go out.
- *            Test seams (protected): lock(), unlock(), nowMs(), sleepMs().
+ *            Test seams (protected): lock(), unlock(), nowMs(), sleepMs(), databaseIdentity().
  * DEPENDS:   Storage\KeyValueStoreInterface (getFresh), Gateway\GatewayState, CS-Cart db_get_field() for the
  *            default lock (without it the lock is "unavailable" and acquire() fails closed with LOCAL_BUSY).
  */
@@ -39,13 +46,17 @@ use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
 
 class ApiGuard
 {
-    public const LOCK_NAME = 'kwtsms_api';
+    /**
+     * Lock name prefix; lockName() appends 16 hex digits that identify the store database.
+     * 2026-10-20 23:18 +03: was the fixed name kwtsms_api (ruling R19, task 596).
+     */
+    public const LOCK_PREFIX = 'kwtsms_api_';
 
     public const LOCK_WAIT_SECONDS = 2;
 
     public const SLOT_KEY = 'kwtsms_api_slot';
 
-    /** 5 requests per second for the whole server. */
+    /** 5 requests per second for one store database. */
     public const SPACING_MS = 200;
 
     /** A reserved slot further ahead than this is a corrupt value, not a queue. */
@@ -115,18 +126,26 @@ class ApiGuard
      * Records that the transport failed (dns, connect, tls, timeout). Only the first call in a request
      * counts towards the breaker; every later call in the request is deferred by blockReason().
      *
-     * @return bool True when the failure was written to the breaker
+     * @return array{failures:int, open_until:int, open:bool, opened:bool}|null The breaker after this failure,
+     *         where "opened" is true when this very failure closed-to-open flipped it (the caller logs that);
+     *         null when nothing was written (a failure was already recorded in this request, or the lock was
+     *         not available). 2026-10-20 23:18 +03: was a bool, M8, task 596.
      */
-    public function recordTransportFailure(): bool
+    public function recordTransportFailure(): ?array
     {
         if ($this->request_failed) {
-            return false;
+            return null;
         }
         $this->request_failed = true;
 
-        return $this->underLock(function (): void {
-            $this->state->recordTransportFailure();
+        $breaker = $this->underLock(function (): array {
+            $was_open = $this->state->breaker()['open'];
+            $after = $this->state->recordTransportFailure();
+
+            return $after + ['opened' => !$was_open && $after['open']];
         });
+
+        return is_array($breaker) ? $breaker : null;
     }
 
     /**
@@ -145,7 +164,32 @@ class ApiGuard
     }
 
     /**
-     * Database lock for the slot clock and the breaker state (MariaDB GET_LOCK, server wide).
+     * The database lock name of this store: LOCK_PREFIX plus the first 16 hex digits of
+     * md5(database name . table prefix). At most 27 characters (MariaDB allows 64).
+     */
+    public function lockName(): string
+    {
+        [$db, $prefix] = $this->databaseIdentity();
+
+        return self::LOCK_PREFIX . substr(md5($db . $prefix), 0, 16);
+    }
+
+    /**
+     * The database name and table prefix of the running store (empty outside CS-Cart).
+     *
+     * @return array{0:string,1:string}
+     */
+    protected function databaseIdentity(): array
+    {
+        if (!class_exists('Tygh\\Registry')) {
+            return ['', ''];
+        }
+
+        return [(string) \Tygh\Registry::get('config.db_name'), (string) \Tygh\Registry::get('config.table_prefix')];
+    }
+
+    /**
+     * Database lock for the slot clock and the breaker state (MariaDB GET_LOCK; the name is per database).
      *
      * @return bool True when the lock was obtained
      */
@@ -155,13 +199,13 @@ class ApiGuard
             return false;
         }
 
-        return (int) db_get_field('SELECT GET_LOCK(?s, ?i)', self::LOCK_NAME, self::LOCK_WAIT_SECONDS) === 1;
+        return (int) db_get_field('SELECT GET_LOCK(?s, ?i)', $this->lockName(), self::LOCK_WAIT_SECONDS) === 1;
     }
 
     protected function unlock(): void
     {
         if (function_exists('db_get_field')) {
-            db_get_field('SELECT RELEASE_LOCK(?s)', self::LOCK_NAME);
+            db_get_field('SELECT RELEASE_LOCK(?s)', $this->lockName());
         }
     }
 
@@ -179,19 +223,20 @@ class ApiGuard
     }
 
     /**
-     * Runs $write while holding the lock; false (nothing written) when the lock is not available.
+     * Runs $write while holding the lock and returns what it returns; null (nothing written) when the lock is
+     * not available.
+     *
+     * @return mixed
      */
-    private function underLock(callable $write): bool
+    private function underLock(callable $write)
     {
         if (!$this->lock()) {
-            return false;
+            return null;
         }
         try {
-            $write();
+            return $write();
         } finally {
             $this->unlock();
         }
-
-        return true;
     }
 }

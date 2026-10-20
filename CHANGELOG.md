@@ -37,6 +37,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   HTTP status (kwtSMS answers some errors with 403), errors carry a code and where it came from, sends are split
   into calls of at most 200 numbers and 2500 characters, and the API password never reaches a log, a dump or a
   serialized object.
-- One 5-requests-per-second slot clock for the whole server, and a circuit breaker: after a failed connection the
-  rest of the request is deferred, three failing requests in a row pause sending for 5 minutes.
+- One 5-requests-per-second slot clock for each store database, and a circuit breaker: after a failed connection
+  the rest of the request is deferred, three failing requests in a row pause sending for 5 minutes.
+<!-- 2026-10-20 23:20 +03: fix round 1 of Task 1.5 (R19: per database; M8: the breaker opening is logged), task 596 -->
 - Plain-language reasons for every kwtSMS error code and for the add-on's own failures, in English and Arabic.
