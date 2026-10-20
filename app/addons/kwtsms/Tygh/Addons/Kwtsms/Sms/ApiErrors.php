@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Sms/ApiErrors.php
- * CREATED:   2026-10-20 22:30 +03
+ * CREATED:   2026-10-20 22:20 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Maps a kwtSMS error code (ERRnnn from the gateway, or LOCAL_* from this add-on) to a

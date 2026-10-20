@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Http/HttpTransport.php
- * CREATED:   2026-10-20 22:55 +03
+ * CREATED:   2026-10-20 22:21 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The add-on's own cURL client: one POST of a JSON body to https://www.kwtsms.com and back,

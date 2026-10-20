@@ -193,7 +193,7 @@ msgctxt "Languages::kwtsms.open_settings"
 msgid "Open kwtSMS settings"
 msgstr "Open kwtSMS settings"
 
-# 2026-10-20 22:35 +03: kwtsms.err.<code>, one reason per kwtSMS or LOCAL_* error code (Sms\ApiErrors::describe, PRD Appendix A), task 596
+# 2026-10-20 22:20 +03: kwtsms.err.<code>, one reason per kwtSMS or LOCAL_* error code (Sms\ApiErrors::describe, PRD Appendix A), task 596
 msgctxt "Languages::kwtsms.err.ERR001"
 msgid "The API is turned off for this kwtSMS account. Enable it at kwtsms.com > Account > API, then try again."
 msgstr "The API is turned off for this kwtSMS account. Enable it at kwtsms.com > Account > API, then try again."
