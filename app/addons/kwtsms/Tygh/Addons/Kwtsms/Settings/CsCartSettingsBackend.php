@@ -32,14 +32,26 @@ class CsCartSettingsBackend implements SettingsBackendInterface
         return isset($values[$key]) ? (string) $values[$key] : null;
     }
 
+    /**
+     * 2026-10-20 22:15 +03: fails loudly, task 596 (Task 1.4 fix round 1). Settings::updateValue() always
+     * returns true, even for a setting that does not exist, so the id is resolved here and
+     * updateValueById() (false for a missing object or an edition that cannot hold the value) is checked.
+     * The message names the key only: a value may be a ciphertext or a secret.
+     *
+     * @throws \RuntimeException When the setting does not exist or the update was refused; nothing is cached
+     */
     public function write(string $key, string $value): void
     {
-        $this->settings()->updateValue($key, $value, self::SECTION);
+        $settings = $this->settings();
+        $id = $settings->getId($key, self::SECTION);
+        if (!$id || !$settings->updateValueById($id, $value)) {
+            throw new \RuntimeException('Setting "' . $key . '" could not be saved');
+        }
         $this->load();
         $this->values[$key] = $value;
     }
 
-    private function settings(): Settings
+    protected function settings(): Settings
     {
         return Settings::instance(['company_id' => 0, 'storefront_id' => 0]);
     }

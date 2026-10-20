@@ -415,7 +415,10 @@ class Config implements ConfigInterface
                     $failed[$key] = true;
                     continue;
                 }
-                $this->backend->write($key, $stored);
+                // 2026-10-20 22:16 +03: a write the backend refuses is a rejected key, not a saved one, task 596.
+                if (!$this->tryWrite($key, $stored)) {
+                    $failed[$key] = true;
+                }
             }
         }
 
@@ -457,8 +460,35 @@ class Config implements ConfigInterface
 
             return;
         }
-        $this->backend->write('api_username', $username);
-        $this->backend->write('api_password', $encrypted);
+
+        // 2026-10-20 22:16 +03: a refused write leaves the old pair, task 596. The username goes first; when the
+        // password then fails, the old username is put back so the pair never mixes old and new.
+        $old_username = $this->backend->read('api_username');
+        if (!$this->tryWrite('api_username', $username)) {
+            $failed['api_username'] = $failed['api_password'] = true;
+
+            return;
+        }
+        if (!$this->tryWrite('api_password', $encrypted)) {
+            $failed['api_username'] = $failed['api_password'] = true;
+            if (!$this->tryWrite('api_username', $old_username ?? '')) {
+                throw new \RuntimeException('Setting "api_username" could not be restored after a failed login save');
+            }
+        }
+    }
+
+    /**
+     * Writes one validated value. False when the backend refuses it (it throws, naming the key only).
+     */
+    private function tryWrite(string $key, string $value): bool
+    {
+        try {
+            $this->backend->write($key, $value);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     // ------------------------------------------------------------------ normalizers (save)
