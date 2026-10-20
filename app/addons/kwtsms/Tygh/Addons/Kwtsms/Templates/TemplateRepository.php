@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Templates/TemplateRepository.php
- * CREATED:   2026-10-20 23:15 +03
+ * CREATED:   2026-10-20 23:11 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Storage of the SMS templates (tables kwtsms_templates and kwtsms_template_descriptions): picks the
@@ -30,7 +30,8 @@
  *            $repo->resetToDefault($id, 'en')   -> the text now stored ('' when no text ships for that language
  *                                                  or template), null when the template does not exist
  *            $repo->loadDefaultsForLanguage('ar') -> number of rows written; only rows that are missing or not
- *                                                  edited (see isUnedited())
+ *                                                  edited (see isUnedited(): a copy of the default language text
+ *                                                  counts as not edited, the default language's own edit never)
  *            $repo->seedDefaults(['en', 'ar'])  -> INSERT IGNORE of every shipped default of those languages
  *            $repo->rowsForUi()                 -> rows for the Templates page (see rowsForUi())
  *            $repo->ensureTemplate($event_id, $receiver) -> template_id, created when missing
@@ -518,10 +519,11 @@ class TemplateRepository
 
     /**
      * "Load default texts for <language>": write the shipped text of the language into every default row that
-     * is missing or not edited. A row counts as not edited when its flag is N, or when it is flagged edited but
-     * holds exactly the text of the same template in another language: core copies the descriptions (text and
-     * flag) of the default language when a language is added, so an edited English row arrives as an "edited"
-     * copy that nobody edited in the new language.
+     * is missing or not edited. A row counts as not edited when its flag is N, or when it is flagged edited but is a
+     * copy of the default language text in another language: core copies the descriptions (text and flag) of the
+     * default language when a language is added, so an edited English row arrives as an "edited" copy that nobody
+     * edited in the new language. The default language's own rows are never overwritten when edited (see
+     * isUnedited(), fix round 1 item 2).
      *
      * @return int Rows written
      */
@@ -548,7 +550,7 @@ class TemplateRepository
                 }
                 $current = $existing[$id][$lang] ?? null;
                 if ($current !== null) {
-                    if (!self::isUnedited($current, $existing[$id])) {
+                    if (!self::isUnedited($current, $existing[$id], $this->defaultLang())) {
                         continue;
                     }
                     if ($current['is_edited'] === 'N' && (string) $current['body'] === $shipped[$key]) {
@@ -565,25 +567,29 @@ class TemplateRepository
     }
 
     /**
-     * @param array<string,mixed>                $row   The description row of the language
-     * @param array<string,array<string,mixed>>  $all   Every description row of the template, by language
+     * Whether "Load default texts" may overwrite this row. Not edited when its flag is N. A row flagged edited is
+     * still treated as not edited when it is a copy that core made: the language is not the store default
+     * language AND the row holds exactly the text of the default language row of the same template (core copies
+     * the default language descriptions, text and flag, when a language is added). A row of the default language
+     * itself is never a copy, and a text that merely equals another non-default language is somebody's edit.
+     * 2026-10-21 00:03 +03: the rule is limited to copies of the default language, fix round 1 item 2, task 596
+     * (before, the edited source row of a clone looked unedited because the clone held the same text).
+     *
+     * @param array<string,mixed>               $row          The description row of the language
+     * @param array<string,array<string,mixed>> $all          Every description row of the template, by language
+     * @param string                            $default_lang Store default language
      */
-    private static function isUnedited(array $row, array $all): bool
+    private static function isUnedited(array $row, array $all, string $default_lang): bool
     {
         if ($row['is_edited'] === 'N') {
             return true;
         }
         $body = (string) $row['body'];
-        if (trim($body) === '') {
+        if ((string) $row['lang_code'] === $default_lang || trim($body) === '' || !isset($all[$default_lang])) {
             return false;
         }
-        foreach ($all as $lang => $other) {
-            if ($lang !== $row['lang_code'] && (string) $other['body'] === $body) {
-                return true;
-            }
-        }
 
-        return false;
+        return (string) $all[$default_lang]['body'] === $body;
     }
 
     /**
