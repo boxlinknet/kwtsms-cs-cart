@@ -30,6 +30,12 @@
  *            parallel request (Task 1.5 review carry). Also: kwtsms_daily_cap (the "Resume now" time of the
  *            store daily cap, PRD 6.14) and kwtsms_balance_refresh (the last live /balance/ refresh asked for by
  *            the send pipeline, at most one every 10 minutes, PRD 6.1).
+ *            2026-10-21 00:52 +03, Task 1.7, task 596: the sync bookkeeping. kwtsms_sync_state holds the retry
+ *            schedule after a failed sync (syncRetryAt(): +15 min, +1 h, then +6 h), the throttled coverage resync
+ *            request of ERR026 (requestCoverageResync(), at most one an hour) and the last /balance/ probe
+ *            (lastProbe(): time, verdict, code) that throttles probes across requests. kwtsms_sender_ban holds the
+ *            Sender ID that ERR008 banned (banSender(), bannedSender()); isConfigured() then reports
+ *            sender_banned for that sender only, so selecting another one lifts it. clear() forgets all of it.
  * DEPENDS:   Storage\KeyValueStoreInterface, Settings\ConfigInterface. No CS-Cart globals, no logging.
  */
 
@@ -52,6 +58,18 @@ class GatewayState
 
     /** 2026-10-21 00:05 +03: last live balance refresh of the send pipeline (PRD 6.1), Task 1.6, task 596. */
     public const KEY_BALANCE_REFRESH = 'kwtsms_balance_refresh';
+
+    /** 2026-10-21 00:52 +03: sync retry schedule, coverage resync request, last probe (Task 1.7, task 596). */
+    public const KEY_SYNC_STATE = 'kwtsms_sync_state';
+
+    /** 2026-10-21 00:52 +03: the Sender ID that ERR008 banned (Task 1.7, task 596). */
+    public const KEY_SENDER_BAN = 'kwtsms_sender_ban';
+
+    /** Seconds to wait before the next sync after the 1st, 2nd and 3rd (or later) failure (PRD 6.1). */
+    public const SYNC_RETRY_SECONDS = [900, 3600, 21600];
+
+    /** At most one coverage resync (ERR026) in this many seconds. */
+    public const COVERAGE_RESYNC_SECONDS = 3600;
 
     /**
      * Consecutive transport failures (connect, TLS, DNS, read timeout) that open the breaker.
@@ -248,6 +266,11 @@ class GatewayState
         if (!in_array($config->senderId(), $senders, true)) {
             return [false, 'sender_not_in_list'];
         }
+        // 2026-10-21 00:52 +03: ERR008 banned this Sender ID; selecting another one lifts it (PRD 6.1), Task 1.7,
+        // task 596.
+        if ($this->bannedSender() === $config->senderId()) {
+            return [false, 'sender_banned'];
+        }
 
         return [true, null];
     }
@@ -297,6 +320,140 @@ class GatewayState
             $state['suspended_at'] = 0;
             $this->writeState($state);
         });
+    }
+
+    // ------------------------------------------------------------------ sender ban (ERR008)
+
+    /**
+     * The Sender ID that kwtSMS banned (ERR008), or null. Only that sender is affected: isConfigured() reports
+     * sender_banned while it is the selected one. 2026-10-21 00:52 +03: added, Task 1.7, task 596.
+     */
+    public function bannedSender(): ?string
+    {
+        $data = $this->decode($this->store->getFresh(self::KEY_SENDER_BAN)) ?? [];
+        $sender = $data['sender'] ?? null;
+
+        return (is_string($sender) && preg_match(self::SENDER_PATTERN, $sender) === 1) ? $sender : null;
+    }
+
+    /**
+     * Records the ban. An id that is not a valid Sender ID is ignored (nothing could match it anyway).
+     * 2026-10-21 00:52 +03: added, Task 1.7, task 596.
+     */
+    public function banSender(string $sender): void
+    {
+        if (preg_match(self::SENDER_PATTERN, $sender) !== 1) {
+            return;
+        }
+        $this->store->set(self::KEY_SENDER_BAN, (string) json_encode(['sender' => $sender, 'at' => $this->now()]));
+    }
+
+    // ------------------------------------------------------------------ sync schedule, resync request, probe
+
+    /** Consecutive failed syncs since the last good one. 2026-10-21 00:52 +03: added, Task 1.7, task 596. */
+    public function syncFailures(): int
+    {
+        return $this->readSyncState()['fail'];
+    }
+
+    /** When the next sync is due after a failure (Unix time), or null when none failed. */
+    public function syncRetryAt(): ?int
+    {
+        $state = $this->readSyncState();
+
+        return $state['fail'] > 0 ? $state['retry_at'] : null;
+    }
+
+    /**
+     * Counts a failed sync and schedules the next try: 15 min after the first failure, 1 h after the second, 6 h
+     * after the third and every later one (PRD 6.1).
+     *
+     * @return int The time of the next try
+     */
+    public function recordSyncFailure(): int
+    {
+        $state = $this->readSyncState();
+        $state['fail']++;
+        $delays = self::SYNC_RETRY_SECONDS;
+        $state['retry_at'] = $this->now() + $delays[min($state['fail'], count($delays)) - 1];
+        $this->writeSyncState($state);
+
+        return $state['retry_at'];
+    }
+
+    /** A sync finished: the schedule and any pending coverage resync request are cleared. */
+    public function recordSyncSuccess(): void
+    {
+        $state = $this->readSyncState();
+        $state['fail'] = 0;
+        $state['retry_at'] = 0;
+        $state['cov_req'] = 0;
+        $this->writeSyncState($state);
+    }
+
+    /**
+     * ERR026 asks for a coverage resync (the cron performs it). Ignored while one is pending and for an hour after
+     * the last one ran.
+     *
+     * @return bool True when a new request was recorded
+     */
+    public function requestCoverageResync(): bool
+    {
+        $state = $this->readSyncState();
+        if ($state['cov_req'] > 0 || $this->now() - $state['cov_last'] < self::COVERAGE_RESYNC_SECONDS) {
+            return false;
+        }
+        $state['cov_req'] = $this->now();
+        $this->writeSyncState($state);
+
+        return true;
+    }
+
+    public function coverageResyncPending(): bool
+    {
+        return $this->readSyncState()['cov_req'] > 0;
+    }
+
+    /** The coverage resync ran: the request is cleared and the hour starts. */
+    public function touchCoverageResync(): void
+    {
+        $state = $this->readSyncState();
+        $state['cov_req'] = 0;
+        $state['cov_last'] = $this->now();
+        $this->writeSyncState($state);
+    }
+
+    /**
+     * The last /balance/ probe that the gateway answered, or null. Probes (suspension, ERR003 on /send/) are
+     * throttled by this time across requests.
+     *
+     * @return array{at: int, verdict: string, code: string|null}|null
+     */
+    public function lastProbe(): ?array
+    {
+        $state = $this->readSyncState();
+        if ($state['probe_at'] <= 0) {
+            return null;
+        }
+
+        return ['at' => $state['probe_at'], 'verdict' => $state['probe_verdict'], 'code' => $state['probe_code']];
+    }
+
+    /**
+     * Records the verdict of a probe the gateway answered: "ok", an error code such as ERR003, or any other
+     * short token. Reduced to A-Z, a-z, 0-9 and "_" (at most 32 characters); an empty verdict is "unknown".
+     */
+    public function recordProbe(string $verdict, ?string $code): void
+    {
+        $clean = substr((string) preg_replace('/[^A-Za-z0-9_]/', '', $verdict), 0, 32);
+        $clean_code = $code === null
+            ? ''
+            : substr(strtoupper((string) preg_replace('/[^A-Za-z0-9_]/', '', $code)), 0, 32);
+        $state = $this->readSyncState();
+        $state['probe_at'] = $this->now();
+        $state['probe_verdict'] = $clean === '' ? 'unknown' : $clean;
+        $state['probe_code'] = $clean_code === '' ? null : $clean_code;
+        $this->writeSyncState($state);
     }
 
     // ------------------------------------------------------------------ daily cap and balance refresh
@@ -396,6 +553,10 @@ class GatewayState
             self::KEY_LAST_SYNC,
             self::KEY_GATEWAY_STATE,
             self::KEY_BALANCE_REFRESH,
+            // 2026-10-21 00:52 +03: the sync schedule, the probe time and the ban belong to the account, Task 1.7,
+            // task 596.
+            self::KEY_SYNC_STATE,
+            self::KEY_SENDER_BAN,
         ];
         foreach ($keys as $key) {
             $this->store->delete($key);
@@ -521,6 +682,44 @@ class GatewayState
         $value = $data[$field] ?? null;
 
         return (is_int($value) || (is_string($value) && ctype_digit($value))) ? max(0, (int) $value) : 0;
+    }
+
+    /**
+     * kwtsms_sync_state, read from the backing store every time (the cron and web requests both change it).
+     * 2026-10-21 00:52 +03: added, Task 1.7, task 596.
+     *
+     * @return array{fail: int, retry_at: int, cov_req: int, cov_last: int, probe_at: int, probe_verdict: string,
+     *               probe_code: string|null}
+     */
+    private function readSyncState(): array
+    {
+        $data = $this->decode($this->store->getFresh(self::KEY_SYNC_STATE)) ?? [];
+        $verdict = isset($data['probe_verdict']) && is_string($data['probe_verdict'])
+            && preg_match('/^[A-Za-z0-9_]{1,32}$/D', $data['probe_verdict']) === 1
+            ? $data['probe_verdict']
+            : 'unknown';
+        $code = isset($data['probe_code']) && is_string($data['probe_code'])
+            && preg_match('/^[A-Z0-9_]{1,32}$/D', $data['probe_code']) === 1
+            ? $data['probe_code']
+            : null;
+
+        return [
+            'fail' => $this->intField($data, 'fail'),
+            'retry_at' => $this->intField($data, 'retry_at'),
+            'cov_req' => $this->intField($data, 'cov_req'),
+            'cov_last' => $this->intField($data, 'cov_last'),
+            'probe_at' => $this->intField($data, 'probe_at'),
+            'probe_verdict' => $verdict,
+            'probe_code' => $code,
+        ];
+    }
+
+    /**
+     * @param array<string, int|string|null> $state
+     */
+    private function writeSyncState(array $state): void
+    {
+        $this->store->set(self::KEY_SYNC_STATE, (string) json_encode($state));
     }
 
     /**
