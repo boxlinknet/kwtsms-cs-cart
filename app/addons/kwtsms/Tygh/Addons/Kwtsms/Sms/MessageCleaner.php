@@ -10,13 +10,17 @@
  *            customer-typed placeholder values such as names (anti-smishing).
  * WHY:       The gateway rejects or mis-bills what it cannot carry: an empty body (ERR009), HTML (ERR027),
  *            emoji (ERR036, gw7 and gw1), more than 7 pages (ERR012). The body is cleaned locally first so
- *            the page count shown in the admin and charged for matches the gateway's count exactly, and
- *            so what is left is something the gateway accepts. Not every ERR027 shape is removed: PRD 6.2.1
- *            keeps a lone < or > (a price such as "<10 KD"), while the gateway rejects ANY <...> span.
- *            The spans that remain are detected by hasHtmlLikeSpan() and the CALLER blocks the send
- *            (SmsService, outcome rejected, code LOCAL_HTML, no HTTP call).
- *            2026-10-20 21:41 +03, fix round 1, task 596: this paragraph replaces one that claimed a send
+ *            the page count shown in the admin and charged for matches the gateway's count exactly, and so
+ *            the common causes of those rejections (invisible-only text, tags, emoji) are removed before the
+ *            call. Cleaning does not guarantee acceptance. PRD 6.2.1 keeps a lone < or > (a price such as
+ *            "<10 KD"), while the gateway rejects ANY <...> span: those spans are detected by
+ *            hasHtmlLikeSpan() and the CALLER blocks the send (SmsService, outcome rejected, code
+ *            LOCAL_HTML, no HTTP call). The page cap is also the caller's check, and the gateway has the
+ *            last word on everything else.
+ *            2026-10-20 21:41 +03, fix round 1, task 596: this paragraph replaced one that claimed a send
  *            "either goes out in a form the gateway accepts or is blocked".
+ *            2026-10-20 22:04 +03, fix round 2, task 596: reworded again so it no longer opens by claiming
+ *            that what is left is always accepted.
  * USAGE:     All methods are static and pure (no state, no CS-Cart calls, no I/O).
  *              MessageCleaner::clean($body)                  -> cleaned body ('' means blocked_empty)
  *              MessageCleaner::hasHtmlLikeSpan($cleaned)     -> true when a "<" is followed later by a ">"
@@ -90,6 +94,14 @@
  *  15. TYPOGRAPHY gained (R14): U+2012, U+2013, U+2014, U+2015 and U+2212 to "-", U+2032 to "'" and U+2033 to
  *      '"'. One em dash would turn the whole SMS into UCS-2 (70 / 67 per page instead of 160 / 153). U+00AB,
  *      U+00BB and U+2122 are left alone on purpose.
+ *
+ * FIX ROUND 2 (2026-10-20 22:04 +03, task 596; controller rulings after the round 1 review):
+ *  16. Domain matching checks each hyphen-separated segment of every label after the first against URL_TLDS,
+ *      so "evil.com-x", "evil.com--x", "evil.com-pay" and "evil.pay-com" are removed (an em dash maps to "-"
+ *      first). "Jo.Smith-Co" is removed too; that cost is accepted. "Anne.Marie-Claire" stays.
+ *  17. TYPOGRAPHY also maps U+2010, U+2011 and U+FF0D to "-" (more dash forms that force UCS-2).
+ *  18. The WHY paragraph no longer claims that what is left is always accepted, and clean() and cleanBody()
+ *      carry dated comments for the round 1 edits.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -139,8 +151,13 @@ class MessageCleaner
      * Smart quotes, dashes, primes and the ellipsis to ASCII.
      * 2026-10-20 21:41 +03: dashes U+2012-U+2015 and U+2212 to "-", primes U+2032 and U+2033 to ' and ",
      * ruling R14 (an em dash forces the whole SMS to UCS-2), task 596.
+     * 2026-10-20 22:04 +03: also the hyphen U+2010, the non-breaking hyphen U+2011 and the full-width
+     * hyphen-minus U+FF0D to "-" (same cost, same reason), round 2, task 596.
      */
     private const TYPOGRAPHY = [
+        "\u{2010}" => '-',
+        "\u{2011}" => '-',
+        "\u{FF0D}" => '-',
         "\u{2012}" => '-',
         "\u{2013}" => '-',
         "\u{2014}" => '-',
@@ -224,6 +241,9 @@ class MessageCleaner
      */
     public static function clean(string $text): string
     {
+        // 2026-10-20 22:04 +03: the pass loop moved into cleanBody() so cleanPlaceholderValue() can run the
+        // same passes without decoding the literal escapes twice; behaviour of clean() is unchanged
+        // (fix round 1, task 596).
         try {
             return self::cleanBody($text, true);
         } catch (\UnexpectedValueException $e) {
@@ -320,6 +340,10 @@ class MessageCleaner
      */
     private static function cleanBody(string $text, bool $decodeEscapes): string
     {
+        // 2026-10-20 22:04 +03: extracted from clean() with the $decodeEscapes switch and a thrown
+        // UnexpectedValueException instead of a silent '' (clean() and cleanPlaceholderValue() catch it and
+        // fail closed). Why: the placeholder cleaner re-runs these passes after removing brackets and must
+        // not decode "\\n" a second time. Fix round 1, task 596.
         $text = self::stripInvalidUtf8($text);
 
         for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
@@ -388,10 +412,14 @@ class MessageCleaner
                 return self::REMOVED_MARK;
             }
             foreach (array_slice((array) $labels, 1) as $label) {
-                // A trailing hyphen is punctuation, not part of the TLD ("evil.com-").
-                $tld = strtr(rtrim($label, '-'), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
-                if (in_array($tld, self::URL_TLDS, true)) {
-                    return self::REMOVED_MARK;
+                // 2026-10-20 22:04 +03: every hyphen-separated segment of the label is checked, not the label
+                // as a whole: "evil.com-x", "evil.com--x", "evil.com-pay" and "evil.pay-com" are still links
+                // (a phone stops the host at the hyphen). Round 2, task 596.
+                foreach (explode('-', $label) as $segment) {
+                    $tld = strtr($segment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
+                    if (in_array($tld, self::URL_TLDS, true)) {
+                        return self::REMOVED_MARK;
+                    }
                 }
             }
 
