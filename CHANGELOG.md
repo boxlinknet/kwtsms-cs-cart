@@ -29,3 +29,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Message, attempt and debug logs: credentials never stored in any encoding, one-time codes and reset links
   masked, 4-byte characters removed for the 3-byte database connection, newest-first lists read straight off
   the created_at index.
+<!-- 2026-10-20 22:52 +03: entries for the transport, the API guard and the API client (Task 1.5), task 596 -->
+- Own hardened HTTPS client for the kwtSMS API: certificate and host name verified, TLS 1.2 or newer, HTTPS only,
+  no redirects, hard connect and total timeouts, no request logging. The core HTTP client is not used because it
+  turns certificate checks off and writes request bodies, with the API password, into the core logs.
+- API client for balance, Sender IDs, coverage, number validation and sending: the reply is read whatever the
+  HTTP status (kwtSMS answers some errors with 403), errors carry a code and where it came from, sends are split
+  into calls of at most 200 numbers and 2500 characters, and the API password never reaches a log, a dump or a
+  serialized object.
+- One 5-requests-per-second slot clock for the whole server, and a circuit breaker: after a failed connection the
+  rest of the request is deferred, three failing requests in a row pause sending for 5 minutes.
+- Plain-language reasons for every kwtSMS error code and for the add-on's own failures, in English and Arabic.
