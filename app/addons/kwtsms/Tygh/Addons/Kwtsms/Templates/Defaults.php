@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Templates/Defaults.php
- * CREATED:   2026-10-20 23:08 +03
+ * CREATED:   2026-10-20 23:01 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The list of Phase 1 SMS template rows (one per event id and receiver) with their language variable
