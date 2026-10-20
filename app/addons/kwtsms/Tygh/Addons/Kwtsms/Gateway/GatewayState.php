@@ -41,7 +41,10 @@ class GatewayState
     public const KEY_LAST_CRON = 'kwtsms_last_cron';
     public const KEY_GATEWAY_STATE = 'kwtsms_gateway_state';
 
-    /** Consecutive transport failures (connect, TLS, DNS) that open the breaker. */
+    /**
+     * Consecutive transport failures (connect, TLS, DNS, read timeout) that open the breaker.
+     * 2026-10-20 23:16 +03: read timeout added to the wording (ruling R20: it keeps counting), task 596.
+     */
     public const BREAKER_FAILURES = 3;
 
     /** Seconds the breaker stays open (reason gateway_unreachable). */
@@ -288,8 +291,9 @@ class GatewayState
     }
 
     /**
-     * Counts one transport failure (connect, TLS, DNS). The third consecutive one opens the breaker for
-     * five minutes; a failure after it closed opens it again.
+     * Counts one transport failure (connect, TLS, DNS, read timeout). The third consecutive one opens the
+     * breaker for five minutes; a failure after it closed opens it again.
+     * 2026-10-20 23:16 +03: read timeout added to the wording (ruling R20), task 596.
      *
      * @return array{failures: int, open_until: int, open: bool} The breaker after this failure
      */
