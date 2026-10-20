@@ -165,6 +165,11 @@ msgctxt "Languages::event.transport.kwtsms"
 msgid "kwtSMS"
 msgstr "kwtSMS"
 
+# 2026-10-21 01:59 +03: name of the kwtsms.order_placed event on Administration > Notifications, Task 1.9, task 596.
+msgctxt "Languages::kwtsms.event.order_placed"
+msgid "New order placed"
+msgstr "تم تقديم طلب جديد"
+
 msgctxt "Languages::privilege_groups.kwtsms"
 msgid "kwtSMS"
 msgstr "kwtSMS"
@@ -367,6 +372,11 @@ msgstr "طلب جديد رقم {order_id} في {store_name}، {order_total} {cur
 msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.C"
 msgid "{store_name}: Thanks, orders {order_ids} received. Total {order_total} {currency}."
 msgstr "استلمنا طلباتك رقم {order_ids} من {store_name}"
+
+# 2026-10-21 01:59 +03: the admin's one SMS per Multi-Vendor checkout (mve_admin_new_order = per_checkout), Task 1.9, task 596.
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.A"
+msgid "{store_name}: New orders {order_ids}, {order_total} {currency}."
+msgstr "طلبات جديدة رقم {order_ids} في {store_name}"
 
 msgctxt "Languages::kwtsms.tpl.order.status_changed.C"
 msgid "{store_name}: Order {order_id} update: {order_status}."

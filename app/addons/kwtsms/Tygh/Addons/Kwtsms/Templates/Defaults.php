@@ -78,6 +78,9 @@ class Defaults
             self::row(self::EVENT_PLACED, self::RECEIVER_CUSTOMER),
             self::row(self::EVENT_PLACED, self::RECEIVER_ADMIN),
             self::row(self::EVENT_PLACED_MULTI, self::RECEIVER_CUSTOMER, self::EVENT_PLACED, '', true),
+            // 2026-10-21 01:59 +03: the admin's one SMS per Multi-Vendor checkout ({order_ids}), Task 1.9 carry,
+            // task 596.
+            self::row(self::EVENT_PLACED_MULTI, self::RECEIVER_ADMIN, self::EVENT_PLACED, '', true),
             self::row(self::EVENT_STATUS, self::RECEIVER_CUSTOMER),
             self::row(self::EVENT_STATUS, self::RECEIVER_ADMIN),
         ];

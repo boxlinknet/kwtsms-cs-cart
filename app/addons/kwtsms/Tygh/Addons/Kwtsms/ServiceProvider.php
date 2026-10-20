@@ -21,7 +21,11 @@
  *            2026-10-21 01:13 +03, Task 1.7, task 596: kwtsms.api_client_for (a client on candidate credentials, for
  *            the login), kwtsms.sync (Gateway\SyncService) and kwtsms.cron (Cron\CronRunner):
  *            $sync = Tygh::$app['kwtsms.sync'];  $cron = Tygh::$app['kwtsms.cron'];
- *            Task 1.9 (transport and notification services) adds its entries here.
+ *            2026-10-21 01:58 +03, Task 1.9, task 596: the order SMS services and the notification transport
+ *            event.transports.kwtsms (registered first in register()), and extendNotifications() for init.php:
+ *            kwtsms.order_flags, kwtsms.dispatch_keys, kwtsms.templates, kwtsms.order_sms_data, kwtsms.order_source,
+ *            kwtsms.checkout_rules, kwtsms.order_diagnostics, kwtsms.order_notifier, kwtsms.order_hooks,
+ *            kwtsms.declared_events;  ServiceProvider::extendNotifications(Tygh::$app);  (guarded, see there)
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -45,6 +49,22 @@ use Tygh\Addons\Kwtsms\Sms\ApiClient;
 use Tygh\Addons\Kwtsms\Sms\ApiGuard;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Storage\StorageDataStore;
+// 2026-10-21 01:58 +03: Task 1.9, task 596.
+use Pimple\Exception\FrozenServiceException;
+use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
+use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender;
+use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
+use Tygh\Addons\Kwtsms\Notifications\SmsTransport;
+use Tygh\Addons\Kwtsms\Orders\CheckoutRules;
+use Tygh\Addons\Kwtsms\Orders\Diagnostics;
+use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
+use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
+use Tygh\Addons\Kwtsms\Orders\OrderHooks;
+use Tygh\Addons\Kwtsms\Orders\OrderNotifier;
+use Tygh\Addons\Kwtsms\Orders\OrderSource;
+use Tygh\Addons\Kwtsms\Orders\RuntimeFlags;
+use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
+use Tygh\Notifications\EventIdProviders\IProvider;
 
 class ServiceProvider implements ServiceProviderInterface
 {
@@ -53,6 +73,10 @@ class ServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $app)
     {
+        // 2026-10-21 01:58 +03: Task 1.9, task 596. The SMS notification transport and the order SMS services. All
+        // lazy: a request that changes no order and opens no Notifications page builds none of them.
+        $this->registerOrderSms($app);
+
         $app['kwtsms.storage'] = function (): StorageDataStore {
             return new StorageDataStore();
         };
@@ -210,5 +234,185 @@ class ServiceProvider implements ServiceProviderInterface
         } catch (\Throwable $e) {
             return 0;
         }
+    }
+
+    /**
+     * The order SMS services and event.transports.kwtsms (PRD 4.1, 4.2).
+     * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+     */
+    private function registerOrderSms(Container $app): void
+    {
+        $app['event.transports.kwtsms'] = function (Container $app): SmsTransport {
+            return new SmsTransport(function () use ($app): OrderNotifier {
+                return $app['kwtsms.order_notifier'];
+            });
+        };
+
+        $app['kwtsms.order_flags'] = function (): RuntimeFlags {
+            return new RuntimeFlags();
+        };
+
+        $app['kwtsms.dispatch_keys'] = function (): DispatchKeys {
+            return new DispatchKeys();
+        };
+
+        $app['kwtsms.templates'] = function (Container $app): TemplateRepository {
+            return new TemplateRepository($app['kwtsms.logs.debug']);
+        };
+
+        $app['kwtsms.order_sms_data'] = function (): OrderSmsData {
+            return new OrderSmsData();
+        };
+
+        $app['kwtsms.order_source'] = function (): OrderSource {
+            return new OrderSource();
+        };
+
+        // The kwtsms events schema (our kwtsms.order_placed and third-party declarations, PRD 5.2).
+        $app['kwtsms.declared_events'] = function (): array {
+            $schema = fn_get_schema('kwtsms', 'events');
+
+            return is_array($schema) ? $schema : [];
+        };
+
+        $app['kwtsms.checkout_rules'] = function (Container $app): CheckoutRules {
+            $mve = fn_allowed_for('MULTIVENDOR');
+
+            return new CheckoutRules(
+                $app['kwtsms.config'],
+                $mve,
+                $mve && function_exists('fn_are_company_orders_fulfilled_by_marketplace')
+                    ? static function (int $company_id): bool {
+                        return fn_are_company_orders_fulfilled_by_marketplace($company_id) === true;
+                    }
+                    : null
+            );
+        };
+
+        $app['kwtsms.order_diagnostics'] = function (Container $app): Diagnostics {
+            return new Diagnostics(
+                $app['kwtsms.logs.attempts'],
+                $app['kwtsms.config'],
+                // The same (fail-closed) service the dispatcher and the Notifications page read.
+                function (string $event_id, string $receiver) use ($app): bool {
+                    $settings = $app['event.notification_settings'];
+
+                    return !empty($settings[$event_id]['receivers'][$receiver][EventsSchemaExtender::TRANSPORT_ID]);
+                },
+                function (array $rules) use ($app) {
+                    return $app['event.notification_settings.factory']->create($rules);
+                },
+                [$app['kwtsms.order_source'], 'profilePhone'],
+                [$app['kwtsms.order_source'], 'actor']
+            );
+        };
+
+        $app['kwtsms.order_notifier'] = function (Container $app): OrderNotifier {
+            return new OrderNotifier(
+                $app['kwtsms.sms'],
+                $app['kwtsms.config'],
+                $app['kwtsms.templates'],
+                $app['kwtsms.dispatch_keys'],
+                $app['kwtsms.order_sms_data'],
+                $app['kwtsms.checkout_rules'],
+                $app['kwtsms.order_flags'],
+                $app['kwtsms.order_diagnostics'],
+                $app['kwtsms.order_source'],
+                $app['kwtsms.logs.debug'],
+                $app['kwtsms.declared_events']
+            );
+        };
+
+        $app['kwtsms.order_hooks'] = function (Container $app): OrderHooks {
+            $flags = $app['kwtsms.order_flags'];
+            $keys = $app['kwtsms.dispatch_keys'];
+            $detector = new NewOrderDetector(
+                NewOrderDetector::placedStatuses(
+                    (array) fn_get_order_paid_statuses(),
+                    $app['kwtsms.config']->placedStatusExtra()
+                ),
+                static function (int $order_id) use ($flags): bool {
+                    return $flags->has('edit', $order_id);
+                },
+                static function (int $order_id) use ($keys): bool {
+                    return $keys->hasOrderPlaced($order_id);
+                }
+            );
+
+            return new OrderHooks(
+                $detector,
+                $flags,
+                $app['kwtsms.order_diagnostics'],
+                $app['kwtsms.checkout_rules'],
+                $app['kwtsms.order_source'],
+                function (string $event_id, array $data, array $rules, IProvider $provider) use ($app): void {
+                    $app['event.dispatcher']->dispatch(
+                        $event_id,
+                        $data,
+                        $app['event.notification_settings.factory']->create($rules),
+                        $provider
+                    );
+                },
+                $app['kwtsms.logs.debug']
+            );
+        };
+    }
+
+    /**
+     * Attaches the SMS transport to the merged events schema and makes its switches fail-closed (PRD 4.1), by
+     * extending core's event.events_schema and event.notification_settings. Guarded: when a service was already
+     * built in this request (another add-on read it during its own init) or Pimple refuses the extension, the
+     * extension is skipped and an error is logged, never thrown (the store keeps working, without SMS columns).
+     * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+     *
+     * @param Container $app Tygh::$app (Tygh\Application)
+     */
+    public static function extendNotifications(Container $app): void
+    {
+        $extensions = [
+            'event.events_schema' => static function ($schema, Container $app) {
+                try {
+                    return (new EventsSchemaExtender($app['kwtsms.declared_events']))->extend((array) $schema);
+                } catch (\Throwable $e) {
+                    self::logError('events schema extension failed', $e);
+
+                    return $schema;
+                }
+            },
+            'event.notification_settings' => static function ($settings, Container $app) {
+                try {
+                    $stored = NotificationSettingsExtender::storedRows();
+
+                    return (new NotificationSettingsExtender())->extend((array) $settings, $stored);
+                } catch (\Throwable $e) {
+                    self::logError('notification settings extension failed, every SMS switch is off', $e);
+
+                    return NotificationSettingsExtender::allOff((array) $settings);
+                }
+            },
+        ];
+        foreach ($extensions as $id => $extension) {
+            try {
+                if (method_exists($app, 'hasInstance') && $app->hasInstance($id)) {
+                    error_log('kwtsms: ' . $id . ' was built before the add-on could extend it;'
+                        . ' SMS is not attached in this request');
+                    continue;
+                }
+                $app->extend($id, $extension);
+            } catch (FrozenServiceException $e) {
+                self::logError($id . ' is frozen; SMS is not attached in this request', $e);
+            } catch (\Throwable $e) {
+                self::logError($id . ' could not be extended', $e);
+            }
+        }
+    }
+
+    /**
+     * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+     */
+    private static function logError(string $what, \Throwable $e): void
+    {
+        error_log('kwtsms: ' . $what . ': ' . get_class($e) . ': ' . $e->getMessage()
+            . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
     }
 }

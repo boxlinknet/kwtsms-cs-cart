@@ -18,6 +18,10 @@
  *            2026-10-21 01:13 +03: fn_kwtsms_cron_run() and the helpers of the controller kwtsms_cron.run (cron key
  *            check, JSON reply, throttled log of a refused request), Task 1.7, task 596:
  *            php /var/www/cscart/admin.php --dispatch=kwtsms_cron.run
+ *            2026-10-21 01:58 +03: the six order hook handlers fn_kwtsms_change_order_status(), ..._post(),
+ *            fn_kwtsms_edit_place_order(), fn_kwtsms_place_order_manually_post(), fn_kwtsms_place_order_post(),
+ *            fn_kwtsms_change_order_status_child_order() (PRD 4.3), delegating to Tygh::$app['kwtsms.order_hooks'],
+ *            Task 1.9, task 596.
  * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape), Tygh::$app['kwtsms.sms'],
  *            Tygh::$app['kwtsms.cron'].
  */
@@ -115,6 +119,207 @@ function fn_kwtsms_settings_info(): string
     return '<a class="btn btn-primary" href="' . fn_html_escape($url) . '">'
         . fn_html_escape(__('kwtsms.open_settings'))
         . '</a>';
+}
+
+/*
+ * Order hooks (PRD 4.3), registered in init.php. Each handler delegates to Tygh\Addons\Kwtsms\Orders\OrderHooks and
+ * never throws: an SMS problem must not break a checkout, a payment callback or an admin save. Core line numbers
+ * are CS-Cart 4.21.2.
+ * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+ */
+
+/**
+ * Hook change_order_status (fn.cart.php:2953), before core dispatches order.status_changed.<status>: flags a new
+ * order so its status SMS is superseded by the order-placed SMS.
+ *
+ * @param string              $status_to          New status (B when the stock ran out)
+ * @param string              $status_from        Old status
+ * @param array<string,mixed> $order_info         fn_get_order_info() row
+ * @param mixed               $force_notification Notify rules
+ * @param array<string,mixed> $order_statuses     Unused
+ * @param bool                $place_order        True inside fn_place_order()
+ */
+function fn_kwtsms_change_order_status(
+    $status_to,
+    $status_from,
+    $order_info,
+    $force_notification,
+    $order_statuses,
+    $place_order
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatus(
+            (string) $status_to,
+            (string) $status_from,
+            is_array($order_info) ? $order_info : [],
+            $force_notification,
+            (bool) $place_order
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('change_order_status', $e);
+    }
+}
+
+/**
+ * Hook change_order_status_post (fn.cart.php:3038): dispatches kwtsms.order_placed for a flagged order with the same
+ * notify rules, records why no status SMS was handed over (diagnostics), clears the flag.
+ *
+ * @param int                 $order_id
+ * @param string              $status_to
+ * @param string              $status_from
+ * @param mixed               $force_notification
+ * @param bool                $place_order
+ * @param array<string,mixed> $order_info
+ * @param mixed               $edp_data           Unused
+ */
+function fn_kwtsms_change_order_status_post(
+    $order_id,
+    $status_to,
+    $status_from,
+    $force_notification,
+    $place_order,
+    $order_info,
+    $edp_data
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatusPost(
+            (int) $order_id,
+            (string) $status_to,
+            (string) $status_from,
+            $force_notification,
+            (bool) $place_order,
+            is_array($order_info) ? $order_info : []
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('change_order_status_post', $e);
+    }
+}
+
+/**
+ * Hook edit_place_order (fn.cart.php:1358): the admin is editing this order; it is never a new order.
+ *
+ * @param int $order_id
+ */
+function fn_kwtsms_edit_place_order($order_id)
+{
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onEditPlaceOrder((int) $order_id);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('edit_place_order', $e);
+    }
+}
+
+/**
+ * Hook place_order_manually_post (backend order_management.php:779): the order-placed SMS of an order the admin
+ * created, with the admin's Notify boxes (inside fn_place_order() AREA A forces every notify rule to false).
+ *
+ * @param array<string,mixed> $cart
+ * @param array<string,mixed> $params
+ * @param array<string,mixed> $customer_auth
+ * @param string              $action
+ * @param int                 $issuer_id
+ * @param mixed               $force_notification The admin's notify rules
+ * @param mixed               $order_info         Unused (undefined in core when no notification is required)
+ * @param mixed               $edp_data           Unused
+ * @param bool                $is_order_placed_notification_required Unused
+ */
+function fn_kwtsms_place_order_manually_post(
+    $cart,
+    $params,
+    $customer_auth,
+    $action,
+    $issuer_id,
+    $force_notification,
+    $order_info = null,
+    $edp_data = null,
+    $is_order_placed_notification_required = true
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onPlaceOrderManuallyPost($force_notification);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('place_order_manually_post', $e);
+    }
+}
+
+/**
+ * Hook place_order_post (fn.cart.php:1724): on the parent of a Multi-Vendor checkout, once every child exists, the
+ * one checkout SMS.
+ *
+ * @param array<string,mixed> $cart
+ * @param array<string,mixed> $auth
+ * @param string              $action
+ * @param int                 $issuer_id
+ * @param int                 $parent_order_id 0 on the parent (or a plain order)
+ * @param int                 $order_id
+ * @param string              $order_status
+ * @param array<string,mixed> $short_order_data
+ * @param mixed               $notification_rules Unused (all false on a parent)
+ */
+function fn_kwtsms_place_order_post(
+    $cart,
+    $auth,
+    $action,
+    $issuer_id,
+    $parent_order_id,
+    $order_id,
+    $order_status,
+    $short_order_data,
+    $notification_rules
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onPlaceOrderPost(
+            (int) $parent_order_id,
+            (int) $order_id,
+            is_array($short_order_data) ? $short_order_data : []
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('place_order_post', $e);
+    }
+}
+
+/**
+ * Hook change_order_status_child_order (fn.cart.php:2806): a parent order moves this child in the current request.
+ *
+ * @param int    $order_id            Parent order id
+ * @param string $status_to
+ * @param string $status_from
+ * @param mixed  $force_notification
+ * @param bool   $place_order
+ * @param int    $child_order_id
+ * @param string $child_status_to
+ * @param bool   $change_child_status
+ * @param string $child_status_from
+ */
+function fn_kwtsms_change_order_status_child_order(
+    $order_id,
+    $status_to,
+    $status_from,
+    $force_notification,
+    $place_order,
+    $child_order_id,
+    $child_status_to,
+    $change_child_status,
+    $child_status_from
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatusChildOrder(
+            (int) $order_id,
+            (int) $child_order_id,
+            (bool) $change_child_status
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('change_order_status_child_order', $e);
+    }
+}
+
+/**
+ * One line in the PHP error log for a failed order hook: class, message, file:line, no trace.
+ * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+ */
+function fn_kwtsms_log_hook_error(string $hook, \Throwable $e): void
+{
+    error_log('kwtsms: hook ' . $hook . ' failed: ' . get_class($e) . ': ' . $e->getMessage()
+        . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
 }
 
 /**
