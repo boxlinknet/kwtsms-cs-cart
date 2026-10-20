@@ -7,15 +7,13 @@
  * AUTHOR:    kwtSMS
  * WHAT:      Procedural functions of the kwtSMS add-on: the install and uninstall handlers named in
  *            addon.xml and the renderer of the visible "info" setting.
- * WHY:       addon.xml cannot express a random value (cron_key), a sweep over tables found at run time, or
- *            the HTML of the settings info item. Services and hooks arrive in later tasks; this file
- *            stays free of business logic.
+ * WHY:       addon.xml cannot express a random value (cron_key) or the HTML of the settings info item.
+ *            Services and hooks arrive in later tasks; this file stays free of business logic.
  * USAGE:     Loaded by CS-Cart: fn_kwtsms_install() and fn_kwtsms_uninstall() by the add-on installer,
  *            fn_kwtsms_settings_info() by Admin > Add-ons > kwtSMS (settings page).
  * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, db_* functions, fn_url, fn_html_escape).
  */
 
-use Tygh\Registry;
 use Tygh\Settings;
 
 defined('BOOTSTRAP') or die('Access denied');
@@ -40,22 +38,17 @@ function fn_kwtsms_install(): void
  * Uninstall handler (addon.xml functions, for="uninstall"). Runs before the queries of addon.xml and
  * before the settings and language values are removed.
  *
- * Drops every table whose name starts with "kwtsms_" in this store, including tables a later version
- * created that addon.xml of this version does not list, so a reinstall always starts clean (PRD 13).
- * The nine Phase 1 tables are also dropped by name in addon.xml; both are idempotent.
+ * Intentionally empty in 1.0.0: every table, privilege, grant, notification row, storage key and language
+ * value is removed by the uninstall queries of addon.xml, by exact name, so the add-on can never drop
+ * something it does not own (no sweep over the "kwtsms_" prefix). Cleanup that SQL cannot express (for
+ * example persistent admin notices) is added here by the task that creates it.
  *
  * @return void
  */
 function fn_kwtsms_uninstall(): void
 {
-    // 2026-10-20 19:53 +03: sweep of kwtsms_ tables created by later versions (PRD 13), task 596.
-    $prefix = Registry::get('config.table_prefix');
-
-    foreach ((array) db_get_fields('SHOW TABLES') as $table) {
-        if (strpos((string) $table, $prefix . 'kwtsms_') === 0) {
-            db_query('DROP TABLE IF EXISTS ?p', '`' . str_replace('`', '', (string) $table) . '`');
-        }
-    }
+    // 2026-10-20 20:28 +03: the table sweep was removed, addon.xml drops exactly the nine tables (review
+    // finding: the sweep was broader than "our tables" and duplicated addon.xml), task 596.
 }
 
 /**

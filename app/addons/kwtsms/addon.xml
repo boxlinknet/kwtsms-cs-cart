@@ -364,8 +364,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms', 'Y', 'addons', 'kwtsms', 'N');</item>
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms_gateway', 'Y', 'addons', 'kwtsms', 'N');</item>
 
-        <!-- Uninstall (PRD 13): nothing of ours stays behind, a reinstall starts clean. Tables created by a
-             later version are swept by fn_kwtsms_uninstall(). -->
+        <!-- Uninstall (PRD 13): nothing of ours stays behind, a reinstall starts clean, and nothing that is not
+             ours is touched: every statement names its target exactly. A version that adds a table adds its
+             DROP here. -->
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_messages`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_attempts`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_debug_log`;</item>
