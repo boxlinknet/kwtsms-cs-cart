@@ -24,8 +24,8 @@
  *            storefront_id, user_id, actor_user_id, actor_company_id, lang_code, audience (admin | storefront,
  *            default storefront), interactive (bool), ip, secret_values (masked in every log copy, D7),
  *            country_iso (ISO2 of the order country: the phone hint, else default_country_code), caller (the
- *            add-on behind fn_kwtsms_send), retry_of, outbox_id (set by the outbox drain: the row is claimed,
- *            retried with back-off, expired, or marked done here).
+ *            add-on behind fn_kwtsms_send), retry_of. (outbox_id is ignored when a caller passes it: only drainDue()
+ *            sets it, see the 2026-10-21 01:04 +03 note below.)
  *            Pipeline: 1 hook kwtsms_send_pre (may edit or cancel -> cancelled); 2 enabled -> blocked_disabled;
  *            3 configured -> blocked_not_configured, suspended -> deferred/suspended; 4 abuse caps (per number:
  *            customer receiver and manual/api sources 5 per hour and 20 per day, api counted in its own bucket;
@@ -55,6 +55,18 @@
  *            Outbox back-off: 30, 60, 120, then 300 s; suspended 300 s; request_overflow at once; quiet hours at
  *            the window end; rows expire 30 min after they were queued (quiet hours: after the window end).
  *            Test seams (protected): hookSendPre(), hookSendPost(), isWebRequest().
+ *            2026-10-21 01:04 +03, Task 1.6 fix round 1 (review: a stale drain snapshot resent 201 numbers), task 596:
+ *            the outbox is drained ONLY by drainDue($limit, $time_budget_s) (Task 1.7's cron and the dashboard
+ *            fallback): it reaps stuck rows, claims each due row on (status, retry_at, attempts) and sends what the
+ *            CLAIMED row holds; send() ignores any outbox_id a caller passes. A drained row skips kwtsms_send_pre
+ *            (it ran on the first attempt, on the text the row stores) and uses the test flag stored at enqueue:
+ *            a test row is never sent live, a live row drained in test mode goes out as test (ruling R26).
+ *            refreshBalance() and probeCredentials() are public, the single implementation SyncService delegates to
+ *            (ruling R25): account-level codes on /balance/ suspend, and the ERR003 probe runs at most once per
+ *            15 minutes across requests (GatewayState::lastProbe()). The caps read every number of a send in one
+ *            grouped query and the attempt rows are written in one INSERT (AttemptLog::countsByPhone(),
+ *            recordMany()); the admin cap (300/day) applies only to numbers in admin_phones; the auto
+ *            low-balance threshold is computed once a day.
  * DEPENDS:   Settings\ConfigInterface, Gateway\GatewayState, Sms\{ApiClient,ApiErrors,PhoneNormalizer,
  *            MessageCleaner,SendResult}, Templates\TemplateRenderer, Log\{MessageLog,AttemptLog,DebugLog,Redactor},
  *            Queue\Outbox, Alerts\AdminAlerts; a client factory (string $timeout_context): ApiClient whose clients
@@ -110,6 +122,9 @@ class SmsService
     private const NON_API_SOURCES = ['event', 'manual', 'cron', 'otp'];
 
     private const SUSPEND_CODES = ['ERR001', 'ERR004', 'ERR005', 'ERR024', 'ERR034'];
+
+    /** 2026-10-21 01:04 +03: the ERR003 probe runs at most once in this many seconds (ruling R25), task 596. */
+    public const PROBE_SECONDS = 900;
 
     /** kwtSMS codes with a fixed outcome (the others are handled in code or are failed). */
     private const CODE_OUTCOMES = [
@@ -174,6 +189,12 @@ class SmsService
     /** @var ApiClient|null The client of the current send() */
     private $client = null;
 
+    /** @var bool The test flag of the current send (2026-10-21 01:04 +03, ruling R26, task 596) */
+    private $test = true;
+
+    /** @var array<string,mixed>|null The claimed outbox row the current send drains (2026-10-21 01:04 +03, task 596) */
+    private $row = null;
+
     /** @var array<string,array{ms:int,decided:int}> Per-stage timings of the current send() */
     private $stages = [];
 
@@ -216,12 +237,127 @@ class SmsService
      */
     public function send($phones, string $message, array $context = []): SendResult
     {
+        // 2026-10-21 01:04 +03: a caller can never point a send at an outbox row; rows are drained only by drainDue(),
+        // from the claimed row's own contents (fix round 1, critical 1), task 596.
+        unset($context['outbox_id']);
+
+        return $this->run($this->phoneList($phones), $message, $this->normalizeContext($context), null);
+    }
+
+    /**
+     * Drains the outbox: reaps rows that can never be drained (sending for more than 10 minutes -> unknown, held
+     * past their expiry -> expired), then claims due rows oldest first and sends what each CLAIMED row holds. A
+     * row another drain claimed first, or whose attempts changed since this drain read it, is skipped. Called by
+     * the cron (Task 1.7) and the dashboard fallback; callers never pass row data. Never throws.
+     * 2026-10-21 01:04 +03: added (fix round 1, critical 1), task 596.
+     *
+     * @return array{reaped:int,due:int,claimed:int,busy:int,stopped:?string,results:array<int,SendResult>}
+     */
+    public function drainDue(int $limit, float $time_budget_s): array
+    {
+        $started = microtime(true);
+        $summary = ['reaped' => 0, 'due' => 0, 'claimed' => 0, 'busy' => 0, 'stopped' => null, 'results' => []];
+        try {
+            foreach ($this->outbox->reap($this->now()) as $reaped) {
+                $summary['reaped']++;
+                $this->recordReaped($reaped);
+            }
+            $rows = $this->outbox->due($limit);
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.drain_failed', $e);
+
+            return $summary;
+        }
+        $summary['due'] = count($rows);
+        foreach ($rows as $snapshot) {
+            if (microtime(true) - $started >= $time_budget_s) {
+                $summary['stopped'] = 'time_budget';
+                break;
+            }
+            try {
+                if (!$this->outbox->claim($snapshot['outbox_id'], $snapshot['attempts'])) {
+                    $summary['busy']++;
+                    continue;
+                }
+                $row = $this->outbox->find($snapshot['outbox_id']);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('sms.drain_claim_failed', $e);
+                continue;
+            }
+            if ($row === null || $row['status'] !== Outbox::STATUS_SENDING) {
+                $summary['busy']++;
+                continue;
+            }
+            $summary['claimed']++;
+            $summary['results'][$row['outbox_id']] = $this->sendRow($row);
+        }
+        $this->note('info', 'sms.drain', $summary['stopped'] ?? 'done', [
+            'reaped' => $summary['reaped'],
+            'due' => $summary['due'],
+            'claimed' => $summary['claimed'],
+            'busy' => $summary['busy'],
+        ], (int) round((microtime(true) - $started) * 1000));
+
+        return $summary;
+    }
+
+    /**
+     * One claimed outbox row through the pipeline: phones, text and context come from the row; only its id is
+     * added. 2026-10-21 01:04 +03: added, task 596.
+     *
+     * @param array<string,mixed> $row A decoded row that this request claimed (status sending)
+     */
+    private function sendRow(array $row): SendResult
+    {
+        $context = $this->normalizeContext(is_array($row['context']) ? $row['context'] : []);
+        $context['outbox_id'] = (int) $row['outbox_id'];
+
+        return $this->run($this->phoneList($row['phones']), (string) $row['message'], $context, $row);
+    }
+
+    /**
+     * Attempt rows for the recipients of a reaped row (outcome unknown or expired).
+     * 2026-10-21 01:04 +03: added, task 596.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function recordReaped(array $row): void
+    {
+        $context = $this->normalizeContext(is_array($row['context']) ? $row['context'] : []);
+        $outcome = $row['status'] === Outbox::STATUS_UNKNOWN ? 'unknown' : 'expired';
+        $reason = $outcome === 'unknown' ? 'outbox_claim_stale' : 'expired_in_outbox';
+        $rcpt = $this->recipients($this->phoneList($row['phones']));
+        foreach ($rcpt as $i => $r) {
+            $rcpt[$i] = $this->decided($r, $outcome, $reason);
+            $rcpt[$i]['phone'] = ltrim($r['phone_raw'], '+');
+            $rcpt[$i]['outbox_id'] = (int) $row['outbox_id'];
+        }
+        $this->recordAttempts($rcpt, $context);
+        $this->note('warning', 'sms.outbox_reaped', $outcome, [
+            'outbox_id' => $row['outbox_id'],
+            'recipients' => count($rcpt),
+        ]);
+    }
+
+    /**
+     * The body of send() and of a drained row. Never throws.
+     *
+     * @param string[]                 $list
+     * @param array<string,mixed>      $context Normalized
+     * @param array<string,mixed>|null $row     The claimed outbox row, or null
+     */
+    private function run(array $list, string $message, array $context, ?array $row): SendResult
+    {
         $started = microtime(true);
         $this->stages = [];
         $this->stage_started = $started;
         $this->client = null;
-        $context = $this->normalizeContext($context);
-        $list = $this->phoneList($phones);
+        $this->row = $row;
+        // Ruling R26: a drained row keeps the test flag of its first attempt; a test row never goes out live, and
+        // test mode switched on makes every row a test (the safe direction). A row without a flag is a test.
+        $stored = $row !== null && isset($row['context']['test']) ? (string) $row['context']['test'] : '1';
+        $this->test = $row === null ? $this->config->testMode() : ($stored !== '0' || $this->config->testMode());
+        $calls_before = $this->api_calls;
         $this->note('debug', 'sms.send.enter', 'send()', [
             'recipients' => count($list),
             'source' => $context['source'],
@@ -232,22 +368,12 @@ class SmsService
 
         $rcpt = [];
         try {
-            $result = $this->pipeline($list, $message, $context, $rcpt);
+            $result = $this->pipeline($list, $message, $context, $rcpt, $row);
         } catch (\Throwable $e) {
             $this->noteThrowable('sms.send_failed', $e);
-            foreach ($rcpt as $i => $r) {
-                if ($r['outcome'] === null) {
-                    $rcpt[$i] = $this->decided($r, 'failed', 'LOCAL_ERROR', 'LOCAL_ERROR');
-                }
-            }
-            try {
-                $this->recordAttempts($rcpt, $context);
-            } catch (\Throwable $ignored) {
-                // AttemptLog::record() never throws; this only guards a broken double.
-                unset($ignored);
-            }
-            $result = new SendResult($rcpt, ['test' => $this->config->testMode(), 'error_code' => 'LOCAL_ERROR']);
+            $result = $this->afterThrow($rcpt, $context, $row, $this->api_calls > $calls_before);
         }
+        $this->row = null;
 
         try {
             $this->hookSendPost($result, $context);
@@ -270,6 +396,62 @@ class SmsService
         ], $ms);
 
         return $result;
+    }
+
+    /**
+     * What a throw inside the pipeline leaves behind: the claimed row goes back to pending when no API call was
+     * made (with one more attempt counted, so a throw that repeats ends at the expiry) and is final "unknown"
+     * otherwise (it may have been sent); a recipient is never "deferred" without an outbox row; attempt rows already
+     * written are not written again. 2026-10-21 01:04 +03: added (fix round 1, items 4 and 9), task 596.
+     *
+     * @param array<int,array<string,mixed>> $rcpt
+     * @param array<string,mixed>            $context
+     * @param array<string,mixed>|null       $row
+     */
+    private function afterThrow(array $rcpt, array $context, ?array $row, bool $api_called): SendResult
+    {
+        $repended = false;
+        try {
+            if ($row !== null) {
+                $repended = !$api_called && $this->outbox->markRetry(
+                    (int) $row['outbox_id'],
+                    $this->now() + Outbox::backoff((int) $row['attempts'] + 1),
+                    'error'
+                );
+                if (!$repended) {
+                    $this->outbox->markUnknown((int) $row['outbox_id']);
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.send_failed_outbox', $e);
+        }
+        $pending = [];
+        foreach ($rcpt as $i => $r) {
+            if ($r['attempt_id'] > 0) {
+                continue;
+            }
+            if ($row !== null) {
+                $rcpt[$i]['outbox_id'] = (int) $row['outbox_id'];
+                if ($r['outcome'] === null || $r['outcome'] === 'deferred') {
+                    $rcpt[$i] = $repended
+                        ? $this->decided($rcpt[$i], 'deferred', 'error_retry', 'LOCAL_ERROR')
+                        : $this->decided($rcpt[$i], 'unknown', 'LOCAL_ERROR', 'LOCAL_ERROR');
+                }
+            } elseif ($r['outcome'] === null || ($r['outcome'] === 'deferred' && $r['outbox_id'] < 1)) {
+                $rcpt[$i] = $this->decided($rcpt[$i], 'failed', 'LOCAL_ERROR', 'LOCAL_ERROR');
+            }
+            $pending[$i] = $rcpt[$i];
+        }
+        try {
+            $this->recordAttempts($pending, $context);
+            foreach ($pending as $i => $r) {
+                $rcpt[$i]['attempt_id'] = $r['attempt_id'];
+            }
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.send_failed_attempts', $e);
+        }
+
+        return new SendResult($rcpt, ['test' => $this->test, 'error_code' => 'LOCAL_ERROR']);
     }
 
     // ------------------------------------------------------------------ test seams
@@ -311,44 +493,39 @@ class SmsService
      * @param string[]                        $phones
      * @param array<string,mixed>             $context
      * @param array<int,array<string,mixed>>  $rcpt    Filled here, so the caller can finish them after a throw
+     * @param array<string,mixed>|null        $row     The claimed outbox row being drained (2026-10-21 01:04 +03)
      */
-    private function pipeline(array $phones, string $message, array &$context, array &$rcpt): SendResult
+    private function pipeline(array $phones, string $message, array &$context, array &$rcpt, ?array $row): SendResult
     {
-        $meta = ['test' => $this->config->testMode()];
-        $row = null;
+        $meta = ['test' => $this->test];
 
-        // The outbox drain: claim the row (two drains never send it twice), then expire it when it is too old.
-        if ($context['outbox_id'] > 0) {
-            if (!$this->outbox->claim($context['outbox_id'])) {
-                $this->note('info', 'sms.outbox_busy', 'outbox row not pending', [
-                    'outbox_id' => $context['outbox_id'],
-                ]);
+        // A drained row past its expiry is not sent (it was claimed by drainDue()).
+        if ($row !== null && $row['expires_at'] > 0 && $this->now() >= $row['expires_at']) {
+            $rcpt = $this->recipients($phones);
+            $this->decideAll($rcpt, 'expired', 'expired_in_outbox');
+            $this->outbox->markExpired((int) $row['outbox_id']);
 
-                return new SendResult([], ['status' => SendResult::SKIPPED, 'error_code' => 'outbox_busy'] + $meta);
-            }
-            $row = $this->outbox->find($context['outbox_id']);
-            if ($row !== null && $row['expires_at'] > 0 && $this->now() >= $row['expires_at']) {
-                $rcpt = $this->recipients($phones);
-                $this->decideAll($rcpt, 'expired', 'expired_in_outbox');
-                $this->outbox->markExpired($context['outbox_id']);
-
-                return $this->finish($rcpt, $context, $message, $meta, null);
-            }
+            return $this->finish($rcpt, $context, $message, $meta, null);
         }
 
         // Step 1: kwtsms_send_pre may edit the phones, the text and the context, or cancel.
+        // 2026-10-21 01:04 +03: NOT for a drained row: the hook ran on its first attempt and the row holds the text it
+        // returned; running it again would edit an edited text and could cancel a send already promised (fix
+        // round 1, important 3), task 596.
         $cancel = false;
         $outbox_id = $context['outbox_id'];
-        try {
-            $this->hookSendPre($phones, $message, $context, $cancel);
-        } catch (\Throwable $e) {
-            $this->noteThrowable('sms.send_pre_hook_failed', $e);
-            $cancel = true;
+        if ($row === null) {
+            try {
+                $this->hookSendPre($phones, $message, $context, $cancel);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('sms.send_pre_hook_failed', $e);
+                $cancel = true;
+            }
+            // A handler may have put anything into the three references.
+            $phones = $this->phoneList($phones);
+            $message = is_scalar($message) ? (string) $message : '';
+            $context = $this->normalizeContext(is_array($context) ? $context : []);
         }
-        // A handler may have put anything into the three references.
-        $phones = $this->phoneList($phones);
-        $message = is_scalar($message) ? (string) $message : '';
-        $context = $this->normalizeContext(is_array($context) ? $context : []);
         $context['outbox_id'] = $outbox_id;
         $rcpt = $this->recipients($phones);
         $this->stage('1_send_pre', $rcpt);
@@ -482,8 +659,17 @@ class SmsService
         // Step 10: balance (pages x recipients), one live refresh at most every 10 minutes.
         $required = $pages * count($this->open($rcpt));
         $available = $this->availableBalance();
-        if ($available < $required && $this->refreshBalanceAllowed()) {
-            $available = $this->refreshBalance($context);
+        if ($available < $required && $this->balanceRefreshAllowed()) {
+            $this->refreshBalance();
+            $available = $this->availableBalance();
+        }
+        if ($this->state->suspendedCode() !== null) {
+            // 2026-10-21 01:04 +03: the refresh answered an account-level code (ruling R25): the send waits, task 596.
+            foreach ($this->open($rcpt) as $i) {
+                $rcpt[$i] = $this->deferred($rcpt[$i], 'suspended', $this->suspendedRetry());
+            }
+
+            return $this->finish($rcpt, $context, $message, $meta, $row);
         }
         if ($available < $required) {
             $why = 'required_' . $required . '_available_' . $this->number($available);
@@ -568,7 +754,8 @@ class SmsService
         if ($this->isWebRequest()) {
             $allowed = max(0, min($allowed, self::REQUEST_BUDGET - $this->api_calls));
         }
-        $test = $this->config->testMode();
+        // 2026-10-21 01:04 +03: the flag of this send (a drained row keeps its own, ruling R26), task 596.
+        $test = $this->test;
 
         $send = [];
         foreach (array_slice($chunks, 0, $allowed) as $chunk) {
@@ -577,6 +764,14 @@ class SmsService
         $stopped = null;
         if ($send !== []) {
             $result = $this->client($context)->send($this->config->senderId(), $send, $message, $test);
+            if (($result['calls'] ?? []) === []) {
+                // 2026-10-21 01:04 +03: refused before any call (LOCAL_BAD_INPUT): every number keeps that code,
+                // task 596.
+                $code = (string) ($result['code'] ?? 'LOCAL_ERROR');
+                foreach ($send as $number) {
+                    $out['by_number'][(string) $number] = $this->verdict('failed', $code, $code) + ['message_id' => 0];
+                }
+            }
             foreach ($result['calls'] ?? [] as $i => $call) {
                 if (!empty($call['skipped'])) {
                     $verdict = $this->skippedVerdict($stopped, (string) ($call['skipped_because'] ?? ''));
@@ -650,14 +845,13 @@ class SmsService
             return $this->verdict('deferred', 'suspended: ' . $code, $code, 'suspended', $this->suspendedRetry());
         }
         if ($code === 'ERR003') {
-            $probe = $this->probeCredentials($context);
+            $probe = $this->probeCredentials();
             if ($probe === 'ok') {
                 return $this->verdict('rejected', 'ERR003_content', $code);
             }
-            if ($probe === 'ERR003') {
-                $this->suspend('ERR003');
-
-                return $this->verdict('deferred', 'suspended: ERR003', $code, 'suspended', $this->suspendedRetry());
+            if ($this->state->suspendedCode() !== null) {
+                // 2026-10-21 01:04 +03: the probe suspended (ERR003 or another account-level code), task 596.
+                return $this->verdict('deferred', 'suspended: ' . $probe, $code, 'suspended', $this->suspendedRetry());
             }
 
             return $this->verdict('failed', $text, $code);
@@ -755,28 +949,53 @@ class SmsService
     }
 
     /**
-     * ERR003 on /send/ (PRD 6.1): one /balance/ probe per request decides between a rejected text and changed
-     * credentials. Credentials are never cleared here.
+     * The credentials probe (PRD 6.1): one live /balance/ that tells a rejected text (OK) from changed or blocked
+     * credentials. At most one per 15 minutes across requests (GatewayState::lastProbe(); within that time the
+     * stored verdict is returned without a call) and one per request. OK caches the balance and lifts a
+     * suspension; ERR003 or an account-level code (ERR001/004/005/024/034) suspends. Credentials are never
+     * cleared here. SyncService (Task 1.7) delegates its probe here (ruling R25).
+     * 2026-10-21 01:04 +03: public, throttled across requests, suspends on account-level codes (fix round 1, item 11),
+     * task 596.
      *
-     * @param array<string,mixed> $context
+     * @param string $timeout_context web, admin or cli; '' = the context of the current send or request
+     *
+     * @return string "ok", the error code (ERR003, ERR005, ...), or "failed" (no answer, budget used)
      */
-    private function probeCredentials(array $context): string
+    public function probeCredentials(string $timeout_context = ''): string
     {
         if ($this->probe !== null) {
             return $this->probe;
+        }
+        $last = $this->state->lastProbe();
+        if ($last !== null && $this->now() - (int) $last['at'] < self::PROBE_SECONDS) {
+            $verdict = (string) $last['verdict'];
+
+            return $verdict === 'ok' ? 'ok' : (string) ($last['code'] ?? 'failed');
         }
         if ($this->isWebRequest() && $this->api_calls >= self::REQUEST_BUDGET) {
             return 'failed';
         }
         $this->api_calls++;
-        $r = $this->client($context)->balance();
+        $r = $this->clientFor($timeout_context)->balance();
         if ($r['result'] === 'OK') {
             $this->cacheBalance($r);
             $this->probe = 'ok';
+            $this->state->recordProbe('ok', null);
+            if ($this->state->suspendedCode() !== null) {
+                $this->state->resume();
+                $this->note('info', 'sms.resumed', 'probe ok', []);
+            }
         } else {
-            $this->probe = $r['code'] === 'ERR003' ? 'ERR003' : 'failed';
+            $code = (string) $r['code'];
+            $this->probe = $code === 'ERR003' || in_array($code, self::SUSPEND_CODES, true) ? $code : 'failed';
+            if ($r['code_source'] === 'api') {
+                $this->state->recordProbe('error', $code);
+            }
+            if ($this->probe !== 'failed') {
+                $this->suspend($code);
+            }
         }
-        $this->note('info', 'sms.err003_probe', $this->probe, []);
+        $this->note('info', 'sms.probe', $this->probe, ['code' => $r['code']]);
 
         return $this->probe;
     }
@@ -798,32 +1017,38 @@ class SmsService
      */
     private function applyCaps(array &$rcpt, array $context): void
     {
-        $admin = $context['receiver'] === 'A';
-        $capped = $context['receiver'] === 'C' || in_array($context['source'], ['manual', 'api'], true);
-        $bucket = ['source' => $context['source'] === 'api' ? ['api'] : self::NON_API_SOURCES];
+        // 2026-10-21 01:04 +03: one grouped count for every number of the send (was two counts per number), and the
+        // admin bucket only for numbers in admin_phones; any other number of an admin send gets the customer caps
+        // (fix round 1, items 6 and 12), task 596.
+        $admin_receiver = $context['receiver'] === 'A';
+        $capped = $admin_receiver || $context['receiver'] === 'C'
+            || in_array($context['source'], ['manual', 'api'], true);
+        $sources = $context['source'] === 'api' ? ['api'] : self::NON_API_SOURCES;
+        $admins = $admin_receiver ? $this->config->adminPhones() : [];
 
+        $phones = [];
         foreach ($this->open($rcpt) as $i) {
-            if (!$rcpt[$i]['valid']) {
+            if ($rcpt[$i]['valid']) {
+                $phones[] = $rcpt[$i]['phone'];
+            }
+        }
+        $counts = $capped && $phones !== []
+            ? $this->attempts->countsByPhone($phones, self::SENT_OUTCOMES, $sources)
+            : [];
+        foreach ($this->open($rcpt) as $i) {
+            if (!$capped || !$rcpt[$i]['valid']) {
                 continue;
             }
-            $phone = $rcpt[$i]['phone'];
-            if ($admin) {
-                $day = $this->attempts->countRecent('phone', $phone, 86400, self::SENT_OUTCOMES);
-                if ($day >= $this->config->capAdminDay()) {
+            $c = $counts[$rcpt[$i]['phone']] ?? ['hour' => 0, 'day' => 0, 'day_all' => 0];
+            if (in_array($rcpt[$i]['phone'], $admins, true)) {
+                if ($c['day_all'] >= $this->config->capAdminDay()) {
                     $rcpt[$i] = $this->decided($rcpt[$i], 'rate_limited', 'cap_admin_day');
                 }
                 continue;
             }
-            if (!$capped) {
-                continue;
-            }
-            $hour = $this->attempts->countRecent('phone', $phone, 3600, self::SENT_OUTCOMES, $bucket);
-            if ($hour >= $this->config->capRecipientHour()) {
+            if ($c['hour'] >= $this->config->capRecipientHour()) {
                 $rcpt[$i] = $this->decided($rcpt[$i], 'rate_limited', 'cap_recipient_hour');
-                continue;
-            }
-            $day = $this->attempts->countRecent('phone', $phone, 86400, self::SENT_OUTCOMES, $bucket);
-            if ($day >= $this->config->capRecipientDay()) {
+            } elseif ($c['day'] >= $this->config->capRecipientDay()) {
                 $rcpt[$i] = $this->decided($rcpt[$i], 'rate_limited', 'cap_recipient_day');
             }
         }
@@ -864,7 +1089,11 @@ class SmsService
         return $balance === null ? 0.0 : (float) $balance['available'];
     }
 
-    private function refreshBalanceAllowed(): bool
+    /**
+     * PRD 6.1: a live balance refresh at most every 10 minutes, and never past the request budget.
+     * 2026-10-21 01:04 +03: public (SyncService::refreshBalanceIfAllowed() asks it, ruling R25), task 596.
+     */
+    public function balanceRefreshAllowed(): bool
     {
         $last = $this->state->lastBalanceRefresh();
         if ($last !== null && $this->now() - $last < self::BALANCE_REFRESH_SECONDS) {
@@ -875,19 +1104,32 @@ class SmsService
     }
 
     /**
-     * @param array<string,mixed> $context
+     * One live /balance/ (the stamp of the 10-minute rule is written first, so a failed refresh waits too). OK
+     * caches the balance; ERR003 or an account-level code (ERR001/004/005/024/034) suspends (ruling R25). The
+     * caller checks balanceRefreshAllowed() first; SyncService (Task 1.7) delegates here.
+     * 2026-10-21 01:04 +03: public, suspends on account-level codes (fix round 1, item 11), task 596.
+     *
+     * @param string $timeout_context web, admin or cli; '' = the context of the current send or request
+     *
+     * @return float|null The available balance, or null when kwtSMS did not answer OK
      */
-    private function refreshBalance(array $context): float
+    public function refreshBalance(string $timeout_context = ''): ?float
     {
         $this->state->touchBalanceRefresh();
         $this->api_calls++;
-        $r = $this->client($context)->balance();
+        $r = $this->clientFor($timeout_context)->balance();
+        $this->note('info', 'sms.balance_refresh', (string) $r['result'], ['code' => $r['code']]);
         if ($r['result'] === 'OK') {
             $this->cacheBalance($r);
-        }
-        $this->note('info', 'sms.balance_refresh', (string) $r['result'], ['code' => $r['code']]);
 
-        return $this->availableBalance();
+            return (float) $r['available'];
+        }
+        $code = (string) $r['code'];
+        if ($code === 'ERR003' || in_array($code, self::SUSPEND_CODES, true)) {
+            $this->suspend($code);
+        }
+
+        return null;
     }
 
     /**
@@ -901,12 +1143,20 @@ class SmsService
         }
         $threshold = $this->config->lowBalanceThreshold();
         if ($threshold === null) {
-            try {
-                $sent = $this->attempts->countRecent('', '', 30 * 86400, self::SENT_OUTCOMES);
-            } catch (\Throwable $e) {
-                $sent = 0;
+            // 2026-10-21 01:04 +03: counted once a day and kept in storage; a failed count is logged at error and the
+            // floor of 100 is used for this send only (fix round 1, items 5 and 13), task 596.
+            $day = date('Y-m-d', $this->now());
+            $threshold = $this->state->lowBalanceAuto($day);
+            if ($threshold === null) {
+                try {
+                    $sent = $this->attempts->countRecent('', '', 30 * 86400, self::SENT_OUTCOMES);
+                    $threshold = max(100, (int) ceil(3 * $sent / 30));
+                    $this->state->setLowBalanceAuto($day, $threshold);
+                } catch (\Throwable $e) {
+                    $this->noteThrowable('sms.low_balance_count_failed', $e);
+                    $threshold = 100;
+                }
             }
-            $threshold = max(100, (int) ceil(3 * $sent / 30));
         }
         if ($before >= $threshold && $after < $threshold) {
             $this->alert('low_balance', ['[balance]' => $this->number($after), '[threshold]' => $threshold], true, 0);
@@ -976,16 +1226,26 @@ class SmsService
             }
             if ($row !== null && !$reused) {
                 $reused = true;
-                $retried = $this->outbox->markRetry($row['outbox_id'], $first['retry_at'], $first['reason'], $phones);
-                $id = $retried ? $row['outbox_id'] : 0;
+                // 2026-10-21 01:04 +03: quiet hours move the expiry past the window end (fix round 1, item 10),
+                // task 596.
+                $expires = $first['reason'] === 'quiet_hours' ? $first['retry_at'] + Outbox::TTL_SECONDS : null;
+                $retried = $this->outbox->markRetry(
+                    (int) $row['outbox_id'],
+                    $first['retry_at'],
+                    $first['reason'],
+                    $phones,
+                    $expires
+                );
+                $id = $retried ? (int) $row['outbox_id'] : 0;
             } else {
                 $expires = $first['reason'] === 'quiet_hours'
                     ? $first['retry_at'] + Outbox::TTL_SECONDS
                     : ($row !== null ? (int) $row['expires_at'] : $this->now() + Outbox::TTL_SECONDS);
+                // 2026-10-21 01:04 +03: the row keeps the test flag of this send (ruling R26), task 596.
                 $id = $this->outbox->enqueue(
                     $phones,
                     $message,
-                    $context,
+                    ['test' => $this->test ? '1' : '0'] + $context,
                     $first['reason'],
                     $first['retry_at'],
                     $expires
@@ -1009,7 +1269,7 @@ class SmsService
         }
         if ($row !== null) {
             if (!$reused) {
-                $this->outbox->markDone($row['outbox_id']);
+                $this->outbox->markDone((int) $row['outbox_id']);
             }
             foreach ($rcpt as $i => $r) {
                 $rcpt[$i]['outbox_id'] = $r['outbox_id'] > 0 ? $r['outbox_id'] : $row['outbox_id'];
@@ -1033,13 +1293,16 @@ class SmsService
      */
     private function recordAttempts(array &$rcpt, array $context): void
     {
+        // 2026-10-21 01:04 +03: one INSERT for the whole send (AttemptLog::recordMany(), fix round 1, item 12),
+        // task 596.
+        $rows = [];
         foreach ($rcpt as $i => $r) {
             $reason = $r['reason'];
             if ($reason === '' && isset($r['note'])) {
                 $reason = (string) $r['note'];
             }
             $rcpt[$i]['reason'] = $reason;
-            $rcpt[$i]['attempt_id'] = $this->attempts->record([
+            $rows[$i] = [
                 'message_id' => (int) $r['message_id'],
                 'outbox_id' => (int) $r['outbox_id'],
                 'retry_of' => $context['retry_of'],
@@ -1058,7 +1321,11 @@ class SmsService
                 'reason' => $reason,
                 'ip' => $context['ip'] === '' ? null : $context['ip'],
                 'secret_values' => $context['secret_values'],
-            ]);
+            ];
+        }
+        $ids = $this->attempts->recordMany(array_values($rows));
+        foreach (array_keys($rows) as $k => $i) {
+            $rcpt[$i]['attempt_id'] = (int) ($ids[$k] ?? 0);
         }
     }
 
@@ -1308,18 +1575,30 @@ class SmsService
     }
 
     /**
+     * The client for a public call: the given timeout context, else the client of the current send, else the
+     * default of this request (cli or web). 2026-10-21 01:04 +03: added for refreshBalance() / probeCredentials(),
+     * task 596.
+     */
+    private function clientFor(string $timeout_context): ApiClient
+    {
+        if ($timeout_context !== '') {
+            return call_user_func($this->client_factory, $timeout_context);
+        }
+
+        return $this->client ?? $this->client(['interactive' => false, 'audience' => 'storefront']);
+    }
+
+    /**
      * Tries already made for the outbox row being drained (0 for a new send).
      *
      * @param array<string,mixed> $context
      */
     private function retryAttempts(array $context): int
     {
-        if ($context['outbox_id'] < 1) {
-            return 0;
-        }
-        $row = $this->outbox->find($context['outbox_id']);
+        // 2026-10-21 01:04 +03: the claimed row of this send (no second read), task 596.
+        unset($context);
 
-        return $row === null ? 0 : $row['attempts'] + 1;
+        return $this->row === null ? 0 : (int) $this->row['attempts'] + 1;
     }
 
     /**

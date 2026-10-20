@@ -12,6 +12,10 @@
  *            (Log\Schema) with typed placeholders, the list never selects the raw request and response,
  *            and deletes are either by id or by age in chunks of 5000 (PRD 6.8, 10).
  * USAGE:     $store = new DbLogStore();  (wired in Task 1.6; used by MessageLog, AttemptLog, DebugLog)
+ *            2026-10-21 01:00 +03: also BulkLogStoreInterface: insertMany() (one INSERT, ids consecutive) and
+ *            countAttemptsByPhone() (the abuse-cap counts of a whole send in one grouped query on the
+ *            (phone, created_at) index; countAttemptsByPhoneSql() is its text for EXPLAIN), Task 1.6 fix round 1,
+ *            task 596.
  *            $store->select(Schema::MESSAGES, ['status' => 'failed', 'created_from' => $t], 50, 0);
  *            $store->selectSql(...) and countSql(...) return the final SQL text, for EXPLAIN/ANALYZE only.
  * DEPENDS:   CS-Cart core: db_query(), db_get_array(), db_get_row(), db_get_field(), db_quote(),
@@ -22,10 +26,13 @@ namespace Tygh\Addons\Kwtsms\Log;
 
 use Tygh\Registry;
 
-class DbLogStore implements LogStoreInterface
+class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
 {
     /** deleteOlderThan() stops after this many statements; the caller can call again. */
     private const MAX_CHUNKS = 1000;
+
+    /** Rows per multi-row INSERT and phones per grouped count (2026-10-21 01:00 +03, task 596). */
+    private const BULK_CHUNK = 500;
 
     public function insert(string $table, array $row): int
     {
@@ -50,6 +57,126 @@ class DbLogStore implements LogStoreInterface
         }
 
         return (int) $id;
+    }
+
+    /**
+     * 2026-10-21 01:00 +03: one statement for many rows (Task 1.6 review, N+1), task 596. Rows longer than
+     * BULK_CHUNK go in several statements; the ids are consecutive within one statement (innodb_autoinc_lock_mode
+     * 0 or 1, and simple inserts in mode 2), so a caller that needs every id passes at most BULK_CHUNK rows.
+     *
+     * @throws \RuntimeException
+     */
+    public function insertMany(string $table, array $rows): int
+    {
+        $name = Schema::table($table);
+        $columns = Schema::columns($table);
+        $first = 0;
+        foreach (array_chunk(array_values($rows), self::BULK_CHUNK) as $chunk) {
+            $clean = [];
+            foreach ($chunk as $row) {
+                $values = [];
+                foreach ($columns as $column => $definition) {
+                    $value = $row[$column] ?? null;
+                    if (is_bool($value)) {
+                        $value = (int) $value;
+                    } elseif ((is_float($value) && !is_finite($value)) || is_array($value) || is_object($value)) {
+                        $value = 0;
+                    }
+                    $values[$column] = $value;
+                }
+                $clean[] = $values;
+            }
+            $id = (int) db_query('INSERT INTO ?:' . $name . ' ?m', $clean);
+            if ($id < 1) {
+                throw new \RuntimeException('Could not insert into ' . $name);
+            }
+            $first = $first === 0 ? $id : $first;
+        }
+
+        return $first;
+    }
+
+    /**
+     * 2026-10-21 01:00 +03: the cap counts of every number of a send in one query per 500 numbers (Task 1.6 review,
+     * N+1), task 596.
+     *
+     * @throws \RuntimeException
+     */
+    public function countAttemptsByPhone(
+        array $phones,
+        int $day_from,
+        int $hour_from,
+        array $outcomes,
+        array $sources
+    ): array {
+        $out = [];
+        $phones = array_values(array_unique(array_map('strval', $phones)));
+        foreach (array_chunk($phones, self::BULK_CHUNK) as $chunk) {
+            $rows = $this->fetchRows($this->countByPhoneArguments($chunk, $day_from, $hour_from, $outcomes, $sources));
+            if (!is_array($rows)) {
+                throw new \RuntimeException('Could not count the rows of ' . Schema::table(Schema::ATTEMPTS));
+            }
+            foreach ($rows as $row) {
+                $out[(string) $row['phone']] = [
+                    'hour' => (int) $row['hour_n'],
+                    'day' => (int) $row['day_n'],
+                    'day_all' => (int) $row['day_all'],
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * The exact query of countAttemptsByPhone() for one chunk, as SQL text (EXPLAIN / ANALYZE only).
+     *
+     * @param string[] $phones
+     * @param string[] $outcomes
+     * @param string[] $sources
+     */
+    public function countAttemptsByPhoneSql(
+        array $phones,
+        int $day_from,
+        int $hour_from,
+        array $outcomes,
+        array $sources
+    ): string {
+        $args = $this->countByPhoneArguments($phones, $day_from, $hour_from, $outcomes, $sources);
+
+        return $this->prefixed(db_quote(...$args));
+    }
+
+    /**
+     * @param string[] $phones
+     * @param string[] $outcomes
+     * @param string[] $sources
+     *
+     * @return array<int,mixed>
+     */
+    private function countByPhoneArguments(
+        array $phones,
+        int $day_from,
+        int $hour_from,
+        array $outcomes,
+        array $sources
+    ): array {
+        $sources = $sources === [] ? [''] : array_values(array_map('strval', $sources));
+
+        return [
+            'SELECT `phone`,'
+                . ' SUM(CASE WHEN `created_at` >= ?i AND `source` IN (?a) THEN 1 ELSE 0 END) AS hour_n,'
+                . ' SUM(CASE WHEN `source` IN (?a) THEN 1 ELSE 0 END) AS day_n,'
+                . ' COUNT(*) AS day_all'
+                . ' FROM ?:' . Schema::table(Schema::ATTEMPTS)
+                . ' WHERE `phone` IN (?a) AND `created_at` >= ?i AND `outcome` IN (?a) GROUP BY `phone`',
+            $hour_from,
+            $sources,
+            $sources,
+            $phones === [] ? [''] : $phones,
+            $day_from,
+            $outcomes === [] ? [''] : array_values(array_map('strval', $outcomes)),
+        ];
     }
 
     public function find(string $table, int $id): ?array

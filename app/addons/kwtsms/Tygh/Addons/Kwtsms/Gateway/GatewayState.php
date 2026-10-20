@@ -59,6 +59,9 @@ class GatewayState
     /** 2026-10-21 00:05 +03: last live balance refresh of the send pipeline (PRD 6.1), Task 1.6, task 596. */
     public const KEY_BALANCE_REFRESH = 'kwtsms_balance_refresh';
 
+    /** 2026-10-21 01:02 +03: the auto low-balance threshold of the day (PRD 6.13), Task 1.6 fix round 1, task 596. */
+    public const KEY_LOW_BALANCE_AUTO = 'kwtsms_low_balance_auto';
+
     /** 2026-10-21 00:52 +03: sync retry schedule, coverage resync request, last probe (Task 1.7, task 596). */
     public const KEY_SYNC_STATE = 'kwtsms_sync_state';
 
@@ -490,6 +493,28 @@ class GatewayState
     public function touchBalanceRefresh(): void
     {
         $this->store->set(self::KEY_BALANCE_REFRESH, (string) $this->now());
+    }
+
+    /**
+     * The "auto" low-balance threshold computed for $day (Y-m-d), or null when none is cached for that day.
+     * Key kwtsms_low_balance_auto: {"day": "...", "threshold": n}. 2026-10-21 01:02 +03: added (the 30-day average
+     * is counted once a day, not on every send), Task 1.6 fix round 1, task 596.
+     */
+    public function lowBalanceAuto(string $day): ?int
+    {
+        $data = $this->decode($this->store->getFresh(self::KEY_LOW_BALANCE_AUTO)) ?? [];
+        if (($data['day'] ?? null) !== $day || !isset($data['threshold']) || !is_int($data['threshold'])) {
+            return null;
+        }
+
+        return max(0, $data['threshold']);
+    }
+
+    /** 2026-10-21 01:02 +03: added, Task 1.6 fix round 1, task 596. */
+    public function setLowBalanceAuto(string $day, int $threshold): void
+    {
+        $value = ['day' => $day, 'threshold' => max(0, $threshold)];
+        $this->store->set(self::KEY_LOW_BALANCE_AUTO, (string) json_encode($value));
     }
 
     // ------------------------------------------------------------------ breaker

@@ -26,6 +26,14 @@
  *            markDone($id); markExpired($id); markHeld($id) (TLS failure: kept, never due, resent by hand).
  *            Outbox::backoff($attempts) -> 30, 60, 120, then 300 s. enqueue() returns 0 when the row could not
  *            be written (the caller records a failure, never a silent deferral).
+ *            2026-10-21 01:03 +03, Task 1.6 fix round 1 (review: a stale snapshot resent a row), task 596:
+ *            claim($id, $attempts) succeeds only for a row that is still pending, due (retry_at <= now) and has the
+ *            attempts count the caller read; while a row is "sending" its retry_at is the claim time. reap($now)
+ *            finalizes rows that can never be drained: "sending" for more than 10 minutes -> "unknown" (it may
+ *            have been sent, so it is never resent) and "held" past expires_at -> "expired". markUnknown() is the
+ *            final state of a claimed row whose send failed after an API call. The context keeps "test" (the test
+ *            flag of the original send, ruling R26). Every final state (done, expired, unknown) masks the secret
+ *            values (D7). JSON is written with JSON_INVALID_UTF8_SUBSTITUTE.
  *            Test seams (protected): insertRow(), updateRow(), selectRow(), selectDue(). dueSql($now, $limit) is the
  *            SQL text of due() for EXPLAIN / ANALYZE (2026-10-21 00:34 +03, Task 1.6, task 596).
  * DEPENDS:   CS-Cart db_query(), db_get_row(), db_get_array(); Log\Redactor, Log\ReportsFailures.
@@ -45,6 +53,15 @@ class Outbox
     public const STATUS_DONE = 'done';
     public const STATUS_EXPIRED = 'expired';
     public const STATUS_HELD = 'held';
+
+    /** 2026-10-21 01:03 +03: a claimed row whose send ended without a verdict (Task 1.6 fix round 1), task 596. */
+    public const STATUS_UNKNOWN = 'unknown';
+
+    /** Seconds after which a row still "sending" is finalized as unknown by reap(). */
+    public const CLAIM_TIMEOUT = 600;
+
+    /** json_encode() flags of every stored JSON (2026-10-21 01:03 +03: invalid UTF-8 substituted, task 596). */
+    private const JSON_FLAGS = JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE;
 
     /** Seconds until the next try, by the number of tries already made (PRD 6.2 step 13). */
     public const BACKOFF = [30, 60, 120, 300];
@@ -68,6 +85,8 @@ class Outbox
         'company_id' => 'i', 'storefront_id' => 'i', 'user_id' => 'i', 'actor_user_id' => 'i',
         'actor_company_id' => 'i', 'lang_code' => 's', 'audience' => 's', 'ip' => 's', 'country_iso' => 's',
         'caller' => 's', 'retry_of' => 'i', 'secret_values' => 'a',
+        // 2026-10-21 01:03 +03: the test flag of the original send, "1" or "0" (ruling R26), task 596.
+        'test' => 's',
     ];
 
     /** @var callable|null returns the current Unix time */
@@ -106,9 +125,9 @@ class Outbox
         int $expires_at
     ): int {
         try {
-            $phones_json = json_encode(array_values(array_map('strval', $phones)), JSON_UNESCAPED_SLASHES);
-            $message_json = json_encode($message, JSON_UNESCAPED_SLASHES);
-            $context_json = json_encode($this->keepContext($context), JSON_UNESCAPED_SLASHES);
+            $phones_json = json_encode(array_values(array_map('strval', $phones)), self::JSON_FLAGS);
+            $message_json = json_encode($message, self::JSON_FLAGS);
+            $context_json = json_encode($this->keepContext($context), self::JSON_FLAGS);
             foreach ([$phones_json, $message_json, $context_json] as $json) {
                 if (!is_string($json) || strlen($json) > self::MAX_JSON_BYTES) {
                     return 0;
@@ -158,19 +177,55 @@ class Outbox
         return $row === null ? null : $this->decodeRow($row);
     }
 
-    /** pending -> sending. False when another drain took it or it is final. */
-    public function claim(int $id): bool
+    /**
+     * pending -> sending, only while the row is still due and still has the $attempts the caller read (a drain
+     * working from an older snapshot gets false). The claim time is kept in retry_at while the row is sending.
+     * 2026-10-21 01:03 +03: conditional on retry_at and attempts (Task 1.6 fix round 1, critical 1), task 596.
+     */
+    public function claim(int $id, int $attempts): bool
     {
-        return $this->updateRow($id, ['status' => self::STATUS_SENDING], [self::STATUS_PENDING]) === 1;
+        $now = $this->now();
+        $changes = ['status' => self::STATUS_SENDING, 'retry_at' => $now];
+        $where = ['retry_at_max' => $now, 'attempts' => $attempts];
+
+        return $this->updateRow($id, $changes, [self::STATUS_PENDING], $where) === 1;
+    }
+
+    /**
+     * Rows that can never be drained, finalized: sending for longer than CLAIM_TIMEOUT -> unknown (never resent),
+     * held past expires_at -> expired. Secrets masked (D7).
+     * 2026-10-21 01:03 +03: added (Task 1.6 fix round 1, important 4), task 596.
+     *
+     * @return array<int,array<string,mixed>> The finalized rows, decoded, with their new status
+     */
+    public function reap(int $now): array
+    {
+        $done = [];
+        foreach ($this->selectStale($now - self::CLAIM_TIMEOUT, $now) as $raw) {
+            $row = $this->decodeRow($raw);
+            $final = $row['status'] === self::STATUS_SENDING ? self::STATUS_UNKNOWN : self::STATUS_EXPIRED;
+            if ($this->finish($row['outbox_id'], $final, [$row['status']])) {
+                $row['status'] = $final;
+                $done[] = $row;
+            }
+        }
+
+        return $done;
     }
 
     /**
      * Back to pending for another try, one more attempt counted.
+     * 2026-10-21 01:03 +03: $expires_at moves the expiry (a drained row deferred for quiet hours), task 596.
      *
      * @param array<int,mixed>|null $phones The numbers still to send (null = unchanged)
      */
-    public function markRetry(int $id, int $retry_at, string $reason, ?array $phones = null): bool
-    {
+    public function markRetry(
+        int $id,
+        int $retry_at,
+        string $reason,
+        ?array $phones = null,
+        ?int $expires_at = null
+    ): bool {
         $row = $this->selectRow($id);
         if ($row === null) {
             return false;
@@ -183,7 +238,10 @@ class Outbox
         ];
         if ($phones !== null) {
             $list = array_values(array_map('strval', $phones));
-            $changes['phones'] = (string) json_encode($list, JSON_UNESCAPED_SLASHES);
+            $changes['phones'] = (string) json_encode($list, self::JSON_FLAGS);
+        }
+        if ($expires_at !== null) {
+            $changes['expires_at'] = max((int) $row['expires_at'], $expires_at);
         }
 
         return $this->updateRow($id, $changes, [self::STATUS_SENDING, self::STATUS_PENDING]) === 1;
@@ -192,6 +250,15 @@ class Outbox
     public function markDone(int $id): bool
     {
         return $this->finish($id, self::STATUS_DONE, [self::STATUS_SENDING, self::STATUS_PENDING]);
+    }
+
+    /**
+     * A claimed row whose send failed after an API call may have reached kwtSMS: final, never resent.
+     * 2026-10-21 01:03 +03: added (Task 1.6 fix round 1), task 596.
+     */
+    public function markUnknown(int $id): bool
+    {
+        return $this->finish($id, self::STATUS_UNKNOWN, [self::STATUS_SENDING]);
     }
 
     public function markExpired(int $id): bool
@@ -222,17 +289,47 @@ class Outbox
     /**
      * @param array<string,mixed> $changes
      * @param string[]            $from_statuses
+     * @param array<string,int>   $where         retry_at_max (retry_at <= value), attempts (attempts = value)
+     *                                           (2026-10-21 01:03 +03: added for the conditional claim, task 596)
      *
      * @return int Rows changed
      */
-    protected function updateRow(int $id, array $changes, array $from_statuses): int
+    protected function updateRow(int $id, array $changes, array $from_statuses, array $where = []): int
     {
+        $extra = '';
+        if (isset($where['retry_at_max'])) {
+            $extra .= db_quote(' AND retry_at <= ?i', $where['retry_at_max']);
+        }
+        if (isset($where['attempts'])) {
+            $extra .= db_quote(' AND attempts = ?i', $where['attempts']);
+        }
+
         return (int) db_query(
-            'UPDATE ?:kwtsms_outbox SET ?u WHERE outbox_id = ?i AND status IN (?a)',
+            'UPDATE ?:kwtsms_outbox SET ?u WHERE outbox_id = ?i AND status IN (?a)' . $extra,
             $changes,
             $id,
             $from_statuses
         );
+    }
+
+    /**
+     * Rows sending since before $sending_before, and held rows whose expires_at has passed. Both read a range of
+     * the (status, retry_at) index. 2026-10-21 01:03 +03: added, task 596.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function selectStale(int $sending_before, int $now): array
+    {
+        $rows = db_get_array(
+            'SELECT * FROM ?:kwtsms_outbox WHERE (status = ?s AND retry_at < ?i) OR (status = ?s AND expires_at <= ?i)'
+            . ' LIMIT 1000',
+            self::STATUS_SENDING,
+            $sending_before,
+            self::STATUS_HELD,
+            $now
+        );
+
+        return is_array($rows) ? $rows : [];
     }
 
     /**
@@ -292,9 +389,9 @@ class Outbox
             if ($secrets !== []) {
                 $message = json_decode((string) $row['message'], true);
                 $masked = Redactor::mask(is_string($message) ? $message : '', $secrets);
-                $changes['message'] = (string) json_encode($masked, JSON_UNESCAPED_SLASHES);
+                $changes['message'] = (string) json_encode($masked, self::JSON_FLAGS);
                 unset($context['secret_values']);
-                $changes['context'] = (string) json_encode($context, JSON_UNESCAPED_SLASHES);
+                $changes['context'] = (string) json_encode($context, self::JSON_FLAGS);
             }
         }
 
