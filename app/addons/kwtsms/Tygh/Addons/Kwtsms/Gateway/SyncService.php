@@ -175,14 +175,14 @@ class SyncService
                 $started
             );
         }
-        // Change account (Task 1.5 carry): the old account's balance, senders, coverage and flags must not
-        // survive next to the new login.
+        // 2026-10-21 02:29 +03: Change account (Task 1.5 carry): the old account's balance, senders, coverage and
+        // flags must not survive next to the new login, task 596.
         $changed = $previous !== $username;
         if ($changed) {
             $this->state->clear();
-            // The selected Sender ID belongs to the old account: clearing it keeps the sync below from raising a
-            // false "Sender ID removed" for it, and the administrator picks one from the new list (Task 1.7 fix
-            // round 1 item 4).
+            // 2026-10-21 02:29 +03: the selected Sender ID belongs to the old account; clearing it keeps the sync
+            // below from raising a false "Sender ID removed" for it, and the administrator picks one from the new
+            // list, Task 1.7 fix round 1 item 4, task 596.
             $unselected = $this->config->save('logout', ['sender_id' => '']);
             if ($unselected !== []) {
                 $this->note('warning', 'sync.sender_not_cleared', 'the old Sender ID stays selected', [
@@ -244,6 +244,8 @@ class SyncService
      */
     public function sync(string $timeout_context = ''): array
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug (PRD 11); the body moved to runSync(), Task 1.7 fix
+        // round 1 item 9, task 596.
         $started = $this->enter('sync', 'sync()');
         $r = $this->runSync($timeout_context);
         $this->leave('sync', $started, $r['ok'] ? 'ok' : (string) ($r['skipped'] ?? $r['code'] ?? 'failed'), [
@@ -268,8 +270,8 @@ class SyncService
 
         // Ruling R25: the /balance/ call, and the suspension on an account-level code, are SmsService's.
         if ($this->sms->refreshBalance($context) === null) {
-            // Why it failed: the code of that call (Task 1.7 fix round 1 item 2); the suspension code is the same
-            // for an account-level answer.
+            // 2026-10-21 02:29 +03: why it failed is the code of that call; the suspension code is the same for an
+            // account-level answer, Task 1.7 fix round 1 item 2, task 596.
             $code = $this->sms->lastBalanceError() ?? $this->state->suspendedCode();
             $this->note('warning', 'sync.balance_failed', (string) $code, ['code' => $code]);
 
@@ -299,6 +301,7 @@ class SyncService
      */
     public function syncIfStale(int $max_age = self::DAY_SECONDS): bool
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runStaleSync(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.stale', 'syncIfStale()', ['max_age' => $max_age]);
         $ok = $this->runStaleSync($max_age);
         $this->leave('sync.stale', $started, $ok ? 'synced' : 'not run or failed', ['ok' => $ok]);
@@ -332,6 +335,7 @@ class SyncService
      */
     public function isSyncDue(): bool
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug, body in computeSyncDue(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.due', 'isSyncDue()');
         $due = $this->computeSyncDue();
         $this->leave('sync.due', $started, $due ? 'due' : 'not due', ['due' => $due]);
@@ -375,6 +379,8 @@ class SyncService
      */
     public function resyncCoverage(string $timeout_context = ''): array
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runCoverageResync(), fix round 1 item 9, task
+        // 596.
         $started = $this->enter('sync.coverage', 'resyncCoverage()');
         $r = $this->runCoverageResync($timeout_context);
         $this->leave('sync.coverage', $started, $r['ok'] ? 'ok' : (string) ($r['code'] ?? 'failed'), $r);
@@ -418,6 +424,7 @@ class SyncService
      */
     public function retrySuspension(bool $now = false, string $timeout_context = ''): array
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runRetry(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.retry', 'retrySuspension()', ['now' => $now]);
         $r = $this->runRetry($now, $timeout_context);
         $this->leave('sync.retry', $started, $r['state'], ['state' => $r['state'], 'code' => $r['code']]);
@@ -436,8 +443,9 @@ class SyncService
         }
         $interval = $code === 'ERR005' ? self::RETRY_SECONDS_BLOCKED : self::RETRY_SECONDS;
         $probe = $this->state->lastProbe();
-        // The attempt stamp is what keeps an UNREACHABLE gateway to one try per cadence: the probe verdict and the
-        // balance stamp record answers (and the refresh), the attempt stamp records every try (fix round 1 item 1).
+        // 2026-10-21 02:29 +03: the attempt stamp is what keeps an UNREACHABLE gateway to one try per cadence: the
+        // probe verdict and the balance stamp record answers (and the refresh), the attempt stamp records every try,
+        // Task 1.7 fix round 1 item 1, task 596.
         $since = max(
             (int) $this->state->suspendedAt(),
             $probe === null ? 0 : $probe['at'],
@@ -479,6 +487,7 @@ class SyncService
      */
     public function refreshBalanceIfAllowed(bool $force = false, string $timeout_context = ''): ?float
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runRefresh(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.refresh', 'refreshBalanceIfAllowed()', ['force' => $force]);
         $balance = $this->runRefresh($force, $timeout_context);
         $this->leave('sync.refresh', $started, $balance === null ? 'not refreshed' : 'refreshed', [
@@ -508,6 +517,7 @@ class SyncService
      */
     public function probe(string $timeout_context = ''): array
     {
+        // 2026-10-21 02:29 +03: entry and exit rows at debug (PRD 11), fix round 1 item 9, task 596.
         $started = $this->enter('sync.probe', 'probe()');
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             $r = ['verdict' => 'failed', 'ok' => false];

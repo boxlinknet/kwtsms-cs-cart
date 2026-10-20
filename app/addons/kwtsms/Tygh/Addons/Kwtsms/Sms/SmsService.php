@@ -320,6 +320,8 @@ class SmsService
             // 2026-10-21 01:43 +03: a web drain stops claiming once the request budget is used: a row claimed now
             // could only be deferred again (attempts + 1, request_overflow), so it is left untouched (fix round 2,
             // item A), task 596.
+            // 2026-10-21 02:29 +03: webContext() replaces isWebRequest(): a cron drain has no web request budget,
+            // Task 1.7 fix round 1 item 7, task 596.
             if ($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET) {
                 $summary['stopped'] = 'request_budget';
                 break;
@@ -831,6 +833,8 @@ class SmsService
         $out = ['by_number' => [], 'message_ids' => [], 'points' => 0.0, 'balance_after' => null];
         $chunks = ApiClient::chunk($numbers);
         $allowed = count($chunks);
+        // 2026-10-21 02:29 +03: webContext() replaces isWebRequest(): the cron's drain is not held to the
+        // page-request budget, Task 1.7 fix round 1 item 7, task 596.
         if ($this->webContext()) {
             $allowed = max(0, min($allowed, self::REQUEST_BUDGET - $this->api_calls));
         }
@@ -1078,6 +1082,8 @@ class SmsService
 
             return $verdict === 'ok' ? 'ok' : (string) ($last['code'] ?? 'failed');
         }
+        // 2026-10-21 02:29 +03: webContext() replaces isWebRequest() (no web budget inside a cron drain), Task 1.7
+        // fix round 1 item 7, task 596.
         if ($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET) {
             return 'failed';
         }
@@ -1206,6 +1212,8 @@ class SmsService
             return false;
         }
 
+        // 2026-10-21 02:29 +03: webContext() replaces isWebRequest() (no web budget inside a cron drain), Task 1.7
+        // fix round 1 item 7, task 596.
         return !($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET);
     }
 
@@ -1686,6 +1694,8 @@ class SmsService
     private function client(array $context): ApiClient
     {
         if ($this->client === null) {
+            // 2026-10-21 02:29 +03: webContext() replaces isWebRequest(): a cron drain uses the cli timeouts even
+            // over the URL mode, Task 1.7 fix round 1 item 7, task 596.
             $timeout = !$this->webContext()
                 ? 'cli'
                 : ($context['interactive'] && $context['audience'] === 'admin' ? 'admin' : 'web');

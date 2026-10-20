@@ -35,7 +35,9 @@
  *            cron.prune_logs and cron.health (info), cron.run (info when a job did work or failed, else debug).
  * DEPENDS:   Gateway\GatewayState, Gateway\SyncService, Log\{LogStoreInterface,DebugLog,Schema},
  *            Settings\ConfigInterface, Storage\KeyValueStoreInterface, Alerts\AdminAlerts. A drain callable
- *            (int $limit, float $time_budget_s): array (SmsService::drainDue), a lock factory
+ *            (int $limit, float $time_budget_s, bool $cron): array (SmsService::drainDue; the third argument was
+ *            added on 2026-10-21 02:30 +03, Task 1.7 fix round 1 item 7, task 596, and the runner always passes
+ *            true), a lock factory
  *            (string $name, int $ttl): object with acquire(bool): bool and release(), a held-credits callable
  *            (): array{messages: int, credits: float}, an outbox prune callable (int $before, int $limit): int
  *            (Queue\Outbox::pruneFinal, one chunk per call).
@@ -93,7 +95,10 @@ class CronRunner
     /** @var SyncService */
     private $sync;
 
-    /** @var callable (int $limit, float $time_budget_s): array */
+    /**
+     * @var callable (int $limit, float $time_budget_s, bool $cron): array
+     *               2026-10-21 02:30 +03: $cron added, fix round 1 item 7, task 596
+     */
     private $drain;
 
     /** @var LogStoreInterface */
@@ -124,7 +129,9 @@ class CronRunner
     private $prune_outbox;
 
     /**
-     * @param callable      $drain        (int $limit, float $time_budget_s): array, SmsService::drainDue()
+     * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
+     *                                    SmsService::drainDue(); the runner always passes $cron = true
+     *                                    (2026-10-21 02:30 +03, fix round 1 item 7, task 596)
      * @param callable      $lock_factory (string $name, int $ttl): object with acquire(bool): bool and release()
      * @param callable|null $held         (): array{messages: int, credits: float}, the test messages that hold credits
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
@@ -252,8 +259,8 @@ class CronRunner
             $out['suspension'] = $this->sync->retrySuspension(false, 'cli');
         }
         $left = max(0.0, self::BUDGET_SECONDS - ($this->micro() - $run_started));
-        // true = the cron's drain: no web request budget and cli timeouts, also when the run came in over the URL
-        // mode.
+        // 2026-10-21 02:30 +03: true = the cron's drain: no web request budget and cli timeouts, also when the run
+        // came in over the URL mode, Task 1.7 fix round 1 item 7, task 596.
         $out['drain'] = $this->summarize(call_user_func($this->drain, self::DRAIN_ROWS, $left, true));
         $handled = $out['drain']['claimed'] + $out['drain']['reaped'];
         $this->note($handled > 0 ? 'info' : 'debug', 'cron.drain_outbox', $handled > 0 ? 'drained' : 'nothing due', [
@@ -336,6 +343,8 @@ class CronRunner
      * for the next run (the job is not stamped done until every table is finished), so the first prune of a very
      * large table cannot outlive the 600 s lock. A table that fails is reported and the others still run; the whole
      * job is then retried in an hour.
+     * 2026-10-21 02:30 +03: rewritten for chunks, the 120 s budget and the outbox (ruling R28), Task 1.7 fix
+     * round 1 item 5, task 596.
      *
      * @return array<string,mixed>
      */
@@ -416,6 +425,7 @@ class CronRunner
     /**
      * Calls $delete (one chunk of rows per call, returns how many it deleted) until a chunk comes back short, or
      * the deadline passes. A delete that cannot be done in chunks (a store without pruneChunk()) is called once.
+     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
      *
      * @param callable(int):int $delete
      * @param bool              $chunked True when $delete deletes at most the given number of rows

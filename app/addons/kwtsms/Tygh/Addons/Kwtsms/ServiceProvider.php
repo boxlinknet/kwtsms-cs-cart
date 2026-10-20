@@ -177,9 +177,10 @@ class ServiceProvider implements ServiceProviderInterface
             );
         };
 
-        // 2026-10-21 01:13 +03: the jobs of kwtsms_cron.run behind the core lock factory (PRD 4.4), Task 1.7,
-        // task 596. The held-credits query counts the test messages of the last 30 days (DbLogStore, index on
-        // created_at); prune_logs also deletes final outbox rows (Outbox::pruneFinal, ruling R28).
+        // 2026-10-21 02:29 +03: the jobs of kwtsms_cron.run behind the core lock factory (PRD 4.4). The held-credits
+        // query is DbLogStore::heldTestCredits() over the last 30 days (index on created_at, was ServiceProvider
+        // SQL); prune_logs also deletes final outbox rows (Outbox::pruneFinal, ruling R28). Task 1.7 (first written
+        // 2026-10-21 01:13 +03, changed in fix round 1), task 596.
         $app['kwtsms.cron'] = function (Container $app): CronRunner {
             return new CronRunner(
                 $app['kwtsms.config'],
