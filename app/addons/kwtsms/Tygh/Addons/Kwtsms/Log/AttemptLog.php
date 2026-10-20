@@ -112,9 +112,11 @@ class AttemptLog
                 foreach ($chunk as $row) {
                     $clean[] = RowCleaner::clean(Schema::ATTEMPTS, $this->prepare($row));
                 }
-                $first = $this->store->insertMany(Schema::ATTEMPTS, $clean);
+                // 2026-10-21 01:43 +03: the store returns every id (no first + k arithmetic here), fix round 2, item C.
+                $stored = array_values($this->store->insertMany(Schema::ATTEMPTS, $clean));
+                // The rows are written; ids that do not line up are reported as 0, never written a second time.
                 foreach (array_keys($chunk) as $k) {
-                    $ids[] = $first + $k;
+                    $ids[] = count($stored) === count($chunk) ? (int) $stored[$k] : 0;
                 }
             } catch (\Throwable $e) {
                 // Only this chunk failed as a whole: its rows one by one (a bad row then costs only itself).

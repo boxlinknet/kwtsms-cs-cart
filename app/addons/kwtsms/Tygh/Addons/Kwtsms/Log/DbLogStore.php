@@ -34,6 +34,9 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
     /** Rows per multi-row INSERT and phones per grouped count (2026-10-21 01:00 +03, task 596). */
     private const BULK_CHUNK = 500;
 
+    /** @var int|null @@auto_increment_increment of this connection (2026-10-21 01:43 +03, task 596) */
+    private $auto_increment_step = null;
+
     public function insert(string $table, array $row): int
     {
         $name = Schema::table($table);
@@ -63,14 +66,18 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
      * 2026-10-21 01:00 +03: one statement for many rows (Task 1.6 review, N+1), task 596. Rows longer than
      * BULK_CHUNK go in several statements; the ids are consecutive within one statement (innodb_autoinc_lock_mode
      * 0 or 1, and simple inserts in mode 2), so a caller that needs every id passes at most BULK_CHUNK rows.
+     * 2026-10-21 01:43 +03: returns every id: the first id of each statement plus k times @@auto_increment_increment
+     * (read once per request; a Galera or multi-source cluster sets it above 1), fix round 2, item C, task 596.
+     *
+     * @return int[]
      *
      * @throws \RuntimeException
      */
-    public function insertMany(string $table, array $rows): int
+    public function insertMany(string $table, array $rows): array
     {
         $name = Schema::table($table);
         $columns = Schema::columns($table);
-        $first = 0;
+        $ids = [];
         foreach (array_chunk(array_values($rows), self::BULK_CHUNK) as $chunk) {
             $clean = [];
             foreach ($chunk as $row) {
@@ -86,14 +93,41 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
                 }
                 $clean[] = $values;
             }
-            $id = (int) db_query('INSERT INTO ?:' . $name . ' ?m', $clean);
-            if ($id < 1) {
+            $first = $this->runInsertMany($name, $clean);
+            if ($first < 1) {
                 throw new \RuntimeException('Could not insert into ' . $name);
             }
-            $first = $first === 0 ? $id : $first;
+            $step = $this->autoIncrementStep();
+            foreach (array_keys($clean) as $k) {
+                $ids[] = $first + $k * $step;
+            }
         }
 
-        return $first;
+        return $ids;
+    }
+
+    /**
+     * One multi-row INSERT; the first id it generated. 2026-10-21 01:43 +03: seam, task 596.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     */
+    protected function runInsertMany(string $name, array $rows): int
+    {
+        return (int) db_query('INSERT INTO ?:' . $name . ' ?m', $rows);
+    }
+
+    /**
+     * The server's auto_increment_increment, read once per request (1 when it cannot be read).
+     * 2026-10-21 01:43 +03: added, task 596.
+     */
+    protected function autoIncrementStep(): int
+    {
+        if ($this->auto_increment_step === null) {
+            $step = (int) $this->fetchField(['SELECT @@auto_increment_increment']);
+            $this->auto_increment_step = $step > 0 ? $step : 1;
+        }
+
+        return $this->auto_increment_step;
     }
 
     /**

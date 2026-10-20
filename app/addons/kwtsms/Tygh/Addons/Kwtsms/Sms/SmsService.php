@@ -183,6 +183,13 @@ class SmsService
     /** @var int API calls made by this service in this request (PRD 6.2 step 12) */
     private $api_calls = 0;
 
+    /**
+     * @var int /send/ calls of this request that may have reached kwtSMS (the request was transmitted). Only
+     *          these make a failed drained row "unknown"; a /balance/ refresh or probe does not
+     *          (2026-10-21 01:43 +03, fix round 2, item E, task 596)
+     */
+    private $send_calls = 0;
+
     /** @var string|null Verdict of this request's ERR003 /balance/ probe: ok, ERR003 or failed */
     private $probe = null;
 
@@ -251,6 +258,9 @@ class SmsService
      * the cron (Task 1.7) and the dashboard fallback; callers never pass row data. Never throws.
      * 2026-10-21 01:04 +03: added (fix round 1, critical 1), task 596.
      *
+     * 2026-10-21 01:43 +03: stopped is null, "time_budget", or "request_budget" (a web drain whose 20 API calls are
+     * used; the rest of the rows are not claimed), task 596.
+     *
      * @return array{reaped:int,due:int,claimed:int,busy:int,stopped:?string,results:array<int,SendResult>}
      */
     public function drainDue(int $limit, float $time_budget_s): array
@@ -274,14 +284,28 @@ class SmsService
                 $summary['stopped'] = 'time_budget';
                 break;
             }
+            // 2026-10-21 01:43 +03: a web drain stops claiming once the request budget is used: a row claimed now
+            // could only be deferred again (attempts + 1, request_overflow), so it is left untouched (fix round 2,
+            // item A), task 596.
+            if ($this->isWebRequest() && $this->api_calls >= self::REQUEST_BUDGET) {
+                $summary['stopped'] = 'request_budget';
+                break;
+            }
+            $claimed = false;
             try {
-                if (!$this->outbox->claim($snapshot['outbox_id'], $snapshot['attempts'])) {
+                $claimed = $this->outbox->claim($snapshot['outbox_id'], $snapshot['attempts']);
+                if (!$claimed) {
                     $summary['busy']++;
                     continue;
                 }
                 $row = $this->outbox->find($snapshot['outbox_id']);
             } catch (\Throwable $e) {
                 $this->noteThrowable('sms.drain_claim_failed', $e);
+                // 2026-10-21 01:43 +03: claimed but not read: nothing was sent, so the row goes back to pending,
+                // the same as send()'s catch (fix round 2, item D), task 596.
+                if ($claimed) {
+                    $this->repend((int) $snapshot['outbox_id'], (int) $snapshot['attempts']);
+                }
                 continue;
             }
             if ($row === null || $row['status'] !== Outbox::STATUS_SENDING) {
@@ -357,7 +381,9 @@ class SmsService
         // test mode switched on makes every row a test (the safe direction). A row without a flag is a test.
         $stored = $row !== null && isset($row['context']['test']) ? (string) $row['context']['test'] : '1';
         $this->test = $row === null ? $this->config->testMode() : ($stored !== '0' || $this->config->testMode());
-        $calls_before = $this->api_calls;
+        // 2026-10-21 01:43 +03: only a transmitted /send/ makes a failed drained row "unknown" (fix round 2,
+        // item E), task 596.
+        $sends_before = $this->send_calls;
         $this->note('debug', 'sms.send.enter', 'send()', [
             'recipients' => count($list),
             'source' => $context['source'],
@@ -371,7 +397,7 @@ class SmsService
             $result = $this->pipeline($list, $message, $context, $rcpt, $row);
         } catch (\Throwable $e) {
             $this->noteThrowable('sms.send_failed', $e);
-            $result = $this->afterThrow($rcpt, $context, $row, $this->api_calls > $calls_before);
+            $result = $this->afterThrow($rcpt, $context, $row, $this->send_calls > $sends_before);
         }
         $this->row = null;
 
@@ -413,11 +439,7 @@ class SmsService
         $repended = false;
         try {
             if ($row !== null) {
-                $repended = !$api_called && $this->outbox->markRetry(
-                    (int) $row['outbox_id'],
-                    $this->now() + Outbox::backoff((int) $row['attempts'] + 1),
-                    'error'
-                );
+                $repended = !$api_called && $this->repend((int) $row['outbox_id'], (int) $row['attempts']);
                 if (!$repended) {
                     $this->outbox->markUnknown((int) $row['outbox_id']);
                 }
@@ -452,6 +474,22 @@ class SmsService
         }
 
         return new SendResult($rcpt, ['test' => $this->test, 'error_code' => 'LOCAL_ERROR']);
+    }
+
+    /**
+     * A claimed row back to pending after a failure with nothing sent: one more attempt and the back-off, so a
+     * failure that repeats ends at the expiry. 2026-10-21 01:43 +03: added (shared by send()'s catch and drainDue()),
+     * task 596.
+     */
+    private function repend(int $id, int $attempts): bool
+    {
+        try {
+            return $this->outbox->markRetry($id, $this->now() + Outbox::backoff($attempts + 1), 'error');
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.repend_failed', $e);
+
+            return false;
+        }
     }
 
     // ------------------------------------------------------------------ test seams
@@ -764,6 +802,11 @@ class SmsService
         $stopped = null;
         if ($send !== []) {
             $result = $this->client($context)->send($this->config->senderId(), $send, $message, $test);
+            foreach ($result['calls'] ?? [] as $call) {
+                if (!empty($call['sent'])) {
+                    $this->send_calls++;
+                }
+            }
             if (($result['calls'] ?? []) === []) {
                 // 2026-10-21 01:04 +03: refused before any call (LOCAL_BAD_INPUT): every number keeps that code,
                 // task 596.
@@ -1263,10 +1306,13 @@ class SmsService
                     ? $first['retry_at'] + Outbox::TTL_SECONDS
                     : ($row !== null ? (int) $row['expires_at'] : $this->now() + Outbox::TTL_SECONDS);
                 // 2026-10-21 01:04 +03: the row keeps the test flag of this send (ruling R26), task 596.
+                // 2026-10-21 01:43 +03: a row split off a drained row keeps the drained row's STORED flag, not the
+                // effective one, so a live row drained during test mode leaves live splits (fix round 2, item B).
+                $flag = $row !== null ? (string) ($row['context']['test'] ?? '1') : ($this->test ? '1' : '0');
                 $id = $this->outbox->enqueue(
                     $phones,
                     $message,
-                    ['test' => $this->test ? '1' : '0'] + $context,
+                    ['test' => $flag === '0' ? '0' : '1'] + $context,
                     $first['reason'],
                     $first['retry_at'],
                     $expires

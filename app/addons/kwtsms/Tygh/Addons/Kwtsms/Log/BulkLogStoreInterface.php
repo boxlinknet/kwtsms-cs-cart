@@ -11,7 +11,9 @@
  *            separate interface keeps LogStoreInterface (and every test double of it) unchanged; AttemptLog uses
  *            these methods when the store has them and falls back to one statement per row otherwise.
  * USAGE:     if ($store instanceof BulkLogStoreInterface) {
- *                $first_id = $store->insertMany(Schema::ATTEMPTS, $rows);   // ids are $first_id .. + count - 1
+ *                $ids = $store->insertMany(Schema::ATTEMPTS, $rows);   // the new ids, in the order of $rows
+ *                // 2026-10-21 01:43 +03: returns the ids (was the first id; the step is the server's
+ *                // auto_increment_increment, which a cluster sets above 1), fix round 2, item C, task 596.
  *                $counts = $store->countAttemptsByPhone($phones, $day_from, $hour_from, $outcomes, $sources);
  *                // ['96550000001' => ['hour' => 1, 'day' => 3, 'day_all' => 4], ...] (phones without rows are absent)
  *            }
@@ -27,11 +29,11 @@ interface BulkLogStoreInterface
      *
      * @param array<int,array<string,mixed>> $rows
      *
-     * @return int The primary key of the first row; the others follow it by one each
+     * @return int[] The new primary keys, in the order of $rows (2026-10-21 01:43 +03: was the first key only)
      *
      * @throws \RuntimeException When the rows could not be written
      */
-    public function insertMany(string $table, array $rows): int;
+    public function insertMany(string $table, array $rows): array;
 
     /**
      * Attempts per phone since $day_from with one of $outcomes: "hour" counts those since $hour_from whose source

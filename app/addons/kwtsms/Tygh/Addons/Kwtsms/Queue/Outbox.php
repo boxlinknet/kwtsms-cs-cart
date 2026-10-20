@@ -18,12 +18,16 @@
  * USAGE:     $outbox = new Outbox();
  *            $id = $outbox->enqueue(['+96550000001'], $text, $context, 'gateway_unreachable',
  *                                   time() + 30, time() + 1800);
- *            foreach ($outbox->due(20) as $row) {   // ['outbox_id','created_at','retry_at','expires_at','attempts',
- *                                                   //  'reason','status','phones'=>[],'message'=>'','context'=>[]]
- *                $sms->send($row['phones'], $row['message'], $row['context'] + ['outbox_id' => $row['outbox_id']]);
- *            }
- *            claim($id) pending -> sending; markRetry($id, $retry_at, $reason, $phones) -> pending, attempts + 1;
- *            markDone($id); markExpired($id); markHeld($id) (TLS failure: kept, never due, resent by hand).
+ *            2026-10-21 01:43 +03: the drain is SmsService::drainDue($limit, $time_budget_s) ONLY (fix round 2,
+ *            item F, task 596); it reaps, reads due(), claims each row with the attempts it read, and sends what
+ *            the claimed row holds. The old "send($row['phones'], ..., ['outbox_id' => ...])" drain and the one-
+ *            argument claim($id) are gone. The row API it uses:
+ *            $outbox->due(20);             // [['outbox_id','created_at','retry_at','expires_at','attempts',
+ *                                          //   'reason','status','phones'=>[],'message'=>'','context'=>[]], ...]
+ *            $outbox->claim($id, $attempts_read);   // pending, due and unchanged -> sending (retry_at = claim time)
+ *            markRetry($id, $retry_at, $reason, $phones, $expires_at) -> pending, attempts + 1;
+ *            markDone($id); markExpired($id); markUnknown($id); markHeld($id) (TLS failure: kept, never due);
+ *            reap($now) (sending over 10 min -> unknown, held past expiry -> expired).
  *            Outbox::backoff($attempts) -> 30, 60, 120, then 300 s. enqueue() returns 0 when the row could not
  *            be written (the caller records a failure, never a silent deferral).
  *            2026-10-21 01:03 +03, Task 1.6 fix round 1 (review: a stale snapshot resent a row), task 596:
