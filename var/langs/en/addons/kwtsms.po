@@ -353,3 +353,127 @@ msgstr "An unexpected error stopped the request. Check the debug log."
 msgctxt "Languages::kwtsms.err.unknown"
 msgid "kwtSMS returned the error [code]. Check the debug log for details."
 msgstr "kwtSMS returned the error [code]. Check the debug log for details."
+
+# 2026-10-20 22:59 +03: default SMS templates, Task 1.8, task 596. Name: kwtsms.tpl.<event id>.<receiver>;
+# the event id keeps its dots. msgid and the English msgstr are the shipped default text.
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.C"
+msgid "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
+msgstr "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.A"
+msgid "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
+msgstr "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.C"
+msgid "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
+msgstr "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.C"
+msgid "{store_name}: Order {order_id} update: {order_status}."
+msgstr "{store_name}: Order {order_id} update: {order_status}."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.A"
+msgid "{store_name}: Order {order_id} changed to {order_status}."
+msgstr "{store_name}: Order {order_id} changed to {order_status}."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.p.C"
+msgid "{store_name}: Payment received for order {order_id}. We are preparing it."
+msgstr "{store_name}: Payment received for order {order_id}. We are preparing it."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.c.C"
+msgid "{store_name}: Order {order_id} is complete. Thank you."
+msgstr "{store_name}: Order {order_id} is complete. Thank you."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.i.C"
+msgid "{store_name}: Order {order_id} was canceled. Questions? Contact us."
+msgstr "{store_name}: Order {order_id} was canceled. Questions? Contact us."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.f.C"
+msgid "{store_name}: Payment for order {order_id} failed. Please try again."
+msgstr "{store_name}: Payment for order {order_id} failed. Please try again."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.d.C"
+msgid "{store_name}: Order {order_id} was declined. Questions? Contact us."
+msgstr "{store_name}: Order {order_id} was declined. Questions? Contact us."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.b.C"
+msgid "{store_name}: Order {order_id} is backordered. We will update you when it ships."
+msgstr "{store_name}: Order {order_id} is backordered. We will update you when it ships."
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.o.C"
+msgid "{store_name}: Order {order_id} is open. We will keep you updated."
+msgstr "{store_name}: Order {order_id} is open. We will keep you updated."
+
+# 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
+msgctxt "Languages::kwtsms.status.A"
+msgid "Awaiting call"
+msgstr "Awaiting call"
+
+msgctxt "Languages::kwtsms.status.B"
+msgid "Backordered"
+msgstr "Backordered"
+
+msgctxt "Languages::kwtsms.status.C"
+msgid "Complete"
+msgstr "Complete"
+
+msgctxt "Languages::kwtsms.status.D"
+msgid "Declined"
+msgstr "Declined"
+
+msgctxt "Languages::kwtsms.status.F"
+msgid "Failed"
+msgstr "Failed"
+
+msgctxt "Languages::kwtsms.status.I"
+msgid "Canceled"
+msgstr "Canceled"
+
+msgctxt "Languages::kwtsms.status.O"
+msgid "Open"
+msgstr "Open"
+
+msgctxt "Languages::kwtsms.status.P"
+msgid "Paid"
+msgstr "Paid"
+
+msgctxt "Languages::kwtsms.status.Y"
+msgid "Awaiting call"
+msgstr "Awaiting call"
+
+# 2026-10-20 22:59 +03: currency names for {currency} (ISO code in English, local name in Arabic), Task 1.8, task 596.
+msgctxt "Languages::kwtsms.currency.KWD"
+msgid "KWD"
+msgstr "KWD"
+
+msgctxt "Languages::kwtsms.currency.SAR"
+msgid "SAR"
+msgstr "SAR"
+
+msgctxt "Languages::kwtsms.currency.AED"
+msgid "AED"
+msgstr "AED"
+
+msgctxt "Languages::kwtsms.currency.QAR"
+msgid "QAR"
+msgstr "QAR"
+
+msgctxt "Languages::kwtsms.currency.BHD"
+msgid "BHD"
+msgstr "BHD"
+
+msgctxt "Languages::kwtsms.currency.OMR"
+msgid "OMR"
+msgstr "OMR"
+
+msgctxt "Languages::kwtsms.currency.USD"
+msgid "USD"
+msgstr "USD"
+
+msgctxt "Languages::kwtsms.currency.EUR"
+msgid "EUR"
+msgstr "EUR"
+
+msgctxt "Languages::kwtsms.currency.EGP"
+msgid "EGP"
+msgstr "EGP"

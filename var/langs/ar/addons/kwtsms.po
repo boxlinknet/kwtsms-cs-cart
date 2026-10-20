@@ -353,3 +353,127 @@ msgstr "أوقف خطأ غير متوقع الطلب. راجع سجل التصح
 msgctxt "Languages::kwtsms.err.unknown"
 msgid "kwtSMS returned the error [code]. Check the debug log for details."
 msgstr "أعادت kwtSMS الخطأ [code]. راجع سجل التصحيح لمعرفة التفاصيل."
+
+# 2026-10-20 22:59 +03: default SMS templates, Task 1.8, task 596. Name: kwtsms.tpl.<event id>.<receiver>;
+# the event id keeps its dots. msgid and the English msgstr are the shipped default text.
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.C"
+msgid "{store_name}: Thanks {customer_first_name}, order {order_id} received. Total {order_total} {currency}."
+msgstr "تم استلام طلبك رقم {order_id} من {store_name}، المجموع {order_total} {currency}. شكرا لك"
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.A"
+msgid "{store_name}: New order {order_id}, {order_total} {currency}, {customer_first_name}."
+msgstr "طلب جديد رقم {order_id} في {store_name}، {order_total} {currency}، {customer_first_name}"
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.multi.C"
+msgid "{store_name}: Thanks {customer_first_name}, orders {order_ids} received. Total {order_total} {currency}."
+msgstr "تم استلام طلباتك رقم {order_ids} من {store_name}، المجموع {order_total} {currency}"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.C"
+msgid "{store_name}: Order {order_id} update: {order_status}."
+msgstr "طلبك رقم {order_id} من {store_name}: {order_status}"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.A"
+msgid "{store_name}: Order {order_id} changed to {order_status}."
+msgstr "تغيرت حالة الطلب رقم {order_id} في {store_name} إلى {order_status}"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.p.C"
+msgid "{store_name}: Payment received for order {order_id}. We are preparing it."
+msgstr "تم استلام الدفع لطلبك رقم {order_id} من {store_name}، جاري التجهيز"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.c.C"
+msgid "{store_name}: Order {order_id} is complete. Thank you."
+msgstr "اكتمل طلبك رقم {order_id} من {store_name}. شكرا لك"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.i.C"
+msgid "{store_name}: Order {order_id} was canceled. Questions? Contact us."
+msgstr "تم إلغاء طلبك رقم {order_id} من {store_name}. للاستفسار تواصل معنا"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.f.C"
+msgid "{store_name}: Payment for order {order_id} failed. Please try again."
+msgstr "فشل الدفع لطلبك رقم {order_id} من {store_name}. حاول مرة أخرى"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.d.C"
+msgid "{store_name}: Order {order_id} was declined. Questions? Contact us."
+msgstr "تم رفض طلبك رقم {order_id} من {store_name}. للاستفسار تواصل معنا"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.b.C"
+msgid "{store_name}: Order {order_id} is backordered. We will update you when it ships."
+msgstr "طلبك رقم {order_id} من {store_name} قيد التوفير، سنبلغك عند الشحن"
+
+msgctxt "Languages::kwtsms.tpl.order.status_changed.o.C"
+msgid "{store_name}: Order {order_id} is open. We will keep you updated."
+msgstr "طلبك رقم {order_id} من {store_name} مفتوح، سنوافيك بالتحديثات"
+
+# 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
+msgctxt "Languages::kwtsms.status.A"
+msgid "Awaiting call"
+msgstr "بانتظار اتصال"
+
+msgctxt "Languages::kwtsms.status.B"
+msgid "Backordered"
+msgstr "قيد التوفير"
+
+msgctxt "Languages::kwtsms.status.C"
+msgid "Complete"
+msgstr "مكتمل"
+
+msgctxt "Languages::kwtsms.status.D"
+msgid "Declined"
+msgstr "مرفوض"
+
+msgctxt "Languages::kwtsms.status.F"
+msgid "Failed"
+msgstr "فشل"
+
+msgctxt "Languages::kwtsms.status.I"
+msgid "Canceled"
+msgstr "ملغي"
+
+msgctxt "Languages::kwtsms.status.O"
+msgid "Open"
+msgstr "مفتوح"
+
+msgctxt "Languages::kwtsms.status.P"
+msgid "Paid"
+msgstr "مدفوع"
+
+msgctxt "Languages::kwtsms.status.Y"
+msgid "Awaiting call"
+msgstr "بانتظار اتصال"
+
+# 2026-10-20 22:59 +03: currency names for {currency} (ISO code in English, local name in Arabic), Task 1.8, task 596.
+msgctxt "Languages::kwtsms.currency.KWD"
+msgid "KWD"
+msgstr "د.ك"
+
+msgctxt "Languages::kwtsms.currency.SAR"
+msgid "SAR"
+msgstr "ر.س"
+
+msgctxt "Languages::kwtsms.currency.AED"
+msgid "AED"
+msgstr "د.إ"
+
+msgctxt "Languages::kwtsms.currency.QAR"
+msgid "QAR"
+msgstr "ر.ق"
+
+msgctxt "Languages::kwtsms.currency.BHD"
+msgid "BHD"
+msgstr "د.ب"
+
+msgctxt "Languages::kwtsms.currency.OMR"
+msgid "OMR"
+msgstr "ر.ع"
+
+msgctxt "Languages::kwtsms.currency.USD"
+msgid "USD"
+msgstr "دولار"
+
+msgctxt "Languages::kwtsms.currency.EUR"
+msgid "EUR"
+msgstr "يورو"
+
+msgctxt "Languages::kwtsms.currency.EGP"
+msgid "EGP"
+msgstr "ج.م"
