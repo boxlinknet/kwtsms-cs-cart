@@ -477,3 +477,8 @@ msgstr "يورو"
 msgctxt "Languages::kwtsms.currency.EGP"
 msgid "EGP"
 msgstr "ج.م"
+
+# 2026-10-21 00:04 +03: shown to the admin when the default SMS texts could not be saved at install (Task 1.8 fix round 1, task 596).
+msgctxt "Languages::kwtsms.templates_seed_failed"
+msgid "The default SMS texts could not be saved. Open the kwtSMS Templates page and load the default texts."
+msgstr "تعذر حفظ نصوص الرسائل الافتراضية. افتح صفحة القوالب في kwtSMS ثم حمل النصوص الافتراضية."

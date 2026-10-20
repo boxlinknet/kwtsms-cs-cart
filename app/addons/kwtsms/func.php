@@ -41,12 +41,35 @@ function fn_kwtsms_install(): void
     // 2026-10-20 23:12 +03: the shipped default SMS texts are copied into the template tables for every
     // installed language (PRD 6.4), INSERT IGNORE, so a second run changes nothing. A failure here must not
     // undo the install: the admin can load the defaults from the Templates page. Task 1.8, task 596.
+    // 2026-10-21 00:05 +03: moved into fn_kwtsms_seed_default_templates(), which also tells the admin.
+    fn_kwtsms_seed_default_templates();
+}
+
+/**
+ * Seed the shipped default SMS texts for every installed language. Never throws: a failure goes to the PHP error
+ * log (class, message, file:line, no trace) and to the admin as an error notification (langvar
+ * kwtsms.templates_seed_failed), and the install carries on, because the texts can be loaded later from the
+ * Templates page.
+ * 2026-10-21 00:05 +03: extracted from fn_kwtsms_install() and the notification added, Task 1.8 fix round 1
+ * item 6, task 596.
+ *
+ * @param TemplateRepository|null $templates Repository to seed (a test passes one that fails); null = the real one
+ *
+ * @return bool True when seeded
+ */
+function fn_kwtsms_seed_default_templates(?TemplateRepository $templates = null): bool
+{
     try {
-        $templates = new TemplateRepository();
+        $templates = $templates ?? new TemplateRepository();
         $templates->seedDefaults(array_map('strval', array_keys(Languages::getAll())));
+
+        return true;
     } catch (\Throwable $e) {
         error_log('kwtsms: seeding the default templates failed: ' . get_class($e) . ': ' . $e->getMessage()
             . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        fn_set_notification('E', __('error'), __('kwtsms.templates_seed_failed'));
+
+        return false;
     }
 }
 
