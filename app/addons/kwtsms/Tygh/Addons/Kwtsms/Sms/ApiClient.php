@@ -29,11 +29,16 @@
  *            request may have reached the gateway), ms, started_ms, ended_ms, raw_request (the JSON without
  *            username and password), raw_response (at most 64 KB, valid UTF-8), raw_response_invalid_utf8.
  *            send(): 'calls' holds one entry per chunk (the meta above plus chunk, recipients,
- *            recipient_count, test, msg-id, numbers, points-charged, balance-after, unix-timestamp (GMT+3
- *            server time) and timestamp_utc); the top level adds msg-ids, msg-id (the first), numbers and
+ *            recipient_count, test, msg-id, numbers, points-charged, balance-after and unix-timestamp);
+ *            the top level adds msg-ids, msg-id (the first), numbers and
  *            points-charged (sums), balance-after (the last). A chunk after a failed one is not sent: it is
  *            LOCAL_SKIPPED with skipped_because = the code that stopped the send. Only ERR006, ERR025 and
- *            ERR026 (a problem with that chunk's numbers) let the next chunk go.
+ *            ERR026 (a problem with that chunk's numbers) and LOCAL_CANCELLED (the hook is asked again for
+ *            each chunk) let the next chunk go.
+ *            unix-timestamp is returned as received. 2026-10-20 22:45 +03: the vendor notes say it is GMT+3
+ *            server time; two live sends (test="1") showed the value equal to the UTC epoch to the second, so
+ *            it is NOT shifted here (tests/Live/ApiClientTest.php asserts it against time() and fails if that
+ *            ever changes), task 596.
  *            Request hook (ruling R1): before EVERY HTTP call, fn_set_hook('kwtsms_api_request_pre',
  *            $endpoint, $guard_view, $cancel) with $endpoint one of balance, senderid, coverage, validate,
  *            send and $guard_view the payload without username and password (send carries test). A handler
@@ -72,11 +77,13 @@ class ApiClient
     /** Connect and total timeout in seconds by context. */
     private const TIMEOUTS = ['web' => [3, 8], 'admin' => [5, 20], 'cli' => [5, 30]];
 
-    /** Errors about one chunk's numbers: the next chunk may still go. */
-    private const KEEP_GOING = ['ERR006', 'ERR025', 'ERR026'];
-
-    /** kwtSMS stamps unix-timestamp in Asia/Kuwait time (GMT+3). */
-    private const SERVER_UTC_OFFSET = 10800;
+    /**
+     * Errors about one chunk only: the next chunk may still go. ERR006, ERR025 and ERR026 are about that
+     * chunk's numbers; LOCAL_CANCELLED is a hook handler's verdict on one call (it is asked again for the
+     * next chunk). 2026-10-20 22:38 +03: LOCAL_CANCELLED added so the test suite can observe every chunk
+     * through the hook and cancel each one (zero HTTP), task 596.
+     */
+    private const KEEP_GOING = ['ERR006', 'ERR025', 'ERR026', 'LOCAL_CANCELLED'];
 
     /** Longest description kept (bytes). */
     private const DESCRIPTION_LIMIT = 500;
@@ -630,7 +637,6 @@ class ApiClient
                     'points-charged' => $this->toFloat($reply['points-charged'] ?? null),
                     'balance-after' => $this->toFloat($reply['balance-after'] ?? null),
                     'unix-timestamp' => $stamp === null ? null : (int) $stamp,
-                    'timestamp_utc' => $stamp === null ? null : (int) $stamp - self::SERVER_UTC_OFFSET,
                 ];
         }
     }
@@ -773,7 +779,6 @@ class ApiClient
         $points = 0.0;
         $balance = null;
         $stamp = null;
-        $stamp_utc = null;
         $http_status = 0;
         $sent = false;
         $ms = 0;
@@ -796,7 +801,6 @@ class ApiClient
             }
             if ($call['unix-timestamp'] !== null) {
                 $stamp = $call['unix-timestamp'];
-                $stamp_utc = $call['timestamp_utc'];
             }
         }
 
@@ -822,7 +826,6 @@ class ApiClient
                 'points-charged' => $points,
                 'balance-after' => $balance,
                 'unix-timestamp' => $stamp,
-                'timestamp_utc' => $stamp_utc,
             ];
         }
 
