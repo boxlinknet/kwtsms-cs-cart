@@ -52,3 +52,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Admin notice and e-mail when the store-wide daily SMS limit is reached (once per day), when the balance drops
   under the alert level, and when the account is suspended.
 - `fn_kwtsms_send()` for other add-ons, with the hooks `kwtsms_send_pre` (edit or cancel) and `kwtsms_send_post`.
+<!-- 2026-10-21 01:38 +03: entries for login, sync, suspension and the cron (Task 1.7), task 596 -->
+- Login to kwtSMS with one `/balance/` call: the username and the encrypted password are saved only when it is OK,
+  and a wrong password, a blocked account or an unreachable gateway each get their own plain message. Changing to
+  another account forgets everything cached for the old one.
+- Daily sync of balance, Sender IDs and coverage, validated before it is stored. A failed sync keeps what is cached
+  and tries again after 15 minutes, 1 hour and 6 hours. A Sender ID that is no longer on the account, or that kwtSMS
+  banned, pauses SMS and tells the administrators.
+- A suspended account is checked every 15 minutes (hourly when blocked) and resumes by itself when kwtSMS answers
+  again; a coverage mismatch (ERR026) asks for one coverage refresh an hour.
+- Cron job `kwtsms_cron.run` for the command line (`php admin.php --dispatch=kwtsms_cron.run`, every minute) and an
+  optional URL mode: it sends the queued SMS that are due, syncs daily, prunes the logs by retention and repeats the
+  test-mode, zero-balance, suspension and Sender ID notices daily. One run at a time (core lock), the URL mode needs
+  the cron key in a header or the POST body, and the answer is only `{"ok":true}`.
