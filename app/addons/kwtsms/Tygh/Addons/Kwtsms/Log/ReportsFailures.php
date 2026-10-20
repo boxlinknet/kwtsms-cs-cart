@@ -26,7 +26,24 @@ trait ReportsFailures
             return;
         }
         self::$reported_failures++;
-        error_log('kwtsms log write failed: ' . get_class($e) . ': ' . $e->getMessage()
+        error_log('kwtsms log write failed: ' . get_class($e) . ': ' . $this->safeMessage($e->getMessage())
             . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+    }
+
+    /**
+     * 2026-10-20 22:22 +03: the logged message is cut at 300 characters and loses everything a database error
+     * carries besides its reason (Task 1.4 fix round 1, task 596). CS-Cart's DatabaseException message is
+     * "<reason> <b>(code)</b><p><the whole query></p>", and a query of these logs holds phone numbers and SMS
+     * text. Removed: from the "<p>" or the first INSERT INTO / REPLACE INTO / DELETE FROM / SELECT / UPDATE, then
+     * every tag, whitespace runs become one space, and runs of seven or more digits become "[n]" (phone lists).
+     */
+    private function safeMessage(string $message): string
+    {
+        $parts = preg_split('/<p>|\b(?:INSERT\s+INTO|REPLACE\s+INTO|DELETE\s+FROM|SELECT\s|UPDATE\s+[`\w])/', $message, 2);
+        $text = (string) preg_replace('/<[^>]*>/', '', $parts === false ? $message : $parts[0]);
+        $text = trim((string) preg_replace('/\s+/', ' ', $text));
+        $text = (string) preg_replace('/[0-9]{7,}/', '[n]', $text);
+
+        return mb_substr($text, 0, 300, 'UTF-8');
     }
 }
