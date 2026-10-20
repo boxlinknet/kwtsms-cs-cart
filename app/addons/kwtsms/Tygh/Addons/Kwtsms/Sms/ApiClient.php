@@ -33,8 +33,9 @@
  *            the top level adds msg-ids, msg-id (the first), numbers and
  *            points-charged (sums), balance-after (the last). A chunk after a failed one is not sent: it is
  *            LOCAL_SKIPPED with skipped_because = the code that stopped the send. Only ERR006, ERR025 and
- *            ERR026 (a problem with that chunk's numbers) and LOCAL_CANCELLED (the hook is asked again for
- *            each chunk) let the next chunk go.
+ *            ERR026 (a problem with that chunk's numbers), ERR035 (the daily international limit: only
+ *            international numbers fail) and LOCAL_CANCELLED (the hook is asked again for each chunk) let the
+ *            next chunk go.
  *            unix-timestamp is returned as received. 2026-10-20 22:45 +03: the vendor notes say it is GMT+3
  *            server time; two live sends (test="1") showed the value equal to the UTC epoch to the second, so
  *            it is NOT shifted here (tests/Live/ApiClientTest.php asserts it against time() and fails if that
@@ -52,6 +53,7 @@
 
 namespace Tygh\Addons\Kwtsms\Sms;
 
+use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Http\HttpTransport;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 
@@ -81,9 +83,11 @@ class ApiClient
      * Errors about one chunk only: the next chunk may still go. ERR006, ERR025 and ERR026 are about that
      * chunk's numbers; LOCAL_CANCELLED is a hook handler's verdict on one call (it is asked again for the
      * next chunk). 2026-10-20 22:38 +03: LOCAL_CANCELLED added so the test suite can observe every chunk
-     * through the hook and cancel each one (zero HTTP), task 596.
+     * through the hook and cancel each one (zero HTTP), task 596. 2026-10-20 23:18 +03: ERR035 (daily
+     * international limit) added: it fails only the international numbers of the chunk it came back for
+     * (ruling M1, task 596).
      */
-    private const KEEP_GOING = ['ERR006', 'ERR025', 'ERR026', 'LOCAL_CANCELLED'];
+    private const KEEP_GOING = ['ERR006', 'ERR025', 'ERR026', 'ERR035', 'LOCAL_CANCELLED'];
 
     /** Longest description kept (bytes). */
     private const DESCRIPTION_LIMIT = 500;
@@ -463,9 +467,18 @@ class ApiClient
     {
         if ($reply['error'] !== null) {
             $code = self::TRANSPORT_CODES[$reply['error']] ?? 'LOCAL_CONNECT';
-            $this->guardCall(function (): void {
-                $this->guard->recordTransportFailure();
+            $breaker = null;
+            $this->guardCall(function () use (&$breaker): void {
+                $breaker = $this->guard->recordTransportFailure();
             });
+            if (is_array($breaker) && $breaker['opened']) {
+                // 2026-10-20 23:18 +03: M8, task 596. The one line an admin needs: sending is paused and why.
+                $this->note('warning', 'breaker_opened', 'gateway_unreachable', [
+                    'failures' => $breaker['failures'],
+                    'open_until' => $breaker['open_until'],
+                    'seconds' => GatewayState::BREAKER_SECONDS,
+                ]);
+            }
             $this->note('warning', 'transport_failed', $code, [
                 'endpoint' => $endpoint,
                 'error' => $reply['error'],
@@ -578,8 +591,10 @@ class ApiClient
                 return [$code, 'api'];
             }
         }
-        if (preg_match('/ERR[0-9]{3}/i', $body, $m) === 1) {
-            return [strtoupper($m[0]), 'api'];
+        // 2026-10-20 23:18 +03: a whole word only, /\bERR[0-9]{3}\b/: "ERR0031", "xerr404" and "9ERR404" are
+        // not codes (M6, task 596).
+        if (preg_match('/\bERR[0-9]{3}\b/', $body, $m) === 1) {
+            return [$m[0], 'api'];
         }
 
         return [$status < 200 || $status > 299 ? 'LOCAL_HTTP' : 'LOCAL_BAD_JSON', 'local'];
