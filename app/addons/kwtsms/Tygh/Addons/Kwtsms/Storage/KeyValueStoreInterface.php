@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Storage/KeyValueStoreInterface.php
- * CREATED:   2026-10-20 21:24 +03
+ * CREATED:   2026-10-20 21:18 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Contract of the small string key/value store behind the gateway state (balance, sender list,

@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Storage/StorageDataStore.php
- * CREATED:   2026-10-20 21:24 +03
+ * CREATED:   2026-10-20 21:18 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      KeyValueStoreInterface on CS-Cart's storage_data table (fn_get_storage_data and

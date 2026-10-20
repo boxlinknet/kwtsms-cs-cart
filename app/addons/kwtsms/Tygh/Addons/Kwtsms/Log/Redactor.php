@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Log/Redactor.php
- * CREATED:   2026-10-20 22:08 +03
+ * CREATED:   2026-10-20 21:23 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Removes credentials from log data (redact, redactString) and masks one-time secrets in

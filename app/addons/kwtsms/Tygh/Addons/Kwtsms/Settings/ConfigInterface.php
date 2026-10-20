@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Settings/ConfigInterface.php
- * CREATED:   2026-10-20 21:30 +03
+ * CREATED:   2026-10-20 21:19 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Contract of the add-on's typed settings: one getter per PRD 9 setting, the decrypted API

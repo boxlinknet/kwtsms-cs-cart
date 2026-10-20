@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Gateway/GatewayState.php
- * CREATED:   2026-10-20 21:40 +03
+ * CREATED:   2026-10-20 21:20 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The cached state of the kwtSMS account: balance, Sender ID list, coverage prefixes, last
