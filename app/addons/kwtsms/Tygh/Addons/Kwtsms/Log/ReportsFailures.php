@@ -39,7 +39,8 @@ trait ReportsFailures
      */
     private function safeMessage(string $message): string
     {
-        $parts = preg_split('/<p>|\b(?:INSERT\s+INTO|REPLACE\s+INTO|DELETE\s+FROM|SELECT\s|UPDATE\s+[`\w])/', $message, 2);
+        $query_start = '/<p>|\b(?:INSERT\s+INTO|REPLACE\s+INTO|DELETE\s+FROM|SELECT\s|UPDATE\s+[`\w])/';
+        $parts = preg_split($query_start, $message, 2);
         $text = (string) preg_replace('/<[^>]*>/', '', $parts === false ? $message : $parts[0]);
         $text = trim((string) preg_replace('/\s+/', ' ', $text));
         $text = (string) preg_replace('/[0-9]{7,}/', '[n]', $text);
