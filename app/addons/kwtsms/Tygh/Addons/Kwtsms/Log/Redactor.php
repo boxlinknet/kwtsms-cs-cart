@@ -47,6 +47,7 @@ class Redactor
      * @return array<mixed>
      */
     public static function redact(
+        #[\SensitiveParameter]
         array $context,
         #[\SensitiveParameter]
         array $secrets
@@ -93,8 +94,13 @@ class Redactor
      *
      * @return string[] Non-empty unique strings
      */
-    private static function plainSecrets(array $secrets): array
-    {
+    // 2026-10-20 22:19 +03: from here on every helper parameter that holds a secret, a secret-derived form map or a
+    // context that may still hold one carries #[\SensitiveParameter] (a PHP 8.2+ stack trace then shows no value;
+    // a comment on 7.4), Task 1.4 fix round 1, task 596.
+    private static function plainSecrets(
+        #[\SensitiveParameter]
+        array $secrets
+    ): array {
         $plain = [];
         foreach ($secrets as $secret) {
             if (!is_string($secret) && !is_int($secret) && !is_float($secret)) {
@@ -117,8 +123,11 @@ class Redactor
      *
      * @return array<string, string>
      */
-    private static function replacementMap(array $plain, string $replacement = self::REPLACEMENT): array
-    {
+    private static function replacementMap(
+        #[\SensitiveParameter]
+        array $plain,
+        string $replacement = self::REPLACEMENT
+    ): array {
         $map = [];
         foreach ($plain as $secret) {
             foreach (self::forms($secret) as $form) {
@@ -134,8 +143,10 @@ class Redactor
     /**
      * @return string[]
      */
-    private static function forms(string $secret): array
-    {
+    private static function forms(
+        #[\SensitiveParameter]
+        string $secret
+    ): array {
         $forms = [$secret];
 
         // JSON string content (without the surrounding quotes) under the usual encoder options.
@@ -182,8 +193,15 @@ class Redactor
      *
      * @return array<mixed>
      */
-    private static function walk(array $data, array $map, array $plain, int $depth): array
-    {
+    private static function walk(
+        #[\SensitiveParameter]
+        array $data,
+        #[\SensitiveParameter]
+        array $map,
+        #[\SensitiveParameter]
+        array $plain,
+        int $depth
+    ): array {
         $out = [];
         foreach ($data as $key => $value) {
             if (is_string($key)) {
@@ -209,8 +227,15 @@ class Redactor
      *
      * @return mixed
      */
-    private static function value($value, array $map, array $plain, int $depth)
-    {
+    private static function value(
+        #[\SensitiveParameter]
+        $value,
+        #[\SensitiveParameter]
+        array $map,
+        #[\SensitiveParameter]
+        array $plain,
+        int $depth
+    ) {
         if (is_string($value)) {
             return $map === [] ? $value : strtr($value, $map);
         }
@@ -234,8 +259,11 @@ class Redactor
      * @param mixed    $value
      * @param string[] $plain
      */
-    private static function isOneOf($value, array $plain): bool
-    {
+    private static function isOneOf(
+        $value,
+        #[\SensitiveParameter]
+        array $plain
+    ): bool {
         return (is_string($value) || is_int($value)) && in_array(trim((string) $value), $plain, true);
     }
 }

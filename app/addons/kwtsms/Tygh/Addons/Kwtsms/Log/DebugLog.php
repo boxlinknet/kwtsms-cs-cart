@@ -84,6 +84,20 @@ class DebugLog
     }
 
     /**
+     * 2026-10-20 22:20 +03: what var_dump() and print_r() show (task 596, Task 1.4 fix round 1). The candidate
+     * secrets, the configuration (credentials) and the store never appear, only how many candidates exist.
+     *
+     * @return array<string, mixed>
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'request_id' => $this->request_id,
+            'candidates' => count($this->candidates) . ' (values hidden)',
+        ];
+    }
+
+    /**
      * Whether a row of this level would be stored (callers skip building expensive contexts).
      */
     public function isEnabled(string $level): bool

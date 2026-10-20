@@ -22,8 +22,33 @@ class CsCartSettingsBackend implements SettingsBackendInterface
 {
     private const SECTION = 'kwtsms';
 
+    /** Settings whose value is a credential or a key: never shown by var_dump() or print_r(). */
+    private const HIDDEN_IN_DUMPS = ['api_username', 'api_password', 'cron_key'];
+
     /** @var array<string, mixed>|null */
     private $values;
+
+    /**
+     * 2026-10-20 22:20 +03: what var_dump() and print_r() show (task 596, Task 1.4 fix round 1). The loaded
+     * values with the username, the password ciphertext and the cron key replaced by [redacted]; nothing is
+     * loaded for the dump.
+     *
+     * @return array<string, mixed>
+     */
+    public function __debugInfo(): array
+    {
+        if ($this->values === null) {
+            return ['values' => '(not loaded)'];
+        }
+        $values = $this->values;
+        foreach (self::HIDDEN_IN_DUMPS as $key) {
+            if (isset($values[$key]) && $values[$key] !== '') {
+                $values[$key] = '[redacted]';
+            }
+        }
+
+        return ['values' => $values];
+    }
 
     public function read(string $key): ?string
     {

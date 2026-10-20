@@ -446,8 +446,11 @@ class Config implements ConfigInterface
      * @param array<string, mixed> $values
      * @param array<string, true>  $failed
      */
-    private function saveLogin(array $values, array &$failed): void
-    {
+    private function saveLogin(
+        #[\SensitiveParameter]
+        array $values,
+        array &$failed
+    ): void {
         $has_user = array_key_exists('api_username', $values);
         $has_password = array_key_exists('api_password', $values);
         $username = $has_user ? $this->normalizeUsername($values['api_username']) : null;
