@@ -215,7 +215,10 @@ class Config implements ConfigInterface
 
     public function customerSmsCountries(): array
     {
-        $codes = $this->list($this->raw('customer_sms_countries'), '/^[0-9]{1,4}$/D');
+        $codes = array_values(array_filter(
+            $this->list($this->raw('customer_sms_countries'), '/^[0-9]{1,4}$/D'),
+            [$this, 'isCountryCode']
+        ));
 
         return $codes === [] ? [$this->defaultCountryCode()] : $codes;
     }
@@ -411,6 +414,16 @@ class Config implements ConfigInterface
                 $stored = $mode === 'logout'
                     ? $this->normalizeClear($key, $values[$key])
                     : $this->normalize($key, $values[$key]);
+                // 2026-10-20 22:27 +03: enabled = Y is refused when the same request empties the sender or asks
+                // for one that was refused or could not be saved, task 596 (Task 1.4 fix round 1).
+                if (
+                    $key === 'enabled'
+                    && $stored === 'Y'
+                    && array_key_exists('sender_id', $values)
+                    && (isset($failed['sender_id']) || $this->senderId() === '')
+                ) {
+                    $stored = null;
+                }
                 if ($stored === null) {
                     $failed[$key] = true;
                     continue;
@@ -539,7 +552,10 @@ class Config implements ConfigInterface
             case 'codes':
                 $codes = $this->tokens($value, '/^[0-9]{1,4}$/D', true);
 
-                return ($codes === null || $codes === []) ? null : implode(',', $codes);
+                // 2026-10-20 22:27 +03: every code is a calling code of the phone rules table, task 596.
+                return ($codes === null || $codes === [] || array_filter($codes, [$this, 'isCountryCode']) !== $codes)
+                    ? null
+                    : implode(',', $codes);
             case 'statuses':
                 $codes = $this->tokens($value, '/^[A-Z]$/D', false, true);
 
@@ -547,9 +563,7 @@ class Config implements ConfigInterface
             case 'threshold':
                 return $this->normalizeThreshold($value);
             case 'phones':
-                $phones = $this->tokens($value, '/^[0-9]{7,15}$/D', false);
-
-                return ($phones === null || count($phones) > self::MAX_ADMIN_PHONES) ? null : implode(',', $phones);
+                return $this->normalizePhones($value);
             case 'lang':
                 $text = is_string($value) ? strtolower(trim($value)) : null;
 
@@ -614,6 +628,53 @@ class Config implements ConfigInterface
         $text = is_int($value) ? (string) $value : (is_string($value) ? trim($value) : '');
 
         return $this->isCountryCode($text) ? $text : null;
+    }
+
+    /**
+     * Admin numbers: separated by commas, semicolons or line breaks; each one is checked by
+     * PhoneNormalizer::validateInput() with the default country as hint (a local number gets the country code,
+     * a landline or a malformed number is refused) and stored normalized, without repeats. One bad number
+     * refuses the whole list. 2026-10-20 22:27 +03, task 596 (Task 1.4 fix round 1).
+     *
+     * @param mixed $value
+     */
+    private function normalizePhones($value): ?string
+    {
+        if (is_array($value)) {
+            $raw = [];
+            foreach ($value as $item) {
+                if (!is_string($item) && !is_int($item)) {
+                    return null;
+                }
+                $raw[] = (string) $item;
+            }
+        } elseif (is_string($value)) {
+            $raw = (array) preg_split('/[,;\r\n]+/', $value, -1, PREG_SPLIT_NO_EMPTY);
+        } else {
+            return null;
+        }
+
+        $hint = $this->defaultCountryCode();
+        $phones = [];
+        foreach ($raw as $number) {
+            $number = trim($number);
+            if ($number === '') {
+                continue;
+            }
+            // Digits (Latin, Arabic-Indic, Persian) and the usual formatting only.
+            if (preg_match('/^[+0-9\s().\-\x{0660}-\x{0669}\x{06F0}-\x{06F9}]+$/u', $number) !== 1) {
+                return null;
+            }
+            [$valid, , $normalized] = PhoneNormalizer::validateInput($number, $hint);
+            if (!$valid) {
+                return null;
+            }
+            if (!in_array($normalized, $phones, true)) {
+                $phones[] = $normalized;
+            }
+        }
+
+        return count($phones) > self::MAX_ADMIN_PHONES ? null : implode(',', $phones);
     }
 
     /**
