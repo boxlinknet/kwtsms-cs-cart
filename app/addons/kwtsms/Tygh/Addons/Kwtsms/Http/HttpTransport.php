@@ -84,8 +84,13 @@ class HttpTransport
      *
      * @throws \InvalidArgumentException When the URL is not https on an allowed host
      */
-    public function post(string $url, string $json, int $connect_s, int $total_s): array
-    {
+    public function post(
+        string $url,
+        #[\SensitiveParameter]
+        string $json,
+        int $connect_s,
+        int $total_s
+    ): array {
         $this->assertAllowed($url);
         $options = $this->curlOptions($url, $json, $connect_s, $total_s);
 
@@ -121,8 +126,13 @@ class HttpTransport
      *
      * @return array<int,mixed>
      */
-    public function curlOptions(string $url, string $json, int $connect_s, int $total_s): array
-    {
+    public function curlOptions(
+        string $url,
+        #[\SensitiveParameter]
+        string $json,
+        int $connect_s,
+        int $total_s
+    ): array {
         $connect = max(1, min(60, $connect_s));
         $total = max($connect, min(120, $total_s));
 
@@ -164,8 +174,10 @@ class HttpTransport
      * @return array{body:string|false, errno:int, error:string, http_status:int, connect_time:float,
      *               appconnect_time:float, starttransfer_time:float}
      */
-    protected function execute(array $options): array
-    {
+    protected function execute(
+        #[\SensitiveParameter]
+        array $options
+    ): array {
         $ch = curl_init();
         if ($ch === false) {
             return [
@@ -224,7 +236,10 @@ class HttpTransport
             return ['timeout', true];
         }
 
-        return ['connect', false];
+        // 2026-10-20 23:14 +03: any other errno is "not sent" only while the TLS handshake had not finished.
+        // After it the request may have reached kwtSMS, and calling it "not sent" would let the outbox send the
+        // SMS again (a duplicate and a double charge). Fix round 1, task 596.
+        return $appconnect_time > 0.0 ? ['timeout', true] : ['connect', false];
     }
 
     private function cleanMessage(string $message): string
