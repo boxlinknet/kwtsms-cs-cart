@@ -70,3 +70,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 <!-- 2026-10-21 02:04 +03: fix round 1 of Task 1.7 (POST only, outbox prune, drain context, ban lifted on a new sender), task 596 -->
 - A banned Sender ID is forgiven as soon as another one is saved; changing the account clears the selected Sender ID
   of the old account; an unreachable suspended account is retried once per quarter hour, not on every cron run.
+<!-- 2026-10-21 02:56 +03: entries for the admin controller and the Settings page (Task 1.10), task 596 -->
+- Admin pages under Add-ons > kwtSMS for root administrators only. Every page checks, before any work: GET or POST
+  only (anything else gets 405), a known page or action answering its own method, no storefront or vendor selected,
+  the page's own privilege, and on every POST the form's security hash, also when the store's CSRF protection is
+  switched off.
+- Settings page: log in with the API user (the password is never shown again and the fields are never filled by
+  the browser), the connected account with Refresh balance, Sync now, Change account and Disconnect (asks first,
+  turns SMS off), Sender ID from the account's list with nothing preselected and a warning for the KWT-SMS test
+  sender, SMS switch (refused with the reason while the account is not ready), test mode (turning it off with
+  KWT-SMS needs a ticked confirmation), pilot mode, default country (Kuwait preselected) and customer countries,
+  limits and "Resume sending", quiet hours, log detail and retention, the crontab line and the cron key, and a test
+  SMS form (at most 10 an hour per administrator) whose result shows the number, the outcome, the message ID, the
+  credits, the balance after and, in test mode, how to get the credits back. English and Arabic, 1280 and 768 px.
