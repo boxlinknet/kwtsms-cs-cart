@@ -18,7 +18,10 @@
  * USAGE:     init.php: Tygh::$app->register(new ServiceProvider());
  *            $sms = Tygh::$app['kwtsms.sms'];                                    // SmsService
  *            $client = Tygh::$app['kwtsms.api_client_factory']('admin');        // ApiClient (web|admin|cli timeouts)
- *            Tasks 1.7 (kwtsms.sync) and 1.9 (transport and notification services) add their entries here.
+ *            2026-10-21 01:13 +03, Task 1.7, task 596: kwtsms.api_client_for (a client on candidate credentials, for
+ *            the login), kwtsms.sync (Gateway\SyncService) and kwtsms.cron (Cron\CronRunner):
+ *            $sync = Tygh::$app['kwtsms.sync'];  $cron = Tygh::$app['kwtsms.cron'];
+ *            Task 1.9 (transport and notification services) adds its entries here.
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -27,7 +30,9 @@ namespace Tygh\Addons\Kwtsms;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Cron\CronRunner;
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
+use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Http\HttpTransport;
 use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DbLogStore;
@@ -102,6 +107,21 @@ class ServiceProvider implements ServiceProviderInterface
             );
         });
 
+        // 2026-10-21 01:13 +03: a client on a candidate pair, for SyncService::login() (nothing is saved before
+        // /balance/ is OK). Same guard, transport and log as every other client of the request. Task 1.7, task 596.
+        $app['kwtsms.api_client_for'] = $app->protect(
+            function (string $user, string $pass, string $context) use ($app): ApiClient {
+                return new ApiClient(
+                    $user,
+                    $pass,
+                    new HttpTransport(),
+                    $app['kwtsms.api_guard'],
+                    $app['kwtsms.logs.debug'],
+                    $context
+                );
+            }
+        );
+
         $app['kwtsms.alerts'] = function (Container $app): AdminAlerts {
             return new AdminAlerts($app['kwtsms.storage'], $app['kwtsms.config'], $app['kwtsms.logs.debug']);
         };
@@ -118,6 +138,60 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.alerts']
             );
         };
+
+        // 2026-10-21 01:13 +03: Task 1.7, task 596. Login, logout, sync and the suspended-gateway retry. The
+        // /balance/ refresh and the ERR003 probe stay in SmsService (ruling R25).
+        $app['kwtsms.sync'] = function (Container $app): SyncService {
+            return new SyncService(
+                $app['kwtsms.config'],
+                $app['kwtsms.state'],
+                $app['kwtsms.api_client_factory'],
+                $app['kwtsms.api_client_for'],
+                $app['kwtsms.logs.debug'],
+                $app['kwtsms.sms'],
+                $app['kwtsms.alerts']
+            );
+        };
+
+        // 2026-10-21 01:13 +03: the jobs of kwtsms_cron.run behind the core lock factory (PRD 4.4), Task 1.7,
+        // task 596. The held-credits query counts the test messages of the last 30 days (index on created_at).
+        $app['kwtsms.cron'] = function (Container $app): CronRunner {
+            return new CronRunner(
+                $app['kwtsms.config'],
+                $app['kwtsms.state'],
+                $app['kwtsms.sync'],
+                [$app['kwtsms.sms'], 'drainDue'],
+                $app['kwtsms.logs.store'],
+                $app['kwtsms.logs.debug'],
+                $app['kwtsms.storage'],
+                function (string $name, int $ttl) use ($app) {
+                    return $app['lock.factory']->createLock($name, $ttl);
+                },
+                $app['kwtsms.alerts'],
+                [self::class, 'heldTestCredits']
+            );
+        };
+    }
+
+    /**
+     * Test messages of the last 30 days that hold credits in the kwtSMS queue (PRD 6.13 test-mode notice).
+     * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+     *
+     * @return array{messages: int, credits: float}
+     */
+    public static function heldTestCredits(): array
+    {
+        $row = db_get_row(
+            'SELECT COUNT(*) AS messages, COALESCE(SUM(points_charged), 0) AS credits FROM ?:kwtsms_messages'
+            . ' WHERE created_at >= ?i AND is_test = ?s AND points_charged > 0',
+            time() - 30 * 86400,
+            'Y'
+        );
+
+        return [
+            'messages' => is_array($row) ? (int) ($row['messages'] ?? 0) : 0,
+            'credits' => is_array($row) ? (float) ($row['credits'] ?? 0) : 0.0,
+        ];
     }
 
     /**

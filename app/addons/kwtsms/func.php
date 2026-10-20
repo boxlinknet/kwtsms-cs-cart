@@ -15,9 +15,14 @@
  *            fn_kwtsms_settings_info() by Admin > Add-ons > kwtSMS (settings page).
  *            2026-10-21 00:20 +03: fn_kwtsms_send(), the public send API of the extension contract (PRD 5.2), Task
  *            1.6, task 596:  $r = fn_kwtsms_send(['+96550123401'], 'Your text', ['event_id' => 'my_addon.shipped']);
- * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape), Tygh::$app['kwtsms.sms'].
+ *            2026-10-21 01:13 +03: fn_kwtsms_cron_run() and the helpers of the controller kwtsms_cron.run (cron key
+ *            check, JSON reply, throttled log of a refused request), Task 1.7, task 596:
+ *            php /var/www/cscart/admin.php --dispatch=kwtsms_cron.run
+ * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape), Tygh::$app['kwtsms.sms'],
+ *            Tygh::$app['kwtsms.cron'].
  */
 
+use Tygh\Addons\Kwtsms\Cron\CronKey;
 use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
@@ -162,4 +167,112 @@ function fn_kwtsms_send(array $phones, string $message, array $context = []): ar
 
         return SendResult::refused('LOCAL_ERROR')->toArray();
     }
+}
+
+/**
+ * Runs the cron jobs (drain_outbox, sync, prune_logs, health) under the core lock kwtsms.cron (600 s). Called by the
+ * controller kwtsms_cron.run, in the CLI and over the URL mode. A failed job sets an error notification, so the CLI
+ * exits non-zero; a run that finds the lock held returns locked = true and is not a failure.
+ * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+ *
+ * @param string[] $jobs Names to run; empty = all of Tygh\Addons\Kwtsms\Cron\CronRunner::JOBS
+ *
+ * @return array{ok: bool, locked: bool, jobs: array<string,array<string,mixed>>, errors: string[], ms: int}
+ */
+function fn_kwtsms_cron_run(array $jobs = []): array
+{
+    try {
+        $result = Tygh::$app['kwtsms.cron']->run($jobs);
+    } catch (\Throwable $e) {
+        error_log('kwtsms: cron run failed: ' . get_class($e) . ': ' . $e->getMessage()
+            . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        $result = [
+            'ok' => false,
+            'locked' => false,
+            'jobs' => [],
+            'errors' => [get_class($e) . ': ' . $e->getMessage()],
+            'ms' => 0,
+        ];
+    }
+    if (!$result['ok']) {
+        fn_set_notification('E', __('error'), __('kwtsms.cron.failed', [
+            '[details]' => fn_html_escape(implode('; ', $result['errors'])),
+        ]));
+    }
+
+    return $result;
+}
+
+/**
+ * Why a web request to kwtsms_cron.run must be refused, or null when it may run. EVERY web request needs the cron key,
+ * a logged-in administrator included (the permission schema lets administrators reach this controller, and a GET
+ * from another site must not start a run): URL mode on, a stored key of 32+ characters, the same key in the header
+ * X-Kwtsms-Cron-Key or the POST field kwtsms_cron_key, hash_equals(). The command line does not come here.
+ * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+ *
+ * @return string|null url_mode_off | no_stored_key | no_key | bad_key | method | error
+ */
+function fn_kwtsms_cron_denial(): ?string
+{
+    try {
+        $method = isset($_SERVER['REQUEST_METHOD']) ? (string) $_SERVER['REQUEST_METHOD'] : '';
+        if ($method !== 'GET' && $method !== 'POST') {
+            return 'method';
+        }
+        $config = Tygh::$app['kwtsms.config'];
+
+        return CronKey::deny(
+            $config->cronUrlEnabled(),
+            $config->cronKey(),
+            CronKey::supplied($_SERVER, $_POST)
+        );
+    } catch (\Throwable $e) {
+        error_log('kwtsms: cron key check failed: ' . get_class($e) . ': ' . $e->getMessage()
+            . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+
+        return 'error';
+    }
+}
+
+/**
+ * A refused cron request goes to the debug log as a warning, at most once a minute (anyone can knock, and a row per
+ * knock would be a way to fill the table). URL mode off and a wrong method are not logged at all.
+ * 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+ */
+function fn_kwtsms_cron_log_denial(string $reason): void
+{
+    if ($reason === 'url_mode_off' || $reason === 'method') {
+        return;
+    }
+    try {
+        $store = Tygh::$app['kwtsms.storage'];
+        $last = $store->getFresh('kwtsms_cron_denied');
+        if ($last !== null && ctype_digit($last) && time() - (int) $last < 60) {
+            return;
+        }
+        $store->set('kwtsms_cron_denied', (string) time());
+        $remote = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+        $ip = substr((string) preg_replace('/[^0-9a-fA-F:.]/', '', $remote), 0, 45);
+        Tygh::$app['kwtsms.logs.debug']->log('warning', 'cron.denied', $reason, ['ip' => $ip]);
+    } catch (\Throwable $e) {
+        error_log('kwtsms: cron denial log failed: ' . get_class($e) . ': ' . $e->getMessage());
+    }
+}
+
+/**
+ * Answers a web request to kwtsms_cron.run and ends it: the status, and a JSON body that says ok or not and nothing
+ * else. 2026-10-21 01:13 +03: added, Task 1.7, task 596.
+ *
+ * @return void Never returns
+ */
+function fn_kwtsms_cron_reply(int $status, bool $ok)
+{
+    if (!headers_sent()) {
+        http_response_code($status);
+        header('Content-Type: application/json');
+        header('Cache-Control: no-store');
+        header('X-Content-Type-Options: nosniff');
+    }
+    echo $ok ? '{"ok":true}' : '{"ok":false}';
+    exit;
 }
