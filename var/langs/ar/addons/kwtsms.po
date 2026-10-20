@@ -486,7 +486,6 @@ msgstr "تعذر حفظ نصوص الرسائل الافتراضية. افتح �
 # 2026-10-21 00:15 +03: send pipeline texts, Task 1.6, task 596. kwtsms.outcome.<code> is the plain-language reason of
 # every canonical outcome (PRD Appendix B); kwtsms.send.* are the errors an interactive send shows (D4);
 # kwtsms.alert.<condition>.title / .text are the admin notices and e-mails of Alerts\AdminAlerts (PRD 6.13).
-
 msgctxt "Languages::kwtsms.outcome.accepted"
 msgid "Accepted by kwtSMS for delivery."
 msgstr "قبلتها kwtSMS للإرسال."
