@@ -1326,3 +1326,8 @@ msgstr "الرصيد بعد الإرسال"
 msgctxt "Languages::kwtsms.test_sms.test_note"
 msgid "Accepted but not delivered. Delete it from your kwtSMS queue to get the credits back."
 msgstr "قبلت الرسالة لكنها لم تسلم. احذفها من قائمة الانتظار في kwtSMS لاسترداد النقاط."
+
+# 2026-10-21 02:17 +03: Task 1.10, task 596. Placeholder of the empty, read-only password field of the connected view.
+msgctxt "Languages::kwtsms.settings.password_saved"
+msgid "Saved and hidden"
+msgstr "محفوظة ومخفية"

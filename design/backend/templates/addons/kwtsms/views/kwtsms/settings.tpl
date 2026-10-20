@@ -101,6 +101,16 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                                readonly="readonly" autocomplete="off" dir="ltr" aria-readonly="true">
                     </div>
                 </div>
+                {* 2026-10-21 02:17 +03: the saved password is never rendered back; an empty, read-only field without a
+                   name says so (brief: the connected view shows an empty password field), Task 1.10, task 596. *}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_connected_password">{__("kwtsms.settings.api_password")}:</label>
+                    <div class="controls">
+                        <input type="password" id="kwtsms_connected_password" class="input-large kwtsms-ltr" value=""
+                               readonly="readonly" autocomplete="new-password" dir="ltr" aria-readonly="true"
+                               placeholder="{__("kwtsms.settings.password_saved")}">
+                    </div>
+                </div>
                 <div class="control-group">
                     <span class="control-label">{__("kwtsms.settings.balance")}:</span>
                     <div class="controls">
@@ -355,8 +365,11 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                 <div class="control-group">
                     <label class="control-label" for="kwtsms_{$retention}">{__("kwtsms.settings.field.`$retention`")}:</label>
                     <div class="controls">
-                        <input type="number" id="kwtsms_{$retention}" name="kwtsms_settings[{$retention}]" value="{$s.$retention}" min="0" max="3650" step="1" class="input-mini" dir="ltr">
-                        <span class="kwtsms-unit">{__("kwtsms.settings.days")}</span>
+                        {* 2026-10-21 02:36 +03: field and unit on one line (the unit sat above the baseline), Task 1.10, task 596. *}
+                        <span class="kwtsms-with-unit">
+                            <input type="number" id="kwtsms_{$retention}" name="kwtsms_settings[{$retention}]" value="{$s.$retention}" min="0" max="3650" step="1" class="input-mini" dir="ltr">
+                            <span class="kwtsms-unit">{__("kwtsms.settings.days")}</span>
+                        </span>
                     </div>
                 </div>
             {/foreach}

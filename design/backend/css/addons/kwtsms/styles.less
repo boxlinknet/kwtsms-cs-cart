@@ -117,10 +117,8 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         align-items: center;
         gap: 8px;
     }
-    .kwtsms-ltr {
-        direction: ltr;
-        text-align: start;
-    }
+    /* 2026-10-21 02:36 +03: direction comes from the dir="ltr" attribute only: the core flips CSS for RTL (cssjanus)
+       and turned a "direction: ltr" declaration into rtl (the cron line read backwards in Arabic). Task 1.10, task 596. */
     .control-group input.input-large,
     .control-group input.kwtsms-ltr {
         width: 100%;
@@ -137,8 +135,20 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         box-sizing: border-box;
         font-family: Menlo, Consolas, "Liberation Mono", monospace;
         font-size: 12px;
-        direction: ltr;
-        text-align: left;
+    }
+    /* 2026-10-21 02:36 +03: time fields wide enough for "10:00 PM" and the clock icon; the unit beside its number
+       field (Task 1.10, task 596). */
+    input[type=time] {
+        width: 140px;
+        box-sizing: border-box;
+    }
+    .kwtsms-with-unit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        input {
+            margin: 0;
+        }
     }
     .kwtsms-checklist {
         display: grid;
@@ -150,8 +160,7 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         }
     }
     .kwtsms-unit {
-        margin-inline-start: 6px;
-        vertical-align: middle;
+        color: lighten(@kwtsms-text, 18%);
     }
     .kwtsms-static {
         margin: 0;
