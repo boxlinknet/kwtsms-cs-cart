@@ -957,17 +957,24 @@ class SmsService
      * 2026-10-21 01:04 +03: public, throttled across requests, suspends on account-level codes (fix round 1, item 11),
      * task 596.
      *
+     * 2026-10-21 01:21 +03: $force skips both throttles ("Retry now", PRD 6.1), and a stored verdict older than the
+     * current suspension is never reused (it says nothing about the account since), task 596.
+     *
      * @param string $timeout_context web, admin or cli; '' = the context of the current send or request
+     * @param bool   $force           True for "Retry now": probe even inside the 15 minutes
      *
      * @return string "ok", the error code (ERR003, ERR005, ...), or "failed" (no answer, budget used)
      */
-    public function probeCredentials(string $timeout_context = ''): string
+    public function probeCredentials(string $timeout_context = '', bool $force = false): string
     {
-        if ($this->probe !== null) {
+        if ($this->probe !== null && !$force) {
             return $this->probe;
         }
         $last = $this->state->lastProbe();
-        if ($last !== null && $this->now() - (int) $last['at'] < self::PROBE_SECONDS) {
+        $suspended_at = $this->state->suspendedAt();
+        $fresh = $last !== null && $this->now() - (int) $last['at'] < self::PROBE_SECONDS
+            && ($suspended_at === null || (int) $last['at'] >= $suspended_at);
+        if ($fresh && !$force) {
             $verdict = (string) $last['verdict'];
 
             return $verdict === 'ok' ? 'ok' : (string) ($last['code'] ?? 'failed');
