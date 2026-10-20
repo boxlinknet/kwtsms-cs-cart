@@ -82,6 +82,8 @@ class Config implements ConfigInterface
     /**
      * Which keys each save mode may write, in the order they are validated and written. enabled comes
      * last so that a sender_id saved in the same request counts when "configured" is checked.
+     * 2026-10-20 22:21 +03: no mode names cron_key. The key is written by regenerateCronKey() alone, so a caller
+     * can never choose one (Task 1.4 fix round 1, task 596).
      *
      * @var array<string, string[]>
      */
@@ -98,7 +100,6 @@ class Config implements ConfigInterface
         ],
         'login' => ['api_username', 'api_password'],
         'logout' => ['api_username', 'api_password', 'sender_id', 'enabled'],
-        'regenerate_cron_key' => ['cron_key'],
         'update_admin_alerts' => ['admin_phones', 'admin_alert_lang'],
         'update_integrations' => [
             'mve_customer_new_order', 'mve_admin_new_order', 'mve_customer_status_scope', 'mve_vendor_triggered_sms',
@@ -108,7 +109,7 @@ class Config implements ConfigInterface
     /**
      * Validation of the keys that need no context. Types: flag (Y/N), int (min, max), enum (values),
      * time (HH:MM), country, codes (calling-code list), statuses (order status letters), threshold
-     * (auto or a number), phones (up to 10 numbers), lang (two letters or empty), hex32.
+     * (auto or a number), phones (up to 10 numbers), lang (two letters or empty).
      * Ranges are mine (PRD 9 gives defaults only): the caps allow 1 up to ten times the default or more,
      * retention allows 0 (keep) up to ten years.
      *
@@ -141,7 +142,6 @@ class Config implements ConfigInterface
         'retention_attempts_days' => ['int', 0, 3650],
         'retention_debug_days' => ['int', 0, 3650],
         'cron_url_enabled' => ['flag'],
-        'cron_key' => ['hex32'],
     ];
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
@@ -427,12 +427,14 @@ class Config implements ConfigInterface
         }));
     }
 
+    /**
+     * 2026-10-20 22:21 +03: writes the new key straight to the backend (task 596). The backend throws a
+     * RuntimeException that names the key only when it cannot save it; the old key stays.
+     */
     public function regenerateCronKey(): string
     {
         $key = bin2hex(random_bytes(16));
-        if ($this->save('regenerate_cron_key', ['cron_key' => $key]) !== []) {
-            throw new \RuntimeException('The cron key could not be saved');
-        }
+        $this->backend->write('cron_key', $key);
 
         return $key;
     }
@@ -549,10 +551,6 @@ class Config implements ConfigInterface
                 $text = is_string($value) ? strtolower(trim($value)) : null;
 
                 return ($text !== null && preg_match('/^(?:[a-z]{2})?$/D', $text) === 1) ? $text : null;
-            case 'hex32':
-                $text = is_string($value) ? trim($value) : '';
-
-                return preg_match('/^[0-9a-f]{32}$/D', $text) === 1 ? $text : null;
         }
 
         return null;

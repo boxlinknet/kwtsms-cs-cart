@@ -12,7 +12,7 @@
  *            touches CS-Cart's Settings class or knows the storage format (Y/N, comma lists, "auto").
  * USAGE:     $config->enabled();  $config->capRecipientHour();  $config->customerSmsCountries();
  *            $rejected = $config->save('save_settings', $request_values);   // list of rejected keys
- *            Modes: save_settings, login, logout, regenerate_cron_key, update_admin_alerts,
+ *            Modes: save_settings, login, logout, update_admin_alerts,
  *            update_integrations (see Config::MODE_KEYS).
  * DEPENDS:   Nothing.
  */
@@ -147,7 +147,7 @@ interface ConfigInterface
      * (not allowed in this mode, unknown, invalid value, or failing a precondition such as
      * "enabled = Y only when configured"). Rejected keys are not written; accepted keys are.
      *
-     * @param string               $mode   One of save_settings, login, logout, regenerate_cron_key,
+     * @param string               $mode   One of save_settings, login, logout,
      *                                     update_admin_alerts, update_integrations
      * @param array<string, mixed> $values Request values keyed by setting id
      *
@@ -160,9 +160,12 @@ interface ConfigInterface
     ): array;
 
     /**
-     * Replaces the cron key with 32 random hex characters (mode regenerate_cron_key).
+     * Replaces the cron key with 32 random hex characters. The only code that writes cron_key: no save()
+     * mode accepts a key a caller chose (2026-10-20 22:21 +03, Task 1.4 fix round 1, task 596).
      *
      * @return string The new key
+     *
+     * @throws \RuntimeException When the key cannot be saved; the old key stays
      */
     public function regenerateCronKey(): string;
 }
