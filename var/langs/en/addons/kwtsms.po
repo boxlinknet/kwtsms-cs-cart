@@ -192,3 +192,164 @@ msgstr "kwtSMS"
 msgctxt "Languages::kwtsms.open_settings"
 msgid "Open kwtSMS settings"
 msgstr "Open kwtSMS settings"
+
+# 2026-10-20 22:35 +03: kwtsms.err.<code>, one reason per kwtSMS or LOCAL_* error code (Sms\ApiErrors::describe, PRD Appendix A), task 596
+msgctxt "Languages::kwtsms.err.ERR001"
+msgid "The API is turned off for this kwtSMS account. Enable it at kwtsms.com > Account > API, then try again."
+msgstr "The API is turned off for this kwtSMS account. Enable it at kwtsms.com > Account > API, then try again."
+
+msgctxt "Languages::kwtsms.err.ERR002"
+msgid "kwtSMS reported a missing parameter. This is an add-on bug. Check the debug log and contact kwtSMS support."
+msgstr "kwtSMS reported a missing parameter. This is an add-on bug. Check the debug log and contact kwtSMS support."
+
+msgctxt "Languages::kwtsms.err.ERR003"
+msgid "Wrong API username or password. Use the API user from kwtsms.com > Account > API, not your account mobile number or website login."
+msgstr "Wrong API username or password. Use the API user from kwtsms.com > Account > API, not your account mobile number or website login."
+
+msgctxt "Languages::kwtsms.err.ERR004"
+msgid "This kwtSMS account has no API access. Contact kwtSMS support to enable it."
+msgstr "This kwtSMS account has no API access. Contact kwtSMS support to enable it."
+
+msgctxt "Languages::kwtsms.err.ERR005"
+msgid "This kwtSMS account is blocked. Contact kwtSMS support."
+msgstr "This kwtSMS account is blocked. Contact kwtSMS support."
+
+msgctxt "Languages::kwtsms.err.ERR006"
+msgid "kwtSMS found no valid phone number in this request. Include the country code, for example 96598765432."
+msgstr "kwtSMS found no valid phone number in this request. Include the country code, for example 96598765432."
+
+msgctxt "Languages::kwtsms.err.ERR007"
+msgid "The request held more than 200 numbers. This is an add-on bug. Check the debug log."
+msgstr "The request held more than 200 numbers. This is an add-on bug. Check the debug log."
+
+msgctxt "Languages::kwtsms.err.ERR008"
+msgid "kwtSMS banned this Sender ID. Select another Sender ID in the settings."
+msgstr "kwtSMS banned this Sender ID. Select another Sender ID in the settings."
+
+msgctxt "Languages::kwtsms.err.ERR009"
+msgid "The message is empty. Add text to the template."
+msgstr "The message is empty. Add text to the template."
+
+msgctxt "Languages::kwtsms.err.ERR010"
+msgid "Your kwtSMS balance is zero. Recharge credits at kwtsms.com."
+msgstr "Your kwtSMS balance is zero. Recharge credits at kwtsms.com."
+
+msgctxt "Languages::kwtsms.err.ERR011"
+msgid "Your kwtSMS balance is too low for this send. Buy more credits at kwtsms.com."
+msgstr "Your kwtSMS balance is too low for this send. Buy more credits at kwtsms.com."
+
+msgctxt "Languages::kwtsms.err.ERR012"
+msgid "The message is longer than 7 SMS pages. Shorten the text so it fits in 7 pages or fewer. Messages of more than 7 pages are rejected."
+msgstr "The message is longer than 7 SMS pages. Shorten the text so it fits in 7 pages or fewer. Messages of more than 7 pages are rejected."
+
+msgctxt "Languages::kwtsms.err.ERR013"
+msgid "The kwtSMS send queue is full (1000 messages). Try again in a few minutes."
+msgstr "The kwtSMS send queue is full (1000 messages). Try again in a few minutes."
+
+msgctxt "Languages::kwtsms.err.ERR024"
+msgid "This server's IP address isn't on the kwtSMS API allow list. Add it at kwtsms.com > Account > API > IP Lockdown, or turn the lockdown off."
+msgstr "This server's IP address isn't on the kwtSMS API allow list. Add it at kwtsms.com > Account > API > IP Lockdown, or turn the lockdown off."
+
+msgctxt "Languages::kwtsms.err.ERR025"
+msgid "A phone number isn't valid. Use digits only, with the country code, for example 96598765432."
+msgstr "A phone number isn't valid. Use digits only, with the country code, for example 96598765432."
+
+msgctxt "Languages::kwtsms.err.ERR026"
+msgid "kwtSMS has no route to this country. Ask kwtSMS support to activate it for your account."
+msgstr "kwtSMS has no route to this country. Ask kwtSMS support to activate it for your account."
+
+msgctxt "Languages::kwtsms.err.ERR027"
+msgid "The message contains HTML. Remove the tags from the template."
+msgstr "The message contains HTML. Remove the tags from the template."
+
+msgctxt "Languages::kwtsms.err.ERR031"
+msgid "kwtSMS rejected the message for bad language. Change the wording."
+msgstr "kwtSMS rejected the message for bad language. Change the wording."
+
+msgctxt "Languages::kwtsms.err.ERR032"
+msgid "kwtSMS rejected the message as spam. Change the wording."
+msgstr "kwtSMS rejected the message as spam. Change the wording."
+
+msgctxt "Languages::kwtsms.err.ERR033"
+msgid "kwtSMS has no active coverage for this account. Contact kwtSMS support."
+msgstr "kwtSMS has no active coverage for this account. Contact kwtSMS support."
+
+msgctxt "Languages::kwtsms.err.ERR034"
+msgid "kwtSMS blocked this request because the server's IP address looks like a proxy or VPN. Contact kwtSMS support."
+msgstr "kwtSMS blocked this request because the server's IP address looks like a proxy or VPN. Contact kwtSMS support."
+
+msgctxt "Languages::kwtsms.err.ERR035"
+msgid "The daily limit for international SMS is reached. Messages to international numbers fail until the limit resets."
+msgstr "The daily limit for international SMS is reached. Messages to international numbers fail until the limit resets."
+
+msgctxt "Languages::kwtsms.err.ERR036"
+msgid "kwtSMS rejected the message because it contains an emoji or an unsupported symbol. Remove it from the template."
+msgstr "kwtSMS rejected the message because it contains an emoji or an unsupported symbol. Remove it from the template."
+
+msgctxt "Languages::kwtsms.err.LOCAL_TIMEOUT"
+msgid "kwtSMS didn't answer in time. The request may have been received. Check the kwtSMS archive and queue before you resend."
+msgstr "kwtSMS didn't answer in time. The request may have been received. Check the kwtSMS archive and queue before you resend."
+
+msgctxt "Languages::kwtsms.err.LOCAL_CONNECT"
+msgid "Could not reach kwtSMS. Nothing was sent. Check that this server can open https://www.kwtsms.com."
+msgstr "Could not reach kwtSMS. Nothing was sent. Check that this server can open https://www.kwtsms.com."
+
+msgctxt "Languages::kwtsms.err.LOCAL_TLS"
+msgid "The secure connection to kwtSMS failed (certificate or TLS error). Nothing was sent. Check the CA certificates and the clock of this server."
+msgstr "The secure connection to kwtSMS failed (certificate or TLS error). Nothing was sent. Check the CA certificates and the clock of this server."
+
+msgctxt "Languages::kwtsms.err.LOCAL_DNS"
+msgid "Could not find the kwtSMS server (DNS lookup failed). Nothing was sent. Check the DNS settings of this server."
+msgstr "Could not find the kwtSMS server (DNS lookup failed). Nothing was sent. Check the DNS settings of this server."
+
+msgctxt "Languages::kwtsms.err.LOCAL_BAD_JSON"
+msgid "kwtSMS sent a reply this add-on can't read. Check the kwtSMS archive and queue before you resend."
+msgstr "kwtSMS sent a reply this add-on can't read. Check the kwtSMS archive and queue before you resend."
+
+msgctxt "Languages::kwtsms.err.LOCAL_HTTP"
+msgid "kwtSMS answered with an unexpected HTTP status and no usable reply. Check the kwtSMS archive and queue before you resend."
+msgstr "kwtSMS answered with an unexpected HTTP status and no usable reply. Check the kwtSMS archive and queue before you resend."
+
+msgctxt "Languages::kwtsms.err.LOCAL_CANCELLED"
+msgid "The request was cancelled before it was sent."
+msgstr "The request was cancelled before it was sent."
+
+msgctxt "Languages::kwtsms.err.LOCAL_HTML"
+msgid "The message still contains HTML-like text. Remove the angle brackets from the template."
+msgstr "The message still contains HTML-like text. Remove the angle brackets from the template."
+
+msgctxt "Languages::kwtsms.err.LOCAL_BAD_INPUT"
+msgid "The request was invalid and was not sent. This is an add-on bug. Check the debug log."
+msgstr "The request was invalid and was not sent. This is an add-on bug. Check the debug log."
+
+msgctxt "Languages::kwtsms.err.LOCAL_BREAKER"
+msgid "kwtSMS has been unreachable. Sending is paused for 5 minutes. Messages are kept and sent later."
+msgstr "kwtSMS has been unreachable. Sending is paused for 5 minutes. Messages are kept and sent later."
+
+msgctxt "Languages::kwtsms.err.LOCAL_DEFERRED"
+msgid "An earlier call in this request could not reach kwtSMS. This message is kept and sent later."
+msgstr "An earlier call in this request could not reach kwtSMS. This message is kept and sent later."
+
+msgctxt "Languages::kwtsms.err.LOCAL_BUSY"
+msgid "The API rate limiter was busy. The message is kept and sent later."
+msgstr "The API rate limiter was busy. The message is kept and sent later."
+
+msgctxt "Languages::kwtsms.err.LOCAL_NO_GUARD"
+msgid "The request guard is missing, so nothing was sent. This is an add-on bug."
+msgstr "The request guard is missing, so nothing was sent. This is an add-on bug."
+
+msgctxt "Languages::kwtsms.err.LOCAL_REFUSED"
+msgid "The add-on refused to contact a host other than kwtSMS. Nothing was sent."
+msgstr "The add-on refused to contact a host other than kwtSMS. Nothing was sent."
+
+msgctxt "Languages::kwtsms.err.LOCAL_SKIPPED"
+msgid "Not sent because an earlier part of the same send failed."
+msgstr "Not sent because an earlier part of the same send failed."
+
+msgctxt "Languages::kwtsms.err.LOCAL_ERROR"
+msgid "An unexpected error stopped the request. Check the debug log."
+msgstr "An unexpected error stopped the request. Check the debug log."
+
+msgctxt "Languages::kwtsms.err.unknown"
+msgid "kwtSMS returned the error [code]. Check the debug log for details."
+msgstr "kwtSMS returned the error [code]. Check the debug log for details."
