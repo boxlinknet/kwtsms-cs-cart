@@ -9,9 +9,11 @@
  *            addon.xml and the renderer of the visible "info" setting.
  * WHY:       addon.xml cannot express a random value (cron_key) or the HTML of the settings info item.
  *            Services and hooks arrive in later tasks; this file stays free of business logic.
+ *            2026-10-20 20:46 +03: reworded when the table sweep was removed from fn_kwtsms_uninstall()
+ *            (addon.xml names every table), task 596.
  * USAGE:     Loaded by CS-Cart: fn_kwtsms_install() and fn_kwtsms_uninstall() by the add-on installer,
  *            fn_kwtsms_settings_info() by Admin > Add-ons > kwtSMS (settings page).
- * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, db_* functions, fn_url, fn_html_escape).
+ * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape).
  */
 
 use Tygh\Settings;
