@@ -52,7 +52,7 @@ shipment updates, abandoned cart reminders and vendor notifications.
 
 See [CHANGELOG.md](CHANGELOG.md).
 
-<!-- 2026-10-20 18:32 +03: licence section added after Boss chose MIT; task 596 -->
+<!-- 2026-10-20 18:14 +03: licence section added after Boss chose MIT; task 596 -->
 ## License
 
 MIT. See [LICENSE](LICENSE).

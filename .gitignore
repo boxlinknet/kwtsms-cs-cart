@@ -15,7 +15,7 @@ docs/
 tests/
 
 # Local dev environment. Required by docs/prompt.md. The dev stack is the Docker Compose project
-# in docker/ (2026-10-20 18:32 +03: Boss allowed Docker at 18:06, replacing the WSL2 instance; task 596).
+# in docker/ (2026-10-20 18:14 +03: Boss allowed Docker at 18:06, replacing the WSL2 instance; task 596).
 docker/
 docker-compose.yml
 docker-compose.override.yml
