@@ -21,3 +21,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Repository scaffolding: README, SECURITY, CHANGELOG, .gitignore, .gitattributes, .editorconfig.
 - MIT license.
+<!-- 2026-10-20 21:57 +03: entries for the settings, gateway state and log services (Task 1.4), task 596 -->
+- Typed settings with one allow-listed save mode per admin form; the API password is stored encrypted with a
+  version prefix and a changed crypt key reads as "log in again" instead of sending a wrong password.
+- Cached gateway state (balance, Sender IDs, coverage, suspension, transport-failure breaker) and the
+  "configured" verdict with the exact reason it is not.
+- Message, attempt and debug logs: credentials never stored in any encoding, one-time codes and reset links
+  masked, 4-byte characters removed for the 3-byte database connection, newest-first lists read straight off
+  the created_at index.
