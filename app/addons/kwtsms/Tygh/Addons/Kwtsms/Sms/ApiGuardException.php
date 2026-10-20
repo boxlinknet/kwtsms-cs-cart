@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Sms/ApiGuardException.php
- * CREATED:   2026-10-20 23:15 +03
+ * CREATED:   2026-10-20 22:25 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Thrown by ApiGuard::acquire() when an API call must not go out; carries the LOCAL_* code.

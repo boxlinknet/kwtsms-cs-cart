@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Sms/ApiGuard.php
- * CREATED:   2026-10-20 23:15 +03
+ * CREATED:   2026-10-20 22:25 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The gate in front of every kwtSMS call: one global request slot every 200 ms (5 calls per
