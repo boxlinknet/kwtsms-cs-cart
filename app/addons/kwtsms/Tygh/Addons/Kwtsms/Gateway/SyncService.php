@@ -23,8 +23,8 @@
  *            $sync->isSyncDue();                  // the cron's question: once a day at a slot derived from cron_key,
  *                                                 // or when a failed sync's retry time has come
  *            $sync->resyncCoverage();             // only /coverage/ (ERR026 asked for it, at most once an hour)
- *            $sync->retrySuspension($now);        // ['state'=>not_suspended|throttled|resumed|still_suspended|
- *                                                 //  unreachable, 'code'=>?string]
+ *            $sync->retrySuspension($now);        // ['state'=>not_suspended|throttled|resumed|still_suspended,
+ *                                                 //  'code'=>?string]; every attempt is stamped, answered or not
  *            $sync->refreshBalanceIfAllowed();    // ?float, at most once in 10 minutes (true forces it)
  *            $sync->probe();                      // ['verdict' => 'ok' | 'ERR003' | ... | 'failed', 'ok' => bool]
  *            Ruling R25: the /balance/ refresh, the ERR003 probe and the suspension on account-level codes live in
@@ -32,6 +32,11 @@
  *            delegates to them and has no second implementation. Its own /balance/ call is the login's, made with
  *            the candidate credentials before anything is saved.
  *            Timeout context of the calls: cli in a CLI process, otherwise admin (an administrator is waiting).
+ *            2026-10-21 01:59 +03, Task 1.7 fix round 1, task 596: a failed sync says why (the code of the last
+ *            /balance/ comes from SmsService::lastBalanceError()); Change account also clears the selected Sender ID; an
+ *            unreachable suspended gateway is tried once per cadence, not on every cron run; every public method
+ *            logs its entry and exit at debug (sync.enter/exit, sync.stale.*, sync.due.*, sync.coverage.*,
+ *            sync.retry.*, sync.refresh.*, sync.probe.*, sync.login.*, sync.logout.*).
  *            Secrets: login() registers the candidate username and password, raw and trimmed, with the debug log
  *            before any line is written; nothing here logs a credential.
  * DEPENDS:   Settings\ConfigInterface, Gateway\GatewayState, Sms\{ApiClient,ApiErrors,SmsService}, Log\DebugLog,
@@ -59,6 +64,15 @@ class SyncService
 
     /** One sync a day (PRD 6.11). */
     public const DAY_SECONDS = 86400;
+
+    /** Local failures that mean "kwtSMS could not be reached" (the text of kwtsms.login.unreachable). */
+    private const UNREACHABLE = [
+        'LOCAL_CONNECT', 'LOCAL_DNS', 'LOCAL_TLS', 'LOCAL_TIMEOUT', 'LOCAL_BREAKER', 'LOCAL_DEFERRED', 'LOCAL_BUSY',
+        'LOCAL_REFUSED',
+    ];
+
+    /** Local failures that mean "kwtSMS answered, but not with a usable reply" (kwtsms.login.bad_reply). */
+    private const BAD_REPLY = ['LOCAL_BAD_JSON', 'LOCAL_HTTP'];
 
     /** @var ConfigInterface */
     private $config;
@@ -143,7 +157,7 @@ class SyncService
             $code = (string) $balance['code'];
             $this->note('warning', 'sync.login_failed', $code, ['code' => $code]);
 
-            return $this->loginResult(false, $code, $this->loginMessage($code), $warnings, $started);
+            return $this->loginResult(false, $code, $this->codeMessage($code), $warnings, $started);
         }
 
         $previous = $this->config->apiUsername();
@@ -166,6 +180,15 @@ class SyncService
         $changed = $previous !== $username;
         if ($changed) {
             $this->state->clear();
+            // The selected Sender ID belongs to the old account: clearing it keeps the sync below from raising a
+            // false "Sender ID removed" for it, and the administrator picks one from the new list (Task 1.7 fix
+            // round 1 item 4).
+            $unselected = $this->config->save('logout', ['sender_id' => '']);
+            if ($unselected !== []) {
+                $this->note('warning', 'sync.sender_not_cleared', 'the old Sender ID stays selected', [
+                    'keys' => $unselected,
+                ]);
+            }
         }
         $this->cacheBalance($balance);
         $this->state->recordProbe('ok', null);
@@ -192,6 +215,7 @@ class SyncService
      */
     public function logout(): void
     {
+        $started = microtime(true);
         $this->note('debug', 'sync.logout.enter', 'logout()');
         $rejected = $this->config->save('logout', [
             'api_username' => '',
@@ -201,6 +225,7 @@ class SyncService
         ]);
         $this->state->clear();
         $this->note('info', 'sync.logout', 'disconnected', ['rejected' => $rejected]);
+        $this->note('debug', 'sync.logout.exit', $rejected === [] ? 'ok' : 'not all cleared', [], $this->msSince($started));
         if ($rejected !== []) {
             throw new \RuntimeException('Disconnect could not clear these settings: ' . implode(', ', $rejected));
         }
@@ -219,7 +244,22 @@ class SyncService
      */
     public function sync(string $timeout_context = ''): array
     {
-        $this->note('debug', 'sync.enter', 'sync()');
+        $started = $this->enter('sync', 'sync()');
+        $r = $this->runSync($timeout_context);
+        $this->leave('sync', $started, $r['ok'] ? 'ok' : (string) ($r['skipped'] ?? $r['code'] ?? 'failed'), [
+            'ok' => $r['ok'],
+            'code' => $r['code'],
+        ]);
+
+        return $r;
+    }
+
+    /**
+     * @return array{ok: bool, skipped: string|null, code: string|null, message: string, balance: bool,
+     *               senderids: bool, coverage: bool, retry_at: int|null}
+     */
+    private function runSync(string $timeout_context): array
+    {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             return $this->summary(['skipped' => 'no_credentials']);
         }
@@ -228,7 +268,9 @@ class SyncService
 
         // Ruling R25: the /balance/ call, and the suspension on an account-level code, are SmsService's.
         if ($this->sms->refreshBalance($context) === null) {
-            $code = $this->state->suspendedCode();
+            // Why it failed: the code of that call (Task 1.7 fix round 1 item 2); the suspension code is the same
+            // for an account-level answer.
+            $code = $this->sms->lastBalanceError() ?? $this->state->suspendedCode();
             $this->note('warning', 'sync.balance_failed', (string) $code, ['code' => $code]);
 
             return $this->finishFailedSync(
@@ -257,6 +299,15 @@ class SyncService
      */
     public function syncIfStale(int $max_age = self::DAY_SECONDS): bool
     {
+        $started = $this->enter('sync.stale', 'syncIfStale()', ['max_age' => $max_age]);
+        $ok = $this->runStaleSync($max_age);
+        $this->leave('sync.stale', $started, $ok ? 'synced' : 'not run or failed', ['ok' => $ok]);
+
+        return $ok;
+    }
+
+    private function runStaleSync(int $max_age): bool
+    {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             return false;
         }
@@ -280,6 +331,15 @@ class SyncService
      * or no sync has happened since the latest daily slot of this install.
      */
     public function isSyncDue(): bool
+    {
+        $started = $this->enter('sync.due', 'isSyncDue()');
+        $due = $this->computeSyncDue();
+        $this->leave('sync.due', $started, $due ? 'due' : 'not due', ['due' => $due]);
+
+        return $due;
+    }
+
+    private function computeSyncDue(): bool
     {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             return false;
@@ -315,7 +375,18 @@ class SyncService
      */
     public function resyncCoverage(string $timeout_context = ''): array
     {
-        $this->note('debug', 'sync.coverage.enter', 'resyncCoverage()');
+        $started = $this->enter('sync.coverage', 'resyncCoverage()');
+        $r = $this->runCoverageResync($timeout_context);
+        $this->leave('sync.coverage', $started, $r['ok'] ? 'ok' : (string) ($r['code'] ?? 'failed'), $r);
+
+        return $r;
+    }
+
+    /**
+     * @return array{ok: bool, code: string|null}
+     */
+    private function runCoverageResync(string $timeout_context): array
+    {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             $this->state->touchCoverageResync();
 
@@ -347,17 +418,31 @@ class SyncService
      */
     public function retrySuspension(bool $now = false, string $timeout_context = ''): array
     {
-        $this->note('debug', 'sync.retry.enter', 'retrySuspension()', ['now' => $now]);
+        $started = $this->enter('sync.retry', 'retrySuspension()', ['now' => $now]);
+        $r = $this->runRetry($now, $timeout_context);
+        $this->leave('sync.retry', $started, $r['state'], ['state' => $r['state'], 'code' => $r['code']]);
+
+        return $r;
+    }
+
+    /**
+     * @return array{state: string, code: string|null, next_at?: int}
+     */
+    private function runRetry(bool $now, string $timeout_context): array
+    {
         $code = $this->state->suspendedCode();
         if ($code === null) {
             return ['state' => 'not_suspended', 'code' => null];
         }
         $interval = $code === 'ERR005' ? self::RETRY_SECONDS_BLOCKED : self::RETRY_SECONDS;
         $probe = $this->state->lastProbe();
+        // The attempt stamp is what keeps an UNREACHABLE gateway to one try per cadence: the probe verdict and the
+        // balance stamp record answers (and the refresh), the attempt stamp records every try (fix round 1 item 1).
         $since = max(
             (int) $this->state->suspendedAt(),
             $probe === null ? 0 : $probe['at'],
-            (int) $this->state->lastBalanceRefresh()
+            (int) $this->state->lastBalanceRefresh(),
+            (int) $this->state->lastSuspensionAttempt()
         );
         if (!$now && $this->now() - $since < $interval) {
             return ['state' => 'throttled', 'code' => $code, 'next_at' => $since + $interval];
@@ -369,6 +454,7 @@ class SyncService
         // Ruling R25: the probe is SmsService's. Forced, it skips its own 15-minute throttle (this method keeps the
         // cadence of a suspended gateway above); OK caches the balance, lifts the suspension and records the
         // verdict; an account-level code suspends again, with the new code.
+        $this->state->touchSuspensionAttempt();
         $verdict = $this->sms->probeCredentials($this->context($timeout_context), true);
         if ($verdict === 'ok') {
             $this->note('info', 'sync.resumed', 'the gateway answers again', ['was' => $code]);
@@ -393,7 +479,17 @@ class SyncService
      */
     public function refreshBalanceIfAllowed(bool $force = false, string $timeout_context = ''): ?float
     {
-        $this->note('debug', 'sync.refresh.enter', 'refreshBalanceIfAllowed()', ['force' => $force]);
+        $started = $this->enter('sync.refresh', 'refreshBalanceIfAllowed()', ['force' => $force]);
+        $balance = $this->runRefresh($force, $timeout_context);
+        $this->leave('sync.refresh', $started, $balance === null ? 'not refreshed' : 'refreshed', [
+            'refreshed' => $balance !== null,
+        ]);
+
+        return $balance;
+    }
+
+    private function runRefresh(bool $force, string $timeout_context): ?float
+    {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             return null;
         }
@@ -412,13 +508,16 @@ class SyncService
      */
     public function probe(string $timeout_context = ''): array
     {
-        $this->note('debug', 'sync.probe.enter', 'probe()');
+        $started = $this->enter('sync.probe', 'probe()');
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
-            return ['verdict' => 'failed', 'ok' => false];
+            $r = ['verdict' => 'failed', 'ok' => false];
+        } else {
+            $verdict = $this->sms->probeCredentials($this->context($timeout_context));
+            $r = ['verdict' => $verdict, 'ok' => $verdict === 'ok'];
         }
-        $verdict = $this->sms->probeCredentials($this->context($timeout_context));
+        $this->leave('sync.probe', $started, $r['verdict'], $r);
 
-        return ['verdict' => $verdict, 'ok' => $verdict === 'ok'];
+        return $r;
     }
 
     // ================================================================== internals
@@ -584,7 +683,7 @@ class SyncService
         ];
         $parts['message'] = $parts['ok']
             ? ''
-            : ($parts['code'] !== null ? ApiErrors::describe((string) $parts['code']) : '');
+            : ($parts['code'] !== null ? $this->codeMessage((string) $parts['code']) : '');
 
         return [
             'ok' => (bool) $parts['ok'],
@@ -612,13 +711,48 @@ class SyncService
     }
 
     /**
-     * PRD 6.1: a gateway code gets its own text; a failure that never reached kwtSMS says so in one sentence.
+     * PRD 6.1: a gateway code gets its own text (Appendix A); a failure that never reached kwtSMS says so in one
+     * sentence; an answer that is not a usable reply (LOCAL_BAD_JSON, LOCAL_HTTP) says that instead, because
+     * "could not reach kwtSMS" would send the administrator to check the server's firewall.
+     * 2026-10-21 01:59 +03: renamed from loginMessage() (the sync uses it too) and LOCAL_BAD_JSON / LOCAL_HTTP get
+     * their own text, Task 1.7 fix round 1 items 2 and 8, task 596.
      */
-    private function loginMessage(string $code): string
+    private function codeMessage(string $code): string
     {
-        return ApiErrors::source($code) === 'local' && $code !== 'LOCAL_CANCELLED'
+        if (in_array($code, self::BAD_REPLY, true)) {
+            return (string) __('kwtsms.login.bad_reply');
+        }
+
+        return in_array($code, self::UNREACHABLE, true)
             ? (string) __('kwtsms.login.unreachable')
             : ApiErrors::describe($code);
+    }
+
+    /**
+     * Entry line of a public method at debug (PRD 11); returns the start time for leave().
+     *
+     * @param array<mixed> $context
+     */
+    private function enter(string $action, string $label, array $context = []): float
+    {
+        $this->note('debug', $action . '.enter', $label, $context);
+
+        return microtime(true);
+    }
+
+    /**
+     * Exit line of a public method at debug, with its duration.
+     *
+     * @param array<mixed> $context
+     */
+    private function leave(string $action, float $started, string $result, array $context = []): void
+    {
+        $this->note('debug', $action . '.exit', $result, $context, $this->msSince($started));
+    }
+
+    private function msSince(float $started): int
+    {
+        return (int) round((microtime(true) - $started) * 1000);
     }
 
     /**

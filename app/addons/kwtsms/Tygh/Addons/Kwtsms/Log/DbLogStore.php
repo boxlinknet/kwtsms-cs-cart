@@ -26,7 +26,7 @@ namespace Tygh\Addons\Kwtsms\Log;
 
 use Tygh\Registry;
 
-class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
+class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLogStoreInterface
 {
     /** deleteOlderThan() stops after this many statements; the caller can call again. */
     private const MAX_CHUNKS = 1000;
@@ -299,15 +299,10 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
 
     public function deleteOlderThan(string $table, int $timestamp, int $chunk = self::DELETE_CHUNK): int
     {
-        $name = Schema::table($table);
         $chunk = max(1, $chunk);
         $total = 0;
         for ($i = 0; $i < self::MAX_CHUNKS; $i++) {
-            $deleted = (int) db_query(
-                'DELETE FROM ?:' . $name . ' WHERE `created_at` < ?i ORDER BY `created_at` ASC LIMIT ?i',
-                $timestamp,
-                $chunk
-            );
+            $deleted = $this->pruneChunk($table, $timestamp, $chunk);
             $total += $deleted;
             if ($deleted < $chunk) {
                 break;
@@ -315,6 +310,43 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface
         }
 
         return $total;
+    }
+
+    /**
+     * One statement of deleteOlderThan(), for a caller that keeps its own clock (Cron\CronRunner, prune_logs).
+     * 2026-10-21 01:56 +03: split out of deleteOlderThan(), Task 1.7 fix round 1 item 5, task 596.
+     */
+    public function pruneChunk(string $table, int $timestamp, int $chunk = self::DELETE_CHUNK): int
+    {
+        return (int) db_query(
+            'DELETE FROM ?:' . Schema::table($table) . ' WHERE `created_at` < ?i ORDER BY `created_at` ASC LIMIT ?i',
+            $timestamp,
+            max(1, $chunk)
+        );
+    }
+
+    /**
+     * Test messages of the last window that hold credits in the kwtSMS queue (PRD 6.13 test-mode notice): how many,
+     * and the points they were charged. A range of the created_at index. 2026-10-21 01:56 +03: moved here from
+     * ServiceProvider, Task 1.7 fix round 1 item 10, task 596.
+     *
+     * @param int $since Unix time the window starts at
+     *
+     * @return array{messages: int, credits: float}
+     */
+    public function heldTestCredits(int $since): array
+    {
+        $row = db_get_row(
+            'SELECT COUNT(*) AS messages, COALESCE(SUM(points_charged), 0) AS credits FROM ?:kwtsms_messages'
+            . ' WHERE created_at >= ?i AND is_test = ?s AND points_charged > 0',
+            $since,
+            'Y'
+        );
+
+        return [
+            'messages' => is_array($row) ? (int) ($row['messages'] ?? 0) : 0,
+            'credits' => is_array($row) ? (float) ($row['credits'] ?? 0) : 0.0,
+        ];
     }
 
     /**

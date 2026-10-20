@@ -218,6 +218,23 @@ class Outbox
     }
 
     /**
+     * Deletes ONE chunk of the rows in a final state (done, expired, unknown) whose last retry time is before
+     * $before: the retention of the outbox (ruling R28, 30 days), run by the daily prune_logs job. A range of the
+     * (status, retry_at) index. Pending, sending and held rows are never touched.
+     * 2026-10-21 01:57 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     *
+     * @return int Rows deleted; fewer than $limit means none are left
+     */
+    public function pruneFinal(int $before, int $limit): int
+    {
+        return $this->deleteFinal(
+            [self::STATUS_DONE, self::STATUS_EXPIRED, self::STATUS_UNKNOWN],
+            max(0, $before),
+            max(1, $limit)
+        );
+    }
+
+    /**
      * Back to pending for another try, one more attempt counted.
      * 2026-10-21 01:03 +03: $expires_at moves the expiry (a drained row deferred for quiet hours), task 596.
      *
@@ -313,6 +330,21 @@ class Outbox
             $changes,
             $id,
             $from_statuses
+        );
+    }
+
+    /**
+     * @param string[] $statuses
+     *
+     * @return int Rows deleted. 2026-10-21 01:57 +03: added, task 596.
+     */
+    protected function deleteFinal(array $statuses, int $before, int $limit): int
+    {
+        return (int) db_query(
+            'DELETE FROM ?:kwtsms_outbox WHERE status IN (?a) AND retry_at < ?i LIMIT ?i',
+            $statuses,
+            $before,
+            $limit
         );
     }
 

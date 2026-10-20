@@ -193,6 +193,18 @@ class SmsService
     /** @var string|null Verdict of this request's ERR003 /balance/ probe: ok, ERR003 or failed */
     private $probe = null;
 
+    /**
+     * @var string|null Code of the last refreshBalance() that did not end OK (null = it did, or none ran yet).
+     *                  2026-10-21 01:54 +03: added, Task 1.7 fix round 1 item 2, task 596.
+     */
+    private $last_balance_error = null;
+
+    /**
+     * @var bool True while drainDue() works for the cron: no web request budget and cli timeouts, whatever the SAPI.
+     *           2026-10-21 01:54 +03: added, Task 1.7 fix round 1 item 7, task 596.
+     */
+    private $cron_drain = false;
+
     /** @var ApiClient|null The client of the current send() */
     private $client = null;
 
@@ -261,9 +273,30 @@ class SmsService
      * 2026-10-21 01:43 +03: stopped is null, "time_budget", or "request_budget" (a web drain whose 20 API calls are
      * used; the rest of the rows are not claimed), task 596.
      *
+     * @param bool $cron True for the cron (no web request budget, cli timeouts; see $cron_drain)
+     *
      * @return array{reaped:int,due:int,claimed:int,busy:int,stopped:?string,results:array<int,SendResult>}
      */
-    public function drainDue(int $limit, float $time_budget_s): array
+    public function drainDue(int $limit, float $time_budget_s, bool $cron = false): array
+    {
+        // 2026-10-21 01:54 +03: $cron = true is the cron's drain, over the command line or over the URL mode: the
+        // 20-call web budget and the web timeouts do not apply to it, whatever the SAPI (Task 1.7 fix round 1 item 7),
+        // task 596.
+        $was_cron = $this->cron_drain;
+        $this->cron_drain = $cron || $was_cron;
+        try {
+            return $this->drainRows($limit, $time_budget_s);
+        } finally {
+            $this->cron_drain = $was_cron;
+        }
+    }
+
+    /**
+     * The body of drainDue().
+     *
+     * @return array{reaped:int,due:int,claimed:int,busy:int,stopped:?string,results:array<int,SendResult>}
+     */
+    private function drainRows(int $limit, float $time_budget_s): array
     {
         $started = microtime(true);
         $summary = ['reaped' => 0, 'due' => 0, 'claimed' => 0, 'busy' => 0, 'stopped' => null, 'results' => []];
@@ -287,7 +320,7 @@ class SmsService
             // 2026-10-21 01:43 +03: a web drain stops claiming once the request budget is used: a row claimed now
             // could only be deferred again (attempts + 1, request_overflow), so it is left untouched (fix round 2,
             // item A), task 596.
-            if ($this->isWebRequest() && $this->api_calls >= self::REQUEST_BUDGET) {
+            if ($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET) {
                 $summary['stopped'] = 'request_budget';
                 break;
             }
@@ -523,6 +556,15 @@ class SmsService
     protected function isWebRequest(): bool
     {
         return PHP_SAPI !== 'cli';
+    }
+
+    /**
+     * Whether the web request budget and the web timeouts apply now: a web request, except while drainDue() works
+     * for the cron (Task 1.7 fix round 1 item 7). 2026-10-21 01:54 +03: added, task 596.
+     */
+    private function webContext(): bool
+    {
+        return !$this->cron_drain && $this->isWebRequest();
     }
 
     // ------------------------------------------------------------------ the pipeline
@@ -789,7 +831,7 @@ class SmsService
         $out = ['by_number' => [], 'message_ids' => [], 'points' => 0.0, 'balance_after' => null];
         $chunks = ApiClient::chunk($numbers);
         $allowed = count($chunks);
-        if ($this->isWebRequest()) {
+        if ($this->webContext()) {
             $allowed = max(0, min($allowed, self::REQUEST_BUDGET - $this->api_calls));
         }
         // 2026-10-21 01:04 +03: the flag of this send (a drained row keeps its own, ruling R26), task 596.
@@ -1036,7 +1078,7 @@ class SmsService
 
             return $verdict === 'ok' ? 'ok' : (string) ($last['code'] ?? 'failed');
         }
-        if ($this->isWebRequest() && $this->api_calls >= self::REQUEST_BUDGET) {
+        if ($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET) {
             return 'failed';
         }
         $this->api_calls++;
@@ -1164,7 +1206,7 @@ class SmsService
             return false;
         }
 
-        return !($this->isWebRequest() && $this->api_calls >= self::REQUEST_BUDGET);
+        return !($this->webContext() && $this->api_calls >= self::REQUEST_BUDGET);
     }
 
     /**
@@ -1184,16 +1226,28 @@ class SmsService
         $r = $this->clientFor($timeout_context)->balance();
         $this->note('info', 'sms.balance_refresh', (string) $r['result'], ['code' => $r['code']]);
         if ($r['result'] === 'OK') {
+            $this->last_balance_error = null;
             $this->cacheBalance($r);
 
             return (float) $r['available'];
         }
         $code = (string) $r['code'];
+        $this->last_balance_error = $code;
         if ($code === 'ERR003' || in_array($code, self::SUSPEND_CODES, true)) {
             $this->suspend($code);
         }
 
         return null;
+    }
+
+    /**
+     * Why the last refreshBalance() did not end OK: the API or LOCAL_* code of that call (ERR003, LOCAL_CONNECT,
+     * LOCAL_BAD_JSON, ...), or null when it ended OK or none ran. SyncService reports it as the reason a sync
+     * failed (ruling R25: the call stays here). 2026-10-21 01:54 +03: added, Task 1.7 fix round 1 item 2, task 596.
+     */
+    public function lastBalanceError(): ?string
+    {
+        return $this->last_balance_error;
     }
 
     /**
@@ -1632,7 +1686,7 @@ class SmsService
     private function client(array $context): ApiClient
     {
         if ($this->client === null) {
-            $timeout = !$this->isWebRequest()
+            $timeout = !$this->webContext()
                 ? 'cli'
                 : ($context['interactive'] && $context['audience'] === 'admin' ? 'admin' : 'web');
             $this->client = call_user_func($this->client_factory, $timeout);

@@ -723,6 +723,11 @@ msgctxt "Languages::kwtsms.alert.balance_zero.text"
 msgid "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
 msgstr "Your kwtSMS balance is zero, so no SMS are sent. Recharge your kwtSMS account at kwtsms.com."
 
+# 2026-10-21 01:55 +03: Task 1.7 fix round 1 item 8, task 596. A reply that is not usable is not "could not reach kwtSMS".
+msgctxt "Languages::kwtsms.login.bad_reply"
+msgid "kwtSMS answered with an unexpected reply. Try again in a few minutes; if it keeps happening, contact kwtSMS support."
+msgstr "kwtSMS answered with an unexpected reply. Try again in a few minutes; if it keeps happening, contact kwtSMS support."
+
 # 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
 # kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
 # kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.

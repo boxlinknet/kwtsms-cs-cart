@@ -378,6 +378,15 @@ class GatewayState
         $this->store->set(self::KEY_SENDER_BAN, (string) json_encode(['sender' => $sender, 'at' => $this->now()]));
     }
 
+    /**
+     * Forgets the ban. Called when another Sender ID (or none) is saved: the ban lasts only until another one is
+     * selected (PRD 6.1). 2026-10-21 01:53 +03: added, Task 1.7 fix round 1 item 3, task 596.
+     */
+    public function clearSenderBan(): void
+    {
+        $this->store->delete(self::KEY_SENDER_BAN);
+    }
+
     // ------------------------------------------------------------------ sync schedule, resync request, probe
 
     /** Consecutive failed syncs since the last good one. 2026-10-21 00:52 +03: added, Task 1.7, task 596. */
@@ -450,6 +459,26 @@ class GatewayState
         $state = $this->readSyncState();
         $state['cov_req'] = 0;
         $state['cov_last'] = $this->now();
+        $this->writeSyncState($state);
+    }
+
+    /**
+     * When the retry of a suspended gateway last TRIED to reach kwtSMS, answered or not (Unix time), or null. The
+     * probe verdict records answers only, so without this stamp an unreachable gateway would be tried on every cron
+     * run. 2026-10-21 01:53 +03: added, Task 1.7 fix round 1 item 1, task 596.
+     */
+    public function lastSuspensionAttempt(): ?int
+    {
+        $at = $this->readSyncState()['susp_at'];
+
+        return $at > 0 ? $at : null;
+    }
+
+    /** Stamps an attempt to lift a suspension, whatever its outcome. 2026-10-21 01:53 +03: added, same item. */
+    public function touchSuspensionAttempt(): void
+    {
+        $state = $this->readSyncState();
+        $state['susp_at'] = $this->now();
         $this->writeSyncState($state);
     }
 
@@ -742,7 +771,7 @@ class GatewayState
      * 2026-10-21 00:52 +03: added, Task 1.7, task 596.
      *
      * @return array{fail: int, retry_at: int, cov_req: int, cov_last: int, probe_at: int, probe_verdict: string,
-     *               probe_code: string|null}
+     *               probe_code: string|null, susp_at: int}
      */
     private function readSyncState(): array
     {
@@ -764,6 +793,7 @@ class GatewayState
             'probe_at' => $this->intField($data, 'probe_at'),
             'probe_verdict' => $verdict,
             'probe_code' => $code,
+            'susp_at' => $this->intField($data, 'susp_at'),
         ];
     }
 
