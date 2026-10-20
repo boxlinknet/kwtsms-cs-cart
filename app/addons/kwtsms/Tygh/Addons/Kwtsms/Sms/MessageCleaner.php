@@ -23,6 +23,10 @@
  *            that what is left is always accepted.
  * USAGE:     All methods are static and pure (no state, no CS-Cart calls, no I/O).
  *              MessageCleaner::clean($body)                  -> cleaned body ('' means blocked_empty)
+ *              MessageCleaner::cleanForStorage($body)        -> clean() without the escape decoding, for
+ *                                                               template bodies (2026-10-20 22:53 +03, ruling
+ *                                                               R18, Task 1.8, task 596); clean(cleanForStorage(x))
+ *                                                               === clean(x), the escapes decode once, at send
  *              MessageCleaner::hasHtmlLikeSpan($cleaned)     -> true when a "<" is followed later by a ">"
  *                                                               (the gateway's ERR027 rule); the caller blocks
  *              MessageCleaner::cleanPlaceholderValue($name)  -> at most 20 characters on one line, no < or >,
@@ -246,6 +250,38 @@ class MessageCleaner
         // (fix round 1, task 596).
         try {
             return self::cleanBody($text, true);
+        } catch (\UnexpectedValueException $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Clean a template body for storage: clean() without the literal-escape decoding step.
+     * 2026-10-20 22:53 +03: added, ruling R18 (cleaning happens once, at send), Task 1.8, task 596.
+     * A body is stored cleaned (tags, hidden characters, emoji, Arabic digits, smart quotes, line endings,
+     * trim) but the escapes an admin typed (backslash-n, backslash-r-backslash-n, backslash-t, doubled
+     * backslash) stay as typed, so the full clean() at send time decodes them exactly once.
+     * clean(cleanForStorage($x)) === clean($x) for every $x (tests/Unit/MessageCleanerStorageTest.php).
+     * Fails closed like clean(): text that does not settle gives ''.
+     *
+     * One corner needs a guard: clean() decodes the escapes BEFORE it removes hidden characters, emoji and
+     * controls, so a typed backslash, a hidden character and "n" stay a literal backslash-n there, while
+     * the stored text (hidden character already gone) would decode to a newline at send. When the two
+     * routes disagree, the stored text is clean($x) with its backslash, LF and TAB written back as escapes,
+     * which decodes at send to exactly clean($x).
+     */
+    public static function cleanForStorage(string $text): string
+    {
+        try {
+            $stored = self::cleanBody($text, false);
+            $expected = self::cleanBody($text, true);
+            if (self::cleanBody($stored, true) === $expected) {
+                return $stored;
+            }
+
+            $encoded = strtr($expected, ['\\' => '\\\\', "\n" => '\\n', "\t" => '\\t']);
+
+            return self::cleanBody($encoded, true) === $expected ? $encoded : '';
         } catch (\UnexpectedValueException $e) {
             return '';
         }
