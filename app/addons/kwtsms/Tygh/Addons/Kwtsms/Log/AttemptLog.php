@@ -18,6 +18,9 @@
  *            $log->countRecent('phone', '96598765432', 3600, ['accepted', 'test_queued']);   // last hour
  *            $log->countRecent('', '', 86400, ['accepted', 'test_queued']);                  // whole store
  *            Fields for countRecent: phone, ip, order_id, parent_order_id, or '' for no field.
+ *            2026-10-21 00:05 +03: an optional 5th argument adds equality or IN filters on the other Logs filter keys,
+ *            e.g. ['source' => ['api']] for the own rate bucket of fn_kwtsms_send() (PRD 5.2), Task 1.6, task 596.
+ *            $log->countRecent('phone', '96598765432', 3600, ['accepted'], ['source' => ['api']]);
  * DEPENDS:   Log\LogStoreInterface, Log\Redactor, Log\RowCleaner, Log\Schema.
  */
 
@@ -74,21 +77,37 @@ class AttemptLog
      * @param string   $field    phone, ip, order_id, parent_order_id, or '' to count every attempt
      * @param string   $value    Ignored when $field is ''
      * @param string[] $outcomes Count only these outcomes; empty = any
+     * @param array<string,mixed> $filters More filters (Schema::filters keys only, equality or IN); they narrow the
+     *                                     indexed range, never replace it (2026-10-21 00:05 +03, Task 1.6, task 596)
      *
-     * @throws \InvalidArgumentException For any other field (it would have no index)
+     * @throws \InvalidArgumentException For any other field (it would have no index), or a filter key that is not
+     *                                   a Logs filter
      * @throws \RuntimeException         When the count cannot be read (2026-10-20 22:17 +03, Task 1.4 fix round 1,
      *                                   task 596): it is never returned as 0, because the caller would then skip
      *                                   the abuse cap; the send pipeline's boundary decides
      */
-    public function countRecent(string $field, string $value, int $seconds, array $outcomes = []): int
-    {
+    public function countRecent(
+        string $field,
+        string $value,
+        int $seconds,
+        array $outcomes = [],
+        array $filters = []
+    ): int {
+        // 2026-10-21 00:05 +03: extra filters, checked against the fixed key map; the window and the field win
+        // over a same-named extra key, Task 1.6, task 596.
+        $extra = $filters;
+        unset($extra['created_from'], $extra['created_to'], $extra['outcome']);
+        if ($field !== '') {
+            unset($extra[$field]);
+        }
+        Schema::assertFilters(Schema::ATTEMPTS, $extra);
         if ($field !== '' && !in_array($field, self::COUNT_FIELDS, true)) {
             throw new \InvalidArgumentException('countRecent() cannot count by "' . $field . '"');
         }
         if ($seconds < 1) {
             return 0;
         }
-        $filters = ['created_from' => $this->now() - $seconds];
+        $filters = $extra + ['created_from' => $this->now() - $seconds];
         if ($field !== '') {
             $filters[$field] = $value;
         }

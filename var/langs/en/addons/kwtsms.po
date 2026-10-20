@@ -482,3 +482,167 @@ msgstr "EGP"
 msgctxt "Languages::kwtsms.templates_seed_failed"
 msgid "The default SMS texts could not be saved. Open the kwtSMS Templates page and load the default texts."
 msgstr "The default SMS texts could not be saved. Open the kwtSMS Templates page and load the default texts."
+
+# 2026-10-21 00:15 +03: send pipeline texts, Task 1.6, task 596. kwtsms.outcome.<code> is the plain-language reason of
+# every canonical outcome (PRD Appendix B); kwtsms.send.* are the errors an interactive send shows (D4);
+# kwtsms.alert.<condition>.title / .text are the admin notices and e-mails of Alerts\AdminAlerts (PRD 6.13).
+
+msgctxt "Languages::kwtsms.outcome.accepted"
+msgid "Accepted by kwtSMS for delivery."
+msgstr "Accepted by kwtSMS for delivery."
+
+msgctxt "Languages::kwtsms.outcome.test_queued"
+msgid "Accepted in test mode, not delivered. Delete it from your kwtSMS queue to get the credits back."
+msgstr "Accepted in test mode, not delivered. Delete it from your kwtSMS queue to get the credits back."
+
+msgctxt "Languages::kwtsms.outcome.partial_accept"
+msgid "kwtSMS accepted fewer numbers than were sent. Check the message log of this send."
+msgstr "kwtSMS accepted fewer numbers than were sent. Check the message log of this send."
+
+msgctxt "Languages::kwtsms.outcome.failed"
+msgid "kwtSMS refused this send. The reason is in the log."
+msgstr "kwtSMS refused this send. The reason is in the log."
+
+msgctxt "Languages::kwtsms.outcome.unknown"
+msgid "No reply after the request was sent. Check your kwtSMS archive and queue before you resend."
+msgstr "No reply after the request was sent. Check your kwtSMS archive and queue before you resend."
+
+msgctxt "Languages::kwtsms.outcome.rejected"
+msgid "kwtSMS rejected this message. Review the template wording."
+msgstr "kwtSMS rejected this message. Review the template wording."
+
+msgctxt "Languages::kwtsms.outcome.invalid"
+msgid "The number isn't a valid mobile number."
+msgstr "The number isn't a valid mobile number."
+
+msgctxt "Languages::kwtsms.outcome.duplicate"
+msgid "The same number appears more than once in this send. It was sent once."
+msgstr "The same number appears more than once in this send. It was sent once."
+
+msgctxt "Languages::kwtsms.outcome.no_phone"
+msgid "No phone number to send to."
+msgstr "No phone number to send to."
+
+msgctxt "Languages::kwtsms.outcome.no_coverage"
+msgid "The country of this number isn't in your kwtSMS coverage."
+msgstr "The country of this number isn't in your kwtSMS coverage."
+
+msgctxt "Languages::kwtsms.outcome.blocked_country"
+msgid "The country of this number isn't one of the allowed customer countries."
+msgstr "The country of this number isn't one of the allowed customer countries."
+
+msgctxt "Languages::kwtsms.outcome.blocked_disabled"
+msgid "SMS sending is turned off in the kwtSMS settings."
+msgstr "SMS sending is turned off in the kwtSMS settings."
+
+msgctxt "Languages::kwtsms.outcome.blocked_not_configured"
+msgid "kwtSMS isn't set up yet. Log in and select a Sender ID in the kwtSMS settings."
+msgstr "kwtSMS isn't set up yet. Log in and select a Sender ID in the kwtSMS settings."
+
+msgctxt "Languages::kwtsms.outcome.blocked_empty"
+msgid "The message is empty after cleaning."
+msgstr "The message is empty after cleaning."
+
+msgctxt "Languages::kwtsms.outcome.blocked_too_long"
+msgid "The message has more pages than allowed. Shorten the template."
+msgstr "The message has more pages than allowed. Shorten the template."
+
+msgctxt "Languages::kwtsms.outcome.blocked_placeholder"
+msgid "The message still holds an unfilled placeholder. Fix the template."
+msgstr "The message still holds an unfilled placeholder. Fix the template."
+
+msgctxt "Languages::kwtsms.outcome.blocked_balance"
+msgid "Not enough kwtSMS credits. Recharge your kwtSMS account."
+msgstr "Not enough kwtSMS credits. Recharge your kwtSMS account."
+
+msgctxt "Languages::kwtsms.outcome.blocked_pilot"
+msgid "Pilot mode is on, so only the admin alert numbers get SMS."
+msgstr "Pilot mode is on, so only the admin alert numbers get SMS."
+
+msgctxt "Languages::kwtsms.outcome.blocked_daily_cap"
+msgid "The store reached its daily SMS limit. Sending resumes tomorrow or when you resume it."
+msgstr "The store reached its daily SMS limit. Sending resumes tomorrow or when you resume it."
+
+msgctxt "Languages::kwtsms.outcome.rate_limited"
+msgid "This number reached its SMS limit for now. It can get SMS again later."
+msgstr "This number reached its SMS limit for now. It can get SMS again later."
+
+msgctxt "Languages::kwtsms.outcome.cancelled"
+msgid "An add-on cancelled this send before it went out."
+msgstr "An add-on cancelled this send before it went out."
+
+msgctxt "Languages::kwtsms.outcome.deferred"
+msgid "Queued to send later. The reason is in the log."
+msgstr "Queued to send later. The reason is in the log."
+
+msgctxt "Languages::kwtsms.outcome.expired"
+msgid "Waited too long in the queue and wasn't sent."
+msgstr "Waited too long in the queue and wasn't sent."
+
+msgctxt "Languages::kwtsms.outcome.switched_off"
+msgid "SMS for this event is turned off in Notifications."
+msgstr "SMS for this event is turned off in Notifications."
+
+msgctxt "Languages::kwtsms.outcome.not_notified"
+msgid "The admin chose not to notify the customer about this change."
+msgstr "The admin chose not to notify the customer about this change."
+
+msgctxt "Languages::kwtsms.outcome.superseded"
+msgid "Replaced by the new order SMS."
+msgstr "Replaced by the new order SMS."
+
+msgctxt "Languages::kwtsms.outcome.duplicate_event"
+msgid "An SMS was already sent for this event."
+msgstr "An SMS was already sent for this event."
+
+msgctxt "Languages::kwtsms.outcome.no_template"
+msgid "No SMS template for this event and language."
+msgstr "No SMS template for this event and language."
+
+msgctxt "Languages::kwtsms.send.no_coverage"
+msgid "Country [code] isn't in your kwtSMS coverage. The SMS wasn't sent."
+msgstr "Country [code] isn't in your kwtSMS coverage. The SMS wasn't sent."
+
+msgctxt "Languages::kwtsms.send.failed_generic"
+msgid "The SMS couldn't be sent. Try again later."
+msgstr "The SMS couldn't be sent. Try again later."
+
+msgctxt "Languages::kwtsms.alert.daily_cap.title"
+msgid "Daily SMS limit reached"
+msgstr "Daily SMS limit reached"
+
+msgctxt "Languages::kwtsms.alert.daily_cap.text"
+msgid "The store reached its daily limit of [cap] SMS. SMS stay blocked until tomorrow or until you resume sending in kwtSMS."
+msgstr "The store reached its daily limit of [cap] SMS. SMS stay blocked until tomorrow or until you resume sending in kwtSMS."
+
+msgctxt "Languages::kwtsms.alert.low_balance.title"
+msgid "kwtSMS balance is low"
+msgstr "kwtSMS balance is low"
+
+msgctxt "Languages::kwtsms.alert.low_balance.text"
+msgid "[balance] credits left, under the alert level of [threshold]. Recharge your kwtSMS account so SMS don't stop."
+msgstr "[balance] credits left, under the alert level of [threshold]. Recharge your kwtSMS account so SMS don't stop."
+
+msgctxt "Languages::kwtsms.alert.suspended.title"
+msgid "kwtSMS sending is paused"
+msgstr "kwtSMS sending is paused"
+
+msgctxt "Languages::kwtsms.alert.suspended.text"
+msgid "kwtSMS answered [code]. SMS wait in the queue until the account works again. Check the kwtSMS settings."
+msgstr "kwtSMS answered [code]. SMS wait in the queue until the account works again. Check the kwtSMS settings."
+
+msgctxt "Languages::kwtsms.alert.tls_failure.title"
+msgid "Secure connection to kwtSMS failed"
+msgstr "Secure connection to kwtSMS failed"
+
+msgctxt "Languages::kwtsms.alert.tls_failure.text"
+msgid "The kwtSMS certificate check failed, so nothing was sent. Queued SMS wait until you resend them. Check the CA certificates of the server."
+msgstr "The kwtSMS certificate check failed, so nothing was sent. Queued SMS wait until you resend them. Check the CA certificates of the server."
+
+msgctxt "Languages::kwtsms.alert.intl_limit.title"
+msgid "International SMS limit reached"
+msgstr "International SMS limit reached"
+
+msgctxt "Languages::kwtsms.alert.intl_limit.text"
+msgid "kwtSMS reached the daily limit for international numbers. Those SMS weren't sent. Local numbers still go out."
+msgstr "kwtSMS reached the daily limit for international numbers. Those SMS weren't sent. Local numbers still go out."

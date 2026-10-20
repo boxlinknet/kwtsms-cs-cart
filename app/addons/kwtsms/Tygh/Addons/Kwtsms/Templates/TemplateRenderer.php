@@ -31,7 +31,10 @@
  *            doubled (2026-10-20 23:59 +03, fix round 1 item 1, task 596), so the one decode at send gives back
  *            the value's own backslashes and a name can never become a line break, tab or CRLF. Never show
  *            render() output to a person or count it without clean() first; the hook sees this form too.
- *            Every value also loses NUL and invalid UTF-8 and the braces `{` and `}`.
+ *            Every value also loses NUL and invalid UTF-8 and the braces `{` and `}`. A shop value gets
+ *            MessageCleaner::cleanForStorage() (entities decoded, tags and hidden characters gone, escapes NOT
+ *            decoded; 2026-10-21 00:17 +03, fix round 1 item 1, task 596), so an entity cannot turn into a
+ *            backslash after the doubling.
  *            Hook (PRD 5.2): fn_set_hook('kwtsms_render_template_post', $rendered, $body, $vars), all three
  *            by reference; a handler may change $rendered. $body is the template as stored, $vars the values
  *            as passed in (raw).
@@ -47,7 +50,8 @@ class TemplateRenderer
     /**
      * Placeholders that hold text a customer or a vendor typed. Only these pass through
      * MessageCleaner::cleanPlaceholderValue() (20 characters, no URL, www., domain or run of 6+ digits).
-     * Every other value is shop-made (ids, amounts, brand, status and method names) and is inserted as is.
+     * Every other value is shop-made (ids, amounts, brand, status and method names): no 20-character cap, no
+     * URL, domain or digit-run rule, only the body cleaning without the escape decoding (see valueText()).
      */
     public const FREE_TEXT = ['customer_first_name', 'customer_last_name', 'vendor_name'];
 
@@ -165,9 +169,13 @@ class TemplateRenderer
         }
         $text = is_bool($value) ? ($value ? '1' : '') : (string) $value;
         $text = MessageCleaner::dropInvalidUtf8(str_replace(self::MARK, '', $text));
-        if (in_array($name, self::FREE_TEXT, true)) {
-            $text = MessageCleaner::cleanPlaceholderValue($text);
-        }
+        // Customer-typed names get the anti-smishing cleaner; every other value gets the body cleaning without the
+        // escape decoding. Either way entities are decoded HERE, before the backslashes are doubled below: the send
+        // decodes entities first, so "&#92;n" left in a value (a vendor names its own shipping methods) would
+        // become a backslash after the doubling and then a line break.
+        $text = in_array($name, self::FREE_TEXT, true)
+            ? MessageCleaner::cleanPlaceholderValue($text)
+            : MessageCleaner::cleanForStorage($text);
         $text = trim(strtr($text, ['{' => '', '}' => '']));
 
         return str_replace('\\', '\\\\', $text);

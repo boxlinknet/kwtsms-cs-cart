@@ -24,6 +24,12 @@
  *            isConfigured() reasons, in the order they are checked: no_credentials, relogin_required,
  *            not_logged_in (no balance cached: a login stores one), no_sender_ids, sender_not_in_list
  *            (covers "nothing selected").
+ *            2026-10-21 00:05 +03, Task 1.6, task 596: new GatewayState($store, $clock, $locker), where $locker
+ *            (callable $write): bool runs $write under the per-database API lock (ApiGuard::runLocked()); suspend()
+ *            and resume() write through it so they cannot overwrite a breaker count written under that lock by a
+ *            parallel request (Task 1.5 review carry). Also: kwtsms_daily_cap (the "Resume now" time of the
+ *            store daily cap, PRD 6.14) and kwtsms_balance_refresh (the last live /balance/ refresh asked for by
+ *            the send pipeline, at most one every 10 minutes, PRD 6.1).
  * DEPENDS:   Storage\KeyValueStoreInterface, Settings\ConfigInterface. No CS-Cart globals, no logging.
  */
 
@@ -40,6 +46,12 @@ class GatewayState
     public const KEY_LAST_SYNC = 'kwtsms_last_sync';
     public const KEY_LAST_CRON = 'kwtsms_last_cron';
     public const KEY_GATEWAY_STATE = 'kwtsms_gateway_state';
+
+    /** 2026-10-21 00:05 +03: "Resume now" time of the store daily cap (PRD 6.14), Task 1.6, task 596. */
+    public const KEY_DAILY_CAP = 'kwtsms_daily_cap';
+
+    /** 2026-10-21 00:05 +03: last live balance refresh of the send pipeline (PRD 6.1), Task 1.6, task 596. */
+    public const KEY_BALANCE_REFRESH = 'kwtsms_balance_refresh';
 
     /**
      * Consecutive transport failures (connect, TLS, DNS, read timeout) that open the breaker.
@@ -62,14 +74,21 @@ class GatewayState
     /** @var callable|null returns the current Unix time */
     private $clock;
 
+    /** @var callable|null (callable $write): bool, runs $write under the per-database API lock */
+    private $locker;
+
     /**
      * @param KeyValueStoreInterface $store
-     * @param callable|null          $clock Returns the current Unix time (tests); null = time()
+     * @param callable|null          $clock  Returns the current Unix time (tests); null = time()
+     * @param callable|null          $locker (callable $write): bool, runs $write under the per-database API lock
+     *                                       and returns false when the lock was not available; null = no lock
+     *                                       (2026-10-21 00:05 +03: added, Task 1.6, task 596)
      */
-    public function __construct(KeyValueStoreInterface $store, ?callable $clock = null)
+    public function __construct(KeyValueStoreInterface $store, ?callable $clock = null, ?callable $locker = null)
     {
         $this->store = $store;
         $this->clock = $clock;
+        $this->locker = $locker;
     }
 
     // ------------------------------------------------------------------ balance
@@ -259,19 +278,61 @@ class GatewayState
     public function suspend(string $code): void
     {
         $clean = substr(strtoupper((string) preg_replace('/[^A-Za-z0-9_]/', '', $code)), 0, 32);
-        $state = $this->readState();
-        $state['suspended_code'] = $clean === '' ? 'UNKNOWN' : $clean;
-        $state['suspended_at'] = $this->now();
-        $this->writeState($state);
+        // 2026-10-21 00:05 +03: read-modify-write under the API lock, Task 1.6 carry, task 596.
+        $this->writeLocked(function () use ($clean): void {
+            $state = $this->readState();
+            $state['suspended_code'] = $clean === '' ? 'UNKNOWN' : $clean;
+            $state['suspended_at'] = $this->now();
+            $this->writeState($state);
+        });
     }
 
     /** Lifts the suspension. The breaker is left alone. */
     public function resume(): void
     {
-        $state = $this->readState();
-        $state['suspended_code'] = null;
-        $state['suspended_at'] = 0;
-        $this->writeState($state);
+        // 2026-10-21 00:05 +03: read-modify-write under the API lock, Task 1.6 carry, task 596.
+        $this->writeLocked(function (): void {
+            $state = $this->readState();
+            $state['suspended_code'] = null;
+            $state['suspended_at'] = 0;
+            $this->writeState($state);
+        });
+    }
+
+    // ------------------------------------------------------------------ daily cap and balance refresh
+
+    /**
+     * When "Resume now" was last pressed for the store daily cap (0 = never): the day's count starts at the
+     * later of local midnight and this time. 2026-10-21 00:05 +03: added, Task 1.6, task 596.
+     */
+    public function dailyCapResumedAt(): int
+    {
+        $data = $this->decode($this->store->getFresh(self::KEY_DAILY_CAP)) ?? [];
+
+        return $this->intField($data, 'resumed_at');
+    }
+
+    /** "Resume now" (PRD 6.14). 2026-10-21 00:05 +03: added, Task 1.6, task 596. */
+    public function resumeDailyCap(): void
+    {
+        $this->store->set(self::KEY_DAILY_CAP, (string) json_encode(['resumed_at' => $this->now()]));
+    }
+
+    /**
+     * When the send pipeline last asked kwtSMS for a live balance (null = never). PRD 6.1: at most one such
+     * refresh every 10 minutes. 2026-10-21 00:05 +03: added, Task 1.6, task 596.
+     */
+    public function lastBalanceRefresh(): ?int
+    {
+        $raw = $this->store->getFresh(self::KEY_BALANCE_REFRESH);
+
+        return ($raw !== null && ctype_digit($raw)) ? (int) $raw : null;
+    }
+
+    /** 2026-10-21 00:05 +03: added, Task 1.6, task 596. */
+    public function touchBalanceRefresh(): void
+    {
+        $this->store->set(self::KEY_BALANCE_REFRESH, (string) $this->now());
     }
 
     // ------------------------------------------------------------------ breaker
@@ -323,6 +384,8 @@ class GatewayState
     /**
      * Disconnect: forgets balance, senders, coverage, last sync, suspension and breaker. The cron
      * heartbeat (not account data) and the API slot (ApiGuard) stay.
+     * 2026-10-21 00:05 +03: also the balance refresh stamp (account data); the daily cap resume time is store
+     * data and stays, Task 1.6, task 596.
      */
     public function clear(): void
     {
@@ -332,6 +395,7 @@ class GatewayState
             self::KEY_COVERAGE,
             self::KEY_LAST_SYNC,
             self::KEY_GATEWAY_STATE,
+            self::KEY_BALANCE_REFRESH,
         ];
         foreach ($keys as $key) {
             $this->store->delete($key);
@@ -343,6 +407,20 @@ class GatewayState
     private function now(): int
     {
         return $this->clock === null ? time() : (int) call_user_func($this->clock);
+    }
+
+    /**
+     * Runs a read-modify-write of kwtsms_gateway_state under the API lock. When the lock is not available the
+     * write still happens without it: a lost suspension would let every send hit the same account error
+     * again, which costs more than a breaker count that a parallel write may overwrite.
+     * 2026-10-21 00:05 +03: added, Task 1.6 carry, task 596.
+     */
+    private function writeLocked(callable $write): void
+    {
+        if ($this->locker !== null && call_user_func($this->locker, $write) === true) {
+            return;
+        }
+        $write();
     }
 
     /**

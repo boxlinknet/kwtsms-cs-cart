@@ -29,6 +29,8 @@
  *            $guard->recordTransportFailure();   // dns, connect, tls or timeout: once per request counts;
  *                                                // returns the breaker after it, with 'opened' = this one opened it
  *            $guard->recordReached();            // any reply from the gateway: resets the failure count
+ *            $guard->runLocked($write);          // 2026-10-21 00:05 +03: $write under the same lock (GatewayState
+ *                                                // suspend / resume), false = lock busy, Task 1.6, task 596
  *            Constants: LOCK_PREFIX kwtsms_api_, LOCK_WAIT_SECONDS 2, SLOT_KEY kwtsms_api_slot, SPACING_MS 200.
  *            lockName() is the full lock name for this store's database.
  *            A slot value that is not a number, is in the past, or is more than 10 s ahead (corrupt) is
@@ -161,6 +163,22 @@ class ApiGuard
         $this->underLock(function (): void {
             $this->state->recordTransportSuccess();
         });
+    }
+
+    /**
+     * Runs $write while holding this store's API lock (the one the slot clock and the breaker use).
+     * GatewayState::suspend() and resume() write through it (Task 1.5 review carry).
+     * 2026-10-21 00:05 +03: added, Task 1.6, task 596.
+     *
+     * @return bool False when the lock was not available in LOCK_WAIT_SECONDS ($write did not run)
+     */
+    public function runLocked(callable $write): bool
+    {
+        return $this->underLock(function () use ($write): bool {
+            $write();
+
+            return true;
+        }) === true;
     }
 
     /**
