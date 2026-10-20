@@ -16,6 +16,8 @@
  * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape).
  */
 
+use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
+use Tygh\Languages\Languages;
 use Tygh\Settings;
 
 defined('BOOTSTRAP') or die('Access denied');
@@ -25,6 +27,7 @@ defined('BOOTSTRAP') or die('Access denied');
  * exist.
  *
  * Generates the cron key: 32 random hex characters, new on every install, never a static default.
+ * Seeds the default SMS templates of every installed language (2026-10-20 23:12 +03, Task 1.8, task 596).
  * Nothing else is seeded: notification switches are fail-closed and need no rows (PRD 4.1).
  *
  * @return void
@@ -34,6 +37,17 @@ function fn_kwtsms_install(): void
     // 2026-10-20 19:53 +03: cron_key generated here (PRD 9), task 596.
     Settings::instance(['company_id' => 0, 'storefront_id' => 0])
         ->updateValue('cron_key', bin2hex(random_bytes(16)), 'kwtsms');
+
+    // 2026-10-20 23:12 +03: the shipped default SMS texts are copied into the template tables for every
+    // installed language (PRD 6.4), INSERT IGNORE, so a second run changes nothing. A failure here must not
+    // undo the install: the admin can load the defaults from the Templates page. Task 1.8, task 596.
+    try {
+        $templates = new TemplateRepository();
+        $templates->seedDefaults(array_map('strval', array_keys(Languages::getAll())));
+    } catch (\Throwable $e) {
+        error_log('kwtsms: seeding the default templates failed: ' . get_class($e) . ': ' . $e->getMessage()
+            . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+    }
 }
 
 /**
