@@ -27,6 +27,8 @@
  *                                                               template bodies (2026-10-20 22:53 +03, ruling
  *                                                               R18, Task 1.8, task 596); clean(cleanForStorage(x))
  *                                                               === clean(x), the escapes decode once, at send
+ *              MessageCleaner::dropInvalidUtf8($text)        -> only the invalid UTF-8 bytes removed (2026-10-20
+ *                                                               23:59 +03, Task 1.8 fix round 1, task 596)
  *              MessageCleaner::hasHtmlLikeSpan($cleaned)     -> true when a "<" is followed later by a ">"
  *                                                               (the gateway's ERR027 rule); the caller blocks
  *              MessageCleaner::cleanPlaceholderValue($name)  -> at most 20 characters on one line, no < or >,
@@ -282,6 +284,21 @@ class MessageCleaner
             $encoded = strtr($expected, ['\\' => '\\\\', "\n" => '\\n', "\t" => '\\t']);
 
             return self::cleanBody($encoded, true) === $expected ? $encoded : '';
+        } catch (\UnexpectedValueException $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Remove every byte that is not part of a valid UTF-8 sequence, and nothing else (step 1 of PRD 6.2.1).
+     * For callers that must run a /u pattern on text they have not cleaned yet (the template renderer, whose
+     * tidy pass throws "PCRE error 4" on malformed input). Fails closed: '' when PCRE fails.
+     * 2026-10-20 23:59 +03: added, Task 1.8 fix round 1 item 3, task 596.
+     */
+    public static function dropInvalidUtf8(string $text): string
+    {
+        try {
+            return self::stripInvalidUtf8($text);
         } catch (\UnexpectedValueException $e) {
             return '';
         }

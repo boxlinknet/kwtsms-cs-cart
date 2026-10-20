@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Templates/BrandNames.php
- * CREATED:   2026-10-20 23:12 +03
+ * CREATED:   2026-10-20 23:10 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The "SMS brand name" a message shows as {store_name}: the brand the admin set for the storefront in
@@ -20,6 +20,10 @@
  *            (no URL rule: the brand is the shop's own text, not a customer value), then one space for any
  *            run of whitespace, then the 20-character cut. The three sources are protected static methods so a
  *            test can replace them.
+ *            2026-10-20 23:59 +03, fix round 1 item 1, task 596: get() returns the brand as typed, typed
+ *            backslashes included (no decoding, no doubling): it is also shown in the admin. The renderer doubles
+ *            the backslashes of every value it inserts ({store_name} too), so the one decode at send gives the
+ *            brand back and it can never become a line break or tab. Do not double them here as well.
  * DEPENDS:   CS-Cart db_get_field(), Tygh::$app['storefront.repository'], fn_allowed_for(), fn_get_company_name(),
  *            Tygh\Registry (settings.Company.company_name); Sms\MessageCleaner; tables kwtsms_brand_names and
  *            kwtsms_brand_name_descriptions.

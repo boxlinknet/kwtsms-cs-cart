@@ -2,7 +2,7 @@
 
 /*
  * FILE:      app/addons/kwtsms/Tygh/Addons/Kwtsms/Templates/TemplateRenderer.php
- * CREATED:   2026-10-20 22:57 +03
+ * CREATED:   2026-10-20 22:55 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Fills a template body with its placeholder values ({name} -> value), collapses the spacing and
@@ -27,6 +27,11 @@
  *            The FINAL full MessageCleaner::clean() of the rendered text is the CALLER's job (SmsService,
  *            Task 1.6, ruling R18: cleaning happens once, at send, and it also decodes the typed escapes
  *            of the stored body exactly once). render() only cleans the customer-typed values it inserts.
+ *            The rendered text is therefore the PRE-send form: every backslash of every inserted value is
+ *            doubled (2026-10-20 23:59 +03, fix round 1 item 1, task 596), so the one decode at send gives back
+ *            the value's own backslashes and a name can never become a line break, tab or CRLF. Never show
+ *            render() output to a person or count it without clean() first; the hook sees this form too.
+ *            Every value also loses NUL and invalid UTF-8 and the braces `{` and `}`.
  *            Hook (PRD 5.2): fn_set_hook('kwtsms_render_template_post', $rendered, $body, $vars), all three
  *            by reference; a handler may change $rendered. $body is the template as stored, $vars the values
  *            as passed in (raw).
@@ -68,8 +73,9 @@ class TemplateRenderer
      */
     public static function render(string $body, array $vars): string
     {
-        // A NUL cannot occur in a cleaned body; dropping it keeps the mark below unambiguous.
-        $template = str_replace(self::MARK, '', $body);
+        // A NUL cannot occur in a cleaned body; dropping it keeps the mark below unambiguous. Invalid UTF-8 would
+        // make the /u patterns of the tidy pass fail ("PCRE error 4"), so it goes too (fix round 1 item 3).
+        $template = MessageCleaner::dropInvalidUtf8(str_replace(self::MARK, '', $body));
 
         $map = [];
         $has_empty = false;
@@ -96,6 +102,10 @@ class TemplateRenderer
 
     /**
      * Placeholders in $body that are not in $allowed, once each, in order of appearance, braces included.
+     * What counts is what the rendered text would hold: a known placeholder is replaced first, and any "{...}"
+     * still in the text is reported, so "{{store_name}}" and "{ {store_name} }" are unknown although the name
+     * inside is known (rendered they read "{ABC}", which blocks the send).
+     * 2026-10-20 23:59 +03: known placeholders are marked before the scan, fix round 1 item 4, task 596.
      *
      * @param array<int,string> $allowed Allowed names, with or without braces
      *
@@ -108,10 +118,17 @@ class TemplateRenderer
             $known[trim((string) $name, '{}')] = true;
         }
 
+        // SOH and STX stand for the braces of a known placeholder while the rest is scanned.
+        $work = str_replace(["\x01", "\x02"], '', $body);
+        $work = (string) preg_replace_callback('/\{([^{}\r\n]*)\}/', static function (array $m) use ($known): string {
+            return isset($known[$m[1]]) ? "\x01" . $m[1] . "\x02" : $m[0];
+        }, $work);
+
         $unknown = [];
-        preg_match_all(self::TOKEN, $body, $found);
+        preg_match_all(self::TOKEN, $work, $found);
         foreach ($found[0] as $token) {
-            if (!isset($known[substr($token, 1, -1)]) && !in_array($token, $unknown, true)) {
+            $token = strtr($token, ["\x01" => '{', "\x02" => '}']);
+            if (!in_array($token, $unknown, true)) {
                 $unknown[] = $token;
             }
         }
@@ -129,8 +146,15 @@ class TemplateRenderer
     }
 
     /**
-     * The text one placeholder contributes: '' for null, arrays and objects; scalars cast; customer-typed
-     * names cleaned; braces removed from every value (a value can never read as a placeholder); trimmed.
+     * The text one placeholder contributes: '' for null, arrays and objects; scalars cast; NUL and invalid UTF-8
+     * removed; customer-typed names cleaned; braces removed from every value (a value can never read as a
+     * placeholder); trimmed; every backslash doubled.
+     *
+     * The doubling is for the ONE decode at send (ruling R18): the full clean() turns a pair of backslashes into
+     * one and "backslash n" into a line break. Without it a name typed as backslash backslash n, or as the
+     * entities of those, leaves cleanPlaceholderValue() as backslash n and becomes a line break (or a tab, or
+     * CRLF) in the SMS. With it the sent text holds exactly the backslashes the value holds.
+     * 2026-10-20 23:59 +03: NUL, invalid UTF-8 and backslashes, fix round 1 items 1 and 3, task 596.
      *
      * @param mixed $value
      */
@@ -140,11 +164,13 @@ class TemplateRenderer
             return '';
         }
         $text = is_bool($value) ? ($value ? '1' : '') : (string) $value;
+        $text = MessageCleaner::dropInvalidUtf8(str_replace(self::MARK, '', $text));
         if (in_array($name, self::FREE_TEXT, true)) {
             $text = MessageCleaner::cleanPlaceholderValue($text);
         }
+        $text = trim(strtr($text, ['{' => '', '}' => '']));
 
-        return trim(strtr($text, ['{' => '', '}' => '']));
+        return str_replace('\\', '\\\\', $text);
     }
 
     /**
