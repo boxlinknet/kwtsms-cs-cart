@@ -23,7 +23,9 @@
  *
  * UPSTREAM:  The structure follows kwtsms-php v1.7.1, src/ApiErrors.php (MIT, Copyright (c) 2026 kwtSMS /
  *            boxlink net), commit 132285b9f39bcfe33925dfbf9ea614026b87240a, whose table of codes was the
- *            starting point. Changes: texts moved to language variables (EN and AR), the code list follows
+ *            starting point. sha256 of that file at the tag (recorded 2026-10-20 23:16 +03, task 596):
+ *            d0ae34ed6ce77f3837a406545ba06cab890454c495058d2b1dcb55f840d2373d
+ *            Changes: texts moved to language variables (EN and AR), the code list follows
  *            PRD Appendix A (plus ERR034, ERR035, ERR036 and the LOCAL_* codes), codes the add-on never
  *            receives (status and delivery-report endpoints) are not listed and take the generic text, and
  *            "action" sentences are merged into the one reason.
