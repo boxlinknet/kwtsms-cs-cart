@@ -13,12 +13,18 @@
  *            (addon.xml names every table), task 596.
  * USAGE:     Loaded by CS-Cart: fn_kwtsms_install() and fn_kwtsms_uninstall() by the add-on installer,
  *            fn_kwtsms_settings_info() by Admin > Add-ons > kwtSMS (settings page).
- * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape).
+ *            2026-10-21 00:20 +03: fn_kwtsms_send(), the public send API of the extension contract (PRD 5.2), Task
+ *            1.6, task 596:  $r = fn_kwtsms_send(['+96550123401'], 'Your text', ['event_id' => 'my_addon.shipped']);
+ * DEPENDS:   CS-Cart 4.18.1 to 4.21.2 core (Tygh\Settings, fn_url, fn_html_escape), Tygh::$app['kwtsms.sms'].
  */
 
+use Tygh\Addons\Kwtsms\Sms\ApiErrors;
+use Tygh\Addons\Kwtsms\Sms\SendResult;
+use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
 use Tygh\Languages\Languages;
 use Tygh\Settings;
+use Tygh\Tygh;
 
 defined('BOOTSTRAP') or die('Access denied');
 
@@ -104,4 +110,56 @@ function fn_kwtsms_settings_info(): string
     return '<a class="btn btn-primary" href="' . fn_html_escape($url) . '">'
         . fn_html_escape(__('kwtsms.open_settings'))
         . '</a>';
+}
+
+/**
+ * Public send API for other add-ons (PRD 5.2 extension contract, stable from 1.0.0). The text goes through the
+ * whole send pipeline with source "api": its own per-number rate bucket, at most 1000 recipients per call, and
+ * the calling add-on recorded (event_id "api.<add-on>" unless the caller gives one, and the debug log).
+ * 2026-10-21 00:20 +03: added, Task 1.6, task 596.
+ *
+ * @param array<int,mixed>    $phones  Numbers as typed (at most 1000)
+ * @param string              $message The final text; it is cleaned once more and must have no {placeholder}
+ * @param array<string,mixed> $context Optional: event_id, receiver, order_id, user_id, lang_code, country_iso,
+ *                                     secret_values (masked in every log copy), interactive, audience
+ *
+ * @return array<string,mixed> SendResult::toArray(): status, accepted, outcomes, recipients, message_ids, msg_id,
+ *                             points_charged, balance_after, test, error_code, error_message
+ */
+function fn_kwtsms_send(array $phones, string $message, array $context = []): array
+{
+    $caller = 'unknown';
+    try {
+        $frame = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0] ?? [];
+        if (isset($frame['file']) && preg_match('#/addons/([a-z0-9_]{1,64})/#', (string) $frame['file'], $m) === 1) {
+            $caller = $m[1];
+        } elseif (isset($context['caller']) && is_string($context['caller'])) {
+            $caller = preg_match('/^[a-z0-9_]{1,64}$/D', $context['caller']) === 1 ? $context['caller'] : 'unknown';
+        }
+
+        if (count($phones) > SmsService::MAX_API_RECIPIENTS) {
+            Tygh::$app['kwtsms.logs.debug']->log('warning', 'sms.api_refused', 'too many recipients', [
+                'caller' => $caller,
+                'recipients' => count($phones),
+                'max' => SmsService::MAX_API_RECIPIENTS,
+            ]);
+
+            return SendResult::refused('LOCAL_BAD_INPUT', ApiErrors::describe('LOCAL_BAD_INPUT'))->toArray();
+        }
+
+        $context['source'] = 'api';
+        $context['caller'] = $caller;
+        if (!isset($context['event_id']) || !is_string($context['event_id']) || $context['event_id'] === '') {
+            $context['event_id'] = 'api.' . $caller;
+        }
+        unset($context['outbox_id']);
+
+        return Tygh::$app['kwtsms.sms']->send($phones, $message, $context)->toArray();
+    } catch (\Throwable $e) {
+        // An SMS failure never breaks the caller (PRD conventions): no trace, class, message and file:line only.
+        error_log('kwtsms: fn_kwtsms_send failed for ' . $caller . ': ' . get_class($e) . ': ' . $e->getMessage()
+            . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+
+        return SendResult::refused('LOCAL_ERROR')->toArray();
+    }
 }

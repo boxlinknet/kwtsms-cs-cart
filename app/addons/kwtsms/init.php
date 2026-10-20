@@ -8,8 +8,16 @@
  * WHAT:      Add-on bootstrap, run by CS-Cart on every request while the add-on is active.
  * WHY:       Hook registration and the service provider belong here. Task 1.1 ships the skeleton only,
  *            so nothing is registered yet (no hooks, no services, no side effects).
+ *            2026-10-21 00:20 +03: the service provider is registered (ruling R2, Task 1.6, task 596); it only
+ *            defines lazy services, so a request that sends no SMS builds nothing. Hooks arrive in Task 1.9.
  * USAGE:     Loaded automatically by CS-Cart.
- * DEPENDS:   Nothing yet.
+ * DEPENDS:   Tygh\Addons\Kwtsms\ServiceProvider.
  */
 
+use Tygh\Addons\Kwtsms\ServiceProvider;
+use Tygh\Tygh;
+
 defined('BOOTSTRAP') or die('Access denied');
+
+// 2026-10-21 00:20 +03: kwtsms.* services (ruling R2), Task 1.6, task 596.
+Tygh::$app->register(new ServiceProvider());
