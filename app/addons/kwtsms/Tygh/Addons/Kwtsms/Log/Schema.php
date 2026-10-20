@@ -31,7 +31,8 @@ final class Schema
     private const SMALL = 65535;
     private const TEXT = 65535;
     // 2026-10-20 21:33 +03: the columns are mediumtext, but the raw request and response are capped at 64 KB
-    // (PRD 6.8: a proxy error page must not fill the table), task 596.
+    // (PRD 6.8: a proxy error page must not fill the table), task 596. 2026-10-20 22:23 +03: a text cut at this
+    // size ends with " [truncated, N bytes]" (RowCleaner::cut), so the detail view can show the truncated flag.
     private const RAW = 65535;
 
     /**

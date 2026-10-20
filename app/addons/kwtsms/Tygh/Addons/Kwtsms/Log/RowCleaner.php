@@ -85,7 +85,7 @@ class RowCleaner
                     return null;
                 }
 
-                return mb_strcut(self::text(self::scalar($value)), 0, $limit, 'UTF-8');
+                return self::cut(self::text(self::scalar($value)), $limit);
             default:
                 return self::string($value, $limit);
         }
@@ -106,6 +106,22 @@ class RowCleaner
             default:
                 return null;
         }
+    }
+
+    /**
+     * 2026-10-20 22:24 +03: a text longer than its column is cut on a character boundary and ends with the
+     * visible ASCII marker " [truncated, N bytes]" (N = size of the cleaned text), the whole result within
+     * $limit bytes, so the PRD 6.8 detail view can show the truncated flag (Task 1.4 fix round 1, task 596).
+     */
+    private static function cut(string $text, int $limit): string
+    {
+        $bytes = strlen($text);
+        if ($bytes <= $limit) {
+            return $text;
+        }
+        $marker = ' [truncated, ' . $bytes . ' bytes]';
+
+        return mb_strcut($text, 0, $limit - strlen($marker), 'UTF-8') . $marker;
     }
 
     /**
