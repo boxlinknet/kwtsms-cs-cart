@@ -31,14 +31,19 @@
  *            doubled (2026-10-20 23:59 +03, fix round 1 item 1, task 596), so the one decode at send gives back
  *            the value's own backslashes and a name can never become a line break, tab or CRLF. Never show
  *            render() output to a person or count it without clean() first; the hook sees this form too.
- *            Every value also loses NUL and invalid UTF-8 and the braces `{` and `}`. A shop value gets
- *            MessageCleaner::cleanForStorage() (entities decoded, tags and hidden characters gone, escapes NOT
+ *            Every value also loses NUL and invalid UTF-8 and the braces `{` and `}`, and is one line. A shop value
+ *            gets MessageCleaner::cleanForStorage() (entities decoded, tags and hidden characters gone, escapes NOT
  *            decoded; 2026-10-21 00:17 +03, fix round 1 item 1, task 596), so an entity cannot turn into a
  *            backslash after the doubling.
+ *            2026-10-21 00:48 +03, fix round 2 F1, task 596: cleaning and brace removal repeat until nothing changes
+ *            (the brace strip can build an entity: "&{#92;n}" -> "&#92;n"), and a customer-typed value (FREE_TEXT)
+ *            also loses every "&", so a name can hold no entity and two names that touch cannot form one. "AT&T"
+ *            is sent as "ATT". See settleValue().
  *            Hook (PRD 5.2): fn_set_hook('kwtsms_render_template_post', $rendered, $body, $vars), all three
  *            by reference; a handler may change $rendered. $body is the template as stored, $vars the values
  *            as passed in (raw).
- * DEPENDS:   Sms\MessageCleaner (cleanPlaceholderValue), CS-Cart fn_set_hook() (tests stub it).
+ * DEPENDS:   Sms\MessageCleaner (cleanPlaceholderValue, recleanPlaceholderValue, cleanForStorage, dropInvalidUtf8),
+ *            CS-Cart fn_set_hook() (tests stub it). 2026-10-21 00:48 +03: list completed, fix round 2, task 596.
  */
 
 namespace Tygh\Addons\Kwtsms\Templates;
@@ -63,6 +68,9 @@ class TemplateRenderer
 
     /** What an empty value leaves in the text until the tidy pass has run. */
     private const MARK = "\x00";
+
+    /** Passes of clean and brace strip settleValue() makes at most; a value that needs more is dropped. */
+    private const MAX_VALUE_PASSES = 8;
 
     /** Separators inside a sentence: , ; : and the Arabic comma and semicolon. */
     private const SEP = '[,;:\x{060C}\x{061B}]';
@@ -151,14 +159,15 @@ class TemplateRenderer
 
     /**
      * The text one placeholder contributes: '' for null, arrays and objects; scalars cast; NUL and invalid UTF-8
-     * removed; customer-typed names cleaned; braces removed from every value (a value can never read as a
-     * placeholder); trimmed; every backslash doubled.
+     * removed; settled by settleValue() (cleaned, braces removed, one line, trimmed, until nothing changes; a
+     * customer-typed value also loses every ampersand); every backslash doubled.
      *
      * The doubling is for the ONE decode at send (ruling R18): the full clean() turns a pair of backslashes into
      * one and "backslash n" into a line break. Without it a name typed as backslash backslash n, or as the
      * entities of those, leaves cleanPlaceholderValue() as backslash n and becomes a line break (or a tab, or
      * CRLF) in the SMS. With it the sent text holds exactly the backslashes the value holds.
      * 2026-10-20 23:59 +03: NUL, invalid UTF-8 and backslashes, fix round 1 items 1 and 3, task 596.
+     * 2026-10-21 00:44 +03: the cleaning and the brace strip moved into settleValue(), fix round 2 F1, task 596.
      *
      * @param mixed $value
      */
@@ -169,16 +178,54 @@ class TemplateRenderer
         }
         $text = is_bool($value) ? ($value ? '1' : '') : (string) $value;
         $text = MessageCleaner::dropInvalidUtf8(str_replace(self::MARK, '', $text));
-        // Customer-typed names get the anti-smishing cleaner; every other value gets the body cleaning without the
-        // escape decoding. Either way entities are decoded HERE, before the backslashes are doubled below: the send
-        // decodes entities first, so "&#92;n" left in a value (a vendor names its own shipping methods) would
-        // become a backslash after the doubling and then a line break.
-        $text = in_array($name, self::FREE_TEXT, true)
-            ? MessageCleaner::cleanPlaceholderValue($text)
-            : MessageCleaner::cleanForStorage($text);
-        $text = trim(strtr($text, ['{' => '', '}' => '']));
 
-        return str_replace('\\', '\\\\', $text);
+        return str_replace('\\', '\\\\', self::settleValue($name, $text, self::MAX_VALUE_PASSES));
+    }
+
+    /**
+     * Clean a value, remove its braces, and do both again until a pass changes nothing; '' when it does not settle
+     * within $max_passes (fail closed).
+     *
+     * Why a loop: the send decodes entities before anything else, and removing braces can build one out of text that
+     * was not: "&{#92;n}" is clean, but "&#92;n" is a backslash n, which the one decode at send turns into a line
+     * break ("&{#9;}" into a tab). So whatever the brace strip leaves is cleaned again, and the pass that changes
+     * nothing is the value. Each pass either shortens the text or ends the loop.
+     *
+     * The cleaning is cleanPlaceholderValue() for a customer-typed value (20 characters, no URL, no domain, no run of
+     * 6 digits, one line) and cleanForStorage() for every other (entities decoded, tags, hidden characters and emoji
+     * gone, escapes NOT decoded); every value is also one line, because a value is a word, not a paragraph.
+     *
+     * Ruling (fix round 2 F1b): a customer-typed value also loses every ampersand, inside the loop, after the entities
+     * are decoded. With no ampersand in a name no entity can exist in it, and none can be formed across two
+     * placeholders that touch ("{customer_first_name}{customer_last_name}" holding "&" and "#92;n"). The price is
+     * that "AT&T" is sent as "ATT". A shop value keeps its ampersand.
+     * 2026-10-21 00:44 +03: added, fix round 2 F1, task 596.
+     */
+    private static function settleValue(string $name, string $text, int $max_passes): string
+    {
+        $free = in_array($name, self::FREE_TEXT, true);
+        $drop = $free ? ['{' => '', '}' => '', '&' => ''] : ['{' => '', '}' => ''];
+
+        // A customer-typed value has its literal escapes decoded once, in the first pass (as clean() does); a second
+        // decode would eat one more layer of backslashes.
+        $first = true;
+        for ($pass = 0; $pass < $max_passes; $pass++) {
+            if (!$free) {
+                $cleaned = MessageCleaner::cleanForStorage($text);
+            } elseif ($first) {
+                $cleaned = MessageCleaner::cleanPlaceholderValue($text);
+            } else {
+                $cleaned = MessageCleaner::recleanPlaceholderValue($text);
+            }
+            $first = false;
+            $next = trim((string) preg_replace('/\s+/u', ' ', strtr($cleaned, $drop)));
+            if ($next === $text) {
+                return $text;
+            }
+            $text = $next;
+        }
+
+        return '';
     }
 
     /**

@@ -29,6 +29,8 @@
  *                                                               === clean(x), the escapes decode once, at send
  *              MessageCleaner::dropInvalidUtf8($text)        -> only the invalid UTF-8 bytes removed (2026-10-20
  *                                                               23:59 +03, Task 1.8 fix round 1, task 596)
+ *              MessageCleaner::recleanPlaceholderValue($v)   -> cleanPlaceholderValue() without decoding the escapes
+ *                                                               again (2026-10-21 00:46 +03, Task 1.8 fix round 2)
  *              MessageCleaner::hasHtmlLikeSpan($cleaned)     -> true when a "<" is followed later by a ">"
  *                                                               (the gateway's ERR027 rule); the caller blocks
  *              MessageCleaner::cleanPlaceholderValue($name)  -> at most 20 characters on one line, no < or >,
@@ -328,8 +330,25 @@ class MessageCleaner
      */
     public static function cleanPlaceholderValue(string $value): string
     {
+        return self::placeholderValue($value, true);
+    }
+
+    /**
+     * cleanPlaceholderValue() for a value that was already cleaned once: the same cleaning, the literal escapes are NOT
+     * decoded. TemplateRenderer cleans a value more than once (it removes braces between the passes) and uses this from
+     * the second pass on, because a second decode would eat one more layer of backslashes. The public signature of
+     * cleanPlaceholderValue() is pinned by MessageCleanerTest, so this is a method of its own.
+     * 2026-10-21 00:46 +03: added, Task 1.8 fix round 2 F1, task 596.
+     */
+    public static function recleanPlaceholderValue(string $value): string
+    {
+        return self::placeholderValue($value, false);
+    }
+
+    private static function placeholderValue(string $value, bool $decode_escapes): string
+    {
         try {
-            return self::settlePlaceholder(self::cleanBody($value, true), self::MAX_PASSES);
+            return self::settlePlaceholder(self::cleanBody($value, $decode_escapes), self::MAX_PASSES);
         } catch (\UnexpectedValueException $e) {
             return '';
         }
