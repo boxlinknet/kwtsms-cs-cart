@@ -1,0 +1,194 @@
+# FILE:      var/langs/en/addons/kwtsms.po
+# CREATED:   2026-10-20 19:53 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      English language variables of the kwtSMS add-on (add-on name, settings, privileges, menu).
+# WHY:       CS-Cart installs them with the add-on and removes them on uninstall. Every key exists in
+#            both language files (en and ar). Later tasks append their keys here.
+# USAGE:     Read by CS-Cart on install and upgrade; edit values in Admin > Administration > Languages.
+# DEPENDS:   Nothing.
+msgid ""
+msgstr "Project-Id-Version: tygh\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language-Team: English\n"
+"Language: en_US"
+
+msgctxt "Addons::name::kwtsms"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Addons::description::kwtsms"
+msgid "SMS notifications for your store through the kwtSMS gateway: order messages for customers and administrators, in English and Arabic."
+msgstr "SMS notifications for your store through the kwtSMS gateway: order messages for customers and administrators, in English and Arabic."
+
+msgctxt "SettingsSections::kwtsms::general"
+msgid "General"
+msgstr "General"
+
+msgctxt "SettingsOptions::kwtsms::info"
+msgid "kwtSMS settings"
+msgstr "kwtSMS settings"
+
+msgctxt "SettingsOptions::kwtsms::enabled"
+msgid "Send SMS (global switch)"
+msgstr "Send SMS (global switch)"
+
+msgctxt "SettingsOptions::kwtsms::test_mode"
+msgid "Test mode"
+msgstr "Test mode"
+
+msgctxt "SettingsOptions::kwtsms::pilot_mode"
+msgid "Pilot mode (administrator numbers only)"
+msgstr "Pilot mode (administrator numbers only)"
+
+msgctxt "SettingsOptions::kwtsms::default_country_code"
+msgid "Default country"
+msgstr "Default country"
+
+msgctxt "SettingsOptions::kwtsms::customer_sms_countries"
+msgid "Countries customers can receive SMS in"
+msgstr "Countries customers can receive SMS in"
+
+msgctxt "SettingsOptions::kwtsms::placed_status_extra"
+msgid "Extra order status counted as a new order"
+msgstr "Extra order status counted as a new order"
+
+msgctxt "SettingsOptions::kwtsms::quiet_hours_enabled"
+msgid "Quiet hours"
+msgstr "Quiet hours"
+
+msgctxt "SettingsOptions::kwtsms::quiet_hours_from"
+msgid "Quiet hours start"
+msgstr "Quiet hours start"
+
+msgctxt "SettingsOptions::kwtsms::quiet_hours_to"
+msgid "Quiet hours end"
+msgstr "Quiet hours end"
+
+msgctxt "SettingsOptions::kwtsms::max_pages_notification"
+msgid "Maximum SMS pages per notification"
+msgstr "Maximum SMS pages per notification"
+
+msgctxt "SettingsOptions::kwtsms::api_username"
+msgid "API username"
+msgstr "API username"
+
+msgctxt "SettingsOptions::kwtsms::api_password"
+msgid "API password"
+msgstr "API password"
+
+msgctxt "SettingsOptions::kwtsms::sender_id"
+msgid "Sender ID"
+msgstr "Sender ID"
+
+msgctxt "SettingsOptions::kwtsms::sender_type"
+msgid "Sender ID type"
+msgstr "Sender ID type"
+
+msgctxt "SettingsOptions::kwtsms::sender_id_promotional"
+msgid "Promotional Sender ID"
+msgstr "Promotional Sender ID"
+
+msgctxt "SettingsOptions::kwtsms::cap_recipient_hour"
+msgid "Messages per recipient per hour"
+msgstr "Messages per recipient per hour"
+
+msgctxt "SettingsOptions::kwtsms::cap_recipient_day"
+msgid "Messages per recipient per day"
+msgstr "Messages per recipient per day"
+
+msgctxt "SettingsOptions::kwtsms::cap_admin_day"
+msgid "Messages per administrator number per day"
+msgstr "Messages per administrator number per day"
+
+msgctxt "SettingsOptions::kwtsms::cap_store_day"
+msgid "Recipients per store per day"
+msgstr "Recipients per store per day"
+
+msgctxt "SettingsOptions::kwtsms::low_balance_threshold"
+msgid "Low balance threshold"
+msgstr "Low balance threshold"
+
+msgctxt "SettingsOptions::kwtsms::admin_phones"
+msgid "Administrator phone numbers"
+msgstr "Administrator phone numbers"
+
+msgctxt "SettingsOptions::kwtsms::admin_alert_lang"
+msgid "Administrator alert language"
+msgstr "Administrator alert language"
+
+msgctxt "SettingsOptions::kwtsms::mve_customer_new_order"
+msgid "Customer new order SMS (Multi-Vendor)"
+msgstr "Customer new order SMS (Multi-Vendor)"
+
+msgctxt "SettingsOptions::kwtsms::mve_admin_new_order"
+msgid "Administrator new order SMS (Multi-Vendor)"
+msgstr "Administrator new order SMS (Multi-Vendor)"
+
+msgctxt "SettingsOptions::kwtsms::mve_customer_status_scope"
+msgid "Customer status SMS scope (Multi-Vendor)"
+msgstr "Customer status SMS scope (Multi-Vendor)"
+
+msgctxt "SettingsOptions::kwtsms::mve_vendor_triggered_sms"
+msgid "SMS for changes made by vendors (Multi-Vendor)"
+msgstr "SMS for changes made by vendors (Multi-Vendor)"
+
+msgctxt "SettingsOptions::kwtsms::log_level"
+msgid "Log level"
+msgstr "Log level"
+
+msgctxt "SettingsOptions::kwtsms::retention_messages_days"
+msgid "Keep message logs (days)"
+msgstr "Keep message logs (days)"
+
+msgctxt "SettingsOptions::kwtsms::retention_attempts_days"
+msgid "Keep attempt logs (days)"
+msgstr "Keep attempt logs (days)"
+
+msgctxt "SettingsOptions::kwtsms::retention_debug_days"
+msgid "Keep debug logs (days)"
+msgstr "Keep debug logs (days)"
+
+msgctxt "SettingsOptions::kwtsms::cron_url_enabled"
+msgid "Cron URL mode"
+msgstr "Cron URL mode"
+
+msgctxt "SettingsOptions::kwtsms::cron_key"
+msgid "Cron key"
+msgstr "Cron key"
+
+msgctxt "SettingsOptions::kwtsms::marketplace_license_number"
+msgid "Marketplace license number"
+msgstr "Marketplace license number"
+
+msgctxt "Languages::event.transport.kwtsms"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Languages::privilege_groups.kwtsms"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Languages::privileges.view_kwtsms"
+msgid "View the kwtSMS dashboard and Help"
+msgstr "View the kwtSMS dashboard and Help"
+
+msgctxt "Languages::privileges.view_kwtsms_logs"
+msgid "View kwtSMS logs"
+msgstr "View kwtSMS logs"
+
+msgctxt "Languages::privileges.manage_kwtsms"
+msgid "Manage kwtSMS templates, admin alerts and integrations"
+msgstr "Manage kwtSMS templates, admin alerts and integrations"
+
+msgctxt "Languages::privileges.manage_kwtsms_gateway"
+msgid "Manage the kwtSMS gateway: login, settings, test SMS, export and resend"
+msgstr "Manage the kwtSMS gateway: login, settings, test SMS, export and resend"
+
+msgctxt "Languages::kwtsms.menu_title"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Languages::kwtsms.open_settings"
+msgid "Open kwtSMS settings"
+msgstr "Open kwtSMS settings"

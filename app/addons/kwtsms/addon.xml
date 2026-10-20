@@ -1,0 +1,393 @@
+<?xml version="1.0"?>
+<!--
+FILE:      app/addons/kwtsms/addon.xml
+CREATED:   2026-10-20 19:51 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Scheme 3.0 manifest of the kwtSMS add-on: id, version, compatibility, hidden settings (PRD 9),
+           the Phase 1 tables (PRD 8), the four privileges (PRD 7) and the install/uninstall hooks.
+WHY:       CS-Cart installs, upgrades and removes the add-on from this file. Install creates the nine
+           Phase 1 tables and the privileges; uninstall removes every trace listed in PRD 13 (tables,
+           privileges and their usergroup grants, notification rows, storage_data keys, language values).
+USAGE:     Read by CS-Cart (Admin > Add-ons > Manage add-ons, or fn_install_addon('kwtsms')).
+           Settings are hidden items (written by the add-on's own pages); the only visible ones are the
+           info link to the add-on's Settings page and marketplace_license_number.
+DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_info),
+           var/langs/{en,ar}/addons/kwtsms.po, design/backend/media/images/addons/kwtsms/icon.png.
+-->
+<addon scheme="3.0">
+    <id>kwtsms</id>
+    <version>1.0.0</version>
+    <priority>4000</priority>
+    <status>active</status>
+    <default_language>en</default_language>
+    <has_icon>Y</has_icon>
+    <supplier>kwtSMS</supplier>
+    <supplier_link>https://www.kwtsms.com</supplier_link>
+    <compatibility>
+        <core_version>
+            <min>4.18.1</min>
+            <max>4.21.2</max>
+        </core_version>
+        <php_extensions>
+            <curl>
+                <supported>Y</supported>
+            </curl>
+            <json>
+                <supported>Y</supported>
+            </json>
+            <mbstring>
+                <supported>Y</supported>
+            </mbstring>
+        </php_extensions>
+    </compatibility>
+
+    <settings edition_type="ROOT">
+        <sections>
+            <section id="general">
+                <items>
+                    <!-- Visible: a link to the add-on's own Settings page (kwtsms.settings). -->
+                    <item id="info">
+                        <type>info</type>
+                        <handler>fn_kwtsms_settings_info</handler>
+                    </item>
+
+                    <!-- General -->
+                    <item id="enabled">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="test_mode">
+                        <type>hidden</type>
+                        <default_value>Y</default_value>
+                    </item>
+                    <item id="pilot_mode">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <!-- Calling code without "+" (D18: the dropdown arrives with the Settings page). -->
+                    <item id="default_country_code">
+                        <type>hidden</type>
+                        <default_value>965</default_value>
+                    </item>
+                    <!-- Comma separated calling codes customers may receive SMS in; install default = the default country. -->
+                    <item id="customer_sms_countries">
+                        <type>hidden</type>
+                        <default_value>965</default_value>
+                    </item>
+                    <item id="placed_status_extra">
+                        <type>hidden</type>
+                        <default_value>B</default_value>
+                    </item>
+                    <item id="quiet_hours_enabled">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="quiet_hours_from">
+                        <type>hidden</type>
+                        <default_value>22:00</default_value>
+                    </item>
+                    <item id="quiet_hours_to">
+                        <type>hidden</type>
+                        <default_value>08:00</default_value>
+                    </item>
+                    <item id="max_pages_notification">
+                        <type>hidden</type>
+                        <default_value>3</default_value>
+                    </item>
+
+                    <!-- Gateway. api_password is stored encrypted with a prefix by the login mode, never here. -->
+                    <item id="api_username">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="api_password">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="sender_id">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="sender_type">
+                        <type>hidden</type>
+                        <default_value>transactional</default_value>
+                    </item>
+                    <item id="sender_id_promotional">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+
+                    <!-- Caps -->
+                    <item id="cap_recipient_hour">
+                        <type>hidden</type>
+                        <default_value>5</default_value>
+                    </item>
+                    <item id="cap_recipient_day">
+                        <type>hidden</type>
+                        <default_value>20</default_value>
+                    </item>
+                    <item id="cap_admin_day">
+                        <type>hidden</type>
+                        <default_value>300</default_value>
+                    </item>
+                    <item id="cap_store_day">
+                        <type>hidden</type>
+                        <default_value>1000</default_value>
+                    </item>
+                    <item id="low_balance_threshold">
+                        <type>hidden</type>
+                        <default_value>auto</default_value>
+                    </item>
+
+                    <!-- Admin. Empty admin_alert_lang = the backend default language, resolved when used. -->
+                    <item id="admin_phones">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="admin_alert_lang">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+
+                    <!-- Multi-Vendor -->
+                    <item id="mve_customer_new_order">
+                        <type>hidden</type>
+                        <default_value>per_checkout</default_value>
+                    </item>
+                    <item id="mve_admin_new_order">
+                        <type>hidden</type>
+                        <default_value>per_checkout</default_value>
+                    </item>
+                    <item id="mve_customer_status_scope">
+                        <type>hidden</type>
+                        <default_value>auto</default_value>
+                    </item>
+                    <item id="mve_vendor_triggered_sms">
+                        <type>hidden</type>
+                        <default_value>Y</default_value>
+                    </item>
+
+                    <!-- Logs and cron. cron_key is generated at install by fn_kwtsms_install(), never a static default. -->
+                    <item id="log_level">
+                        <type>hidden</type>
+                        <default_value>info</default_value>
+                    </item>
+                    <item id="retention_messages_days">
+                        <type>hidden</type>
+                        <default_value>0</default_value>
+                    </item>
+                    <item id="retention_attempts_days">
+                        <type>hidden</type>
+                        <default_value>365</default_value>
+                    </item>
+                    <item id="retention_debug_days">
+                        <type>hidden</type>
+                        <default_value>30</default_value>
+                    </item>
+                    <item id="cron_url_enabled">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="cron_key">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+
+                    <!-- Kept for marketplace documentation compliance (PRD 4.5). -->
+                    <item id="marketplace_license_number">
+                        <type>input</type>
+                        <default_value/>
+                    </item>
+                </items>
+            </section>
+        </sections>
+    </settings>
+
+    <queries>
+        <!-- Phase 1 tables (PRD 8). Timestamps are unsigned int (Unix UTC). DEFAULT CHARSET UTF8: the
+             connection is 3-byte utf8, so 4-byte characters are removed from free text before insert. -->
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_messages` (
+            `message_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `source` varchar(16) NOT NULL DEFAULT '',
+            `event_id` varchar(128) NOT NULL DEFAULT '',
+            `receiver` varchar(15) NOT NULL DEFAULT '',
+            `company_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `parent_order_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `order_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `actor_user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `actor_company_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `sender` varchar(32) NOT NULL DEFAULT '',
+            `recipients` text,
+            `recipient_count` int(11) unsigned NOT NULL DEFAULT 0,
+            `numbers_accepted` int(11) unsigned NOT NULL DEFAULT 0,
+            `partial_accept` char(1) NOT NULL DEFAULT 'N',
+            `message` text,
+            `masked` char(1) NOT NULL DEFAULT 'N',
+            `lang_code` char(2) NOT NULL DEFAULT '',
+            `encoding` varchar(8) NOT NULL DEFAULT '',
+            `pages` smallint(5) unsigned NOT NULL DEFAULT 0,
+            `is_test` char(1) NOT NULL DEFAULT 'N',
+            `batch_no` smallint(5) unsigned NOT NULL DEFAULT 1,
+            `batch_total` smallint(5) unsigned NOT NULL DEFAULT 1,
+            `status` varchar(32) NOT NULL DEFAULT '',
+            `api_code` varchar(32) NOT NULL DEFAULT '',
+            `code_source` varchar(8) NOT NULL DEFAULT 'api',
+            `api_msg_id` varchar(64) NOT NULL DEFAULT '',
+            `points_charged` decimal(14,2) unsigned NOT NULL DEFAULT 0.00,
+            `balance_after` decimal(14,2) NOT NULL DEFAULT 0.00,
+            `api_unix_ts` int(11) unsigned NOT NULL DEFAULT 0,
+            `api_request` mediumtext,
+            `api_response` mediumtext,
+            `duration_ms` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`message_id`),
+            KEY `idx_created_at` (`created_at`),
+            KEY `idx_status_created_at` (`status`, `created_at`),
+            KEY `idx_event_id` (`event_id`),
+            KEY `idx_order_id` (`order_id`),
+            KEY `idx_parent_order_id` (`parent_order_id`),
+            KEY `idx_company_created_at` (`company_id`, `created_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_attempts` (
+            `attempt_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `message_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `outbox_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `retry_of` int(11) unsigned NOT NULL DEFAULT 0,
+            `source` varchar(16) NOT NULL DEFAULT '',
+            `event_id` varchar(128) NOT NULL DEFAULT '',
+            `receiver` varchar(15) NOT NULL DEFAULT '',
+            `company_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `parent_order_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `order_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `actor_user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `phone_raw` varchar(64) NOT NULL DEFAULT '',
+            `phone` varchar(64) NOT NULL DEFAULT '',
+            `outcome` varchar(32) NOT NULL DEFAULT '',
+            `reason` varchar(255) NOT NULL DEFAULT '',
+            `ip` varchar(45) DEFAULT NULL,
+            PRIMARY KEY (`attempt_id`),
+            KEY `idx_created_at` (`created_at`),
+            KEY `idx_phone_created_at` (`phone`, `created_at`),
+            KEY `idx_ip_created_at` (`ip`, `created_at`),
+            KEY `idx_outcome_created_at` (`outcome`, `created_at`),
+            KEY `idx_order_id` (`order_id`),
+            KEY `idx_parent_order_id` (`parent_order_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_debug_log` (
+            `log_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `level` varchar(10) NOT NULL DEFAULT 'info',
+            `action` varchar(64) NOT NULL DEFAULT '',
+            `message` text,
+            `context` text,
+            `duration_ms` int(11) unsigned NOT NULL DEFAULT 0,
+            `request_id` varchar(32) NOT NULL DEFAULT '',
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`log_id`),
+            KEY `idx_created_at` (`created_at`),
+            KEY `idx_level_created_at` (`level`, `created_at`),
+            KEY `idx_action` (`action`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_templates` (
+            `template_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `event_id` varchar(128) NOT NULL DEFAULT '',
+            `receiver` varchar(15) NOT NULL DEFAULT '',
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`template_id`),
+            UNIQUE KEY `uniq_event_receiver` (`event_id`, `receiver`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_template_descriptions` (
+            `template_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `lang_code` char(2) NOT NULL DEFAULT '',
+            `body` text,
+            `is_edited` char(1) NOT NULL DEFAULT 'N',
+            PRIMARY KEY (`template_id`, `lang_code`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_brand_names` (
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `enabled` char(1) NOT NULL DEFAULT 'Y',
+            PRIMARY KEY (`storefront_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_brand_name_descriptions` (
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `lang_code` char(2) NOT NULL DEFAULT '',
+            `brand_name` varchar(64) NOT NULL DEFAULT '',
+            PRIMARY KEY (`storefront_id`, `lang_code`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_outbox` (
+            `outbox_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `retry_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `expires_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `attempts` smallint(5) unsigned NOT NULL DEFAULT 0,
+            `reason` varchar(32) NOT NULL DEFAULT '',
+            `status` varchar(16) NOT NULL DEFAULT 'pending',
+            `phones` text,
+            `message` text,
+            `context` mediumtext,
+            PRIMARY KEY (`outbox_id`),
+            KEY `idx_status_retry_at` (`status`, `retry_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_dispatch_keys` (
+            `dispatch_key` varchar(191) NOT NULL,
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`dispatch_key`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+
+        <!-- Privileges (PRD 7): section addons, group kwtsms. -->
+        <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms', 'Y', 'addons', 'kwtsms', 'Y');</item>
+        <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms_logs', 'Y', 'addons', 'kwtsms', 'Y');</item>
+        <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms', 'Y', 'addons', 'kwtsms', 'N');</item>
+        <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms_gateway', 'Y', 'addons', 'kwtsms', 'N');</item>
+
+        <!-- Uninstall (PRD 13): nothing of ours stays behind, a reinstall starts clean. Tables created by a
+             later version are swept by fn_kwtsms_uninstall(). -->
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_messages`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_attempts`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_debug_log`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_templates`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_template_descriptions`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_brand_names`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_brand_name_descriptions`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_outbox`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_dispatch_keys`;</item>
+        <item for="uninstall">DELETE FROM ?:usergroup_privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
+        <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
+        <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>
+        <item for="uninstall">DELETE FROM ?:notification_event_receivers WHERE event_id LIKE 'kwtsms.%';</item>
+        <!-- "|" escapes the underscore, so only keys that start with "kwtsms_" match (not "kwtsmsX..."). -->
+        <item for="uninstall">DELETE FROM ?:storage_data WHERE data_key LIKE 'kwtsms|_%' ESCAPE '|';</item>
+        <item for="uninstall">DELETE FROM ?:language_values WHERE name LIKE 'kwtsms.%';</item>
+        <item for="uninstall" editions="ULTIMATE">DELETE FROM ?:ult_language_values WHERE name LIKE 'kwtsms.%';</item>
+        <item for="uninstall">DELETE FROM ?:original_values WHERE msgctxt LIKE 'Languages::kwtsms.%';</item>
+    </queries>
+
+    <functions>
+        <item for="install">fn_kwtsms_install</item>
+        <item for="uninstall">fn_kwtsms_uninstall</item>
+    </functions>
+</addon>
