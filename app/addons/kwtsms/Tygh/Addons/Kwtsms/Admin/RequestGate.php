@@ -63,6 +63,9 @@ final class RequestGate
         'reset_template'         => [self::POST, 'manage_kwtsms'],
         'load_template_defaults' => [self::POST, 'manage_kwtsms'],
         'toggle_event'           => [self::POST, 'manage_kwtsms'],
+        // 2026-10-21 03:27 +03: the Templates page preview (a POST: the text can be long and must not sit in a query
+        // string; it sends nothing and writes nothing), Task 1.12, task 596.
+        'preview_template'       => [self::POST, 'manage_kwtsms'],
         'update_admin_alerts'    => [self::POST, 'manage_kwtsms'],
         'update_integrations'    => [self::POST, 'manage_kwtsms'],
     ];

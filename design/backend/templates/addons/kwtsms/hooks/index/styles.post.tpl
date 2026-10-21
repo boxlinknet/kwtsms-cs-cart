@@ -10,3 +10,5 @@ USAGE:     Rendered by CS-Cart on every admin page while the add-on is active.
 DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 *}
 {style src="addons/kwtsms/styles.less"}
+{* 2026-10-21 04:38 +03: the Templates page styles, Task 1.12, task 596 *}
+{style src="addons/kwtsms/templates.less"}

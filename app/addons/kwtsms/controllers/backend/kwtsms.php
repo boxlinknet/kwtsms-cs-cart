@@ -27,6 +27,7 @@
 use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
+use Tygh\Addons\Kwtsms\Admin\TemplatesPage;
 use Tygh\Registry;
 use Tygh\Tygh;
 
@@ -144,6 +145,85 @@ try {
                 $kwtsms_page->regenerateCronKey();
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_cron'];
+
+            // 2026-10-21 03:28 +03: the Templates page actions (Task 1.12, task 596). Admin\TemplatesPage holds the
+            // rules; this only reads the posted form (the body raw, from the POST body only), calls it and redirects
+            // (PRG).
+            case 'update_template':
+            case 'reset_template':
+            case 'load_template_defaults':
+            case 'toggle_event':
+            case 'preview_template':
+                // PRD 10: a template body is raw text ("<", "&" must reach the cleaner as typed); the other fields are
+                // plain strings. Only the POST body counts: a query string is logged by servers and proxies.
+                fn_trusted_vars('kwtsms_tpl.body');
+                $kwtsms_tpl = [];
+                $kwtsms_posted = isset($_POST['kwtsms_tpl']) && is_array($_POST['kwtsms_tpl']);
+                if ($kwtsms_posted && isset($_REQUEST['kwtsms_tpl']) && is_array($_REQUEST['kwtsms_tpl'])) {
+                    $kwtsms_tpl = array_intersect_key($_REQUEST['kwtsms_tpl'], $_POST['kwtsms_tpl']);
+                }
+                $kwtsms_templates_page = TemplatesPage::fromContainer(Tygh::$app);
+                $kwtsms_templates_url = static function ($lang, $edit = '', $anchor = '') {
+                    return 'kwtsms.templates' . (is_string($lang) && $lang !== '' ? '?lang=' . rawurlencode($lang) : '')
+                        . ($edit !== '' ? '&edit=' . rawurlencode($edit) : '') . $anchor;
+                };
+
+                if ($mode === 'update_template') {
+                    $kwtsms_result = $kwtsms_templates_page->save($kwtsms_tpl);
+                    if ($kwtsms_result['draft'] !== null) {
+                        $kwtsms_session['kwtsms_template_draft'] = $kwtsms_result['draft'];
+                    }
+
+                    return [
+                        CONTROLLER_STATUS_REDIRECT,
+                        $kwtsms_templates_url($kwtsms_result['lang'], $kwtsms_result['edit'], '#kwtsms_editor'),
+                    ];
+                }
+                if ($mode === 'reset_template') {
+                    $kwtsms_result = $kwtsms_templates_page->reset($kwtsms_tpl);
+
+                    return [CONTROLLER_STATUS_REDIRECT, $kwtsms_templates_url($kwtsms_result['lang'])];
+                }
+                if ($mode === 'load_template_defaults') {
+                    $kwtsms_result = $kwtsms_templates_page->loadDefaults(
+                        isset($kwtsms_tpl['lang']) && is_string($kwtsms_tpl['lang']) ? $kwtsms_tpl['lang'] : ''
+                    );
+
+                    return [CONTROLLER_STATUS_REDIRECT, $kwtsms_templates_url($kwtsms_result['lang'])];
+                }
+                if ($mode === 'toggle_event') {
+                    // PRD 7: the switch is core's own, so changing it also needs core's manage_notification_settings.
+                    $kwtsms_result = $kwtsms_templates_page->toggle(
+                        $kwtsms_tpl,
+                        fn_check_current_user_access('manage_notification_settings') === true
+                    );
+                    $kwtsms_anchor = '';
+                    $kwtsms_event = isset($kwtsms_tpl['event_id']) ? $kwtsms_tpl['event_id'] : null;
+                    $kwtsms_receiver = isset($kwtsms_tpl['receiver']) ? $kwtsms_tpl['receiver'] : null;
+                    if (is_string($kwtsms_event) && is_string($kwtsms_receiver)) {
+                        $kwtsms_key = TemplatesPage::rowKey($kwtsms_event, $kwtsms_receiver);
+                        $kwtsms_anchor = '#' . TemplatesPage::domId($kwtsms_key);
+                    }
+                    $kwtsms_to = $kwtsms_templates_url($kwtsms_result['lang'], '', $kwtsms_anchor);
+
+                    return [CONTROLLER_STATUS_REDIRECT, $kwtsms_to];
+                }
+
+                // preview_template: JSON for the script, which shows it with textContent. Sends nothing, writes
+                // nothing. Showing an order needs core's view_orders.
+                $kwtsms_may_see_orders = fn_check_current_user_access('view_orders') === true;
+                $kwtsms_answer = $kwtsms_templates_page->preview($kwtsms_tpl, $kwtsms_may_see_orders);
+                if (!headers_sent()) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    header('Cache-Control: no-store');
+                    header('X-Content-Type-Options: nosniff');
+                }
+                echo json_encode(
+                    $kwtsms_answer,
+                    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+                    | JSON_INVALID_UTF8_SUBSTITUTE
+                ) ?: '{"ok":false}';
+                exit;
         }
 
         // POST modes of later tasks (templates, alerts, integrations, logs) do nothing until they are built.
@@ -182,6 +262,34 @@ try {
         return [CONTROLLER_STATUS_OK];
     }
 
+    // 2026-10-21 03:28 +03: the Templates page (Task 1.12, task 596). A GET handler never writes; a refused save
+    // leaves its typed text in the session for this one redirect.
+    if ($mode === 'templates') {
+        $kwtsms_draft = null;
+        if (isset($kwtsms_session['kwtsms_template_draft']) && is_array($kwtsms_session['kwtsms_template_draft'])) {
+            $kwtsms_draft = $kwtsms_session['kwtsms_template_draft'];
+            unset($kwtsms_session['kwtsms_template_draft']);
+        }
+        $kwtsms_data = TemplatesPage::fromContainer(Tygh::$app)->viewData(
+            isset($_REQUEST['lang']) && is_string($_REQUEST['lang']) ? $_REQUEST['lang'] : '',
+            isset($_REQUEST['edit']) && is_string($_REQUEST['edit']) ? $_REQUEST['edit'] : '',
+            $kwtsms_draft,
+            fn_check_current_user_access('manage_notification_settings') === true
+        );
+        $kwtsms_data['can_open_settings'] = fn_check_current_user_access('manage_kwtsms_gateway') === true;
+
+        $kwtsms_nav = Navigation::sections('templates', static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        });
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'templates');
+
+        Tygh::$app['view']->assign('kwtsms_templates', $kwtsms_data);
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
     if ($mode === 'dashboard') {
         // Until the dashboard page exists (Task 1.11) the menu item opens Settings for those who may see it.
         if (fn_check_current_user_access('manage_kwtsms_gateway') === true) {
@@ -204,7 +312,16 @@ try {
     }
     fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.settings.failed')));
 
+    // 2026-10-21 04:38 +03: a failed Templates action goes back to the Templates page (Task 1.12, task 596).
+    $kwtsms_templates_modes = [
+        'update_template', 'reset_template', 'load_template_defaults', 'toggle_event', 'preview_template',
+    ];
+    $kwtsms_failed_url = $kwtsms_settings_url;
+    if (in_array((string) $mode, $kwtsms_templates_modes, true)) {
+        $kwtsms_failed_url = 'kwtsms.templates';
+    }
+
     return $kwtsms_method === RequestGate::POST
-        ? [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url]
+        ? [CONTROLLER_STATUS_REDIRECT, $kwtsms_failed_url]
         : [CONTROLLER_STATUS_NO_PAGE];
 }

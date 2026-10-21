@@ -1,0 +1,125 @@
+{*
+FILE:      design/backend/templates/addons/kwtsms/views/kwtsms/components/template_editor.tpl
+CREATED:   2026-10-21 03:25 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      The editor of one template text (one row, one language): the text area in the language's direction, the
+           placeholder chips, the advice list, the SMS meter with the counter and the worst-case estimate, the preview,
+           and Save / Reset / Close.
+WHY:       PRD 6.4. The left column is the only form (Save, Reset); the right column (meter, preview) sits outside it so
+           that pressing Enter in the order number box can never submit a save. The script (templates.js) reads the
+           data- attributes of the root, counts with counter.js (a mirror of MessageCleaner) and asks the server for the
+           exact preview; it shows server text with textContent only. The text of a template is printed only inside the
+           text area, auto-escaped.
+USAGE:     {include file="addons/kwtsms/views/kwtsms/components/template_editor.tpl" e=$editor t=$page row_label=.. receiver_label=..}
+           $e: Admin\TemplatesPage::viewData()['editor']; $t: the page data.
+DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}.js, kwtsms.templates.* language variables.
+*}
+<section class="kwtsms-editor" id="kwtsms_editor" aria-labelledby="kwtsms_editor_title"
+         data-kwtsms-editor="1"
+         data-kwtsms-receiver="{$e.receiver}"
+         data-kwtsms-lang="{$e.lang}"
+         data-kwtsms-event="{$e.event_id}"
+         data-kwtsms-reference="{$e.reference|json_encode}"
+         data-kwtsms-worst="{$e.worst|json_encode}"
+         data-kwtsms-allowed="{$e.allowed|json_encode}"
+         data-kwtsms-enc-ascii="{__("kwtsms.templates.enc_ascii")}"
+         data-kwtsms-enc-unicode="{__("kwtsms.templates.enc_unicode")}"
+         data-kwtsms-msg-failed="{__("kwtsms.templates.preview_failed")}"
+         data-kwtsms-msg-empty="{__("kwtsms.templates.preview_empty")}"
+         data-kwtsms-msg-leftover="{__("kwtsms.templates.preview_leftover")}"
+         data-kwtsms-msg-removed="{__("kwtsms.templates.preview_removed")}"
+         data-kwtsms-msg-length="{__("kwtsms.templates.length_summary")}"
+         data-kwtsms-msg-over="{__("kwtsms.templates.counter_over", ["[max]" => $t.max_pages])}">
+
+    <h4 class="subheader" id="kwtsms_editor_title">{__("kwtsms.templates.editor_title", ["[row]" => "`$row_label` / `$receiver_label`", "[language]" => $e.lang_name])}</h4>
+    <p class="kwtsms-editor__ids muted"><bdi dir="ltr">{$e.event_id}</bdi> <bdi dir="ltr">{$e.receiver}</bdi></p>
+
+    <div class="kwtsms-editor__grid">
+        <div class="kwtsms-editor__main">
+            <form action="{""|fn_url}" method="post" name="kwtsms_template_form" id="kwtsms_template_form" autocomplete="off">
+                <input type="hidden" name="kwtsms_tpl[event_id]" value="{$e.event_id}">
+                <input type="hidden" name="kwtsms_tpl[receiver]" value="{$e.receiver}">
+                <input type="hidden" name="kwtsms_tpl[lang]" value="{$e.lang}">
+                {if $e.unknown}<input type="hidden" name="kwtsms_tpl[confirm]" value="{$e.confirm}">{/if}
+
+                <label class="kwtsms-editor__label" for="kwtsms_body">{__("kwtsms.templates.editor_label", ["[language]" => $e.lang_name])}</label>
+                {if $e.origin == "generic"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_generic")}</p>
+                {elseif $e.origin == "default_lang"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_default_lang", ["[language]" => $t.default_lang_name])}</p>
+                {elseif $e.origin == "none"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_none")}</p>
+                {/if}
+                <textarea id="kwtsms_body" name="kwtsms_tpl[body]" class="kwtsms-body" rows="5" maxlength="{$t.max_chars}"
+                          dir="{$e.direction}" lang="{$e.lang}" spellcheck="false"{if $e.origin != "own"} data-kwtsms-origin="{$e.origin}"{/if}>{$e.body}</textarea>
+
+                <div class="kwtsms-chips" id="kwtsms_chips" role="group" aria-label="{__("kwtsms.templates.chips_title")}">
+                    <span class="kwtsms-chips__title">{__("kwtsms.templates.chips_title")}</span>
+                    {foreach $e.allowed as $name}
+                        <button type="button" class="kwtsms-chip" data-insert="{ldelim}{$name}{rdelim}"
+                                title="{__("kwtsms.templates.ph_`$name`")}: {$e.reference.$name}"><bdi dir="ltr">{ldelim}{$name}{rdelim}</bdi></button>
+                    {/foreach}
+                    <span class="muted kwtsms-chips__help">{__("kwtsms.templates.chips_help")}</span>
+                </div>
+
+                <ul class="kwtsms-advice" id="kwtsms_advice" aria-live="polite">
+                    {foreach ["store_name_missing", "unknown", "html_span", "adjacent", "entity_fragment", "promotional"] as $code}
+                        {$show = isset($e.advice[$code])}
+                        <li class="kwtsms-advice__item kwtsms-advice__item--{if $code == "store_name_missing" || $code == "unknown"}stop{else}warn{/if}{if !$show} hidden{/if}"
+                            data-code="{$code}" data-text="{__("kwtsms.templates.warn_`$code`")}"><span class="kwtsms-advice__text">{if $show}{__("kwtsms.templates.warn_`$code`", ["[found]" => $e.advice[$code]])}{/if}</span></li>
+                    {/foreach}
+                </ul>
+
+                <div class="kwtsms-actions kwtsms-editor__actions">
+                    <input type="submit" class="btn btn-primary" id="kwtsms_save" name="dispatch[kwtsms.update_template]"
+                           value="{if $e.unknown}{__("kwtsms.templates.save_anyway")}{else}{__("kwtsms.templates.save")}{/if}">
+                    <input type="submit" class="btn cm-confirm" id="kwtsms_reset" name="dispatch[kwtsms.reset_template]"
+                           value="{__("kwtsms.templates.reset")}" data-ca-confirm-text="{__("kwtsms.templates.reset_confirm")}">
+                    <a class="btn" id="kwtsms_close" href="{"kwtsms.templates?lang=`$e.lang`"|fn_url}#{$e.dom_id}">{__("kwtsms.templates.close")}</a>
+                </div>
+            </form>
+        </div>
+
+        <aside class="kwtsms-editor__side">
+            <div class="kwtsms-counter" id="kwtsms_counter">
+                <h5 class="kwtsms-counter__title">{__("kwtsms.templates.counter_title")}</h5>
+                <div class="kwtsms-meter" id="kwtsms_meter" role="img">
+                    {for $i = 1 to $t.max_pages}
+                        <span class="kwtsms-meter__seg"><i class="kwtsms-meter__worst"></i><i class="kwtsms-meter__fill"></i></span>
+                    {/for}
+                </div>
+                <dl class="kwtsms-counts">
+                    <div><dt>{__("kwtsms.templates.counter_chars")}</dt><dd id="kwtsms_count_units">0</dd></div>
+                    <div><dt>{__("kwtsms.templates.counter_sms")}</dt><dd id="kwtsms_count_pages">0</dd></div>
+                    <div><dt>{__("kwtsms.templates.counter_encoding")}</dt><dd id="kwtsms_count_enc"></dd></div>
+                </dl>
+                <p class="kwtsms-worst" id="kwtsms_worst">
+                    <strong>{__("kwtsms.templates.worst_title")}:</strong>
+                    <span id="kwtsms_worst_text"></span>
+                </p>
+                <p class="muted kwtsms-worst__help">{__("kwtsms.templates.worst_help")}</p>
+                <p class="kwtsms-note hidden" id="kwtsms_worst_unicode">{__("kwtsms.templates.worst_unicode_note")}</p>
+                <p class="kwtsms-over hidden" id="kwtsms_over" role="alert"></p>
+            </div>
+
+            <fieldset class="kwtsms-preview" id="kwtsms_preview">
+                <legend>{__("kwtsms.templates.preview_title")}</legend>
+                <label class="radio kwtsms-preview__choice"><input type="radio" name="kwtsms_preview_source" id="kwtsms_preview_sample" value="sample" checked="checked"> {__("kwtsms.templates.preview_sample")}</label>
+                <label class="radio kwtsms-preview__choice"><input type="radio" name="kwtsms_preview_source" id="kwtsms_preview_use_order" value="order"> {__("kwtsms.templates.preview_order")}</label>
+                <input type="text" id="kwtsms_preview_order" class="input-small kwtsms-preview__order" inputmode="numeric" autocomplete="off"
+                       dir="ltr" maxlength="12" disabled="disabled" placeholder="10234" aria-label="{__("kwtsms.templates.preview_order_label")}">
+                <div class="kwtsms-actions">
+                    <button type="button" class="btn" id="kwtsms_preview_go">{__("kwtsms.templates.preview_button")}</button>
+                    <span class="muted">{__("kwtsms.templates.preview_note")}</span>
+                </div>
+                <div class="kwtsms-preview__out hidden" id="kwtsms_preview_out" aria-live="polite">
+                    <p class="kwtsms-preview__label">{__("kwtsms.templates.preview_result")}</p>
+                    <pre class="kwtsms-preview__text" id="kwtsms_preview_text" dir="{$e.direction}" lang="{$e.lang}"></pre>
+                    <p class="muted kwtsms-preview__stats" id="kwtsms_preview_stats"></p>
+                    <ul class="kwtsms-preview__notes" id="kwtsms_preview_notes"></ul>
+                </div>
+            </fieldset>
+        </aside>
+    </div>
+</section>

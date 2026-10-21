@@ -1,0 +1,523 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/templates.less
+CREATED:   2026-10-21 03:28 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Templates page: language tabs, the matrix with its switches and badges, the editor, and
+           the SMS meter.
+WHY:       PRD 7: every selector sits under the .kwtsms-page root, brand primary #FFA200 with text #434345, accent #79CCF2;
+           logical properties only (the core flips left/right for RTL with cssjanus and also turns a "direction"
+           declaration around, so direction comes from the dir attribute only). The one branded element of this page is
+           the meter: seven segments, one per SMS the gateway accepts, filled with the length of the text; the worst
+           case shows as a hatched fill behind it. Everything else is native table, button and form components.
+USAGE:     Loaded by hooks/index/styles.post.tpl. Shares class names with styles.less (.kwtsms-badge, .kwtsms-actions,
+           .kwtsms-alert) and defines its own tokens below so the two files stay independent.
+DEPENDS:   Nothing at build time.
+*/
+@kwt-brand: #FFA200;
+@kwt-brand-tint: #FFF1D6;
+@kwt-text: #434345;
+@kwt-muted: lighten(@kwt-text, 22%);
+@kwt-accent: #79CCF2;
+@kwt-accent-tint: #E4F5FD;
+@kwt-line: #E3E3E6;
+@kwt-wash: #F7F7F8;
+@kwt-danger: #B42318;
+@kwt-danger-tint: #FDECEA;
+
+.kwtsms-page.kwtsms-templates {
+    max-width: 1160px;
+
+    .kwtsms-intro {
+        max-width: 760px;
+        margin-block: 0 12px;
+    }
+    .kwtsms-sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    /* ---- language tabs ---- */
+    .kwtsms-langbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 8px 16px;
+        border-block-end: 1px solid @kwt-line;
+    }
+    .kwtsms-langs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        li {
+            margin: 0;
+            a {
+                display: block;
+                padding: 8px 16px;
+                border-block-end: 3px solid transparent;
+                color: @kwt-text;
+                text-decoration: none;
+            }
+            a:hover {
+                background: @kwt-wash;
+            }
+            &.is-active a {
+                border-block-end-color: @kwt-brand;
+                font-weight: 600;
+            }
+        }
+    }
+    .kwtsms-langbar .kwtsms-inline-form {
+        margin-block-end: 6px;
+    }
+    .kwtsms-hint-line {
+        margin-block: 8px 12px;
+        max-width: 760px;
+    }
+
+    /* ---- the matrix ---- */
+    .kwtsms-matrix {
+        margin-block-end: 24px;
+        th {
+            font-weight: 600;
+        }
+        .kwtsms-group th {
+            padding-block: 10px;
+            background: @kwt-wash;
+            border-block-start: 1px solid @kwt-line;
+            color: @kwt-text;
+        }
+        td {
+            vertical-align: top;
+            padding-block: 10px;
+        }
+    }
+    .kwtsms-row__label {
+        min-width: 150px;
+    }
+    .kwtsms-row__name {
+        font-weight: 600;
+        color: @kwt-text;
+    }
+    .kwtsms-id {
+        display: inline-block;
+        margin-inline-start: 6px;
+        padding: 0 6px;
+        border: 1px solid @kwt-line;
+        border-radius: 3px;
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 11px;
+        color: @kwt-muted;
+    }
+    .kwtsms-row__receiver {
+        white-space: nowrap;
+    }
+    .kwtsms-row__switch {
+        min-width: 130px;
+    }
+    .kwtsms-switch-note {
+        display: inline-block;
+        max-width: 190px;
+        font-size: 12px;
+    }
+    /* The core .hidden hides an element only until a class of ours sets display on it. */
+    .hidden {
+        display: none !important;
+    }
+    .kwtsms-snippet {
+        max-width: 560px;
+        margin: 0 0 4px;
+        color: @kwt-text;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-row__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        margin: 0;
+    }
+    .kwtsms-length {
+        font-size: 12px;
+        color: @kwt-muted;
+    }
+    .kwtsms-row__actions {
+        white-space: nowrap;
+    }
+    .kwtsms-row.is-editing > td {
+        background: @kwt-brand-tint;
+    }
+    .kwtsms-badge--edited {
+        background: @kwt-accent-tint;
+        box-shadow: inset 0 0 0 1px @kwt-accent;
+    }
+    .kwtsms-badge--default {
+        background: #F0F0F2;
+    }
+    .kwtsms-badge--generic {
+        background: #fff;
+        box-shadow: inset 0 0 0 1px @kwt-line;
+    }
+    .kwtsms-badge--default_lang {
+        background: @kwt-brand-tint;
+        box-shadow: inset 0 0 0 1px fade(@kwt-brand, 55%);
+    }
+    .kwtsms-badge--none {
+        background: @kwt-danger-tint;
+        color: @kwt-danger;
+    }
+
+    /* ---- the SMS switch (a button with role=switch; it submits its own small form) ---- */
+    .kwtsms-switch-form {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+    }
+    .kwtsms-switch {
+        position: relative;
+        width: 38px;
+        height: 22px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: #B9B9C0;
+        cursor: pointer;
+        box-shadow: none;
+        transition: background-color .15s;
+    }
+    .kwtsms-switch.is-on {
+        background: @kwt-brand;
+    }
+    .kwtsms-switch__knob {
+        position: absolute;
+        top: 3px;
+        inset-inline-start: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+        transition: inset-inline-start .15s;
+    }
+    .kwtsms-switch.is-on .kwtsms-switch__knob {
+        inset-inline-start: 19px;
+    }
+    .kwtsms-switch:focus-visible {
+        outline: 2px solid @kwt-text;
+        outline-offset: 2px;
+    }
+    .kwtsms-switch[disabled] {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+    .kwtsms-switch__text {
+        min-width: 24px;
+        font-weight: 600;
+        color: @kwt-text;
+    }
+
+    /* ---- the editor ---- */
+    .kwtsms-editor-row > td {
+        padding: 0;
+        background: #fff;
+        border-inline-start: 4px solid @kwt-brand;
+    }
+    .kwtsms-editor {
+        padding: 16px 20px 20px;
+    }
+    .kwtsms-editor .subheader {
+        margin-block: 0 4px;
+    }
+    .kwtsms-editor__ids {
+        margin-block: 0 12px;
+        font-size: 12px;
+    }
+    .kwtsms-editor__grid {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+        gap: 12px 28px;
+    }
+    .kwtsms-editor__label {
+        font-weight: 600;
+    }
+    .kwtsms-editor__help {
+        margin-block: 0 6px;
+        max-width: 640px;
+    }
+    .kwtsms-body {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 112px;
+        padding: 10px 12px;
+        font-size: 14px;
+        line-height: 1.55;
+        resize: vertical;
+    }
+    .kwtsms-chips {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-block: 10px;
+    }
+    .kwtsms-chips__title {
+        font-weight: 600;
+        margin-inline-end: 4px;
+    }
+    .kwtsms-chip {
+        margin: 0;
+        padding: 2px 9px;
+        border: 1px solid @kwt-line;
+        border-radius: 999px;
+        background: #fff;
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+        color: @kwt-text;
+        cursor: pointer;
+        box-shadow: none;
+        &:hover {
+            background: @kwt-brand-tint;
+            border-color: fade(@kwt-brand, 60%);
+        }
+        &:focus-visible {
+            outline: 2px solid @kwt-text;
+            outline-offset: 1px;
+        }
+    }
+    .kwtsms-chips__help {
+        font-size: 12px;
+    }
+    .kwtsms-advice {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .kwtsms-advice__item {
+        margin: 8px 0 0;
+        padding: 8px 12px;
+        border-inline-start: 3px solid @kwt-brand;
+        background: @kwt-brand-tint;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-advice__item--stop {
+        border-inline-start-color: @kwt-danger;
+        background: @kwt-danger-tint;
+    }
+    .kwtsms-editor__actions {
+        margin-block-start: 14px;
+    }
+
+    /* ---- counter, meter, worst case ---- */
+    .kwtsms-counter__title,
+    .kwtsms-preview legend {
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .kwtsms-meter {
+        display: flex;
+        gap: 4px;
+        height: 14px;
+        margin-block: 8px 10px;
+    }
+    .kwtsms-meter__seg {
+        position: relative;
+        flex: 1 1 0;
+        border-radius: 3px;
+        background: #ECECEF;
+        overflow: hidden;
+        i {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            inset-inline-start: 0;
+            width: 0;
+        }
+    }
+    .kwtsms-meter__worst {
+        background: repeating-linear-gradient(45deg, fade(@kwt-brand, 55%) 0, fade(@kwt-brand, 55%) 3px, transparent 3px, transparent 6px);
+    }
+    .kwtsms-meter__fill {
+        background: @kwt-brand;
+        transition: width .12s;
+    }
+    .kwtsms-meter__seg.is-over .kwtsms-meter__fill {
+        background: @kwt-danger;
+    }
+    .kwtsms-counts {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        justify-content: start;
+        gap: 4px 28px;
+        margin: 0 0 8px;
+        dt {
+            font-weight: normal;
+            font-size: 12px;
+            color: @kwt-muted;
+        }
+        dd {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: @kwt-text;
+        }
+    }
+    .kwtsms-worst {
+        margin: 0;
+    }
+    .kwtsms-worst__help {
+        margin: 2px 0 6px;
+        font-size: 12px;
+    }
+    .kwtsms-note {
+        color: @kwt-text;
+    }
+    .kwtsms-over {
+        margin: 6px 0 0;
+        color: @kwt-danger;
+        font-weight: 600;
+    }
+
+    /* ---- preview ---- */
+    .kwtsms-preview {
+        margin: 18px 0 0;
+        padding: 12px 14px 14px;
+        border: 1px solid @kwt-line;
+        border-radius: 4px;
+        legend {
+            width: auto;
+            padding: 0 6px;
+            margin: 0;
+            border: 0;
+        }
+    }
+    .kwtsms-preview__choice {
+        margin-block-end: 4px;
+    }
+    .kwtsms-preview__order {
+        margin-block: 2px 8px;
+        width: 140px;
+    }
+    .kwtsms-preview__out {
+        margin-block-start: 12px;
+    }
+    .kwtsms-preview__label {
+        margin: 0 0 4px;
+        font-weight: 600;
+    }
+    .kwtsms-preview__text {
+        margin: 0;
+        padding: 10px 12px;
+        min-height: 40px;
+        border: 0;
+        border-radius: 4px;
+        background: @kwt-wash;
+        color: @kwt-text;
+        font-family: inherit;
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-preview__stats {
+        margin: 6px 0 0;
+    }
+    .kwtsms-preview__notes {
+        margin: 6px 0 0;
+        padding-inline-start: 18px;
+    }
+}
+
+/* 2026-10-21 03:42 +03: below 980 px (768 with the admin menu open) a row is a small card instead of a five-column table row: the
+   text column had about 150 px and broke every word onto its own line. Task 1.12, task 596. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-templates {
+        .kwtsms-editor__grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .kwtsms-editor {
+            padding: 12px 10px 16px;
+        }
+        .kwtsms-matrix,
+        .kwtsms-matrix tbody,
+        .kwtsms-matrix tr,
+        .kwtsms-matrix th,
+        .kwtsms-matrix td {
+            display: block;
+        }
+        .kwtsms-matrix thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+        .kwtsms-matrix td {
+            border: 0;
+            padding: 0;
+        }
+        .kwtsms-matrix tr.kwtsms-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: "label switch" "receiver switch" "text text" "actions actions";
+            gap: 2px 12px;
+            padding: 12px 10px;
+            border-block-start: 1px solid @kwt-line;
+        }
+        .kwtsms-row__label {
+            grid-area: label;
+            min-width: 0;
+        }
+        .kwtsms-row__receiver {
+            grid-area: receiver;
+            color: @kwt-muted;
+        }
+        .kwtsms-row__switch {
+            grid-area: switch;
+            min-width: 0;
+            align-self: center;
+        }
+        .kwtsms-row__text {
+            grid-area: text;
+            margin-block-start: 6px;
+        }
+        .kwtsms-row__actions {
+            grid-area: actions;
+            margin-block-start: 8px;
+        }
+        .kwtsms-snippet,
+        .kwtsms-switch-note {
+            max-width: none;
+        }
+        .kwtsms-matrix tr.kwtsms-row.is-editing {
+            background: @kwt-brand-tint;
+        }
+        .kwtsms-matrix tr.kwtsms-row.is-editing > td {
+            background: transparent;
+        }
+        .kwtsms-editor-row > td {
+            border-inline-start: 4px solid @kwt-brand;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kwtsms-page.kwtsms-templates {
+        .kwtsms-switch,
+        .kwtsms-switch__knob,
+        .kwtsms-meter__fill {
+            transition: none;
+        }
+    }
+}

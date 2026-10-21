@@ -737,6 +737,420 @@ msgctxt "Languages::kwtsms.login.bad_reply"
 msgid "kwtSMS answered with an unexpected reply. Try again in a few minutes; if it keeps happening, contact kwtSMS support."
 msgstr "ردت kwtSMS برد غير متوقع. حاول مرة أخرى بعد بضع دقائق، وإذا تكرر ذلك فتواصل مع دعم kwtSMS."
 
+# 2026-10-21 03:23 +03: Task 1.12, task 596. kwtsms.nav.templates the page navigation, kwtsms.templates.* the Templates page
+# (matrix, badges, editor, counter, placeholders, advice, preview and the notifications of its actions).
+msgctxt "Languages::kwtsms.nav.templates"
+msgid "Templates"
+msgstr "القوالب"
+
+msgctxt "Languages::kwtsms.templates.title"
+msgid "SMS templates"
+msgstr "قوالب الرسائل النصية"
+
+msgctxt "Languages::kwtsms.templates.intro"
+msgid "One row for each order status and receiver. The switch turns SMS on or off for that row. It is the same switch as on the Notifications page under Administration."
+msgstr "صف لكل حالة طلب ومستلم. المفتاح يشغّل الرسائل لهذا الصف أو يوقفها، وهو المفتاح نفسه في صفحة الإشعارات ضمن الإدارة."
+
+msgctxt "Languages::kwtsms.templates.sms_off"
+msgid "SMS is off in Settings, so nothing is sent yet. Texts and switches you change here still save."
+msgstr "الرسائل النصية متوقفة في الإعدادات، لذلك لا يُرسل شيء بعد. ما تغيّره هنا من نصوص ومفاتيح يُحفظ رغم ذلك."
+
+msgctxt "Languages::kwtsms.templates.open_settings"
+msgid "Open Settings"
+msgstr "فتح الإعدادات"
+
+msgctxt "Languages::kwtsms.templates.languages"
+msgid "Language of the texts"
+msgstr "لغة النصوص"
+
+msgctxt "Languages::kwtsms.templates.load_defaults"
+msgid "Load default texts for [language]"
+msgstr "تحميل النصوص الافتراضية للغة [language]"
+
+msgctxt "Languages::kwtsms.templates.load_defaults_help"
+msgid "Fills the texts that are missing or not edited. Texts you edited stay as they are."
+msgstr "يملأ النصوص الناقصة أو غير المعدّلة. النصوص التي عدّلتها تبقى كما هي."
+
+msgctxt "Languages::kwtsms.templates.no_shipped"
+msgid "No default texts ship for this language. Rows without a text use the [language] text."
+msgstr "لا تتوفر نصوص افتراضية لهذه اللغة. الصفوف بلا نص تستخدم نص [language]."
+
+msgctxt "Languages::kwtsms.templates.col_status"
+msgid "Status"
+msgstr "الحالة"
+
+msgctxt "Languages::kwtsms.templates.col_receiver"
+msgid "Receiver"
+msgstr "المستلم"
+
+msgctxt "Languages::kwtsms.templates.col_switch"
+msgid "SMS"
+msgstr "الرسائل"
+
+msgctxt "Languages::kwtsms.templates.col_text"
+msgid "Text"
+msgstr "النص"
+
+msgctxt "Languages::kwtsms.templates.col_actions"
+msgid "Actions"
+msgstr "إجراءات"
+
+msgctxt "Languages::kwtsms.templates.group_placed"
+msgid "Order placed"
+msgstr "الطلب الجديد"
+
+msgctxt "Languages::kwtsms.templates.group_generic"
+msgid "Generic text for any status change"
+msgstr "النص العام لأي تغيّر في الحالة"
+
+msgctxt "Languages::kwtsms.templates.group_statuses"
+msgid "Order statuses"
+msgstr "حالات الطلب"
+
+msgctxt "Languages::kwtsms.templates.row_placed"
+msgid "Order placed"
+msgstr "طلب جديد"
+
+msgctxt "Languages::kwtsms.templates.row_placed_multi"
+msgid "Order placed, whole checkout"
+msgstr "طلب جديد، عملية الدفع كاملة"
+
+msgctxt "Languages::kwtsms.templates.row_generic"
+msgid "Any status change (generic)"
+msgstr "أي تغيّر في الحالة (عام)"
+
+msgctxt "Languages::kwtsms.templates.customer"
+msgid "Customer"
+msgstr "العميل"
+
+msgctxt "Languages::kwtsms.templates.admin"
+msgid "Administrator"
+msgstr "المدير"
+
+msgctxt "Languages::kwtsms.templates.switch_aria"
+msgid "SMS for [row]"
+msgstr "الرسائل لـ [row]"
+
+msgctxt "Languages::kwtsms.templates.switch_follows"
+msgid "Follows Order placed"
+msgstr "يتبع مفتاح الطلب الجديد"
+
+msgctxt "Languages::kwtsms.templates.switch_generic"
+msgid "No switch here. Each status has its own."
+msgstr "لا مفتاح هنا. لكل حالة مفتاحها."
+
+msgctxt "Languages::kwtsms.templates.switch_none"
+msgid "No SMS event for this status"
+msgstr "لا يوجد حدث رسائل لهذه الحالة"
+
+msgctxt "Languages::kwtsms.templates.switch_locked"
+msgid "You need permission to manage notification settings."
+msgstr "يلزمك إذن إدارة إعدادات الإشعارات."
+
+msgctxt "Languages::kwtsms.templates.badge_edited"
+msgid "Edited"
+msgstr "معدّل"
+
+msgctxt "Languages::kwtsms.templates.badge_default"
+msgid "Default text"
+msgstr "النص الافتراضي"
+
+msgctxt "Languages::kwtsms.templates.badge_generic"
+msgid "Uses the generic text"
+msgstr "يستخدم النص العام"
+
+msgctxt "Languages::kwtsms.templates.badge_default_lang"
+msgid "Using [language] text"
+msgstr "يستخدم نص [language]"
+
+msgctxt "Languages::kwtsms.templates.badge_none"
+msgid "No text, SMS skipped"
+msgstr "لا نص، تُتخطى الرسالة"
+
+msgctxt "Languages::kwtsms.templates.length_summary"
+msgid "[units] characters, [pages] SMS"
+msgstr "الأحرف: [units]، الرسائل: [pages]"
+
+msgctxt "Languages::kwtsms.templates.enc_ascii"
+msgid "Plain text: 160 per SMS"
+msgstr "نص عادي: 160 لكل رسالة"
+
+msgctxt "Languages::kwtsms.templates.enc_unicode"
+msgid "Unicode: 70 per SMS"
+msgstr "يونيكود: 70 لكل رسالة"
+
+msgctxt "Languages::kwtsms.templates.edit"
+msgid "Edit text"
+msgstr "تعديل النص"
+
+msgctxt "Languages::kwtsms.templates.edit_aria"
+msgid "Edit [row]"
+msgstr "تعديل [row]"
+
+msgctxt "Languages::kwtsms.templates.close"
+msgid "Close editor"
+msgstr "إغلاق المحرر"
+
+msgctxt "Languages::kwtsms.templates.editor_title"
+msgid "[row] in [language]"
+msgstr "[row] باللغة [language]"
+
+msgctxt "Languages::kwtsms.templates.editor_label"
+msgid "Text in [language]"
+msgstr "النص باللغة [language]"
+
+msgctxt "Languages::kwtsms.templates.editor_help_generic"
+msgid "This row has no text of its own. The box starts from the text that is sent now. Saving makes it this row's own text."
+msgstr "لا نص خاص بهذا الصف. يبدأ الحقل بالنص المُرسَل الآن، وعند الحفظ يصبح نصًا خاصًا بهذا الصف."
+
+msgctxt "Languages::kwtsms.templates.editor_help_default_lang"
+msgid "This row has no text in this language. The box starts from the [language] text that is sent now."
+msgstr "لا نص لهذا الصف بهذه اللغة. يبدأ الحقل بنص [language] المُرسَل الآن."
+
+msgctxt "Languages::kwtsms.templates.editor_help_none"
+msgid "No text yet. Without a text, this SMS is skipped."
+msgstr "لا نص بعد. بدون نص تُتخطى هذه الرسالة."
+
+msgctxt "Languages::kwtsms.templates.counter_title"
+msgid "Length with sample data"
+msgstr "الطول ببيانات تجريبية"
+
+msgctxt "Languages::kwtsms.templates.counter_chars"
+msgid "Characters"
+msgstr "الأحرف"
+
+msgctxt "Languages::kwtsms.templates.counter_sms"
+msgid "SMS"
+msgstr "الرسائل"
+
+msgctxt "Languages::kwtsms.templates.counter_encoding"
+msgid "Encoding"
+msgstr "الترميز"
+
+msgctxt "Languages::kwtsms.templates.worst_title"
+msgid "Worst case"
+msgstr "أسوأ حالة"
+
+msgctxt "Languages::kwtsms.templates.worst_help"
+msgid "Longest values: a 20-character store name, a 10-character Arabic first name, a 6-digit order ID and an 8-digit total."
+msgstr "أطول القيم: اسم متجر من 20 حرفًا، واسم أول عربي من 10 أحرف، ورقم طلب من 6 أرقام، وإجمالي من 8 أرقام."
+
+msgctxt "Languages::kwtsms.templates.worst_unicode_note"
+msgid "May switch to Unicode when a placeholder contains Arabic: 70 characters per SMS instead of 160."
+msgstr "قد يتحول إلى يونيكود عندما يحتوي أحد العناصر المتغيرة على حروف عربية: 70 حرفًا لكل رسالة بدل 160."
+
+msgctxt "Languages::kwtsms.templates.counter_over"
+msgid "More than [max] SMS. kwtSMS rejects it."
+msgstr "أكثر من [max] رسائل. ترفضها kwtSMS."
+
+msgctxt "Languages::kwtsms.templates.chips_title"
+msgid "Placeholders"
+msgstr "العناصر المتغيرة"
+
+msgctxt "Languages::kwtsms.templates.chips_help"
+msgid "Select one to insert it at the cursor."
+msgstr "اختر عنصرًا لإدراجه عند المؤشر."
+
+msgctxt "Languages::kwtsms.templates.ph_store_name"
+msgid "Your SMS brand name"
+msgstr "اسم علامتك التجارية في الرسائل"
+
+msgctxt "Languages::kwtsms.templates.ph_order_id"
+msgid "Order number"
+msgstr "رقم الطلب"
+
+msgctxt "Languages::kwtsms.templates.ph_order_ids"
+msgid "Order numbers of a checkout: the first three, then +N"
+msgstr "أرقام طلبات عملية الدفع: أول ثلاثة ثم +N"
+
+msgctxt "Languages::kwtsms.templates.ph_vendor_name"
+msgid "Vendor name"
+msgstr "اسم البائع"
+
+msgctxt "Languages::kwtsms.templates.ph_order_total"
+msgid "Order total in the order's currency"
+msgstr "إجمالي الطلب بعملة الطلب"
+
+msgctxt "Languages::kwtsms.templates.ph_currency"
+msgid "Currency code, or its Arabic name in Arabic texts"
+msgstr "رمز العملة، أو اسمها بالعربية في النصوص العربية"
+
+msgctxt "Languages::kwtsms.templates.ph_order_status"
+msgid "Order status name"
+msgstr "اسم حالة الطلب"
+
+msgctxt "Languages::kwtsms.templates.ph_customer_first_name"
+msgid "Customer's first name"
+msgstr "الاسم الأول للعميل"
+
+msgctxt "Languages::kwtsms.templates.ph_customer_last_name"
+msgid "Customer's last name"
+msgstr "اسم عائلة العميل"
+
+msgctxt "Languages::kwtsms.templates.ph_order_date"
+msgid "Order date"
+msgstr "تاريخ الطلب"
+
+msgctxt "Languages::kwtsms.templates.ph_payment_method"
+msgid "Payment method"
+msgstr "طريقة الدفع"
+
+msgctxt "Languages::kwtsms.templates.ph_shipping_method"
+msgid "Shipping method"
+msgstr "طريقة الشحن"
+
+msgctxt "Languages::kwtsms.templates.warn_store_name_missing"
+msgid "Customer texts need {store_name}, so customers know who sent the SMS. This text can't be saved without it."
+msgstr "نصوص العملاء تحتاج {store_name} ليعرف العميل من أرسل الرسالة. لا يمكن حفظ هذا النص بدونه."
+
+msgctxt "Languages::kwtsms.templates.warn_html_span"
+msgid "kwtSMS rejects text with angle brackets around other text: [found]. Remove the brackets."
+msgstr "ترفض kwtSMS النص الذي يحيط فيه قوسا الزاوية بنص آخر: [found]. أزل القوسين."
+
+msgctxt "Languages::kwtsms.templates.warn_adjacent"
+msgid "Two placeholders touch: [found]. Their values can run together. Put a space or a word between them."
+msgstr "عنصران متغيران متلاصقان: [found]. قد تلتصق قيمتاهما. ضع مسافة أو كلمة بينهما."
+
+msgctxt "Languages::kwtsms.templates.warn_entity_fragment"
+msgid "A symbol next to a placeholder can turn into another character: [found]. Put a space between them."
+msgstr "رمز بجانب عنصر متغير قد يتحول إلى حرف آخر: [found]. ضع مسافة بينهما."
+
+msgctxt "Languages::kwtsms.templates.warn_promotional"
+msgid "Promotional wording: [found]. Keep order texts about the order. Promotions don't reach numbers on the do-not-disturb (DND) list."
+msgstr "عبارات ترويجية: [found]. أبقِ نصوص الطلبات عن الطلب. الرسائل الترويجية لا تصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)."
+
+msgctxt "Languages::kwtsms.templates.warn_unknown"
+msgid "Unknown placeholders: [found]. An SMS that holds one isn't sent."
+msgstr "عناصر متغيرة غير معروفة: [found]. الرسالة التي تحتوي واحدًا منها لا تُرسل."
+
+msgctxt "Languages::kwtsms.templates.preview_title"
+msgid "Preview"
+msgstr "المعاينة"
+
+msgctxt "Languages::kwtsms.templates.preview_sample"
+msgid "Sample data"
+msgstr "بيانات تجريبية"
+
+msgctxt "Languages::kwtsms.templates.preview_order"
+msgid "Order number"
+msgstr "رقم طلب"
+
+msgctxt "Languages::kwtsms.templates.preview_order_label"
+msgid "Order number"
+msgstr "رقم الطلب"
+
+msgctxt "Languages::kwtsms.templates.preview_button"
+msgid "Show preview"
+msgstr "عرض المعاينة"
+
+msgctxt "Languages::kwtsms.templates.preview_note"
+msgid "A preview sends nothing."
+msgstr "المعاينة لا ترسل شيئًا."
+
+msgctxt "Languages::kwtsms.templates.preview_result"
+msgid "Text as it would be sent"
+msgstr "النص كما سيُرسَل"
+
+msgctxt "Languages::kwtsms.templates.preview_failed"
+msgid "The preview didn't load. Reload the page and try again."
+msgstr "تعذّر تحميل المعاينة. أعد تحميل الصفحة وحاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.templates.preview_empty"
+msgid "Nothing would be sent: the text is empty after cleaning."
+msgstr "لن يُرسل شيء: النص فارغ بعد التنظيف."
+
+msgctxt "Languages::kwtsms.templates.preview_leftover"
+msgid "A placeholder is left in the text, so this SMS wouldn't be sent."
+msgstr "بقي عنصر متغير في النص، لذلك لن تُرسل هذه الرسالة."
+
+msgctxt "Languages::kwtsms.templates.preview_removed"
+msgid "Cleaning removed: [found]"
+msgstr "أزال التنظيف: [found]"
+
+msgctxt "Languages::kwtsms.templates.preview_no_orders"
+msgid "You need permission to view orders to preview with an order number."
+msgstr "يلزمك إذن عرض الطلبات للمعاينة برقم طلب."
+
+msgctxt "Languages::kwtsms.templates.preview_no_order"
+msgid "Order [id] not found."
+msgstr "الطلب [id] غير موجود."
+
+msgctxt "Languages::kwtsms.templates.save"
+msgid "Save text"
+msgstr "حفظ النص"
+
+msgctxt "Languages::kwtsms.templates.save_anyway"
+msgid "Save anyway"
+msgstr "الحفظ على أي حال"
+
+msgctxt "Languages::kwtsms.templates.reset"
+msgid "Reset to default text"
+msgstr "إعادة النص الافتراضي"
+
+msgctxt "Languages::kwtsms.templates.reset_confirm"
+msgid "Replace this text with the default text?"
+msgstr "استبدال هذا النص بالنص الافتراضي؟"
+
+msgctxt "Languages::kwtsms.templates.saved"
+msgid "Text saved: [row], [language]."
+msgstr "تم حفظ النص: [row]، [language]."
+
+msgctxt "Languages::kwtsms.templates.saved_empty"
+msgid "The text is empty now, so this row falls back to the next available text."
+msgstr "النص فارغ الآن، لذلك يعود هذا الصف إلى أول نص متاح بعده."
+
+msgctxt "Languages::kwtsms.templates.removed"
+msgid "Cleaning removed these characters before saving: [found]"
+msgstr "أزال التنظيف هذه الأحرف قبل الحفظ: [found]"
+
+msgctxt "Languages::kwtsms.templates.not_saved_store_name"
+msgid "Not saved. Customer texts must include {store_name}, so customers know who sent the SMS."
+msgstr "لم يُحفظ النص. يجب أن تتضمن نصوص العملاء {store_name} ليعرف العميل من أرسل الرسالة."
+
+msgctxt "Languages::kwtsms.templates.not_saved_unknown"
+msgid "Not saved. Unknown placeholders: [found]. An SMS that holds one isn't sent. Fix the name, or select Save anyway."
+msgstr "لم يُحفظ النص. عناصر متغيرة غير معروفة: [found]. الرسالة التي تحتوي واحدًا منها لا تُرسل. صحّح الاسم أو اختر الحفظ على أي حال."
+
+msgctxt "Languages::kwtsms.templates.not_saved_too_long"
+msgid "Not saved. The text is longer than [max] characters."
+msgstr "لم يُحفظ النص. طوله يتجاوز [max] حرفًا."
+
+msgctxt "Languages::kwtsms.templates.not_saved_unknown_row"
+msgid "Nothing changed. That row or language doesn't exist."
+msgstr "لم يتغير شيء. هذا الصف أو هذه اللغة غير موجودة."
+
+msgctxt "Languages::kwtsms.templates.reset_done"
+msgid "Default text restored: [row], [language]."
+msgstr "تمت استعادة النص الافتراضي: [row]، [language]."
+
+msgctxt "Languages::kwtsms.templates.reset_cleared"
+msgid "No default text ships for [row] in [language]. The text is cleared, so this row falls back to the next available text."
+msgstr "لا يتوفر نص افتراضي لـ [row] باللغة [language]. تم مسح النص، لذلك يعود هذا الصف إلى أول نص متاح بعده."
+
+msgctxt "Languages::kwtsms.templates.loaded"
+msgid "Default texts loaded for [language]: [count]."
+msgstr "تم تحميل النصوص الافتراضية للغة [language]: [count]."
+
+msgctxt "Languages::kwtsms.templates.loaded_none"
+msgid "Nothing to load. Every [language] text is already set or edited."
+msgstr "لا شيء لتحميله. كل نصوص [language] موجودة أو معدّلة."
+
+msgctxt "Languages::kwtsms.templates.switch_on"
+msgid "SMS turned on: [row]."
+msgstr "تم تشغيل الرسائل: [row]."
+
+msgctxt "Languages::kwtsms.templates.switch_off"
+msgid "SMS turned off: [row]."
+msgstr "تم إيقاف الرسائل: [row]."
+
+msgctxt "Languages::kwtsms.templates.switch_denied"
+msgid "Nothing changed. You need permission to manage notification settings."
+msgstr "لم يتغير شيء. يلزمك إذن إدارة إعدادات الإشعارات."
+
+msgctxt "Languages::kwtsms.templates.switch_unknown"
+msgid "Nothing changed. That row has no SMS switch."
+msgstr "لم يتغير شيء. ليس لهذا الصف مفتاح رسائل."
+
 # 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
 # kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
 # kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.

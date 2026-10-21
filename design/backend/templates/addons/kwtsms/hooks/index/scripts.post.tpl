@@ -10,3 +10,6 @@ USAGE:     Rendered by CS-Cart on every admin page while the add-on is active.
 DEPENDS:   js/addons/kwtsms/backend.js
 *}
 {script src="js/addons/kwtsms/backend.js"}
+{* 2026-10-21 04:38 +03: the Templates page counter (a mirror of MessageCleaner) and editor script, Task 1.12, task 596 *}
+{script src="js/addons/kwtsms/counter.js"}
+{script src="js/addons/kwtsms/templates.js"}

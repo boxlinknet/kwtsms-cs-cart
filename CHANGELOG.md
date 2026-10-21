@@ -102,3 +102,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Third-party add-ons get SMS for their own notification events by declaring them in
   `schemas/kwtsms/events.post.php` (receivers, placeholders, phone).
 - Storefront order SMS go out after the page has been sent, so a checkout never waits for the SMS gateway.
+<!-- 2026-10-21 04:38 +03: entries for the Templates page (Task 1.12), task 596 -->
+- Templates page: one row for each order status and receiver (custom statuses included), the text of each row per
+  language with a badge (edited, default text, uses the generic text, "Using English text" only when the text really
+  is the default-language text, no text), its length as an SMS with sample data, and the SMS switch of the row. The
+  switch is the core notification switch, so Administration > Notifications shows it and the other way round;
+  changing it needs the core "manage notification settings" privilege.
+- Template editor: the direction of the language, a live counter and a seven-segment SMS meter that follow the gateway's
+  rules (Unicode above U+007F, UTF-16 length, 160 / 153 and 70 / 67 per SMS, at most 7 SMS), a worst-case estimate (a
+  20-character store name, a 10-character Arabic first name, 6-digit order numbers, an 8-digit total), placeholder
+  chips, and a preview with sample data or an order number that sends nothing.
+- Saving a text: a customer text must keep {store_name}; an unknown placeholder needs "Save anyway"; the characters
+  cleaning removed are listed; text between angle brackets, touching placeholders, "&", "#" or ";" next to a
+  placeholder and promotional wording get a warning. "Reset to default text" and "Load default texts for <language>".

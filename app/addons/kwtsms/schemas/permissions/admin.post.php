@@ -54,6 +54,8 @@ $schema['kwtsms'] = [
         'reset_template'         => ['permissions' => 'manage_kwtsms'],
         'load_template_defaults' => ['permissions' => 'manage_kwtsms'],
         'toggle_event'           => ['permissions' => 'manage_kwtsms'],
+        // 2026-10-21 03:27 +03: the Templates page preview (POST, sends nothing), Task 1.12, task 596.
+        'preview_template'       => ['permissions' => 'manage_kwtsms'],
         'update_admin_alerts'    => ['permissions' => 'manage_kwtsms'],
         'update_integrations'    => ['permissions' => 'manage_kwtsms'],
     ],

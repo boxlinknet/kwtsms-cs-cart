@@ -287,6 +287,9 @@ class TemplateRepository
         }
         if (fn_allowed_for('MULTIVENDOR')) {
             $rows[] = $row(Defaults::EVENT_PLACED_MULTI, Defaults::RECEIVER_CUSTOMER, 'placed_multi', '', '');
+            // 2026-10-21 03:14 +03: the administrator's one SMS per checkout is sent from this template
+            // (OrderNotifier, receiver A), so the Templates page lists it too. Task 1.12, task 596.
+            $rows[] = $row(Defaults::EVENT_PLACED_MULTI, Defaults::RECEIVER_ADMIN, 'placed_multi', '', '');
         }
         foreach ($receivers as $receiver) {
             $rows[] = $row(Defaults::EVENT_STATUS, $receiver, 'generic', '', '');
@@ -722,6 +725,16 @@ class TemplateRepository
             $edited
         );
         db_query('UPDATE ?:kwtsms_templates SET updated_at = ?i WHERE template_id = ?i', time(), $id);
+    }
+
+    /**
+     * The form save() stores a body in: cleaned for storage (ruling R18), 4-byte characters removed, trimmed. For the
+     * Templates page, which checks the stored form (the {store_name} rule, the advice) before it saves.
+     * 2026-10-21 03:14 +03: public wrapper added, Task 1.12, task 596.
+     */
+    public static function storedForm(string $body): string
+    {
+        return self::forStorage($body);
     }
 
     /**
