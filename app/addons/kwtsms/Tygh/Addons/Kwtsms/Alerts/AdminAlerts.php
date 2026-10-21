@@ -37,10 +37,13 @@ class AdminAlerts
      * Conditions with language variables kwtsms.alert.<condition>.title and .text.
      * 2026-10-21 01:13 +03: sender_removed, sender_banned (sync, ERR008), test_mode and balance_zero (the daily cron
      * health job) added, Task 1.7, task 596.
+     * 2026-10-21 03:17 +03: cron_missing (the cron has not run for 2 h) and outbox_backlog (rows waiting over 10 min)
+     * added: notices only, raised from the Dashboard page view because the cron cannot report its own absence
+     * (PRD 6.13), Task 1.11, task 596.
      */
     public const CONDITIONS = [
         'daily_cap', 'low_balance', 'suspended', 'tls_failure', 'intl_limit',
-        'sender_removed', 'sender_banned', 'test_mode', 'balance_zero',
+        'sender_removed', 'sender_banned', 'test_mode', 'balance_zero', 'cron_missing', 'outbox_backlog',
         // 2026-10-21 04:22 +03: sms_not_attached (notice only, once a day): the store's notification services
         // were built before the add-on could add its SMS column, Task 1.9 fix round 1 item 5, task 596.
         'sms_not_attached',
@@ -185,6 +188,9 @@ class AdminAlerts
                 'area' => 'A',
                 'section' => 'administration',
                 'tag' => 'kwtsms',
+                // 2026-10-21 03:17 +03: the notice opens the Dashboard, where the problem and its fix are, Task 1.11,
+                // task 596.
+                'action_url' => 'kwtsms.dashboard',
                 'severity' => 'W',
                 'language_code' => $lang,
                 'pinned' => true,

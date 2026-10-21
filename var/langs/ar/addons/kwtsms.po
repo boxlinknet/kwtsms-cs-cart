@@ -1366,3 +1366,605 @@ msgstr "الرسائل مفعلة، لكن لن يرسل شيء حتى يتم إ
 msgctxt "Languages::kwtsms.reason.not_stored"
 msgid "The store couldn't save it. Check the add-on log."
 msgstr "تعذر على المتجر حفظها. راجع سجل الإضافة."
+
+# 2026-10-21 03:30 +03: Task 1.11, task 596. kwtsms.dash.* the Dashboard (PRD 6.9), kwtsms.nav.dashboard its navigation entry,
+# kwtsms.alert.cron_missing.* and kwtsms.alert.outbox_backlog.* the two new admin notices (PRD 6.13).
+msgctxt "Languages::kwtsms.nav.dashboard"
+msgid "Dashboard"
+msgstr "لوحة المعلومات"
+
+msgctxt "Languages::kwtsms.dash.title"
+msgid "kwtSMS dashboard"
+msgstr "لوحة kwtSMS"
+
+msgctxt "Languages::kwtsms.dash.status.title"
+msgid "Status"
+msgstr "الحالة"
+
+msgctxt "Languages::kwtsms.dash.card.enabled"
+msgid "Enabled"
+msgstr "مفعل"
+
+msgctxt "Languages::kwtsms.dash.card.connected"
+msgid "Connected"
+msgstr "الاتصال"
+
+msgctxt "Languages::kwtsms.dash.card.test_mode"
+msgid "Test mode"
+msgstr "وضع الاختبار"
+
+msgctxt "Languages::kwtsms.dash.card.pilot_mode"
+msgid "Pilot mode"
+msgstr "الوضع التجريبي"
+
+msgctxt "Languages::kwtsms.dash.card.sender"
+msgid "Sender ID"
+msgstr "معرف المرسل"
+
+msgctxt "Languages::kwtsms.dash.card.balance"
+msgid "Balance"
+msgstr "الرصيد"
+
+msgctxt "Languages::kwtsms.dash.card.last_sync"
+msgid "Last sync"
+msgstr "آخر مزامنة"
+
+msgctxt "Languages::kwtsms.dash.card.cron"
+msgid "Cron last ran"
+msgstr "آخر تشغيل للمهمة المجدولة"
+
+msgctxt "Languages::kwtsms.dash.card.outbox"
+msgid "Outbox"
+msgstr "قائمة الإرسال"
+
+msgctxt "Languages::kwtsms.dash.connection.problem"
+msgid "Problem"
+msgstr "مشكلة"
+
+msgctxt "Languages::kwtsms.dash.sender.none"
+msgid "None chosen"
+msgstr "لم يتم الاختيار"
+
+msgctxt "Languages::kwtsms.dash.sender.test_sender"
+msgid "Test sender"
+msgstr "معرف الاختبار"
+
+msgctxt "Languages::kwtsms.dash.sender_type.transactional"
+msgid "Transactional"
+msgstr "للمعاملات"
+
+msgctxt "Languages::kwtsms.dash.sender_type.promotional"
+msgid "Promotional"
+msgstr "ترويجي"
+
+msgctxt "Languages::kwtsms.dash.balance.available"
+msgid "credits available"
+msgstr "نقطة متاحة"
+
+msgctxt "Languages::kwtsms.dash.balance.purchased"
+msgid "[count] purchased"
+msgstr "المشتراة: [count]"
+
+msgctxt "Languages::kwtsms.dash.balance.days"
+msgid "About [days] days left at your 30-day rate"
+msgstr "تكفي لحوالي [days] يوما بمعدل آخر 30 يوما"
+
+msgctxt "Languages::kwtsms.dash.balance.days_less"
+msgid "Less than a day left at your 30-day rate"
+msgstr "تكفي لأقل من يوم بمعدل آخر 30 يوما"
+
+msgctxt "Languages::kwtsms.dash.balance.days_none"
+msgid "Days left appear after your first live messages."
+msgstr "ستظهر الأيام المتبقية بعد أول رسائل حقيقية."
+
+msgctxt "Languages::kwtsms.dash.balance.days_year"
+msgid "More than a year left at your 30-day rate"
+msgstr "تكفي لأكثر من سنة بمعدل آخر 30 يوما"
+
+msgctxt "Languages::kwtsms.dash.balance.none"
+msgid "No balance yet. Log in to kwtSMS."
+msgstr "لا يوجد رصيد بعد. سجل الدخول إلى kwtSMS."
+
+msgctxt "Languages::kwtsms.dash.balance.recharge"
+msgid "Recharge"
+msgstr "شحن الرصيد"
+
+msgctxt "Languages::kwtsms.dash.cron.ok"
+msgid "Running"
+msgstr "يعمل"
+
+msgctxt "Languages::kwtsms.dash.cron.stale"
+msgid "Not running"
+msgstr "لا يعمل"
+
+msgctxt "Languages::kwtsms.dash.cron.never"
+msgid "Never ran"
+msgstr "لم يعمل أبدا"
+
+msgctxt "Languages::kwtsms.dash.cron.new"
+msgid "Waiting for the first run"
+msgstr "بانتظار أول تشغيل"
+
+msgctxt "Languages::kwtsms.dash.cron.off"
+msgid "Not needed while SMS are off"
+msgstr "غير مطلوب والرسائل متوقفة"
+
+msgctxt "Languages::kwtsms.dash.outbox.empty"
+msgid "Empty"
+msgstr "فارغة"
+
+msgctxt "Languages::kwtsms.dash.outbox.waiting"
+msgid "[count] waiting"
+msgstr "[count] بالانتظار"
+
+msgctxt "Languages::kwtsms.dash.outbox.oldest"
+msgid "Oldest: [minutes] min"
+msgstr "الأقدم: [minutes] دقيقة"
+
+msgctxt "Languages::kwtsms.dash.outbox.held"
+msgid "[count] held after a TLS failure"
+msgstr "[count] محجوزة بعد فشل TLS"
+
+msgctxt "Languages::kwtsms.dash.state.done"
+msgid "Done"
+msgstr "تم"
+
+msgctxt "Languages::kwtsms.dash.state.next"
+msgid "Next"
+msgstr "التالي"
+
+msgctxt "Languages::kwtsms.dash.state.todo"
+msgid "To do"
+msgstr "للتنفيذ"
+
+msgctxt "Languages::kwtsms.dash.state.progress"
+msgid "In progress"
+msgstr "جار التنفيذ"
+
+msgctxt "Languages::kwtsms.dash.setup.title"
+msgid "Setup checklist"
+msgstr "قائمة الإعداد"
+
+msgctxt "Languages::kwtsms.dash.setup.intro"
+msgid "Finish these steps to start sending SMS."
+msgstr "أكمل هذه الخطوات لبدء إرسال الرسائل."
+
+msgctxt "Languages::kwtsms.dash.setup.complete"
+msgid "Setup is complete."
+msgstr "اكتمل الإعداد."
+
+msgctxt "Languages::kwtsms.dash.setup.login"
+msgid "Log in to kwtSMS"
+msgstr "سجل الدخول إلى kwtSMS"
+
+msgctxt "Languages::kwtsms.dash.setup.login.link"
+msgid "Log in"
+msgstr "تسجيل الدخول"
+
+msgctxt "Languages::kwtsms.dash.setup.sender"
+msgid "Choose a Sender ID"
+msgstr "اختر معرف المرسل"
+
+msgctxt "Languages::kwtsms.dash.setup.sender.link"
+msgid "Choose"
+msgstr "اختر"
+
+msgctxt "Languages::kwtsms.dash.setup.country"
+msgid "Check the default country"
+msgstr "راجع الدولة الافتراضية"
+
+msgctxt "Languages::kwtsms.dash.setup.country.link"
+msgid "Review"
+msgstr "راجع"
+
+msgctxt "Languages::kwtsms.dash.setup.brand"
+msgid "Set your SMS brand name"
+msgstr "حدد اسم علامتك في الرسائل"
+
+msgctxt "Languages::kwtsms.dash.setup.brand.link"
+msgid "Set"
+msgstr "حدد"
+
+msgctxt "Languages::kwtsms.dash.setup.test_sms"
+msgid "Send a test SMS"
+msgstr "أرسل رسالة اختبار"
+
+msgctxt "Languages::kwtsms.dash.setup.test_sms.link"
+msgid "Send"
+msgstr "أرسل"
+
+msgctxt "Languages::kwtsms.dash.setup.switches"
+msgid "Review the SMS switches"
+msgstr "راجع مفاتيح الرسائل"
+
+msgctxt "Languages::kwtsms.dash.setup.switches.link"
+msgid "Review"
+msgstr "راجع"
+
+msgctxt "Languages::kwtsms.dash.setup.test_mode_off"
+msgid "Turn off test mode"
+msgstr "أوقف وضع الاختبار"
+
+msgctxt "Languages::kwtsms.dash.setup.test_mode_off.link"
+msgid "Turn off"
+msgstr "أوقف"
+
+msgctxt "Languages::kwtsms.dash.setup.enable"
+msgid "Turn on SMS"
+msgstr "فعّل الرسائل"
+
+msgctxt "Languages::kwtsms.dash.setup.enable.link"
+msgid "Turn on"
+msgstr "فعّل"
+
+msgctxt "Languages::kwtsms.dash.golive.title"
+msgid "Go-live checklist"
+msgstr "قائمة ما قبل الإطلاق"
+
+msgctxt "Languages::kwtsms.dash.golive.intro"
+msgid "Check these before customers get real SMS."
+msgstr "تحقق من هذه البنود قبل أن يتلقى العملاء رسائل حقيقية."
+
+msgctxt "Languages::kwtsms.dash.golive.sender_ordered"
+msgid "Order a transactional Sender ID (about 5 working days)"
+msgstr "اطلب معرف مرسل للمعاملات (نحو 5 أيام عمل)"
+
+msgctxt "Languages::kwtsms.dash.golive.sender_ordered.link"
+msgid "How to order"
+msgstr "كيف أطلب"
+
+msgctxt "Languages::kwtsms.dash.golive.templates"
+msgid "Review the English and Arabic templates"
+msgstr "راجع القوالب بالإنجليزية والعربية"
+
+msgctxt "Languages::kwtsms.dash.golive.templates.link"
+msgid "Open templates"
+msgstr "افتح القوالب"
+
+msgctxt "Languages::kwtsms.dash.golive.admin_phones"
+msgid "Enter the admin phone numbers"
+msgstr "أدخل أرقام هواتف المدير"
+
+msgctxt "Languages::kwtsms.dash.golive.admin_phones.link"
+msgid "Add numbers"
+msgstr "أضف الأرقام"
+
+msgctxt "Languages::kwtsms.dash.golive.pilot"
+msgid "Run a pilot with your own numbers"
+msgstr "شغّل تجربة بأرقامك أنت"
+
+msgctxt "Languages::kwtsms.dash.golive.pilot.link"
+msgid "Open settings"
+msgstr "افتح الإعدادات"
+
+msgctxt "Languages::kwtsms.dash.golive.test_mode_off"
+msgid "Turn off test mode"
+msgstr "أوقف وضع الاختبار"
+
+msgctxt "Languages::kwtsms.dash.golive.test_mode_off.link"
+msgid "Turn off"
+msgstr "أوقف"
+
+msgctxt "Languages::kwtsms.dash.test.title"
+msgid "Test mode is on"
+msgstr "وضع الاختبار مفعل"
+
+msgctxt "Languages::kwtsms.dash.test.title_held"
+msgid "Test messages still hold credits"
+msgstr "رسائل الاختبار ما زالت تحجز نقاطا"
+
+msgctxt "Languages::kwtsms.dash.test.text_enabled"
+msgid "Customers aren't receiving SMS. Messages go to kwtSMS as tests and are never delivered."
+msgstr "العملاء لا يتلقون الرسائل. تُرسل الرسائل إلى kwtSMS كاختبار ولا تُسلَّم أبدا."
+
+msgctxt "Languages::kwtsms.dash.test.text_disabled"
+msgid "SMS are off, so nothing is sent yet. Once you turn them on, they go to kwtSMS as tests and are never delivered."
+msgstr "الرسائل متوقفة، لذلك لا يُرسل شيء بعد. عند تفعيلها ستُرسل إلى kwtSMS كاختبار ولن تُسلَّم أبدا."
+
+msgctxt "Languages::kwtsms.dash.test.held"
+msgid "[count] test messages since [date] hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue."
+msgstr "تحجز [count] رسالة اختبار منذ [date] نحو [credits] نقطة في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com."
+
+msgctxt "Languages::kwtsms.dash.test.none"
+msgid "No test message holds credits in your kwtSMS queue."
+msgstr "لا توجد رسالة اختبار تحجز نقاطا في قائمة الانتظار لدى kwtSMS."
+
+msgctxt "Languages::kwtsms.dash.test.turn_off"
+msgid "Turn off test mode"
+msgstr "أوقف وضع الاختبار"
+
+msgctxt "Languages::kwtsms.dash.counters.title"
+msgid "Messages"
+msgstr "الرسائل"
+
+msgctxt "Languages::kwtsms.dash.counters.rows"
+msgid "Per recipient"
+msgstr "لكل مستلم"
+
+msgctxt "Languages::kwtsms.dash.counters.live"
+msgid "Live"
+msgstr "حقيقية"
+
+msgctxt "Languages::kwtsms.dash.counters.test"
+msgid "Test"
+msgstr "اختبار"
+
+msgctxt "Languages::kwtsms.dash.counters.today"
+msgid "Today"
+msgstr "اليوم"
+
+msgctxt "Languages::kwtsms.dash.counters.week"
+msgid "7 days"
+msgstr "7 أيام"
+
+msgctxt "Languages::kwtsms.dash.counters.month"
+msgid "30 days"
+msgstr "30 يوما"
+
+msgctxt "Languages::kwtsms.dash.counters.note"
+msgid "Each recipient counts once per send. Credits are what kwtSMS charged. Test messages are accepted but never delivered."
+msgstr "يُحسب كل مستلم مرة واحدة في كل إرسال. النقاط هي ما خصمته kwtSMS. رسائل الاختبار تُقبل ولا تُسلَّم."
+
+msgctxt "Languages::kwtsms.dash.group.accepted"
+msgid "Accepted by kwtSMS"
+msgstr "قبلتها kwtSMS"
+
+msgctxt "Languages::kwtsms.dash.group.accepted_tip"
+msgid "Delivery is not reported back. See Help > Message not received."
+msgstr "لا يصل تقرير بالتسليم. راجع المساعدة، قسم الرسالة لم تصل."
+
+msgctxt "Languages::kwtsms.dash.group.failed"
+msgid "Failed"
+msgstr "فشلت"
+
+msgctxt "Languages::kwtsms.dash.group.skipped"
+msgid "Skipped"
+msgstr "تم تخطيها"
+
+msgctxt "Languages::kwtsms.dash.group.deferred"
+msgid "Deferred"
+msgstr "مؤجلة"
+
+msgctxt "Languages::kwtsms.dash.group.credits"
+msgid "Credits"
+msgstr "النقاط"
+
+msgctxt "Languages::kwtsms.dash.problems.title"
+msgid "Problems in the last 7 days"
+msgstr "المشكلات خلال آخر 7 أيام"
+
+msgctxt "Languages::kwtsms.dash.problems.none"
+msgid "No problems in the last 7 days."
+msgstr "لا توجد مشكلات خلال آخر 7 أيام."
+
+msgctxt "Languages::kwtsms.dash.problems.outcomes"
+msgid "By result"
+msgstr "حسب النتيجة"
+
+msgctxt "Languages::kwtsms.dash.problems.codes"
+msgid "By kwtSMS code"
+msgstr "حسب رمز kwtSMS"
+
+msgctxt "Languages::kwtsms.dash.problems.countries"
+msgid "Skipped by country"
+msgstr "المتخطاة حسب الدولة"
+
+msgctxt "Languages::kwtsms.dash.problems.view"
+msgid "View in log"
+msgstr "عرض في السجل"
+
+msgctxt "Languages::kwtsms.dash.problems.unknown_country"
+msgid "Unknown country"
+msgstr "دولة غير معروفة"
+
+msgctxt "Languages::kwtsms.dash.problems.fraud"
+msgid "Only open countries your customers really live in. Unexpected international numbers are a common sign of SMS pumping fraud."
+msgstr "افتح فقط الدول التي يقيم فيها عملاؤك فعلا. الأرقام الدولية غير المتوقعة علامة شائعة على احتيال إغراق الرسائل."
+
+msgctxt "Languages::kwtsms.dash.problems.coverage"
+msgid "Ask kwtSMS to add a country"
+msgstr "اطلب من kwtSMS إضافة دولة"
+
+msgctxt "Languages::kwtsms.dash.credits.title"
+msgid "Credits by event and receiver"
+msgstr "النقاط حسب الحدث والمستلم"
+
+msgctxt "Languages::kwtsms.dash.credits.none"
+msgid "No credits were charged this month or last month."
+msgstr "لم تُخصم نقاط هذا الشهر أو الشهر الماضي."
+
+msgctxt "Languages::kwtsms.dash.credits.event"
+msgid "Event"
+msgstr "الحدث"
+
+msgctxt "Languages::kwtsms.dash.credits.receiver"
+msgid "Receiver"
+msgstr "المستلم"
+
+msgctxt "Languages::kwtsms.dash.credits.this_month"
+msgid "This month"
+msgstr "هذا الشهر"
+
+msgctxt "Languages::kwtsms.dash.credits.last_month"
+msgid "Last month"
+msgstr "الشهر الماضي"
+
+msgctxt "Languages::kwtsms.dash.receiver.C"
+msgid "Customer"
+msgstr "العميل"
+
+msgctxt "Languages::kwtsms.dash.receiver.A"
+msgid "Admin"
+msgstr "المدير"
+
+msgctxt "Languages::kwtsms.dash.receiver.V"
+msgid "Vendor"
+msgstr "البائع"
+
+msgctxt "Languages::kwtsms.dash.event.test_sms"
+msgid "Test SMS"
+msgstr "رسالة اختبار"
+
+msgctxt "Languages::kwtsms.dash.event.order_placed"
+msgid "New order"
+msgstr "طلب جديد"
+
+msgctxt "Languages::kwtsms.dash.event.status_changed"
+msgid "Order status: [status]"
+msgstr "حالة الطلب: [status]"
+
+msgctxt "Languages::kwtsms.dash.last.title"
+msgid "Last 10 messages"
+msgstr "آخر 10 رسائل"
+
+msgctxt "Languages::kwtsms.dash.last.none"
+msgid "No messages yet. Send a test SMS to see it here."
+msgstr "لا توجد رسائل بعد. أرسل رسالة اختبار لتظهر هنا."
+
+msgctxt "Languages::kwtsms.dash.last.time"
+msgid "Time"
+msgstr "الوقت"
+
+msgctxt "Languages::kwtsms.dash.last.event"
+msgid "Event"
+msgstr "الحدث"
+
+msgctxt "Languages::kwtsms.dash.last.to"
+msgid "To"
+msgstr "إلى"
+
+msgctxt "Languages::kwtsms.dash.last.recipients"
+msgid "Recipients"
+msgstr "المستلمون"
+
+msgctxt "Languages::kwtsms.dash.last.credits"
+msgid "Credits"
+msgstr "النقاط"
+
+msgctxt "Languages::kwtsms.dash.last.status"
+msgid "Result"
+msgstr "النتيجة"
+
+msgctxt "Languages::kwtsms.dash.last.test"
+msgid "Test"
+msgstr "اختبار"
+
+msgctxt "Languages::kwtsms.dash.last.all"
+msgid "Open the full log"
+msgstr "افتح السجل الكامل"
+
+msgctxt "Languages::kwtsms.dash.msg.accepted"
+msgid "Accepted"
+msgstr "مقبولة"
+
+msgctxt "Languages::kwtsms.dash.msg.test_queued"
+msgid "Test queued"
+msgstr "اختبار في الانتظار"
+
+msgctxt "Languages::kwtsms.dash.msg.partial_accept"
+msgid "Partly accepted"
+msgstr "مقبولة جزئيا"
+
+msgctxt "Languages::kwtsms.dash.msg.failed"
+msgid "Failed"
+msgstr "فشلت"
+
+msgctxt "Languages::kwtsms.dash.msg.unknown"
+msgid "No reply"
+msgstr "بلا رد"
+
+msgctxt "Languages::kwtsms.dash.msg.rejected"
+msgid "Rejected"
+msgstr "مرفوضة"
+
+msgctxt "Languages::kwtsms.dash.msg.deferred"
+msgid "Deferred"
+msgstr "مؤجلة"
+
+msgctxt "Languages::kwtsms.dash.msg.expired"
+msgid "Expired"
+msgstr "منتهية"
+
+msgctxt "Languages::kwtsms.dash.msg.invalid"
+msgid "Invalid number"
+msgstr "رقم غير صالح"
+
+msgctxt "Languages::kwtsms.dash.msg.cancelled"
+msgid "Cancelled"
+msgstr "ملغاة"
+
+msgctxt "Languages::kwtsms.dash.msg.blocked_balance"
+msgid "No balance"
+msgstr "لا يوجد رصيد"
+
+msgctxt "Languages::kwtsms.dash.msg.no_coverage"
+msgid "Not covered"
+msgstr "غير مغطاة"
+
+msgctxt "Languages::kwtsms.dash.warn.suspended"
+msgid "Sending is paused. [reason]"
+msgstr "الإرسال متوقف مؤقتا. [reason]"
+
+msgctxt "Languages::kwtsms.dash.warn.relogin"
+msgid "The saved API password can't be read, so sending is paused. Log in again."
+msgstr "تعذرت قراءة كلمة مرور API المحفوظة، لذلك توقف الإرسال. سجل الدخول مرة أخرى."
+
+msgctxt "Languages::kwtsms.dash.warn.balance_zero"
+msgid "Customer SMS have stopped. Your kwtSMS balance is zero."
+msgstr "توقفت رسائل العملاء. رصيد kwtSMS لديك صفر."
+
+msgctxt "Languages::kwtsms.dash.warn.low_balance"
+msgid "Your kwtSMS balance is under [threshold] credits. Recharge before customer SMS stop."
+msgstr "رصيد kwtSMS لديك أقل من [threshold] نقطة. اشحن الرصيد قبل أن تتوقف رسائل العملاء."
+
+msgctxt "Languages::kwtsms.dash.warn.daily_cap"
+msgid "The store reached its daily SMS limit. Customer SMS wait until tomorrow or until you resume sending."
+msgstr "بلغ المتجر حده اليومي للرسائل. تنتظر رسائل العملاء حتى الغد أو حتى تستأنف الإرسال."
+
+msgctxt "Languages::kwtsms.dash.warn.cron_missing.stale"
+msgid "The cron hasn't run for more than 2 hours. Queued SMS and the daily sync wait for it."
+msgstr "لم تعمل المهمة المجدولة منذ أكثر من ساعتين. الرسائل المؤجلة والمزامنة اليومية تنتظرها."
+
+msgctxt "Languages::kwtsms.dash.warn.cron_missing.never"
+msgid "The cron has never run. Queued SMS and the daily sync wait for it. Add the crontab line from the kwtSMS settings."
+msgstr "لم تعمل المهمة المجدولة أبدا. الرسائل المؤجلة والمزامنة اليومية تنتظرها. أضف سطر crontab من إعدادات kwtSMS."
+
+msgctxt "Languages::kwtsms.dash.warn.outbox_backlog"
+msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute."
+msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة."
+
+msgctxt "Languages::kwtsms.dash.warn.sync_failing"
+msgid "The last kwtSMS sync failed. SMS keep going out with the saved balance and Sender IDs, and the add-on tries again by itself."
+msgstr "فشلت آخر مزامنة مع kwtSMS. تستمر الرسائل بالخروج بالرصيد ومعرفات المرسل المحفوظة، وتعيد الإضافة المحاولة تلقائيا."
+
+msgctxt "Languages::kwtsms.dash.warn.weak_crypt_key"
+msgid "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php."
+msgstr "مفتاح التشفير في المتجر قصير أو ما زال الافتراضي، لذلك كلمة مرور API المحفوظة محمية بضعف. عيّن crypt_key عشوائيا وطويلا في config.local.php."
+
+msgctxt "Languages::kwtsms.dash.action.retry_gateway"
+msgid "Retry now"
+msgstr "أعد المحاولة الآن"
+
+msgctxt "Languages::kwtsms.dash.action.resume_daily_cap"
+msgid "Resume now"
+msgstr "استأنف الآن"
+
+msgctxt "Languages::kwtsms.dash.action.sync"
+msgid "Sync now"
+msgstr "مزامنة الآن"
+
+msgctxt "Languages::kwtsms.alert.cron_missing.title"
+msgid "The cron isn't running"
+msgstr "المهمة المجدولة لا تعمل"
+
+msgctxt "Languages::kwtsms.alert.cron_missing.text"
+msgid "The kwtSMS cron hasn't run for more than 2 hours. SMS that wait for a retry or for the end of quiet hours won't go out. Add the crontab line shown in the kwtSMS settings."
+msgstr "لم تعمل المهمة المجدولة لـ kwtSMS منذ أكثر من ساعتين. الرسائل التي تنتظر إعادة المحاولة أو نهاية ساعات الهدوء لن تُرسل. أضف سطر crontab الظاهر في إعدادات kwtSMS."
+
+msgctxt "Languages::kwtsms.alert.outbox_backlog.title"
+msgid "SMS are waiting in the outbox"
+msgstr "رسائل تنتظر في قائمة الإرسال"
+
+msgctxt "Languages::kwtsms.alert.outbox_backlog.text"
+msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
+msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل."
