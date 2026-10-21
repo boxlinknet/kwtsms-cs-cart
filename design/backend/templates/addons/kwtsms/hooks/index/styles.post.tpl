@@ -18,3 +18,5 @@ DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 {style src="addons/kwtsms/alerts.less"}
 {* 2026-10-21 04:56 +03: the Help page styles, Task 1.15, task 596 *}
 {style src="addons/kwtsms/help.less"}
+{* 2026-10-21 06:01 +03: the Logs page, log detail and order SMS tab styles, Task 1.14, task 596 *}
+{style src="addons/kwtsms/logs.less"}

@@ -28,6 +28,11 @@ use Tygh\Addons\Kwtsms\Admin\DashboardPage;
 use Tygh\Addons\Kwtsms\Admin\AlertsPage;
 use Tygh\Addons\Kwtsms\Admin\HelpPage;
 use Tygh\Addons\Kwtsms\Admin\IntegrationsPage;
+// 2026-10-21 05:55 +03: the Logs page classes, Task 1.14, task 596.
+use Tygh\Addons\Kwtsms\Admin\LogClearer;
+use Tygh\Addons\Kwtsms\Admin\LogExport;
+use Tygh\Addons\Kwtsms\Admin\LogResender;
+use Tygh\Addons\Kwtsms\Admin\LogsPage;
 use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
@@ -321,6 +326,44 @@ try {
                 exit;
         }
 
+        // 2026-10-21 05:55 +03: the Logs page actions (Task 1.14, task 596): Clear (the confirmed preview: its hidden
+        // fields carry the frozen period, so exactly the counted rows go) and Resend (one attempt, through the full
+        // send pipeline). Only POST body keys count; LogFilters checks every value against its own rule.
+        if ($mode === 'clear_logs' || $mode === 'resend') {
+            $kwtsms_posted = array_intersect_key($_REQUEST, $_POST);
+            $kwtsms_logs_page = LogsPage::fromContainer(Tygh::$app);
+            if ($mode === 'clear_logs') {
+                $kwtsms_result = LogClearer::fromContainer(Tygh::$app)->clear(
+                    $kwtsms_posted,
+                    isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                    Tygh::$app['kwtsms.config']->defaultCountryCode()
+                );
+                foreach ($kwtsms_logs_page->clearNotices($kwtsms_result) as $kwtsms_notice) {
+                    $kwtsms_title = __($kwtsms_notice[0] === 'E' ? 'error' : 'notice');
+                    fn_set_notification($kwtsms_notice[0], $kwtsms_title, $kwtsms_notice[1]);
+                }
+
+                return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.logs?tab=' . rawurlencode((string) $kwtsms_result['tab'])];
+            }
+            $kwtsms_attempt_id = isset($kwtsms_posted['attempt_id']) && is_string($kwtsms_posted['attempt_id'])
+                && ctype_digit($kwtsms_posted['attempt_id']) ? (int) $kwtsms_posted['attempt_id'] : 0;
+            $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+            $kwtsms_result = LogResender::fromContainer(Tygh::$app)->resend(
+                $kwtsms_attempt_id,
+                isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                filter_var($kwtsms_ip, FILTER_VALIDATE_IP) !== false ? $kwtsms_ip : ''
+            );
+            $kwtsms_notice = $kwtsms_logs_page->resendNotice($kwtsms_result);
+            $kwtsms_title = __($kwtsms_notice[0] === 'E' ? 'error' : 'notice');
+            fn_set_notification($kwtsms_notice[0], $kwtsms_title, $kwtsms_notice[1]);
+            $kwtsms_to = $kwtsms_result['attempt_id'] > 0 ? $kwtsms_result['attempt_id'] : $kwtsms_attempt_id;
+
+            return [
+                CONTROLLER_STATUS_REDIRECT,
+                $kwtsms_to > 0 ? 'kwtsms.log_details?tab=attempts&id=' . $kwtsms_to : 'kwtsms.logs?tab=attempts',
+            ];
+        }
+
         // POST modes of later tasks (templates, alerts, integrations, logs) do nothing until they are built.
         return [CONTROLLER_STATUS_NO_PAGE];
     }
@@ -477,6 +520,55 @@ try {
         return [CONTROLLER_STATUS_OK];
     }
 
+    // 2026-10-21 05:55 +03: the Logs page, its detail view and the CSV export (Task 1.14, task 596). GET handlers never
+    // write data; each writes one log row (view at debug, export at info, PRD 11).
+    if ($mode === 'logs' || $mode === 'log_details') {
+        $kwtsms_has = static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        };
+        $kwtsms_logs_page = LogsPage::fromContainer(Tygh::$app);
+        if ($mode === 'logs') {
+            $kwtsms_data = $kwtsms_logs_page->viewData($_REQUEST, $kwtsms_has('manage_kwtsms_gateway'));
+        } else {
+            $kwtsms_data = $kwtsms_logs_page->details(
+                isset($_REQUEST['tab']) && is_string($_REQUEST['tab']) ? $_REQUEST['tab'] : '',
+                isset($_REQUEST['id']) && is_string($_REQUEST['id']) && ctype_digit($_REQUEST['id'])
+                    ? (int) $_REQUEST['id']
+                    : 0,
+                $kwtsms_has('manage_kwtsms_gateway')
+            );
+            if ($kwtsms_data === null) {
+                return [CONTROLLER_STATUS_NO_PAGE];
+            }
+        }
+        $kwtsms_nav = Navigation::sections('logs', $kwtsms_has);
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'logs');
+
+        Tygh::$app['view']->assign('kwtsms_logs', $kwtsms_data);
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
+    if ($mode === 'export_logs') {
+        $kwtsms_export = LogExport::fromContainer(Tygh::$app);
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        if (!headers_sent()) {
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . LogExport::filename(time()) . '"');
+            header('Cache-Control: no-store');
+            header('X-Content-Type-Options: nosniff');
+        }
+        $kwtsms_export_result = $kwtsms_export->stream($_REQUEST, static function (string $line): void {
+            echo $line;
+        });
+        Tygh::$app['kwtsms.logs.debug']->log('info', 'logs.export', 'Messages exported', $kwtsms_export_result);
+        exit;
+    }
+
     // GET pages of later tasks.
     return [CONTROLLER_STATUS_NO_PAGE];
 } catch (\Throwable $e) {
@@ -506,6 +598,10 @@ try {
         $kwtsms_failed_url = 'kwtsms.admin_alerts';
     } elseif ((string) $mode === 'update_integrations') {
         $kwtsms_failed_url = 'kwtsms.integrations';
+    }
+    // 2026-10-21 05:55 +03: a failed Clear or Resend goes back to the Logs page (Task 1.14, task 596).
+    if ((string) $mode === 'clear_logs' || (string) $mode === 'resend') {
+        $kwtsms_failed_url = 'kwtsms.logs';
     }
 
     return $kwtsms_method === RequestGate::POST

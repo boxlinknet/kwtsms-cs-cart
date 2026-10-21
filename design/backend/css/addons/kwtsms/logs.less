@@ -1,0 +1,423 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/logs.less
+CREATED:   2026-10-21 06:00 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Logs page (views/kwtsms/logs.tpl), its detail view (log_details.tpl) and the SMS tab of
+           the admin order page (hooks/orders/tabs_extra.post.tpl): the log tabs, the filter grid, the rows with their two
+           clocks, the outcome chips, the raw request and reply blocks, the clear confirmation and the support text.
+WHY:       PRD 6.8 and 7. A file of its own, loaded by hooks/index/styles.post.tpl, so the page tasks that run in parallel
+           never edit one stylesheet. The outcome chip is the one coloured element and follows the Dashboard groups:
+           accepted in the brand tint, failed in the danger tint, deferred in the accent blue, skipped in grey; the TEST
+           badge is the accent outline of styles.less. Logical properties only, never direction or text-align
+           left/right (the core cssjanus flip rewrites them in RTL); raw blocks carry dir="ltr" in the markup.
+USAGE:     Compiled by {style src="addons/kwtsms/logs.less"}.
+DEPENDS:   styles.less (.kwtsms-badge, .kwtsms-actions, .kwtsms-inline-form, .kwtsms-section, .kwtsms-hint).
+*/
+
+@kwtsms-brand: #FFA200;
+@kwtsms-brand-tint: #FFF1D6;
+@kwtsms-text: #434345;
+@kwtsms-muted: #6B6B70;
+@kwtsms-accent: #79CCF2;
+@kwtsms-accent-tint: #E4F5FD;
+@kwtsms-line: #E3E3E6;
+@kwtsms-danger: #B42318;
+@kwtsms-danger-tint: #FDECEA;
+@kwtsms-mono: Menlo, Consolas, "Liberation Mono", monospace;
+
+.kwtsms-page.kwtsms-logs,
+.kwtsms-page.kwtsms-order-sms {
+    max-width: 1180px;
+
+    .kwtsms-table-wrap {
+        overflow-x: auto;
+    }
+    .kwtsms-table {
+        margin-block-end: 6px;
+        th,
+        td {
+            vertical-align: top;
+        }
+    }
+    .kwtsms-table__num {
+        text-align: end;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+    .kwtsms-code-tag {
+        padding: 0 5px;
+        border-radius: 3px;
+        background: #F0F0F2;
+        font-family: @kwtsms-mono;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---- the two clocks of a row: store time, then kwtSMS time (Asia/Kuwait) ---- */
+    .kwtsms-logs-time {
+        white-space: nowrap;
+    }
+    .kwtsms-logs-time__kwt {
+        display: block;
+        color: @kwtsms-muted;
+        font-size: 11px;
+    }
+
+    .kwtsms-logs-number {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .kwtsms-logs-to__who {
+        display: block;
+        color: @kwtsms-muted;
+        font-size: 11px;
+    }
+    .kwtsms-logs-text,
+    .kwtsms-logs-event {
+        max-width: 340px;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-logs-outcome {
+        min-width: 150px;
+    }
+    .kwtsms-logs-msgid {
+        display: inline-block;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: clip;
+        white-space: nowrap;
+        vertical-align: bottom;
+    }
+    .kwtsms-logs-view {
+        white-space: nowrap;
+        .kwtsms-inline-form {
+            margin-inline-start: 6px;
+        }
+    }
+    .kwtsms-logs-row--test td:first-child {
+        border-inline-start: 3px solid @kwtsms-accent;
+    }
+    .kwtsms-logs-empty {
+        padding: 24px 16px;
+        border: 1px dashed @kwtsms-line;
+        border-radius: 4px;
+        color: @kwtsms-muted;
+        text-align: center;
+    }
+
+    /* ---- outcome chips: one colour per Dashboard group ---- */
+    .kwtsms-outcome {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 3px;
+        background: #F0F0F2;
+        color: @kwtsms-text;
+        font-weight: 600;
+        line-height: 20px;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .kwtsms-outcome--accepted {
+        background: @kwtsms-brand-tint;
+        box-shadow: inset 0 0 0 1px fade(@kwtsms-brand, 55%);
+    }
+    .kwtsms-outcome--failed {
+        background: @kwtsms-danger-tint;
+        color: @kwtsms-danger;
+    }
+    .kwtsms-outcome--deferred {
+        background: @kwtsms-accent-tint;
+    }
+    .kwtsms-outcome--skipped {
+        background: #F0F0F2;
+        color: @kwtsms-muted;
+    }
+    .kwtsms-test-badge {
+        padding: 0 6px;
+        font-size: 11px;
+        line-height: 18px;
+    }
+    .kwtsms-outcome-reason {
+        display: block;
+        margin-block-start: 4px;
+    }
+}
+
+.kwtsms-page.kwtsms-logs {
+    /* ---- tabs of the log ---- */
+    .kwtsms-logs-tabs {
+        margin-block-end: 12px;
+        .nav {
+            margin-block-end: 0;
+        }
+    }
+
+    /* ---- filter form ---- */
+    .kwtsms-logs-filter {
+        margin: 0 0 12px;
+        padding: 12px 16px;
+        border: 1px solid @kwtsms-line;
+        border-radius: 4px;
+        background: #fff;
+    }
+    .kwtsms-logs-filter__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 4px 16px;
+        margin-block-end: 8px;
+    }
+    .kwtsms-field {
+        min-width: 0;
+        label {
+            margin-block-end: 2px;
+            color: @kwtsms-muted;
+            font-size: 12px;
+        }
+        input,
+        select {
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            margin-block-end: 4px;
+        }
+        .description {
+            margin: 0;
+            font-size: 11px;
+        }
+    }
+    .kwtsms-field--wide {
+        grid-column: span 2;
+    }
+
+    .kwtsms-logs__notice {
+        margin: 0 0 10px;
+        padding: 8px 12px;
+        border-inline-start: 3px solid @kwtsms-accent;
+        background: @kwtsms-accent-tint;
+    }
+    .kwtsms-logs__error {
+        margin-block-end: 10px;
+    }
+    .kwtsms-logs-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 16px;
+        margin-block-end: 6px;
+    }
+    .kwtsms-logs-bar__count {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .kwtsms-pager {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        margin: 10px 0 18px;
+    }
+    .kwtsms-pager__where {
+        color: @kwtsms-muted;
+    }
+
+    /* ---- clear ---- */
+    .kwtsms-logs-maint {
+        margin-block-start: 20px;
+    }
+    .kwtsms-logs-clear {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 18px;
+        .description {
+            flex-basis: 100%;
+            margin: 0;
+        }
+    }
+    .kwtsms-logs-clear__older {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        label {
+            margin: 0;
+        }
+    }
+    .kwtsms-logs-confirm {
+        margin: 0 0 14px;
+        padding: 12px 16px;
+        border: 1px solid fade(@kwtsms-danger, 30%);
+        border-inline-start: 4px solid @kwtsms-danger;
+        border-radius: 4px;
+        background: @kwtsms-danger-tint;
+        h4 {
+            margin: 0 0 6px;
+        }
+        p {
+            margin: 0 0 8px;
+        }
+    }
+
+    /* ---- level chips of the debug log ---- */
+    .kwtsms-level {
+        display: inline-block;
+        padding: 0 7px;
+        border-radius: 3px;
+        background: #F0F0F2;
+        font-size: 12px;
+        line-height: 20px;
+    }
+    .kwtsms-level--error {
+        background: @kwtsms-danger-tint;
+        color: @kwtsms-danger;
+        font-weight: 600;
+    }
+    .kwtsms-level--warning {
+        background: @kwtsms-brand-tint;
+    }
+    .kwtsms-level--debug {
+        color: @kwtsms-muted;
+    }
+
+    /* ---- detail view ---- */
+    .kwtsms-logs-back {
+        margin: 0 0 8px;
+    }
+    .kwtsms-log-details__title {
+        margin: 0 0 10px;
+    }
+    .kwtsms-details {
+        display: grid;
+        grid-template-columns: 1fr;
+        margin: 0 0 12px;
+        border-block-start: 1px solid @kwtsms-line;
+        > div {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            gap: 4px 16px;
+            padding: 7px 0;
+            border-block-end: 1px solid @kwtsms-line;
+        }
+        dt {
+            color: @kwtsms-muted;
+            font-weight: normal;
+        }
+        dd {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+    }
+    .kwtsms-logs-numbers .kwtsms-logs-number {
+        display: inline-block;
+        margin-inline-end: 6px;
+    }
+    .kwtsms-sms-text {
+        max-width: 640px;
+        padding: 10px 14px;
+        border: 1px solid @kwtsms-line;
+        border-radius: 12px;
+        border-end-start-radius: 2px;
+        background: #F7F7F9;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-pre {
+        max-height: 360px;
+        margin: 0 0 6px;
+        padding: 10px 12px;
+        overflow: auto;
+        border: 1px solid @kwtsms-line;
+        border-radius: 4px;
+        background: #F7F7F9;
+        font-family: @kwtsms-mono;
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-resend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        margin: 4px 0 14px;
+    }
+    .kwtsms-support__text {
+        width: 100%;
+        max-width: 640px;
+        box-sizing: border-box;
+        font-family: @kwtsms-mono;
+        font-size: 12px;
+    }
+    .kwtsms-js-copied {
+        color: @kwtsms-muted;
+    }
+}
+
+.kwtsms-page.kwtsms-order-sms {
+    padding-block-start: 6px;
+}
+
+/* Narrow screens (768 px with the admin menu open): each list row becomes a two-column card, every cell named by its
+   data-label, so the outcome is never scrolled out of sight. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-logs .kwtsms-logs-table,
+    .kwtsms-page.kwtsms-order-sms .kwtsms-logs-table {
+        thead {
+            display: none;
+        }
+        tbody,
+        tr,
+        td {
+            display: block;
+        }
+        tr {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 6px 16px;
+            padding: 10px 4px;
+            border-block-end: 1px solid @kwtsms-line;
+        }
+        td {
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            max-width: none;
+        }
+        td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            color: @kwtsms-muted;
+            font-size: 11px;
+        }
+        /* start and end apart: the LESS compiler reads "1 / -1" as a division */
+        .kwtsms-logs-cell--wide,
+        .kwtsms-logs-view {
+            grid-column-start: 1;
+            grid-column-end: -1;
+        }
+        .kwtsms-logs-row--test td:first-child {
+            border-inline-start: 0;
+        }
+        .kwtsms-logs-row--test {
+            border-inline-start: 3px solid @kwtsms-accent;
+            padding-inline-start: 8px;
+        }
+    }
+    .kwtsms-page.kwtsms-logs {
+        .kwtsms-field--wide {
+            grid-column: auto;
+        }
+        .kwtsms-details > div {
+            grid-template-columns: 1fr;
+            gap: 2px;
+        }
+        .kwtsms-logs-text {
+            max-width: 220px;
+        }
+    }
+}

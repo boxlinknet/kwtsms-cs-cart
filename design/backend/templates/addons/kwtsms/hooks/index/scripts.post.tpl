@@ -13,3 +13,5 @@ DEPENDS:   js/addons/kwtsms/backend.js
 {* 2026-10-21 04:38 +03: the Templates page counter (a mirror of MessageCleaner) and editor script, Task 1.12, task 596 *}
 {script src="js/addons/kwtsms/counter.js"}
 {script src="js/addons/kwtsms/templates.js"}
+{* 2026-10-21 06:01 +03: the Logs page script (support copy button, rows per page), Task 1.14, task 596 *}
+{script src="js/addons/kwtsms/logs.js"}

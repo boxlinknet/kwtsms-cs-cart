@@ -3513,3 +3513,771 @@ msgstr "أفضل الممارسات لتكامل SMS API"
 msgctxt "Languages::kwtsms.help.links.api_pdf"
 msgid "API documentation (PDF)"
 msgstr "وثائق API (PDF)"
+
+# 2026-10-21 06:03 +03: Task 1.14, task 596. kwtsms.nav.logs the page navigation, kwtsms.logs.* the Logs page (PRD 6.8: tabs, filters,
+# canonical outcome labels kwtsms.logs.outcome.<code> with "Accepted by kwtSMS", the detail view, Resend, Clear, CSV
+# export, the support text whose labels are always shown in English), kwtsms.order_tab.* the SMS tab of the admin order
+# page, kwtsms.gdpr.failed the notice when the GDPR anonymization of the SMS rows fails.
+msgctxt "Languages::kwtsms.nav.logs"
+msgid "Logs"
+msgstr "السجلات"
+
+msgctxt "Languages::kwtsms.logs.title"
+msgid "kwtSMS logs"
+msgstr "سجلات kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.tabs_label"
+msgid "Log"
+msgstr "السجل"
+
+msgctxt "Languages::kwtsms.logs.tab.messages"
+msgid "Messages"
+msgstr "الرسائل"
+
+msgctxt "Languages::kwtsms.logs.tab.attempts"
+msgid "Attempts"
+msgstr "المحاولات"
+
+msgctxt "Languages::kwtsms.logs.tab.debug"
+msgid "Debug"
+msgstr "التشخيص"
+
+msgctxt "Languages::kwtsms.logs.outcome.accepted"
+msgid "Accepted by kwtSMS"
+msgstr "قبلها kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.outcome.test_queued"
+msgid "Accepted in test mode"
+msgstr "مقبولة في وضع الاختبار"
+
+msgctxt "Languages::kwtsms.logs.outcome.partial_accept"
+msgid "Partly accepted"
+msgstr "مقبولة جزئيا"
+
+msgctxt "Languages::kwtsms.logs.outcome.failed"
+msgid "Failed"
+msgstr "فشلت"
+
+msgctxt "Languages::kwtsms.logs.outcome.unknown"
+msgid "No reply"
+msgstr "بلا رد"
+
+msgctxt "Languages::kwtsms.logs.outcome.rejected"
+msgid "Rejected"
+msgstr "مرفوضة"
+
+msgctxt "Languages::kwtsms.logs.outcome.invalid"
+msgid "Invalid number"
+msgstr "رقم غير صالح"
+
+msgctxt "Languages::kwtsms.logs.outcome.duplicate"
+msgid "Duplicate number"
+msgstr "رقم مكرر"
+
+msgctxt "Languages::kwtsms.logs.outcome.no_phone"
+msgid "No number"
+msgstr "لا يوجد رقم"
+
+msgctxt "Languages::kwtsms.logs.outcome.no_coverage"
+msgid "No coverage"
+msgstr "خارج التغطية"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_country"
+msgid "Country not allowed"
+msgstr "الدولة غير مسموحة"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_disabled"
+msgid "SMS off"
+msgstr "الرسائل متوقفة"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_not_configured"
+msgid "Not set up"
+msgstr "الإعداد غير مكتمل"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_empty"
+msgid "Empty text"
+msgstr "نص فارغ"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_too_long"
+msgid "Too long"
+msgstr "طويلة جدا"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_placeholder"
+msgid "Unfilled placeholder"
+msgstr "متغير غير معبأ"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_balance"
+msgid "No credit"
+msgstr "لا يوجد رصيد"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_pilot"
+msgid "Pilot mode"
+msgstr "وضع التجربة المحدودة"
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_daily_cap"
+msgid "Daily limit reached"
+msgstr "بلغ الحد اليومي"
+
+msgctxt "Languages::kwtsms.logs.outcome.rate_limited"
+msgid "Number limit reached"
+msgstr "بلغ حد الرقم"
+
+msgctxt "Languages::kwtsms.logs.outcome.cancelled"
+msgid "Cancelled"
+msgstr "ملغاة"
+
+msgctxt "Languages::kwtsms.logs.outcome.deferred"
+msgid "Queued"
+msgstr "في الانتظار"
+
+msgctxt "Languages::kwtsms.logs.outcome.expired"
+msgid "Expired"
+msgstr "انتهت مهلتها"
+
+msgctxt "Languages::kwtsms.logs.outcome.switched_off"
+msgid "Event SMS off"
+msgstr "رسائل الحدث متوقفة"
+
+msgctxt "Languages::kwtsms.logs.outcome.not_notified"
+msgid "Not notified"
+msgstr "دون إشعار"
+
+msgctxt "Languages::kwtsms.logs.outcome.superseded"
+msgid "Replaced"
+msgstr "مستبدلة"
+
+msgctxt "Languages::kwtsms.logs.outcome.duplicate_event"
+msgid "Already sent"
+msgstr "أرسلت سابقا"
+
+msgctxt "Languages::kwtsms.logs.outcome.no_template"
+msgid "No template"
+msgstr "لا يوجد قالب"
+
+msgctxt "Languages::kwtsms.logs.test_badge"
+msgid "TEST"
+msgstr "اختبار"
+
+msgctxt "Languages::kwtsms.logs.audit"
+msgid "Audit"
+msgstr "تدقيق"
+
+msgctxt "Languages::kwtsms.logs.event_multi"
+msgid "whole checkout"
+msgstr "الطلب المجمع"
+
+msgctxt "Languages::kwtsms.logs.level.debug"
+msgid "Debug"
+msgstr "تشخيص"
+
+msgctxt "Languages::kwtsms.logs.level.info"
+msgid "Info"
+msgstr "معلومة"
+
+msgctxt "Languages::kwtsms.logs.level.warning"
+msgid "Warning"
+msgstr "تحذير"
+
+msgctxt "Languages::kwtsms.logs.level.error"
+msgid "Error"
+msgstr "خطأ"
+
+msgctxt "Languages::kwtsms.logs.f.from"
+msgid "From"
+msgstr "من"
+
+msgctxt "Languages::kwtsms.logs.f.to"
+msgid "To"
+msgstr "إلى"
+
+msgctxt "Languages::kwtsms.logs.f.outcome"
+msgid "Status"
+msgstr "الحالة"
+
+msgctxt "Languages::kwtsms.logs.f.any"
+msgid "Any"
+msgstr "الكل"
+
+msgctxt "Languages::kwtsms.logs.f.event"
+msgid "Event"
+msgstr "الحدث"
+
+msgctxt "Languages::kwtsms.logs.f.receiver"
+msgid "Receiver"
+msgstr "المستلم"
+
+msgctxt "Languages::kwtsms.logs.f.phone"
+msgid "Phone number"
+msgstr "رقم الهاتف"
+
+msgctxt "Languages::kwtsms.logs.f.order"
+msgid "Order ID"
+msgstr "رقم الطلب"
+
+msgctxt "Languages::kwtsms.logs.f.storefront"
+msgid "Storefront"
+msgstr "واجهة المتجر"
+
+msgctxt "Languages::kwtsms.logs.f.vendor"
+msgid "Vendor ID"
+msgstr "رقم البائع"
+
+msgctxt "Languages::kwtsms.logs.f.mode"
+msgid "Live or test"
+msgstr "فعلي أو اختبار"
+
+msgctxt "Languages::kwtsms.logs.f.live"
+msgid "Live"
+msgstr "فعلي"
+
+msgctxt "Languages::kwtsms.logs.f.test"
+msgid "Test"
+msgstr "اختبار"
+
+msgctxt "Languages::kwtsms.logs.f.code"
+msgid "Error code"
+msgstr "رمز الخطأ"
+
+msgctxt "Languages::kwtsms.logs.f.msg_id"
+msgid "Message ID"
+msgstr "معرف الرسالة"
+
+msgctxt "Languages::kwtsms.logs.f.level"
+msgid "Level"
+msgstr "المستوى"
+
+msgctxt "Languages::kwtsms.logs.f.action"
+msgid "Action"
+msgstr "الإجراء"
+
+msgctxt "Languages::kwtsms.logs.f.request"
+msgid "Request ID"
+msgstr "معرف الطلب البرمجي"
+
+msgctxt "Languages::kwtsms.logs.f.text"
+msgid "Text contains"
+msgstr "النص يحتوي على"
+
+msgctxt "Languages::kwtsms.logs.f.text_help"
+msgid "At least 3 characters, with a date range of 31 days or less."
+msgstr "3 أحرف على الأقل، مع نطاق تاريخ لا يزيد عن 31 يوما."
+
+msgctxt "Languages::kwtsms.logs.f.per_page"
+msgid "Rows per page"
+msgstr "صفوف في الصفحة"
+
+msgctxt "Languages::kwtsms.logs.f.apply"
+msgid "Apply filter"
+msgstr "تطبيق الفلتر"
+
+msgctxt "Languages::kwtsms.logs.f.reset"
+msgid "Clear filter"
+msgstr "إلغاء الفلتر"
+
+msgctxt "Languages::kwtsms.logs.error.phone"
+msgid "The phone filter needs a full number. Type at least 7 digits, for example 98765432."
+msgstr "فلتر الهاتف يحتاج رقما كاملا. اكتب 7 أرقام على الأقل، مثل 98765432."
+
+msgctxt "Languages::kwtsms.logs.error.text_rule"
+msgid "The text filter wasn't applied. Type at least 3 characters and pick a date range of 31 days or less."
+msgstr "لم يطبق فلتر النص. اكتب 3 أحرف على الأقل واختر نطاق تاريخ لا يزيد عن 31 يوما."
+
+msgctxt "Languages::kwtsms.logs.notice.horizon"
+msgid "This filter searched the newest [rows] rows of the period, back to [date] (kwtSMS time). Pick an earlier date range to search older rows."
+msgstr "بحث هذا الفلتر في أحدث [rows] صف من الفترة، حتى [date] (توقيت kwtSMS). اختر نطاق تاريخ أقدم للبحث في الصفوف الأقدم."
+
+msgctxt "Languages::kwtsms.logs.notice.deep"
+msgid "Only the first [rows] rows can be paged. Narrow the filter or the date range to see the rest."
+msgstr "يمكن التنقل في أول [rows] صف فقط. ضيق الفلتر أو نطاق التاريخ لرؤية الباقي."
+
+msgctxt "Languages::kwtsms.logs.count"
+msgid "[count] rows"
+msgstr "[count] صف"
+
+msgctxt "Languages::kwtsms.logs.export"
+msgid "Export CSV"
+msgstr "تصدير CSV"
+
+msgctxt "Languages::kwtsms.logs.empty_filtered"
+msgid "No rows match this filter. Change the filter or clear it."
+msgstr "لا توجد صفوف تطابق هذا الفلتر. غير الفلتر أو ألغه."
+
+msgctxt "Languages::kwtsms.logs.empty.messages"
+msgid "No messages yet. Each API call to kwtSMS shows here."
+msgstr "لا توجد رسائل بعد. يظهر هنا كل اتصال بواجهة kwtSMS."
+
+msgctxt "Languages::kwtsms.logs.empty.attempts"
+msgid "No attempts yet. Every recipient of every send shows here, also the ones that never reached kwtSMS."
+msgstr "لا توجد محاولات بعد. يظهر هنا كل مستلم لكل إرسال، ومنها ما لم يصل إلى kwtSMS."
+
+msgctxt "Languages::kwtsms.logs.empty.debug"
+msgid "No debug rows. Set the log level to debug in Settings to record more."
+msgstr "لا توجد صفوف تشخيص. اجعل مستوى السجل تشخيص في الإعدادات لتسجيل المزيد."
+
+msgctxt "Languages::kwtsms.logs.col.time"
+msgid "Time"
+msgstr "الوقت"
+
+msgctxt "Languages::kwtsms.logs.col.level"
+msgid "Level"
+msgstr "المستوى"
+
+msgctxt "Languages::kwtsms.logs.col.action"
+msgid "Action"
+msgstr "الإجراء"
+
+msgctxt "Languages::kwtsms.logs.col.message"
+msgid "Message"
+msgstr "الرسالة"
+
+msgctxt "Languages::kwtsms.logs.col.ms"
+msgid "Duration (ms)"
+msgstr "المدة (ms)"
+
+msgctxt "Languages::kwtsms.logs.col.event"
+msgid "Event"
+msgstr "الحدث"
+
+msgctxt "Languages::kwtsms.logs.col.to"
+msgid "To"
+msgstr "إلى"
+
+msgctxt "Languages::kwtsms.logs.col.status"
+msgid "Status"
+msgstr "الحالة"
+
+msgctxt "Languages::kwtsms.logs.col.outcome"
+msgid "Outcome"
+msgstr "النتيجة"
+
+msgctxt "Languages::kwtsms.logs.col.credits"
+msgid "Credits"
+msgstr "الرصيد المستخدم"
+
+msgctxt "Languages::kwtsms.logs.col.msg_id"
+msgid "Message ID"
+msgstr "معرف الرسالة"
+
+msgctxt "Languages::kwtsms.logs.col.reason"
+msgid "Reason"
+msgstr "السبب"
+
+msgctxt "Languages::kwtsms.logs.col.order"
+msgid "Order"
+msgstr "الطلب"
+
+msgctxt "Languages::kwtsms.logs.col.details"
+msgid "Details"
+msgstr "التفاصيل"
+
+msgctxt "Languages::kwtsms.logs.sort_asc"
+msgid "oldest first"
+msgstr "الأقدم أولا"
+
+msgctxt "Languages::kwtsms.logs.sort_desc"
+msgid "newest first"
+msgstr "الأحدث أولا"
+
+msgctxt "Languages::kwtsms.logs.kwtsms_time"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.kwtsms_time_tip"
+msgid "kwtSMS time (Kuwait). Use it when you ask kwtSMS support about a message."
+msgstr "توقيت kwtSMS (الكويت). استخدمه عند سؤال دعم kwtSMS عن رسالة."
+
+msgctxt "Languages::kwtsms.logs.more_numbers"
+msgid "+[count] more"
+msgstr "+[count] أخرى"
+
+msgctxt "Languages::kwtsms.logs.view"
+msgid "View"
+msgstr "عرض"
+
+msgctxt "Languages::kwtsms.logs.pager"
+msgid "Pages"
+msgstr "الصفحات"
+
+msgctxt "Languages::kwtsms.logs.page_prev"
+msgid "Newer"
+msgstr "الأحدث"
+
+msgctxt "Languages::kwtsms.logs.page_next"
+msgid "Older"
+msgstr "الأقدم"
+
+msgctxt "Languages::kwtsms.logs.page_of"
+msgid "Page [page] of [pages]"
+msgstr "الصفحة [page] من [pages]"
+
+msgctxt "Languages::kwtsms.logs.keep_title"
+msgid "Keeping and clearing"
+msgstr "الحفظ والمسح"
+
+msgctxt "Languages::kwtsms.logs.keep.messages_forever"
+msgid "Messages are kept until you clear them."
+msgstr "تحفظ الرسائل حتى تمسحها."
+
+msgctxt "Languages::kwtsms.logs.keep.messages_days"
+msgid "Messages are kept [days] days."
+msgstr "تحفظ الرسائل [days] يوما."
+
+msgctxt "Languages::kwtsms.logs.keep.attempts_debug"
+msgid "Attempts are kept [attempts] days and debug rows [debug] days. Change this in Settings."
+msgstr "تحفظ المحاولات [attempts] يوما وصفوف التشخيص [debug] يوما. غير ذلك من الإعدادات."
+
+msgctxt "Languages::kwtsms.logs.clear.all"
+msgid "Clear the whole [log] log"
+msgstr "مسح سجل [log] بالكامل"
+
+msgctxt "Languages::kwtsms.logs.clear.older_label"
+msgid "Clear rows older than"
+msgstr "مسح الصفوف الأقدم من"
+
+msgctxt "Languages::kwtsms.logs.clear.older"
+msgid "Count rows"
+msgstr "عد الصفوف"
+
+msgctxt "Languages::kwtsms.logs.clear.filter"
+msgid "Clear the rows of this filter"
+msgstr "مسح صفوف هذا الفلتر"
+
+msgctxt "Languages::kwtsms.logs.clear.help"
+msgid "You see how many rows go before anything is deleted. Every clear is recorded in the Debug log."
+msgstr "ترى عدد الصفوف قبل حذف أي شيء. يسجل كل مسح في سجل التشخيص."
+
+msgctxt "Languages::kwtsms.logs.clear.confirm_title"
+msgid "Delete [count] rows?"
+msgstr "حذف [count] صف؟"
+
+msgctxt "Languages::kwtsms.logs.clear.confirm_all"
+msgid "This empties the [log] log."
+msgstr "سيفرغ هذا سجل [log]."
+
+msgctxt "Languages::kwtsms.logs.clear.confirm_older"
+msgid "These are the rows of the [log] log older than [days] days."
+msgstr "هذه صفوف سجل [log] الأقدم من [days] يوما."
+
+msgctxt "Languages::kwtsms.logs.clear.confirm_filter"
+msgid "These are the rows of the [log] log that match the current filter."
+msgstr "هذه صفوف سجل [log] التي تطابق الفلتر الحالي."
+
+msgctxt "Languages::kwtsms.logs.clear.cannot_undo"
+msgid "This can't be undone."
+msgstr "لا يمكن التراجع عن ذلك."
+
+msgctxt "Languages::kwtsms.logs.clear.audit_kept"
+msgid "The records of earlier clears stay."
+msgstr "تبقى سجلات عمليات المسح السابقة."
+
+msgctxt "Languages::kwtsms.logs.clear.submit"
+msgid "Delete [count] rows"
+msgstr "حذف [count] صف"
+
+msgctxt "Languages::kwtsms.logs.clear.nothing_title"
+msgid "Nothing to delete"
+msgstr "لا يوجد ما يحذف"
+
+msgctxt "Languages::kwtsms.logs.clear.nothing"
+msgid "No rows of the [log] log match."
+msgstr "لا توجد صفوف مطابقة في سجل [log]."
+
+msgctxt "Languages::kwtsms.logs.clear.back"
+msgid "Back to the log"
+msgstr "العودة إلى السجل"
+
+msgctxt "Languages::kwtsms.logs.clear.done"
+msgid "Deleted [count] rows from the [log] log."
+msgstr "حذف [count] صف من سجل [log]."
+
+msgctxt "Languages::kwtsms.logs.clear.left"
+msgid "Some rows are left because the clear stopped after 20 seconds. Clear again to delete the rest."
+msgstr "بقيت بعض الصفوف لأن المسح توقف بعد 20 ثانية. امسح مرة أخرى لحذف الباقي."
+
+msgctxt "Languages::kwtsms.logs.clear.audit_failed"
+msgid "The rows were deleted, but the record of this clear couldn't be saved. Check the PHP error log."
+msgstr "حذفت الصفوف، لكن تعذر حفظ سجل هذا المسح. راجع سجل أخطاء PHP."
+
+msgctxt "Languages::kwtsms.logs.clear.error_scope"
+msgid "Choose what to clear: the whole log, rows older than a number of days, or the rows of a filter."
+msgstr "اختر ما تريد مسحه: السجل كله، أو الصفوف الأقدم من عدد أيام، أو صفوف فلتر."
+
+msgctxt "Languages::kwtsms.logs.clear.error_days"
+msgid "Type a number of days from 1 to 3650."
+msgstr "اكتب عدد أيام من 1 إلى 3650."
+
+msgctxt "Languages::kwtsms.logs.clear.error_filter"
+msgid "Set a filter first. To empty the whole log, use Clear the whole log."
+msgstr "حدد فلترا أولا. لإفراغ السجل كله استخدم مسح السجل بالكامل."
+
+msgctxt "Languages::kwtsms.logs.back"
+msgid "Back to the [log] log"
+msgstr "العودة إلى سجل [log]"
+
+msgctxt "Languages::kwtsms.logs.detail_title.messages"
+msgid "Message #[id]"
+msgstr "الرسالة #[id]"
+
+msgctxt "Languages::kwtsms.logs.detail_title.attempts"
+msgid "Attempt #[id]"
+msgstr "المحاولة #[id]"
+
+msgctxt "Languages::kwtsms.logs.detail_title.debug"
+msgid "Debug row #[id]"
+msgstr "صف التشخيص #[id]"
+
+msgctxt "Languages::kwtsms.logs.user"
+msgid "Administrator ID"
+msgstr "رقم المدير"
+
+msgctxt "Languages::kwtsms.logs.parent_order"
+msgid "checkout [id]"
+msgstr "الطلب المجمع [id]"
+
+msgctxt "Languages::kwtsms.logs.sender"
+msgid "Sender ID"
+msgstr "اسم المرسل"
+
+msgctxt "Languages::kwtsms.logs.numbers"
+msgid "Numbers"
+msgstr "الأرقام"
+
+msgctxt "Languages::kwtsms.logs.numbers_accepted"
+msgid "([accepted] of [count] accepted)"
+msgstr "(قبل [accepted] من [count])"
+
+msgctxt "Languages::kwtsms.logs.code_source.api"
+msgid "from kwtSMS"
+msgstr "من kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.code_source.local"
+msgid "from this store"
+msgstr "من هذا المتجر"
+
+msgctxt "Languages::kwtsms.logs.pages"
+msgid "Pages"
+msgstr "الصفحات"
+
+msgctxt "Languages::kwtsms.logs.batch"
+msgid "part [no] of [total]"
+msgstr "الجزء [no] من [total]"
+
+msgctxt "Languages::kwtsms.logs.balance_after"
+msgid "balance after: [balance]"
+msgstr "الرصيد بعدها: [balance]"
+
+msgctxt "Languages::kwtsms.logs.phone_typed"
+msgid "as typed:"
+msgstr "كما كتب:"
+
+msgctxt "Languages::kwtsms.logs.message"
+msgid "Message"
+msgstr "الرسالة"
+
+msgctxt "Languages::kwtsms.logs.resend_of"
+msgid "Resend of"
+msgstr "إعادة إرسال للمحاولة"
+
+msgctxt "Languages::kwtsms.logs.outbox"
+msgid "Queue"
+msgstr "قائمة الانتظار"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.pending"
+msgid "Waiting to be sent"
+msgstr "تنتظر الإرسال"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.sending"
+msgid "Being sent"
+msgstr "قيد الإرسال"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.held"
+msgid "Held after a secure connection error"
+msgstr "موقوفة بعد خطأ في الاتصال الآمن"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.done"
+msgid "Sent on a later try"
+msgstr "أرسلت في محاولة لاحقة"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.expired"
+msgid "Expired without being sent"
+msgstr "انتهت مهلتها دون إرسال"
+
+msgctxt "Languages::kwtsms.logs.outbox_state.unknown"
+msgid "No reply from kwtSMS"
+msgstr "بلا رد من kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.outbox_tries"
+msgid "([n] tries)"
+msgstr "([n] محاولات)"
+
+msgctxt "Languages::kwtsms.logs.masked_note"
+msgid "A one-time code or a reset link was in this text. It is stored as ****** and never shown or resent."
+msgstr "كان في هذا النص رمز لمرة واحدة أو رابط استعادة. يحفظ بشكل ****** ولا يعرض ولا يعاد إرساله."
+
+msgctxt "Languages::kwtsms.logs.text"
+msgid "Text"
+msgstr "النص"
+
+msgctxt "Languages::kwtsms.logs.raw_request"
+msgid "Request sent to kwtSMS (login removed)"
+msgstr "الطلب المرسل إلى kwtSMS (دون بيانات الدخول)"
+
+msgctxt "Languages::kwtsms.logs.raw_response"
+msgid "Reply from kwtSMS"
+msgstr "رد kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.truncated"
+msgid "Cut at 64 KB. The full copy was [bytes] bytes."
+msgstr "قطع عند 64 KB. كانت النسخة الكاملة [bytes] بايت."
+
+msgctxt "Languages::kwtsms.logs.context"
+msgid "Context"
+msgstr "السياق"
+
+msgctxt "Languages::kwtsms.logs.resent_as"
+msgid "Resent as"
+msgstr "أعيد إرسالها في"
+
+msgctxt "Languages::kwtsms.logs.attempts_of_message"
+msgid "Recipients of this message"
+msgstr "مستلمو هذه الرسالة"
+
+msgctxt "Languages::kwtsms.logs.no_attempts"
+msgid "No attempt rows for this message. Attempts are kept for a shorter time than messages."
+msgstr "لا توجد صفوف محاولات لهذه الرسالة. تحفظ المحاولات مدة أقصر من الرسائل."
+
+msgctxt "Languages::kwtsms.logs.resend.button"
+msgid "Resend"
+msgstr "إعادة الإرسال"
+
+msgctxt "Languages::kwtsms.logs.resend.help"
+msgid "Sends the same text to this number again. Every SMS rule applies, test mode included."
+msgstr "يرسل النص نفسه إلى هذا الرقم مرة أخرى. تطبق كل قواعد الرسائل، ومنها وضع الاختبار."
+
+msgctxt "Languages::kwtsms.logs.resend.done"
+msgid "Resent: [outcome]. [reason]"
+msgstr "أعيد الإرسال: [outcome]. [reason]"
+
+msgctxt "Languages::kwtsms.logs.resend.not_allowed"
+msgid "Only failed, queued, expired, or unanswered SMS can be resent."
+msgstr "يمكن إعادة إرسال الرسائل الفاشلة أو المنتظرة أو المنتهية أو التي بلا رد فقط."
+
+msgctxt "Languages::kwtsms.logs.resend.masked"
+msgid "This SMS held a one-time code or a reset link, so it isn't resent."
+msgstr "كانت هذه الرسالة تحتوي على رمز لمرة واحدة أو رابط استعادة، لذلك لا يعاد إرسالها."
+
+msgctxt "Languages::kwtsms.logs.resend.no_phone"
+msgid "This attempt has no valid number to send to."
+msgstr "لا يوجد رقم صالح في هذه المحاولة للإرسال إليه."
+
+msgctxt "Languages::kwtsms.logs.resend.already"
+msgid "This SMS was already resent. Open the resend to try again from there."
+msgstr "أعيد إرسال هذه الرسالة من قبل. افتح إعادة الإرسال لتحاول مجددا من هناك."
+
+msgctxt "Languages::kwtsms.logs.resend.queued"
+msgid "This SMS is still in the queue and goes out on its own. It can't be resent now."
+msgstr "هذه الرسالة ما زالت في قائمة الانتظار وسترسل تلقائيا. لا يمكن إعادة إرسالها الآن."
+
+msgctxt "Languages::kwtsms.logs.resend.sent_later"
+msgid "This SMS was sent on a later try, so it isn't resent."
+msgstr "أرسلت هذه الرسالة في محاولة لاحقة، لذلك لا يعاد إرسالها."
+
+msgctxt "Languages::kwtsms.logs.resend.no_text"
+msgid "The text of this SMS is no longer stored, so it can't be resent."
+msgstr "نص هذه الرسالة لم يعد محفوظا، لذلك لا يمكن إعادة إرسالها."
+
+msgctxt "Languages::kwtsms.logs.resend.not_found"
+msgid "This attempt doesn't exist anymore. It may have been cleared."
+msgstr "هذه المحاولة لم تعد موجودة. ربما تم مسحها."
+
+msgctxt "Languages::kwtsms.logs.resend.failed"
+msgid "The resend couldn't be done. Check the Debug log."
+msgstr "تعذرت إعادة الإرسال. راجع سجل التشخيص."
+
+msgctxt "Languages::kwtsms.logs.support.heading"
+msgid "Copy details for kwtSMS support"
+msgstr "نسخ التفاصيل لدعم kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.support.help"
+msgid "Paste this into a message to kwtSMS support. It holds no password."
+msgstr "الصق هذا في رسالة إلى دعم kwtSMS. لا يحتوي على كلمة مرور."
+
+msgctxt "Languages::kwtsms.logs.support.copy"
+msgid "Copy details for kwtSMS support"
+msgstr "نسخ التفاصيل لدعم kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.support.copied"
+msgid "Copied"
+msgstr "تم النسخ"
+
+msgctxt "Languages::kwtsms.logs.support.title"
+msgid "kwtSMS message details"
+msgstr "تفاصيل رسالة kwtSMS"
+
+msgctxt "Languages::kwtsms.logs.support.username"
+msgid "API username"
+msgstr "اسم مستخدم API"
+
+msgctxt "Languages::kwtsms.logs.support.msg_id"
+msgid "msg-id"
+msgstr "معرف الرسالة"
+
+msgctxt "Languages::kwtsms.logs.support.time"
+msgid "Date and time (Kuwait)"
+msgstr "التاريخ والوقت (الكويت)"
+
+msgctxt "Languages::kwtsms.logs.support.sender"
+msgid "Sender ID"
+msgstr "اسم المرسل"
+
+msgctxt "Languages::kwtsms.logs.support.numbers"
+msgid "Numbers"
+msgstr "الأرقام"
+
+msgctxt "Languages::kwtsms.logs.support.text"
+msgid "Text"
+msgstr "النص"
+
+msgctxt "Languages::kwtsms.logs.support.test"
+msgid "Test mode"
+msgstr "وضع الاختبار"
+
+msgctxt "Languages::kwtsms.logs.support.code"
+msgid "Code"
+msgstr "الرمز"
+
+msgctxt "Languages::kwtsms.logs.support.outcome"
+msgid "Outcome in the store"
+msgstr "النتيجة في المتجر"
+
+msgctxt "Languages::kwtsms.order_tab.title"
+msgid "SMS"
+msgstr "الرسائل النصية"
+
+msgctxt "Languages::kwtsms.order_tab.intro"
+msgid "Every SMS of this order, newest first. Read only."
+msgstr "كل رسائل هذا الطلب، الأحدث أولا. للقراءة فقط."
+
+msgctxt "Languages::kwtsms.order_tab.intro_parent"
+msgid "Every SMS of this order and of its checkout [parent], newest first. Read only."
+msgstr "كل رسائل هذا الطلب وطلبه المجمع [parent]، الأحدث أولا. للقراءة فقط."
+
+msgctxt "Languages::kwtsms.order_tab.none"
+msgid "No SMS for this order yet."
+msgstr "لا توجد رسائل لهذا الطلب بعد."
+
+msgctxt "Languages::kwtsms.order_tab.parent"
+msgid "(checkout)"
+msgstr "(الطلب المجمع)"
+
+msgctxt "Languages::kwtsms.order_tab.child"
+msgid "(vendor order)"
+msgstr "(طلب البائع)"
+
+msgctxt "Languages::kwtsms.order_tab.more"
+msgid "Show all in the kwtSMS logs"
+msgstr "عرض الكل في سجلات kwtSMS"
+
+msgctxt "Languages::kwtsms.gdpr.failed"
+msgid "The customer's SMS logs couldn't be anonymized. Check the PHP error log and try again."
+msgstr "تعذر إخفاء هوية سجلات رسائل العميل. راجع سجل أخطاء PHP وحاول مجددا."

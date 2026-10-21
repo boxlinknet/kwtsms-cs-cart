@@ -179,3 +179,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - The Help page shows the exact crontab line of this store, built from its folder and its admin script name; the URL
   mode (POST only, the key in a header, a 504 from a 60-second proxy is not always a failure); and a warning when the
   core lock backend is "dummy", which gives no mutual exclusion between two cron runs.
+<!-- 2026-10-21 06:44 +03: entries for the Logs page, the order SMS tab, export and GDPR (Task 1.14), task 596 -->
+- Logs page with Messages, Attempts and Debug tabs: store time and kwtSMS time (Kuwait) on every row, a TEST badge and a
+  Live or test filter, one canonical list of outcome labels ("Accepted by kwtSMS", never "Delivered"), filters by date,
+  status, event, receiver, order (with its parent), storefront, vendor, phone (98765432 finds 96598765432) and text (3
+  characters and at most 31 days). Filters come from a fixed key map, 10 to 200 rows per page, created_at the only sort.
+- A filter that no index reads in time order searches the newest 50,000 rows of the period and says so, so every list
+  and count stays under a second on a store with a million attempts.
+- Detail view with the raw request (login removed) and reply in left-to-right blocks, the flag of a reply cut at 64 KB,
+  the recipients of a message, and "Copy details for kwtSMS support" (API username, msg-id, Kuwait time, Sender ID,
+  numbers, text, test flag, code; never the password).
+- Resend of a failed, queued, expired or unanswered SMS through every send rule, linked to the original attempt; never a
+  masked text, a row still in the queue or sent on a later try, and never twice.
+- Clear the whole log (TRUNCATE), rows older than N days or the rows of a filter (5,000 rows per statement), always
+  showing the row count first; every clear writes an audit row that no clear and no retention under 365 days removes.
+- CSV export of the Messages log with the current filters: UTF-8 with a BOM, formula cells guarded, masked texts stay
+  masked, never the raw request or reply.
+- Read-only SMS tab on the admin order page with every SMS attempt of the order and of its parent checkout.
+- GDPR: a customer's SMS rows (messages, attempts and queued SMS) are part of their personal data, and anonymizing the
+  customer replaces their numbers with one-way tokens, the texts with "[anonymized]" and clears the IP address.
+- Indexes for the msg-id lookup, the recipients of a message, index-only Dashboard counters and the Debug log by action.

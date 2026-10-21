@@ -29,8 +29,9 @@ final class Navigation
     // 2026-10-21 04:38 +03: Templates added (PRD 7 order: Settings, then Templates), Task 1.12, task 596.
     // 2026-10-21 03:24 +03: dashboard first (PRD 7 order), Task 1.11, task 596.
     // 2026-10-21 04:20 +03: Integrations and Admin SMS Alerts added after Templates (PRD 7 order), Task 1.13, task 596.
+    // 2026-10-21 05:55 +03: Logs added after Admin SMS Alerts (PRD 7 order), Task 1.14, task 596.
     // 2026-10-21 06:07 +03: Help added last (PRD 7 order), Task 1.15, task 596.
-    public const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'help'];
+    public const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'logs', 'help'];
 
     /**
      * @param callable $has_privilege (string $privilege): bool
