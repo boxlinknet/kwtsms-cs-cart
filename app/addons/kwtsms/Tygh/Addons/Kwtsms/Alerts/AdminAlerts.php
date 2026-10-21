@@ -153,6 +153,12 @@ class AdminAlerts
             if (isset($params['[count]']) && is_numeric($params['[count]'])) {
                 $safe = [0 => (int) $params['[count]']] + $safe;
             }
+            // 2026-10-21 18:54 +03: a numeric [credits] becomes the text of kwtsms.dash.credits_n in the alert's
+            // language ("1 credit", "3 credits", the Arabic forms), so the test_mode text no longer reads "about 1
+            // credits"; RC regression STEP -1 (ruling R54), task 596.
+            if (isset($params['[credits]']) && is_numeric($params['[credits]'])) {
+                $safe['[credits]'] = (string) __('kwtsms.dash.credits_n', [0 => $safe['[credits]']], $lang);
+            }
             $text = (string) __($text_key, $safe, $lang);
         } catch (\Throwable $e) {
             $this->failed('alert.failed', $condition, $e);
