@@ -799,6 +799,15 @@ class DashboardPage
             if ($w['id'] === 'suspended') {
                 $params['[reason]'] = htmlspecialchars(ApiErrors::describe((string) $w['code']), ENT_QUOTES, 'UTF-8');
             }
+            // 2026-10-21 14:10 +03: low_balance and outbox_backlog count something, so their language variables
+            // have a singular and a plural form ("1 credit" / "3 credits"; six forms in Arabic): core's __() picks
+            // the form from a number at the FIRST position of the params and fills [n] with it. The named params
+            // stay as they were. Cleanup 2 item 4, task 596.
+            if ($w['id'] === 'low_balance' && isset($params['[threshold]'])) {
+                $params = [0 => (int) $params['[threshold]']] + $params;
+            } elseif ($w['id'] === 'outbox_backlog' && isset($params['[count]'])) {
+                $params = [0 => (int) $params['[count]']] + $params;
+            }
             $w['params'] = $params;
             $rows[] = $w;
         }
