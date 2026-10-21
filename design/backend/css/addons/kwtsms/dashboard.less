@@ -18,6 +18,13 @@ DEPENDS:   styles.less (shared classes).
 @kwtsms-brand: #FFA200;
 @kwtsms-brand-tint: #FFF1D6;
 @kwtsms-text: #434345;
+// 2026-10-21 09:01 +03: cleanup item 12, task 596. One muted grey for every add-on page: #666669 is 5.72:1 on white and 5.35:1 on
+// the #F7F7F8 wash (AA needs 4.5:1). It replaces the text colour made 18% lighter (#707074, 4.93:1 on white, less on a wash)
+// and the core .muted grey (#7A7A7A, 4.29:1). The link blue #0B62A0 is 6.42:1 on white and 5.84:1 on the #E9F6FF
+// info wash; the core link blue (#1D9FF8) is 2.85:1.
+@kwtsms-muted: #666669;
+@kwtsms-link: #0B62A0;
+@kwtsms-link-hover: #084A78;
 @kwtsms-accent: #79CCF2;
 @kwtsms-accent-tint: #E4F5FD;
 @kwtsms-line: #E3E3E6;
@@ -30,7 +37,7 @@ DEPENDS:   styles.less (shared classes).
         display: block;
         margin-block-end: 4px;
         font-size: 12px;
-        color: lighten(@kwtsms-text, 18%);
+        color: @kwtsms-muted;
     }
 
     /* ---- test-mode band: the one loud element when test mode is on ---- */
@@ -89,7 +96,7 @@ DEPENDS:   styles.less (shared classes).
         span {
             font-size: 13px;
             font-weight: normal;
-            color: lighten(@kwtsms-text, 18%);
+            color: @kwtsms-muted;
         }
     }
     .kwtsms-balance-card__meta {
@@ -113,7 +120,7 @@ DEPENDS:   styles.less (shared classes).
             margin-block-end: 5px;
             font-size: 12px;
             font-weight: normal;
-            color: lighten(@kwtsms-text, 18%);
+            color: @kwtsms-muted;
         }
         dd {
             display: flex;
@@ -134,7 +141,7 @@ DEPENDS:   styles.less (shared classes).
         flex-basis: 100%;
         font-size: 12px;
         font-weight: normal;
-        color: lighten(@kwtsms-text, 18%);
+        color: @kwtsms-muted;
         overflow-wrap: anywhere;
     }
 
@@ -190,7 +197,7 @@ DEPENDS:   styles.less (shared classes).
     .kwtsms-step__value {
         display: block;
         font-size: 12px;
-        color: lighten(@kwtsms-text, 18%);
+        color: @kwtsms-muted;
     }
     /* 2026-10-21 05:16 +03: the "Mark as done" button under the label of an optional step (R36), Task 1.11 fix round 1,
        task 596. */
@@ -203,12 +210,18 @@ DEPENDS:   styles.less (shared classes).
     }
     .kwtsms-step__state {
         font-size: 12px;
-        color: lighten(@kwtsms-text, 18%);
+        color: @kwtsms-muted;
         white-space: nowrap;
     }
     .kwtsms-step__link {
         font-weight: 600;
         white-space: nowrap;
+        /* 2026-10-21 09:01 +03: cleanup item 12, task 596. The core link blue is 2.85:1 on white. */
+        color: @kwtsms-link;
+        &:hover,
+        &:focus {
+            color: @kwtsms-link-hover;
+        }
     }
     .kwtsms-step--done {
         .kwtsms-step__mark {

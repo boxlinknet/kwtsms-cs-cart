@@ -17,7 +17,9 @@ DEPENDS:   Nothing at build time.
 @kwt-brand: #FFA200;
 @kwt-brand-tint: #FFF1D6;
 @kwt-text: #434345;
-@kwt-muted: lighten(@kwt-text, 22%);
+// 2026-10-21 09:01 +03: cleanup item 12, task 596. The old lighten(@kwt-text, 22%) was #7A7A7E, 4.27:1 on white. One muted grey for
+// every add-on page: #666669, 5.72:1 on white and 5.35:1 on the #F7F7F8 wash.
+@kwt-muted: #666669;
 @kwt-accent: #79CCF2;
 @kwt-accent-tint: #E4F5FD;
 @kwt-line: #E3E3E6;

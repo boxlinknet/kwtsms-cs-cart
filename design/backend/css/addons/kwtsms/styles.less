@@ -18,6 +18,14 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
 @kwtsms-brand: #FFA200;
 @kwtsms-brand-tint: #FFF1D6;
 @kwtsms-text: #434345;
+// 2026-10-21 09:01 +03: cleanup item 12, task 596. One muted grey for every add-on page: #666669 is 5.72:1 on white and 5.35:1 on
+// the #F7F7F8 wash (AA needs 4.5:1). It replaces the text colour made 18% lighter (#707074, 4.93:1 on white, less on a wash)
+// and the core .muted grey (#7A7A7A, 4.29:1). The link blue #0B62A0 is 6.42:1 on white and 5.84:1 on the #E9F6FF
+// info wash; the core link blue (#1D9FF8) is 2.85:1.
+@kwtsms-muted: #666669;
+@kwtsms-link: #0B62A0;
+@kwtsms-link-hover: #084A78;
+@kwtsms-info-text: #0F5E80;
 @kwtsms-accent: #79CCF2;
 @kwtsms-accent-tint: #E4F5FD;
 @kwtsms-line: #E3E3E6;
@@ -26,6 +34,28 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
 
 .kwtsms-page {
     max-width: 1040px;
+
+    /* 2026-10-21 09:01 +03: cleanup item 12, task 596. The core .muted grey is 4.29:1 on white; on every add-on page it is the
+       token above, a link inside it is the link blue with an underline (the colour alone would not set it apart
+       from the grey around it), and the table headers (core grey, 4.29:1) take the token too. */
+    .muted {
+        color: @kwtsms-muted;
+        a {
+            color: @kwtsms-link;
+            text-decoration: underline;
+            &:hover,
+            &:focus {
+                color: @kwtsms-link-hover;
+            }
+        }
+    }
+    /* The core table-header rule is `.table thead:not(:hover) th` (it reads the core variable --cs-text-muted-color, the
+       core grey); the last selector here is one step more specific. */
+    table th,
+    table thead th,
+    table thead:not(:hover) th {
+        color: @kwtsms-muted;
+    }
 
     /* ---- navigation tabs ---- */
     .kwtsms-nav {
@@ -51,7 +81,7 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         gap: 8px;
         dt {
             font-weight: normal;
-            color: lighten(@kwtsms-text, 18%);
+            color: @kwtsms-muted;
         }
         dd {
             margin: 0;
@@ -94,6 +124,10 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         margin-inline-start: 0;
     }
     .kwtsms-alert {
+        /* 2026-10-21 09:01 +03: cleanup item 12, task 596. The core info text (#2D95B4) is 3.14:1 on its #E9F6FF wash. */
+        &.alert-info {
+            color: @kwtsms-info-text;
+        }
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -160,7 +194,7 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         }
     }
     .kwtsms-unit {
-        color: lighten(@kwtsms-text, 18%);
+        color: @kwtsms-muted;
     }
     .kwtsms-static {
         margin: 0;
@@ -218,7 +252,7 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         margin: 0;
         dt {
             font-weight: normal;
-            color: lighten(@kwtsms-text, 18%);
+            color: @kwtsms-muted;
         }
         dd {
             margin: 0;

@@ -17,8 +17,9 @@ DEPENDS:   Nothing at build time.
 */
 @kwt-brand: #FFA200;
 @kwt-text: #434345;
-// 2026-10-21 07:03 +03: muted text is #666669, 5.7:1 on white and 5.2:1 on the #F7F7F8 wash (AA needs 4.5:1); the old
+// 2026-10-21 07:03 +03: muted text is #666669, 5.7:1 on white and 5.35:1 on the #F7F7F8 wash (AA needs 4.5:1); the old
 // lighten(@kwt-text, 22%) was #7A7A7E, 4.3:1 on white (fix round 1, Tasks 1.13 and 1.15, task 596).
+// 2026-10-21 09:01 +03: the wash ratio said 5.2:1, which is the ratio on #E9F6FF; on #F7F7F8 it is 5.35:1 (cleanup item 12, task 596).
 @kwt-muted: #666669;
 @kwt-accent: #79CCF2;
 @kwt-line: #E3E3E6;
@@ -115,6 +116,15 @@ DEPENDS:   Nothing at build time.
     .kwtsms-help__link {
         white-space: nowrap;
         font-weight: 600;
+    }
+    /* 2026-10-21 09:01 +03: cleanup item 12, task 596. The links in the text: the core link blue is 2.85:1 on white; this blue is
+       6.42:1. The table of contents keeps its own text colour. */
+    .kwtsms-help__body a:not(.btn) {
+        color: #0B62A0;
+        &:hover,
+        &:focus {
+            color: #084A78;
+        }
     }
 
     /* ---- lines of code ---- */
