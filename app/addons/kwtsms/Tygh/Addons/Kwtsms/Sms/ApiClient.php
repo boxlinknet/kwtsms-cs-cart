@@ -48,6 +48,9 @@
  *            context) the constructor's $request_guard callable is asked instead (it must return exactly
  *            true); with neither, the client refuses to send (LOCAL_NO_GUARD).
  *            Test seams (protected): hookExists(), runHook(), pause(), baseUrl().
+ *            2026-10-21 10:29 +03, Task 1.16, task 596: send() doubles every backslash of the message on the wire
+ *            (gatewayEscape()), because kwtSMS decodes escapes in what it receives; the request hook and the stored
+ *            request see that wire form.
  * DEPENDS:   Http\HttpTransport, Sms\ApiGuard, Log\DebugLog, ext-json, ext-mbstring.
  */
 
@@ -280,8 +283,11 @@ class ApiClient
         }
 
         $flag = $test ? '1' : '0';
-        $payload_for = function (array $chunk) use ($sender, $message, $flag): array {
-            return ['sender' => $sender, 'mobile' => implode(',', $chunk), 'message' => $message, 'test' => $flag];
+        // 2026-10-21 10:29 +03: the message travels escaped for the gateway's own decoder (gatewayEscape()), so kwtSMS
+        // stores the finished text exactly; Task 1.16 STEP 4 found "C:\next" stored with a line break, task 596.
+        $wire_message = self::gatewayEscape($message);
+        $payload_for = function (array $chunk) use ($sender, $wire_message, $flag): array {
+            return ['sender' => $sender, 'mobile' => implode(',', $chunk), 'message' => $wire_message, 'test' => $flag];
         };
         $calls = $this->runChunks('send', self::chunk($clean), $payload_for);
         foreach ($calls as $i => $call) {
@@ -293,6 +299,19 @@ class ApiClient
         $this->note('info', 'send.exit', (string) $result['result'], $this->summary($result), $result['ms']);
 
         return $result;
+    }
+
+    /**
+     * The message as /send/ must carry it. kwtSMS decodes escape sequences in the message it receives: a backslash
+     * and n becomes a line break, a backslash and u0633 the letter, two backslashes one backslash. The text given
+     * here is already the finished text (MessageCleaner decoded the escapes the merchant meant once), so every
+     * backslash in it is doubled and kwtSMS stores exactly this text, which is also the text the pages were counted
+     * on. Without it "C:\next" arrived with a line break and a literal "\u0633" was charged as Unicode.
+     * 2026-10-21 10:29 +03: added, Task 1.16 STEP 4 (queue_send bytes of cases 16c and 14b), task 596.
+     */
+    public static function gatewayEscape(string $message): string
+    {
+        return str_replace('\\', '\\\\', $message);
     }
 
     /**
