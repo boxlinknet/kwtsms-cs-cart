@@ -507,6 +507,16 @@ DEPENDS:   Nothing at build time.
         font-size: 12px;
         color: @kwt-muted;
     }
+    /* 2026-10-21 14:06 +03: the fallback line under the field (cleanup 2 item 3, task 596): full row width, its text starts
+       under the input (label 200 px + 12 px gap), muted token (5.72:1 on white); on a phone the label and input stack, so it
+       starts at the edge. */
+    .kwtsms-brand__fallback {
+        flex: 1 1 100%;
+        box-sizing: border-box;
+        margin: 0;
+        padding-inline-start: 212px;
+        font-size: 12px;
+    }
     /* 2026-10-21 06:00 +03: a full count is expected (the field stops at 20), so it is bold, not an error colour. */
     .kwtsms-brand__row.is-full .kwtsms-brand__count {
         color: @kwt-text;
@@ -526,6 +536,10 @@ DEPENDS:   Nothing at build time.
         .kwtsms-brand__label,
         .kwtsms-brand__input {
             flex: 1 1 100%;
+        }
+        // 2026-10-21 14:06 +03: cleanup 2 item 3, task 596: the stacked layout has no label column to align under.
+        .kwtsms-brand__fallback {
+            padding-inline-start: 0;
         }
     }
 }

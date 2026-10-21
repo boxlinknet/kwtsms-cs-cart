@@ -72,8 +72,12 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                         <input type="text" id="kwtsms_brand_{$sf.id}" name="kwtsms_brand[names][{$sf.id}]" value="{$sf.value}"
                                class="kwtsms-brand__input" maxlength="{$t.brand.max}" dir="{$t.direction}" lang="{$t.lang}"
                                placeholder="{$sf.fallback}" autocomplete="off" spellcheck="false" data-kwtsms-brand-input="1"
-                               aria-describedby="kwtsms_brand_count_{$sf.id}">
+                               aria-describedby="kwtsms_brand_count_{$sf.id} kwtsms_brand_fallback_{$sf.id}">
                         <span class="kwtsms-brand__count" id="kwtsms_brand_count_{$sf.id}" aria-live="polite"><bdi dir="ltr"><span data-kwtsms-brand-n>{$sf.length}</span>/{$t.brand.max}</bdi></span>
+                        {* 2026-10-21 14:06 +03: the fallback (storefront name, else company name) as visible text under the field, not
+                           only as the placeholder, which disappears as soon as something is typed and is not read by every screen
+                           reader. Cleanup 2 item 3, task 596. *}
+                        <p class="muted kwtsms-brand__fallback" id="kwtsms_brand_fallback_{$sf.id}">{if $sf.fallback !== ""}{__("kwtsms.templates.brand_fallback")} <bdi dir="auto" class="kwtsms-brand__fallback-name">{$sf.fallback}</bdi>{else}{__("kwtsms.templates.brand_fallback_none")}{/if}</p>
                         <p class="kwtsms-brand__warn{if !$sf.unicode} hidden{/if}" id="kwtsms_brand_warn_{$sf.id}" role="status">{__("kwtsms.templates.brand_unicode_warn")}</p>
                     </div>
                 {/foreach}
