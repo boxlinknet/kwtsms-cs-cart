@@ -399,8 +399,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
              uninstall on the fresh-copy run; removed here so nothing of ours is left (PRD 13), Task 1.17, task 596 -->
         <item for="uninstall">DELETE FROM ?:notifications WHERE tag = 'kwtsms';</item>
         <!-- 2026-10-21 17:16 +03: the add-on's storage keys by name, no prefix match: a prefix also deleted the keys of any other add-on whose
-             id starts with kwtsms_ (e.g. kwtsms_devguard_mode). The add-on has no dynamic key family; a unit test compares this list with
-             every key the code writes (final review M3), task 596 -->
+             id starts with kwtsms_ (e.g. the mode key of a test add-on). The add-on has no dynamic key family; a unit test compares this list
+             with every key the code writes (final review M3), task 596. 2026-10-21 17:37 +03: wording without the dev add-on's name (package dev-marker
+             gate), task 596 -->
         <item for="uninstall">DELETE FROM ?:storage_data WHERE data_key IN ('kwtsms_alerts', 'kwtsms_api_slot', 'kwtsms_balance', 'kwtsms_balance_refresh', 'kwtsms_coverage', 'kwtsms_cron_denied', 'kwtsms_cron_jobs', 'kwtsms_daily_cap', 'kwtsms_dashboard', 'kwtsms_gateway_state', 'kwtsms_last_cron', 'kwtsms_last_sync', 'kwtsms_low_balance_auto', 'kwtsms_sender_ban', 'kwtsms_senderids', 'kwtsms_sync_state');</item>
         <item for="uninstall">DELETE FROM ?:language_values WHERE name LIKE 'kwtsms.%';</item>
         <item for="uninstall" editions="ULTIMATE">DELETE FROM ?:ult_language_values WHERE name LIKE 'kwtsms.%';</item>
