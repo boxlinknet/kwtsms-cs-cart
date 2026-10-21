@@ -26,7 +26,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
     <supplier_link>https://www.kwtsms.com</supplier_link>
     <compatibility>
         <core_version>
-            <min>4.18.1</min>
+            <!-- 2026-10-21 16:05 +03: min raised from 4.18.1 to 4.20.1 (R43: a customer runs 4.20.1; the 4.18 claim was never verified), Task 1.17, task 596 -->
+            <min>4.20.1</min>
             <max>4.21.2</max>
         </core_version>
         <php_extensions>

@@ -795,8 +795,13 @@ class SyncService
     /**
      * @return string[]
      */
-    private function loginWarnings(string $username, string $password): array
-    {
+    private function loginWarnings(
+        string $username,
+        #[\SensitiveParameter]
+        string $password
+    ): array {
+        // 2026-10-21 16:20 +03: #[\SensitiveParameter] on the password (hidden from traces on PHP 8.2+;
+        // a plain comment on 7.4), required by the Task 1.17 gate in tools/build-package.sh, task 596.
         $warnings = [];
         if (strlen($username) > 15) {
             $warnings[] = (string) __('kwtsms.login.warn_username_long');
