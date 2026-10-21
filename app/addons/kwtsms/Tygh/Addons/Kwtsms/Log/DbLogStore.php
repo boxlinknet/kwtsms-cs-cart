@@ -533,6 +533,10 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
             }
         }
         db_query('TRUNCATE TABLE ?:' . $name);
+        // 2026-10-21 08:39 +03: the id counter as it was, right after the TRUNCATE and before the audit write-back,
+        // so the instant in which another request could take a low id is one statement long (fix round 2, item 3;
+        // the explicit audit ids below the counter are fine), task 596.
+        db_query('ALTER TABLE ?:' . $name . ' AUTO_INCREMENT = ?i', $next);
         if ($audit !== []) {
             $written = 0;
             foreach (array_chunk($audit, self::BULK_CHUNK) as $chunk) {
@@ -544,8 +548,8 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
                 throw new \RuntimeException('Could not write back the audit rows of ' . $name);
             }
         }
-        // 2026-10-21 08:11 +03: the id counter as it was (fix round 1, item 1), task 596.
-        db_query('ALTER TABLE ?:' . $name . ' AUTO_INCREMENT = ?i', $next);
+        // 2026-10-21 08:11 +03: the id counter as it was (fix round 1, item 1), task 596. 2026-10-21 08:39 +03: set
+        // above (fix round 2, item 3); checked here, after the write-back.
         if ($this->nextId($table) < $next) {
             error_log('kwtsms: AUTO_INCREMENT of ' . $name . ' not restored to ' . $next . ' after TRUNCATE');
             throw new \RuntimeException('Could not restore the id counter of ' . $name);

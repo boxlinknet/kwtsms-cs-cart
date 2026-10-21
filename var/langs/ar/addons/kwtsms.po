@@ -4284,6 +4284,17 @@ msgctxt "Languages::kwtsms.gdpr.failed"
 msgid "The customer's SMS logs couldn't be anonymized. Check the PHP error log and try again."
 msgstr "تعذر إخفاء هوية سجلات رسائل العميل. راجع سجل أخطاء PHP وحاول مجددا."
 
+# 2026-10-21 08:34 +03: Task 1.14 fix round 2, task 596. gdpr_kwtsms the header of the SMS section in core's GDPR
+# personal-data view (core asks for gdpr_<schema key>), kwtsms.gdpr.collect_failed the line that section and the XML
+# export show when the customer's SMS rows could not be read.
+msgctxt "Languages::gdpr_kwtsms"
+msgid "SMS (kwtSMS)"
+msgstr "الرسائل النصية (kwtSMS)"
+
+msgctxt "Languages::kwtsms.gdpr.collect_failed"
+msgid "SMS data couldn't be read. See the kwtSMS Debug log."
+msgstr "تعذرت قراءة بيانات الرسائل النصية. راجع سجل التشخيص في kwtSMS."
+
 # 2026-10-21 07:04 +03: Tasks 1.13 and 1.15 fix round 1, task 596. kwtsms.alerts.warn.* the W notices of the kwtSMS verdict
 # (shown with the badge, also when kwtSMS can't be reached), kwtsms.alerts.refused_check and kwtsms.alerts.reason.limit_check
 # the wording of a check (it saves nothing, so it never says "not saved"), kwtsms.integrations.open.checkout_fields_note the

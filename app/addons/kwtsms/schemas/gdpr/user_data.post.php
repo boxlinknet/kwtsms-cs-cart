@@ -38,7 +38,8 @@ $schema['kwtsms'] = [
             error_log('kwtsms: gdpr collect failed: ' . get_class($e) . ': ' . $e->getMessage() . ' in '
                 . basename($e->getFile()) . ':' . $e->getLine());
 
-            return [GdprUserData::FAILED => 'Y'];
+            // 2026-10-21 08:38 +03: the marker with its visible line (fix round 2, item 4), task 596.
+            return GdprUserData::failedMarker();
         }
     },
     'update_data_callback' => static function ($data) {

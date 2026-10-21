@@ -25,16 +25,23 @@
  *            anonymizer, which only rewrites fields it knows (email, phone, ...), passes the rows to anonymize()
  *            unchanged. collectForCore() turns a failed read into the FAILED marker and updateFromCore() refuses it
  *            (and a failed anonymize), so the caller raises kwtsms.gdpr.failed instead of reporting nothing.
+ *            2026-10-21 08:38 +03, fix round 2: the text of a waiting outbox row (pending, sending, held: not final, so
+ *            its OTP or reset link is still in clear) is masked with the row's secret_values, which never enter the
+ *            collected data (rule D7); the FAILED marker carries an sms_text line (failedMarker()), so core's view
+ *            and export say the SMS data could not be read.
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]
  *            $gdpr->anonymize($data);              // ['messages' => n, 'attempts' => n, 'outbox' => n]
- * DEPENDS:   Settings\ConfigInterface (default country), Sms\PhoneNormalizer, Log\{Schema,DebugLog}; CS-Cart db_*().
+ * DEPENDS:   Settings\ConfigInterface (default country), Sms\PhoneNormalizer, Log\{Schema,DebugLog,Redactor}; CS-Cart
+ *            db_*() and __().
  */
 
 namespace Tygh\Addons\Kwtsms\Privacy;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+// 2026-10-21 08:37 +03: Redactor::mask() for the waiting outbox rows (fix round 2, item 1), task 596.
+use Tygh\Addons\Kwtsms\Log\Redactor;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 
@@ -109,6 +116,16 @@ class GdprUserData
         $out['messages'] = $this->messages($user_id, $order_ids, $phones);
         $out['attempts'] = $this->attempts($user_id, $order_ids, $phones);
         $out['outbox'] = $this->outbox($user_id, $order_ids, $phones);
+        // 2026-10-21 08:37 +03: rule D7: the text of a waiting outbox row is masked with its own secret values, which
+        // then leave the collected data (fix round 2, item 1), task 596.
+        foreach ($out['outbox'] as $i => $row) {
+            $secrets = isset($row['secret_values']) && is_array($row['secret_values']) ? $row['secret_values'] : [];
+            unset($row['secret_values']);
+            if ($secrets !== []) {
+                $row['message'] = Redactor::mask((string) ($row['message'] ?? ''), $secrets);
+            }
+            $out['outbox'][$i] = $row;
+        }
         // 2026-10-21 08:09 +03: what core's view and export show of each row (fix round 1, item 3), task 596.
         $hint = $this->config->defaultCountryCode();
         $columns_of = [
@@ -171,8 +188,24 @@ class GdprUserData
         } catch (\Throwable $e) {
             $this->failed('collect', $e);
 
-            return [self::FAILED => 'Y'];
+            return self::failedMarker();
         }
+    }
+
+    /**
+     * 2026-10-21 08:37 +03: the FAILED marker with an sms_text line, so core's view and XML export show that the SMS
+     * data could not be read instead of an empty section (fix round 2, item 4), task 596.
+     *
+     * @return array{kwtsms_collect_failed:string,sms_text:string}
+     */
+    public static function failedMarker(): array
+    {
+        $text = function_exists('__') ? (string) __('kwtsms.gdpr.collect_failed') : '';
+        if ($text === '' || $text[0] === '_') {
+            $text = "SMS data couldn't be read. See the kwtSMS Debug log.";
+        }
+
+        return [self::FAILED => 'Y', 'sms_text' => htmlspecialchars($text, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8')];
     }
 
     /**
@@ -512,6 +545,11 @@ class GdprUserData
                     'status' => (string) $row['status'],
                     'phones' => is_array($list) ? implode(',', array_map('strval', $list)) : '',
                     'message' => is_string($message) ? $message : '',
+                    // 2026-10-21 08:37 +03: a waiting row still holds its OTP or reset link in clear; collect() masks
+                    // the text with these and drops them (rule D7, fix round 2 item 1), task 596.
+                    'secret_values' => isset($context['secret_values']) && is_array($context['secret_values'])
+                        ? array_values($context['secret_values'])
+                        : [],
                 ];
             }
         }
