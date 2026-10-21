@@ -216,9 +216,14 @@ has not been verified yet.
   block manager in edit mode.
 - Muted text on the Admin SMS alerts, Integrations and Help pages meets the 4.5:1 contrast of WCAG AA.
 - Settings and Help build the crontab line with one helper, so a path with a space is quoted the same way on both pages.
-
-### Fixed
-
-<!-- 2026-10-21 16:34 +03: entries of Task 1.17, task 596 -->
-- Uninstalling removes the admin bell notice the add-on raised (for example "SMS test mode is on"); it used to stay behind.
-- The compatibility range starts at CS-Cart 4.20.1 (it said 4.18.1, which was never verified).
+<!-- 2026-10-21 17:42 +03: the "Fixed" section of things never released is folded in here (Task 1.17 review Minor 5), and the
+     final fix round entries added, task 596 -->
+- Uninstalling removes everything the add-on wrote, the admin bell notices it raised included, and deletes only its own
+  storage keys by name (another add-on's keys survive).
+- Order SMS of a storefront request go out after the page is sent under PHP-FPM and LiteSpeed; on other servers they wait
+  for the cron while it runs, else they are sent during the checkout with at most 1 s of waiting for the API slot.
+- Resend asks for confirmation (with the kwtSMS archive warning for an SMS whose outcome is unknown) and refuses a second
+  resend of the same SMS within 60 seconds.
+- A kwtSMS page opened with a storefront selected (Ultimate) says "Select All stores to manage kwtSMS" and opens in All
+  stores.
+- Counts read in the right singular or plural form in English and Arabic (Logs rows, Clear, the e-mail and bell alerts).
