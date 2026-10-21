@@ -11,12 +11,13 @@ DEPENDS:   SECURITY.md, CHANGELOG.md.
 
 # kwtSMS for CS-Cart and Multi-Vendor
 
-SMS notifications and one-time passwords for CS-Cart and CS-Cart Multi-Vendor stores, delivered
+SMS notifications for CS-Cart and CS-Cart Multi-Vendor stores, delivered
 through the [kwtSMS](https://www.kwtsms.com) gateway. Built for Kuwait and the GCC, with English
 and Arabic out of the box. Free add-on; SMS credits are bought from kwtSMS.
 
-> **Status:** in development. Not yet installable. The first release will be published on the
-> CS-Cart Marketplace and as a GitHub release.
+<!-- 2026-10-21 16:36 +03: status, install and verified versions for 1.0.0, Task 1.17, task 596 -->
+> **Status:** version 1.0.0 (release candidate). Free add-on, MIT licence. It is published on the CS-Cart
+> Marketplace and as a GitHub release once approved.
 
 ## What it does
 
@@ -24,7 +25,7 @@ The add-on registers **SMS as a native CS-Cart notification channel**. SMS shows
 column on **Administration > Notifications**, next to E-mail and the Notification Center, for
 every event that supports it, including order status changes and Multi-Vendor vendor events.
 
-Planned for the first release:
+Included in 1.0.0:
 
 - SMS to customers when an order is placed and when its status changes
 - SMS alerts to store administrators for new orders and status changes
@@ -39,9 +40,28 @@ shipment updates, abandoned cart reminders and vendor notifications.
 
 ## Requirements
 
-- CS-Cart or CS-Cart Multi-Vendor 4.18.1 or later
+- CS-Cart or CS-Cart Multi-Vendor **4.20.1 to 4.21.2** (`addon.xml` declares this range). **Verified on 4.21.2**, both
+  CS-Cart (Ultimate) and Multi-Vendor. 4.20.1 is the lowest version the add-on allows; it has not been verified yet, and the
+  add-on does not claim any version below it.
 - PHP 7.4 to 8.3, with the `curl`, `json` and `mbstring` extensions
 - A kwtSMS account with API access and an approved Sender ID: https://www.kwtsms.com
+
+## Install
+
+1. Download `kwtsms-1.0.0.zip` (GitHub release or the Marketplace).
+2. Administration > Add-ons > Manage add-ons > the gear icon > Manual installation > Local > pick the zip > Upload & install.
+3. Add-ons > kwtSMS > Settings: log in with your kwtSMS API user, pick a Sender ID, then turn SMS on.
+   Test mode is on by default; turn it off only when you are ready for customers to receive messages.
+4. Administration > Notifications: tick the SMS column for the events you want.
+
+Uninstalling (Add-ons > kwtSMS > Uninstall) removes the add-on's tables, settings, language variables, privileges and
+admin notices.
+
+## Build the package
+
+`bash tools/build-package.sh` runs the release gates (security greps, language parity, `php -l`, package content
+checks) and writes `dist/kwtsms-<version>.zip` and `.tgz` with a `SHA256SUMS` file. It fails, and writes no archive, when
+any gate fails.
 
 ## Support
 

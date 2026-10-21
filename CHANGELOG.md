@@ -17,6 +17,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+Nothing yet.
+
+<!-- 2026-10-21 16:34 +03: the Unreleased entries became the 1.0.0 release, Task 1.17, task 596 -->
+## [1.0.0] - 2026-10-21
+
+First release. Verified on CS-Cart 4.21.2 and CS-Cart Multi-Vendor 4.21.2 (fresh installs of the packaged zip, an
+upgrade through the Upgrade Center, uninstall). The add-on declares 4.20.1 as the lowest supported version; 4.20.1 itself
+has not been verified yet.
+
 ### Added
 
 - Repository scaffolding: README, SECURITY, CHANGELOG, .gitignore, .gitattributes, .editorconfig.
@@ -207,3 +216,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   block manager in edit mode.
 - Muted text on the Admin SMS alerts, Integrations and Help pages meets the 4.5:1 contrast of WCAG AA.
 - Settings and Help build the crontab line with one helper, so a path with a space is quoted the same way on both pages.
+
+### Fixed
+
+<!-- 2026-10-21 16:34 +03: entries of Task 1.17, task 596 -->
+- Uninstalling removes the admin bell notice the add-on raised (for example "SMS test mode is on"); it used to stay behind.
+- The compatibility range starts at CS-Cart 4.20.1 (it said 4.18.1, which was never verified).
