@@ -493,3 +493,34 @@ function fn_kwtsms_cron_reply(int $status, bool $ok)
     echo $ok ? '{"ok":true}' : '{"ok":false}';
     exit;
 }
+
+/**
+ * Permission schema condition (schemas/permissions/vendor_ultimate.post.php): true only for a GET kwtSMS page opened
+ * by a root administrator (company 0) who has the page privilege while a storefront is selected, and only when the
+ * request does not itself select a storefront. The controller then refuses it with the notice "Select All stores to
+ * manage kwtSMS" and a redirect to the same page with switch_company_id=0 (RequestGate::switchToAllStores()). Every
+ * other request in a storefront context stays refused by core. Never throws.
+ * 2026-10-21 17:08 +03: added, final review M2, task 596.
+ */
+function fn_kwtsms_scope_switch_allowed(): bool
+{
+    try {
+        if (isset($_GET['switch_company_id'])) {
+            return false;
+        }
+        $auth = isset(Tygh::$app['session']['auth']) && is_array(Tygh::$app['session']['auth'])
+            ? Tygh::$app['session']['auth'] : [];
+
+        return \Tygh\Addons\Kwtsms\Admin\RequestGate::switchToAllStores(
+            isset($_SERVER['REQUEST_METHOD']) ? (string) $_SERVER['REQUEST_METHOD'] : '',
+            \Tygh\Registry::get('runtime.mode'),
+            $auth,
+            \Tygh\Registry::get('runtime.company_id'),
+            static function (string $privilege): bool {
+                return fn_check_current_user_access($privilege) === true;
+            }
+        );
+    } catch (\Throwable $e) {
+        return false;
+    }
+}

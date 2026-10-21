@@ -4435,3 +4435,9 @@ msgstr "هل تريد إرسال هذه الرسالة مرة أخرى إلى ه
 msgctxt "Languages::kwtsms.logs.resend.confirm_unknown"
 msgid "The store got no answer for this SMS, so kwtSMS may already have it. Check the kwtSMS message archive first. Send it again anyway?"
 msgstr "لم يتلق المتجر ردا على هذه الرسالة، لذلك قد تكون لدى kwtSMS بالفعل. تحقق أولا من أرشيف الرسائل في kwtSMS. هل تريد إرسالها مرة أخرى على أي حال؟"
+
+# 2026-10-21 17:04 +03: final review M2, task 596. kwtsms.scope.select_all_stores the notice shown when a kwtSMS page is opened
+# with a storefront or vendor selected (the page then opens in All stores).
+msgctxt "Languages::kwtsms.scope.select_all_stores"
+msgid "Select All stores to manage kwtSMS. The store selector was set to All stores."
+msgstr "اختر كل المتاجر لإدارة kwtSMS. تم ضبط محدد المتجر على كل المتاجر."

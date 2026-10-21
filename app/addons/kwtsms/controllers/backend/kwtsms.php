@@ -82,6 +82,29 @@ if ($kwtsms_denied !== null) {
         // Only reachable with core anti_csrf off (core refuses a missing hash first): worth a warning row.
         Tygh::$app['kwtsms.logs.debug']->log('warning', 'admin.denied', 'token', ['mode' => (string) $mode]);
     }
+    // 2026-10-21 17:02 +03: a GET page refused only because a storefront or vendor is selected says so and switches to
+    // All stores, once (a request that already asked for the switch is refused); POST stays refused (final review
+    // M2), task 596.
+    if (
+        $kwtsms_denied === 'scope'
+        && !isset($_GET['switch_company_id'])
+        && RequestGate::switchToAllStores(
+            $kwtsms_method,
+            $mode,
+            is_array($auth) ? $auth : [],
+            Registry::get('runtime.company_id'),
+            static function (string $privilege): bool {
+                return fn_check_current_user_access($privilege) === true;
+            }
+        )
+    ) {
+        fn_set_notification('W', __('warning'), __('kwtsms.scope.select_all_stores'));
+
+        return [
+            CONTROLLER_STATUS_REDIRECT,
+            fn_link_attach((string) Registry::get('config.current_url'), 'switch_company_id=0'),
+        ];
+    }
 
     return [CONTROLLER_STATUS_DENIED];
 }

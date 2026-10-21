@@ -21,6 +21,11 @@
  *            null = allowed; else method | mode | mode_method | scope | privilege | token.
  *            Later page tasks (1.11-1.15) add no mode here without adding it to schemas/permissions/admin.post.php
  *            with the same privilege (a unit test compares the two).
+ *            2026-10-21 17:02 +03, final review M2, task 596: switchToAllStores() is true for a GET page whose only
+ *            failure is the scope (a root administrator, company 0, with a storefront or vendor selected, who has the
+ *            page privilege); the controller then shows "Select All stores to manage kwtSMS" and redirects to the same
+ *            page with switch_company_id=0 (once: a request that already carries switch_company_id is refused). A POST
+ *            stays refused.
  * DEPENDS:   Nothing (pure; the privilege check is passed in).
  */
 
@@ -125,6 +130,41 @@ final class RequestGate
     }
 
     // 2026-10-21 03:19 +03: isPostMode() removed, nothing used it (Task 1.10 fix round 1 item 11), task 596.
+
+    /**
+     * True when the request is a GET page that fails ONLY on the scope: a root administrator (user type A, company 0)
+     * with a storefront or vendor selected, who has the page privilege. Switching to All stores lets it run.
+     * 2026-10-21 17:02 +03: added, final review M2, task 596.
+     *
+     * @param mixed    $method
+     * @param mixed    $mode
+     * @param array    $auth
+     * @param mixed    $runtime_company
+     * @param callable $has_privilege (string $privilege): bool
+     */
+    public static function switchToAllStores(
+        $method,
+        $mode,
+        array $auth,
+        $runtime_company,
+        callable $has_privilege
+    ): bool {
+        if ($method !== self::GET || !is_string($mode) || !isset(self::MODES[$mode])) {
+            return false;
+        }
+        list($mode_method, $privilege) = self::MODES[$mode];
+        if ($mode_method !== self::GET || self::isRootContext($auth, $runtime_company)) {
+            return false;
+        }
+        if (!isset($auth['user_type']) || $auth['user_type'] !== 'A') {
+            return false;
+        }
+        if (!array_key_exists('company_id', $auth) || !self::isZero($auth['company_id'])) {
+            return false;
+        }
+
+        return call_user_func($has_privilege, $privilege) === true;
+    }
 
     /**
      * Ruling R12: an administrator account (user type A) of company 0, with no storefront or vendor selected.
