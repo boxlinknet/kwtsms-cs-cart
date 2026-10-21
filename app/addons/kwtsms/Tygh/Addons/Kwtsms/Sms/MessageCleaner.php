@@ -648,8 +648,8 @@ class MessageCleaner
      * gateway would store a broken byte sequence). See the header, change 21.
      * 2026-10-21 11:42 +03: added, ruling R40, task 596.
      * 2026-10-21 12:51 +03: also the hex references the same mb_decode_numericentity() call decodes on PHP 8.3: "&#x"
-     * (lowercase x only, "&#X41;" stays) and 1 to 8 hex digits of either case not followed by another hex digit, the ";"
-     * optional, value at most U+10FFFF; a surrogate is removed. Still only under the decimal condition above: after
+     * (lowercase x only, "&#X41;" stays) and 1 to 8 hex digits of either case not followed by another hex digit, the
+     * ";" optional, value at most U+10FFFF; a surrogate is removed. Still only under the decimal condition above: after
      * html_entity_decode() the trigger is an out-of-range decimal ("&#1114112;") next to a hex reference it left alone
      * ("&#x80;"), which the gateway decoded to U+0080 (review I1), task 596.
      *
