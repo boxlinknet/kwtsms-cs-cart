@@ -149,7 +149,7 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
 
     /**
      * MessageCleaner::gatewayEntities(): the decimal entities kwtSMS decodes itself when the text holds a complete one
-     * (1 to 10 digits, at most U+10FFFF, the ";" optional; a surrogate is removed). 2026-10-21 11:44 +03: added,
+     * (1 to 10 digits, at most U+10FFFF, the ";" optional; a surrogate is removed). 2026-10-21 11:51 +03: added,
      * ruling R40, task 596.
      */
     function gatewayEntities(text) {
@@ -172,7 +172,7 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         var before;
         for (pass = 0; pass < MAX_PASSES; pass++) {
             before = text;
-            // 2026-10-21 11:44 +03: then the gateway's own decimal entities (ruling R40), task 596.
+            // 2026-10-21 11:51 +03: then the gateway's own decimal entities (ruling R40), task 596.
             text = gatewayEntities(decodeEntities(text));
             text = text.replace(COMMENT, '').replace(TAG, '');
             if (text === before) {
