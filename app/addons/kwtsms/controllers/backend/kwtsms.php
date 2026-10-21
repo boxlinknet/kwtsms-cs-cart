@@ -379,6 +379,10 @@ try {
         // A GET handler never writes, with ONE documented exception: PRD 6.11 says opening the Dashboard drains up to
         // 20 due outbox rows and syncs when the last sync is stale (what the cron does every minute and every day), and
         // PRD 6.13's "cron missing" and "outbox backlog" bell notices can only be raised by a page view.
+        // 2026-10-21 06:21 +03: the GET also writes the cron watch time (the storage key kwtsms_dashboard), once, the
+        // first time the page is opened with SMS on and no cron run known; the "cron has never run" warning counts
+        // its 2 hours from there. Nothing else a page view writes is new: the drain, the sync and the two notices
+        // above. Task 1.11 fix round 2 item 3, task 596.
         $kwtsms_has = static function (string $privilege): bool {
             return fn_check_current_user_access($privilege) === true;
         };

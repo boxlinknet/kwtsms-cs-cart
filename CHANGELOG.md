@@ -154,3 +154,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   "0 test messages hold about 0 credits". The weak encryption key warning says that changing the key makes encrypted
   values, including the saved API password, unreadable. Last 10 shows "Accepted by kwtSMS" with the note that delivery
   is not reported back.
+<!-- 2026-10-21 06:22 +03: entry for the Dashboard fix round 2 (Task 1.11), task 596 -->
+- The sync the Dashboard runs when it is opened with a stale last sync uses the short web timeouts (3 seconds to connect,
+  8 seconds in all for each call) instead of the admin ones, so a slow gateway holds the page back less.

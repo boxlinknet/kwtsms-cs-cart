@@ -2346,10 +2346,6 @@ msgctxt "Languages::kwtsms.dash.last.all"
 msgid "Open the full log"
 msgstr "افتح السجل الكامل"
 
-msgctxt "Languages::kwtsms.dash.msg.accepted"
-msgid "Accepted"
-msgstr "مقبولة"
-
 msgctxt "Languages::kwtsms.dash.msg.test_queued"
 msgid "Test queued"
 msgstr "اختبار في الانتظار"

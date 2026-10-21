@@ -67,6 +67,12 @@ class DashboardPage
      */
     public const SYNC_SKIP_AFTER_SECONDS = 3.0;
 
+    /**
+     * 2026-10-21 06:21 +03: the timeout context of the sync the page runs on open: web, 3 s to connect and 8 s in all
+     * for each call (admin is 5 and 20 s), Task 1.11 fix round 2 item 1, task 596.
+     */
+    public const SYNC_CONTEXT = 'web';
+
     /** Where a merchant asks kwtSMS for a country (PRD 6.9 request-coverage link) and orders a Sender ID. */
     public const URL_COVERAGE = 'https://www.kwtsms.com/support.html';
     public const URL_SENDER_ID = 'https://www.kwtsms.com/sender-id-help.html';
@@ -162,9 +168,11 @@ class DashboardPage
      * page view. Never throws; each step is logged and the page renders whatever happens.
      *
      * 2026-10-21 05:16 +03: a drain that took more than SYNC_SKIP_AFTER_SECONDS leaves the stale sync for a later
-     * open (the sync would run with the web timeouts of 3 and 8 s a call, and the page must not run past its time
-     * budget; the cron or the next open does it). Debug enter and exit rows. Task 1.11 fix round 1 items 8 and 13,
-     * task 596.
+     * open (the page must not run past its time budget; the cron or the next open does it). Debug enter and exit
+     * rows. Task 1.11 fix round 1 items 8 and 13, task 596.
+     * 2026-10-21 06:21 +03: the sync that does run asks for the 'web' timeouts (3 s to connect, 8 s in all for each
+     * call); the first version of this comment said so, but syncIfStale() took no context and the sync ran with the
+     * admin set of 5 and 20 s. Task 1.11 fix round 2 item 1, task 596.
      *
      * @return array{claimed:int,due:int,synced:bool,sync_skipped:bool,raised:string[]}
      */
@@ -187,7 +195,8 @@ class DashboardPage
             ]);
         } else {
             try {
-                $out['synced'] = $this->sync->syncIfStale();
+                // 2026-10-21 06:21 +03: 'web' timeouts, see the comment above (fix round 2 item 1, task 596).
+                $out['synced'] = $this->sync->syncIfStale(SyncService::DAY_SECONDS, self::SYNC_CONTEXT);
             } catch (\Throwable $e) {
                 $this->failed('dashboard.sync_failed', $e);
             }
@@ -294,12 +303,15 @@ class DashboardPage
      */
     public function markStep(string $step): bool
     {
-        $started = $this->enter('dashboard.mark_step', 'markStep()', ['step' => substr($step, 0, 20)]);
+        // 2026-10-21 06:21 +03: only an allow-listed step id is logged, never the raw POST value (Task 1.11 fix round 2
+        // item 2, task 596).
+        $id = in_array($step, DashboardState::MARKABLE, true) ? $step : 'unknown';
+        $started = $this->enter('dashboard.mark_step', 'markStep()', ['step' => $id]);
         $ok = false;
         try {
             $ok = $this->marks !== null && $this->marks->mark($step);
             if ($ok) {
-                $this->log->log('info', 'dashboard.step_marked', 'step marked as done', ['step' => $step]);
+                $this->log->log('info', 'dashboard.step_marked', 'step marked as done', ['step' => $id]);
             }
         } catch (\Throwable $e) {
             $this->failed('dashboard.mark_step_failed', $e);
@@ -990,8 +1002,10 @@ class DashboardPage
     /** Short label of a message status; the long outcome reason, or the raw code, for one without a short label. */
     private function statusLabel(string $status): string
     {
+        // 2026-10-21 06:21 +03: 'accepted' left this list (it returned above, the entry was unreachable) and so did its
+        // kwtsms.dash.msg.accepted language variable, Task 1.11 fix round 2 item 4, task 596.
         $short = [
-            'accepted', 'test_queued', 'partial_accept', 'failed', 'unknown', 'rejected', 'deferred', 'expired',
+            'test_queued', 'partial_accept', 'failed', 'unknown', 'rejected', 'deferred', 'expired',
             'invalid', 'cancelled', 'blocked_balance', 'no_coverage',
         ];
         if ($status === 'accepted') {

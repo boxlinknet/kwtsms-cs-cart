@@ -297,19 +297,26 @@ class SyncService
      * The dashboard fallback (PRD 6.11): syncs when the last complete sync is older than $max_age, or when a failed
      * sync's retry time has come. Does nothing while a retry is scheduled in the future.
      *
+     * 2026-10-21 06:20 +03: $timeout_context is handed to sync(), so a caller that must not wait long (the Dashboard
+     * passes 'web': 3 s to connect, 8 s in all) gets those timeouts for every call of the sync; it was always the admin
+     * set (5 s and 20 s) before. Task 1.11 fix round 2 item 1, task 596.
+     *
+     * @param int    $max_age         Seconds after which the last complete sync counts as stale
+     * @param string $timeout_context web, admin or cli; '' = cli in a CLI process, else admin
+     *
      * @return bool True when a sync ran and succeeded
      */
-    public function syncIfStale(int $max_age = self::DAY_SECONDS): bool
+    public function syncIfStale(int $max_age = self::DAY_SECONDS, string $timeout_context = ''): bool
     {
         // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runStaleSync(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.stale', 'syncIfStale()', ['max_age' => $max_age]);
-        $ok = $this->runStaleSync($max_age);
+        $ok = $this->runStaleSync($max_age, $timeout_context);
         $this->leave('sync.stale', $started, $ok ? 'synced' : 'not run or failed', ['ok' => $ok]);
 
         return $ok;
     }
 
-    private function runStaleSync(int $max_age): bool
+    private function runStaleSync(int $max_age, string $timeout_context): bool
     {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
             return false;
@@ -326,7 +333,8 @@ class SyncService
             }
         }
 
-        return $this->sync()['ok'];
+        // 2026-10-21 06:20 +03: the caller's timeout context goes along (Task 1.11 fix round 2 item 1, task 596).
+        return $this->sync($timeout_context)['ok'];
     }
 
     /**
