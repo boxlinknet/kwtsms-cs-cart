@@ -82,6 +82,15 @@
  *            queued, "1" as soon as kwtsms_send_pre ran, stored with the phones, text and context the hook
  *            returned), so the hook runs exactly once whatever re-pends the row first; and its back-off counts its
  *            own first try, so it follows 30, 60, 120, 300 s like any other deferred send.
+ *            2026-10-21 12:04 +03, ruling R41 (Task 1.16 BLOCKED-2), task 596: step 4 is check-and-reserve under the
+ *            per-database cap lock (Sms\CapLock, GET_LOCK kwtsms_caps_<16 hex>, 2 s): every cap counts sent outcomes
+ *            plus live reservations, and in the same critical section each number that passed gets a reservation, an
+ *            attempt row with outcome unknown and reason cap_reserved (CAP_RESERVED; counted by SENT_OUTCOMES, no
+ *            schema change). finish() writes the real outcome into that row (AttemptLog::finishMany(), one statement),
+ *            a sent outcome or a not-sent one when a later step stops the send. A process that dies in between leaves
+ *            the row counted until its cap window passes (fail safe). A busy or unavailable lock defers the send
+ *            (cap_unavailable), it is never sent and never skipped silently. The constructor takes an optional
+ *            CapLock (10th argument).
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -124,8 +133,20 @@ class SmsService
     /** PRD 6.1: at most one live balance refresh in this many seconds. */
     public const BALANCE_REFRESH_SECONDS = 600;
 
-    /** Outcomes the abuse caps count (the gateway took or may have taken the number). */
+    /**
+     * Outcomes the abuse caps count (the gateway took or may have taken the number).
+     * 2026-10-21 12:04 +03: "unknown" is also the outcome of a cap reservation (reason CAP_RESERVED) until the send
+     * finishes it in place, so a send in flight is counted (ruling R41), task 596.
+     */
     public const SENT_OUTCOMES = ['accepted', 'test_queued', 'partial_accept', 'unknown'];
+
+    /**
+     * Reason of a cap reservation: the attempt row applyCaps() writes, under the cap lock, for every number that passed
+     * the caps, before the API call; outcome "unknown" (counted by the caps). finish() writes the real outcome into the
+     * same row. A process that dies in between leaves it counted until its cap window passes (fail safe).
+     * 2026-10-21 12:04 +03: added, ruling R41, task 596.
+     */
+    public const CAP_RESERVED = 'cap_reserved';
 
     /** fn_kwtsms_send(): most recipients per call (PRD 6.14). */
     public const MAX_API_RECIPIENTS = 1000;
@@ -227,6 +248,9 @@ class SmsService
      */
     private $test_form = false;
 
+    /** @var CapLock The lock of the cap check and reservation (2026-10-21 12:04 +03, ruling R41, task 596) */
+    private $cap_lock;
+
     /** @var ApiClient|null The client of the current send() */
     private $client = null;
 
@@ -246,6 +270,8 @@ class SmsService
      * @param callable $client_factory (string $timeout_context web|admin|cli): ApiClient; every client of one
      *                                 request must share one ApiGuard
      * @param callable|null $clock     Returns the current Unix time (tests); null = time()
+     * @param CapLock|null  $cap_lock  The cap lock; null = new CapLock() (the store's GET_LOCK). 2026-10-21 12:04 +03:
+     *                                 added, ruling R41, task 596
      */
     public function __construct(
         ConfigInterface $config,
@@ -256,7 +282,8 @@ class SmsService
         DebugLog $log,
         Outbox $outbox,
         ?AdminAlerts $alerts = null,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?CapLock $cap_lock = null
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -267,6 +294,7 @@ class SmsService
         $this->outbox = $outbox;
         $this->alerts = $alerts;
         $this->clock = $clock;
+        $this->cap_lock = $cap_lock ?? new CapLock();
     }
 
     /**
@@ -1319,12 +1347,52 @@ class SmsService
     // ------------------------------------------------------------------ step 4: caps
 
     /**
+     * Step 4: the caps are checked and the numbers that pass are reserved in ONE critical section of the cap lock, so
+     * two requests to one number can never both see room under its cap (ruling R41). The reservation is an attempt row
+     * (outcome unknown, reason CAP_RESERVED) that every cap counts; finish() writes the real outcome into it after the
+     * API call, or a not-sent outcome when a later step stops the send. A busy or unavailable lock throws, and the
+     * caller defers every open recipient as cap_unavailable: never sent, never skipped silently.
+     * 2026-10-21 12:04 +03: the lock and the reservation added, the counts moved to checkCaps(), ruling R41, task 596.
+     *
      * @param array<int,array<string,mixed>> $rcpt
      * @param array<string,mixed>            $context
      *
-     * @throws \RuntimeException When a count cannot be read (the caller defers, never skips the cap)
+     * @throws \RuntimeException When the cap lock is busy or unavailable, or a count cannot be read
      */
     private function applyCaps(array &$rcpt, array $context): void
+    {
+        $daily = ['blocked' => 0, 'used' => 0];
+        $ran = $this->cap_lock->runLocked(function () use (&$rcpt, $context, &$daily): void {
+            $daily = $this->checkCaps($rcpt, $context);
+            $this->reserve($rcpt, $context);
+        });
+        if (!$ran) {
+            throw new \RuntimeException('the cap lock is busy or unavailable');
+        }
+
+        if ($daily['blocked'] > 0) {
+            $this->note('warning', 'sms.daily_cap', 'store daily cap reached', [
+                'cap' => $this->config->capStoreDay(),
+                'used' => $daily['used'],
+            ]);
+            $now = $this->now();
+            $this->alert('daily_cap', ['[cap]' => $this->config->capStoreDay()], true, 172800, date('Y-m-d', $now));
+        }
+    }
+
+    /**
+     * The counts and decisions of step 4, under the cap lock: sent outcomes and live reservations of the number
+     * (per hour, per day, admin per day) and of the store (daily cap). 2026-10-21 12:04 +03: split out of applyCaps(),
+     * the alert stays outside the lock, ruling R41, task 596.
+     *
+     * @param array<int,array<string,mixed>> $rcpt
+     * @param array<string,mixed>            $context
+     *
+     * @return array{blocked:int,used:int} Recipients the store daily cap stopped, and the count it read
+     *
+     * @throws \RuntimeException When a count cannot be read
+     */
+    private function checkCaps(array &$rcpt, array $context): array
     {
         // 2026-10-21 01:04 +03: one grouped count for every number of the send (was two counts per number), and the
         // admin bucket only for numbers in admin_phones; any other number of an admin send gets the customer caps
@@ -1380,12 +1448,49 @@ class SmsService
             }
             $passed[$rcpt[$i]['phone']] = true;
         }
-        if ($blocked > 0) {
-            $this->note('warning', 'sms.daily_cap', 'store daily cap reached', [
-                'cap' => $this->config->capStoreDay(),
-                'used' => $used,
-            ]);
-            $this->alert('daily_cap', ['[cap]' => $this->config->capStoreDay()], true, 172800, date('Y-m-d', $now));
+
+        return ['blocked' => $blocked, 'used' => $used];
+    }
+
+    /**
+     * The reservations of step 4, under the cap lock: one attempt row (outcome unknown, reason CAP_RESERVED) per
+     * number that passed the caps, written in one INSERT; its id goes to the first recipient of that number. A number
+     * whose row could not be written is deferred as cap_unavailable with every other recipient of it (its cap cannot
+     * be guaranteed). 2026-10-21 12:04 +03: added, ruling R41, task 596.
+     *
+     * @param array<int,array<string,mixed>> $rcpt
+     * @param array<string,mixed>            $context
+     */
+    private function reserve(array &$rcpt, array $context): void
+    {
+        $rows = [];
+        foreach ($this->open($rcpt) as $i) {
+            $phone = $rcpt[$i]['phone'];
+            if (!$rcpt[$i]['valid'] || $phone === '' || isset($rows[$phone])) {
+                continue;
+            }
+            $rows[$phone] = [
+                'index' => $i,
+                'row' => $this->attemptRow($rcpt[$i], $context, 'unknown', self::CAP_RESERVED),
+            ];
+        }
+        if ($rows === []) {
+            return;
+        }
+        $ids = $this->attempts->recordMany(array_column($rows, 'row'));
+        $k = 0;
+        foreach ($rows as $phone => $reservation) {
+            $id = (int) ($ids[$k] ?? 0);
+            $k++;
+            if ($id > 0) {
+                $rcpt[$reservation['index']]['reserved_id'] = $id;
+                continue;
+            }
+            foreach ($this->open($rcpt) as $i) {
+                if ($rcpt[$i]['phone'] === (string) $phone) {
+                    $rcpt[$i] = $this->deferred($rcpt[$i], 'cap_unavailable', $this->now() + 60);
+                }
+            }
         }
     }
 
@@ -1635,41 +1740,80 @@ class SmsService
     {
         // 2026-10-21 01:04 +03: one INSERT for the whole send (AttemptLog::recordMany(), fix round 1, item 12),
         // task 596.
+        // 2026-10-21 12:04 +03: a recipient with a cap reservation gets its final row written INTO the reservation
+        // (AttemptLog::finishMany(), one statement), the others are inserted; a reservation that could not be finished
+        // stays counted and the final row is inserted as a new one (ruling R41), task 596.
         $rows = [];
+        $finish = [];
         foreach ($rcpt as $i => $r) {
             $reason = $r['reason'];
             if ($reason === '' && isset($r['note'])) {
                 $reason = (string) $r['note'];
             }
             $rcpt[$i]['reason'] = $reason;
-            $rows[$i] = [
-                'message_id' => (int) $r['message_id'],
-                'outbox_id' => (int) $r['outbox_id'],
-                'retry_of' => $context['retry_of'],
-                'source' => $context['source'],
-                'event_id' => $context['event_id'],
-                'receiver' => $context['receiver'],
-                'company_id' => $context['company_id'],
-                'parent_order_id' => $context['parent_order_id'],
-                'storefront_id' => $context['storefront_id'],
-                'order_id' => $context['order_id'],
-                'user_id' => $context['user_id'],
-                'actor_user_id' => $context['actor_user_id'],
-                'phone_raw' => $r['phone_raw'],
-                'phone' => $r['phone'],
-                'outcome' => (string) $r['outcome'],
-                'reason' => $reason,
-                'ip' => $context['ip'] === '' ? null : $context['ip'],
-                // 2026-10-21 03:12 +03: the test flag of this send (a drained row keeps its own, R26), so the Dashboard
-                // counts skipped and deferred attempts for live and test separately; Task 1.11, task 596.
-                'is_test' => $this->test ? 'Y' : 'N',
-                'secret_values' => $context['secret_values'],
-            ];
+            if ((int) ($r['reserved_id'] ?? 0) > 0) {
+                $finish[(int) $r['reserved_id']] = ['index' => $i, 'row' => $this->attemptRow($rcpt[$i], $context)];
+                continue;
+            }
+            $rows[$i] = $this->attemptRow($rcpt[$i], $context);
+        }
+        if ($finish !== []) {
+            $done = array_flip($this->attempts->finishMany(array_map(static function (array $f): array {
+                return $f['row'];
+            }, $finish)));
+            foreach ($finish as $id => $f) {
+                if (isset($done[$id])) {
+                    $rcpt[$f['index']]['attempt_id'] = $id;
+                } else {
+                    $rows[$f['index']] = $f['row'];
+                }
+            }
+            if (count($done) < count($finish)) {
+                $this->note('warning', 'sms.reservation_not_finished', 'cap reservations stay counted', [
+                    'reservations' => count($finish) - count($done),
+                ]);
+            }
         }
         $ids = $this->attempts->recordMany(array_values($rows));
         foreach (array_keys($rows) as $k => $i) {
             $rcpt[$i]['attempt_id'] = (int) ($ids[$k] ?? 0);
         }
+    }
+
+    /**
+     * The attempt row of one recipient; $outcome and $reason override the recipient's own (a cap reservation).
+     * 2026-10-21 12:04 +03: split out of recordAttempts() for the reservation of step 4, ruling R41, task 596.
+     *
+     * @param array<string,mixed> $r
+     * @param array<string,mixed> $context
+     *
+     * @return array<string,mixed>
+     */
+    private function attemptRow(array $r, array $context, ?string $outcome = null, ?string $reason = null): array
+    {
+        return [
+            'message_id' => (int) $r['message_id'],
+            'outbox_id' => (int) $r['outbox_id'],
+            'retry_of' => $context['retry_of'],
+            'source' => $context['source'],
+            'event_id' => $context['event_id'],
+            'receiver' => $context['receiver'],
+            'company_id' => $context['company_id'],
+            'parent_order_id' => $context['parent_order_id'],
+            'storefront_id' => $context['storefront_id'],
+            'order_id' => $context['order_id'],
+            'user_id' => $context['user_id'],
+            'actor_user_id' => $context['actor_user_id'],
+            'phone_raw' => $r['phone_raw'],
+            'phone' => $r['phone'],
+            'outcome' => $outcome ?? (string) $r['outcome'],
+            'reason' => $reason ?? (string) $r['reason'],
+            'ip' => $context['ip'] === '' ? null : $context['ip'],
+            // 2026-10-21 03:12 +03: the test flag of this send (a drained row keeps its own, R26), so the Dashboard
+            // counts skipped and deferred attempts for live and test separately; Task 1.11, task 596.
+            'is_test' => $this->test ? 'Y' : 'N',
+            'secret_values' => $context['secret_values'],
+        ];
     }
 
     /**
@@ -1839,6 +1983,9 @@ class SmsService
                 'message_id' => 0,
                 'outbox_id' => 0,
                 'attempt_id' => 0,
+                // 2026-10-21 12:04 +03: the attempt row reserved for this recipient at step 4, finished in place
+                // (ruling R41), task 596.
+                'reserved_id' => 0,
             ];
         }
 

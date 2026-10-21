@@ -16,6 +16,8 @@
  *                // auto_increment_increment, which a cluster sets above 1), fix round 2, item C, task 596.
  *                $counts = $store->countAttemptsByPhone($phones, $day_from, $hour_from, $outcomes, $sources);
  *                // ['96550000001' => ['hour' => 1, 'day' => 3, 'day_all' => 4], ...] (phones without rows are absent)
+ *                $n = $store->updateMany(Schema::ATTEMPTS, [$attempt_id => $row, ...]);   // rows written in place
+ *                // 2026-10-21 12:02 +03: added, the cap reservations are finished in place (ruling R41), task 596.
  *            }
  * DEPENDS:   Log\Schema.
  */
@@ -54,4 +56,19 @@ interface BulkLogStoreInterface
         array $outcomes,
         array $sources
     ): array;
+
+    /**
+     * Writes many existing rows in place, in one statement per 500 rows: each row (keyed by its primary key) gets the
+     * columns it lists; a column it does not list keeps its value. All rows of one call list the same columns (the
+     * caller passes rows of RowCleaner::clean(), each with the same columns left out, such as created_at). A row whose
+     * key no longer exists (a Logs clear in the meantime) is written as a new row with that key.
+     * 2026-10-21 12:02 +03: added, the cap reservations of SmsService are finished in place (ruling R41), task 596.
+     *
+     * @param array<int,array<string,mixed>> $rows primary key => columns
+     *
+     * @return int Rows written
+     *
+     * @throws \RuntimeException When the rows could not be written
+     */
+    public function updateMany(string $table, array $rows): int;
 }

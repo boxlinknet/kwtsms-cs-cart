@@ -18,6 +18,7 @@
  *            countAttemptsByPhone() (the abuse-cap counts of a whole send in one grouped query on the
  *            (phone, created_at) index; countAttemptsByPhoneSql() is its text for EXPLAIN), Task 1.6 fix round 1,
  *            task 596.
+ *            2026-10-21 12:02 +03: updateMany() writes rows in place (the cap reservations, ruling R41), task 596.
  *            $store->select(Schema::MESSAGES, ['status' => 'failed', 'created_from' => $t], 50, 0);
  *            $store->selectSql(...) and countSql(...) return the final SQL text, for EXPLAIN/ANALYZE only.
  *            2026-10-21 05:46 +03: also AdminLogStoreInterface (the Logs page and the order SMS tab: page(), horizon(),
@@ -153,6 +154,58 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
         }
 
         return $this->auto_increment_step;
+    }
+
+    /**
+     * 2026-10-21 12:02 +03: rows written in place, one INSERT ... ON DUPLICATE KEY UPDATE per 500 rows keyed by the
+     * primary key (the only unique key of the log tables), so the cap reservations of a whole send are finished in one
+     * statement (ruling R41), task 596. Column names come from Schema, never from the caller.
+     *
+     * @throws \RuntimeException
+     */
+    public function updateMany(string $table, array $rows): int
+    {
+        $name = Schema::table($table);
+        $pk = Schema::pk($table);
+        $columns = Schema::columns($table);
+        $written = 0;
+        foreach (array_chunk($rows, self::BULK_CHUNK, true) as $chunk) {
+            $keys = null;
+            $clean = [];
+            foreach ($chunk as $id => $row) {
+                $values = [$pk => (int) $id];
+                foreach (array_intersect_key($row, $columns) as $column => $value) {
+                    if (is_bool($value)) {
+                        $value = (int) $value;
+                    } elseif ((is_float($value) && !is_finite($value)) || is_array($value) || is_object($value)) {
+                        $value = 0;
+                    }
+                    $values[$column] = $value;
+                }
+                if ($keys === null) {
+                    $keys = array_keys($values);
+                } elseif (array_keys($values) !== $keys) {
+                    throw new \RuntimeException('updateMany: every row must list the same columns');
+                }
+                $clean[] = $values;
+            }
+            if ($clean === [] || $keys === null || count($keys) < 2) {
+                continue;
+            }
+            $set = [];
+            foreach ($keys as $column) {
+                if ($column !== $pk) {
+                    $set[] = '`' . $column . '` = VALUES(`' . $column . '`)';
+                }
+            }
+            $result = db_query('INSERT INTO ?:' . $name . ' ?m ON DUPLICATE KEY UPDATE ' . implode(', ', $set), $clean);
+            if ($result === false) {
+                throw new \RuntimeException('Could not write the rows of ' . $name);
+            }
+            $written += count($clean);
+        }
+
+        return $written;
     }
 
     /**

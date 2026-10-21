@@ -25,6 +25,8 @@
  *            attempts in one INSERT and countsByPhone($phones, $outcomes, $sources) reads every cap count of a send
  *            in one grouped query, when the store implements BulkLogStoreInterface (one statement per row or
  *            number otherwise).
+ *            2026-10-21 12:02 +03, ruling R41, task 596: finishMany([$attempt_id => $row, ...]) writes the final rows
+ *            of cap reservations in place (one statement), returns the ids it wrote.
  * DEPENDS:   Log\LogStoreInterface, Log\Redactor, Log\RowCleaner, Log\Schema.
  */
 
@@ -128,6 +130,45 @@ class AttemptLog
         }
 
         return $ids;
+    }
+
+    /**
+     * The final rows of cap reservations (the attempt rows SmsService::applyCaps() writes before the API call, outcome
+     * "unknown"), written in place: attempt_id => row as for record(). created_at keeps the time of the reservation.
+     * Returns the ids written; with a store that is not a BulkLogStoreInterface, or when the write fails (reported, not
+     * thrown), none: the caller then inserts the rows as new ones and the reservations stay counted until their cap
+     * window passes, which only errs on the safe side.
+     * 2026-10-21 12:02 +03: added, ruling R41, task 596.
+     *
+     * @param array<int,array<string,mixed>> $rows attempt_id => row
+     *
+     * @return int[] The attempt_ids written in place
+     */
+    public function finishMany(array $rows): array
+    {
+        if ($rows === [] || !$this->store instanceof BulkLogStoreInterface) {
+            return [];
+        }
+        try {
+            $clean = [];
+            foreach ($rows as $id => $row) {
+                if ((int) $id < 1) {
+                    continue;
+                }
+                $prepared = RowCleaner::clean(Schema::ATTEMPTS, $this->prepare($row));
+                unset($prepared['created_at']);
+                $clean[(int) $id] = $prepared;
+            }
+            if ($clean !== []) {
+                $this->store->updateMany(Schema::ATTEMPTS, $clean);
+            }
+
+            return array_keys($clean);
+        } catch (\Throwable $e) {
+            $this->reportFailure($e);
+
+            return [];
+        }
     }
 
     /**
