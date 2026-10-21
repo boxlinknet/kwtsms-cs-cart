@@ -150,17 +150,23 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
     /**
      * MessageCleaner::gatewayEntities(): the decimal entities kwtSMS decodes itself when the text holds a complete one
      * (1 to 10 digits, at most U+10FFFF, the ";" optional; a surrogate is removed). 2026-10-21 11:51 +03: added,
-     * ruling R40, task 596.
+     * ruling R40, task 596. 2026-10-21 12:51 +03: and the hex references "&#x" + 1 to 8 hex digits under the same
+     * condition (review I1), task 596.
      */
     function gatewayEntities(text) {
         if (text.indexOf('&#') === -1 || !/&(?:amp;)?#[0-9]+;/.test(text)) {
             return text;
         }
-        return text.replace(/&amp;#([0-9]+);/g, '&#$1;').replace(/&#([0-9]{1,10})(?![0-9]);?/g, function (whole, digits) {
+        // 2026-10-21 12:51 +03: also "&#x" (lowercase x) + 1 to 8 hex digits, like MessageCleaner (review I1), task 596.
+        return text.replace(/&amp;#([0-9]+);/g, '&#$1;').replace(/&#(?:([0-9]{1,10})(?![0-9])|x([0-9a-fA-F]{1,8})(?![0-9a-fA-F]));?/g, function (whole, dec, hex) {
             var cp;
-            digits = digits.replace(/^0+/, '');
-            cp = digits === '' ? 0 : parseInt(digits, 10);
-            if (digits.length > 7 || cp > 0x10FFFF) {
+            var isHex = hex !== undefined && hex !== '';
+            var digits = (isHex ? hex : dec).replace(/^0+/, '');
+            if (digits.length > (isHex ? 6 : 7)) {
+                return whole;
+            }
+            cp = digits === '' ? 0 : parseInt(digits, isHex ? 16 : 10);
+            if (cp > 0x10FFFF) {
                 return whole;
             }
             return cp >= 0xD800 && cp <= 0xDFFF ? '' : String.fromCodePoint(cp);

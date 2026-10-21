@@ -141,9 +141,13 @@
  *      API/Send.php:105), which decodes decimal entities when the text holds at least one complete "&#N;": every
  *      "&#" with 1 to 10 digits up to U+10FFFF, the ";" optional (PHP 8.3 mb_decode_numericentity()).
  *      html_entity_decode() leaves "&#1;", "&#128;", "&#55357;" or "&#65534;" alone, so settleMarkup() now also runs
- *      that step (gatewayEntities()); a surrogate is removed. Hex and named entities are not decoded by the gateway.
+ *      that step (gatewayEntities()); a surrogate is removed. Named entities are not decoded by the gateway.
+ *      2026-10-21 12:51 +03, review I1, task 596: corrected. This item said hex references are not decoded either; the
+ *      same mb_decode_numericentity() call decodes "&#x" (lowercase x) + 1 to 8 hex digits up to U+10FFFF, ";"
+ *      optional, under the same decimal condition, and gatewayEntities() now decodes them too ("&#1114112; &#x80;"
+ *      was 6 + 6 ASCII characters here and U+0080 there).
  *      The gateway's steps after JSON decoding, in order: trim (Send.php:180), \uXXXX (55-66), \n \r \t (98-103), the
- *      entities (105), stripslashes() and trim (442-443). What is sent holds no \uXXXX and no decimal entity the
+ *      entities (105), stripslashes() and trim (442-443). What is sent holds no \uXXXX and no numeric reference the
  *      gateway would decode, and every backslash travels doubled, so those steps give back exactly the cleaned body.
  */
 
@@ -643,6 +647,11 @@ class MessageCleaner
      * above U+007F there (the body turns Unicode) and six ASCII characters here. A surrogate is removed here (the
      * gateway would store a broken byte sequence). See the header, change 21.
      * 2026-10-21 11:42 +03: added, ruling R40, task 596.
+     * 2026-10-21 12:51 +03: also the hex references the same mb_decode_numericentity() call decodes on PHP 8.3: "&#x"
+     * (lowercase x only, "&#X41;" stays) and 1 to 8 hex digits of either case not followed by another hex digit, the ";"
+     * optional, value at most U+10FFFF; a surrogate is removed. Still only under the decimal condition above: after
+     * html_entity_decode() the trigger is an out-of-range decimal ("&#1114112;") next to a hex reference it left alone
+     * ("&#x80;"), which the gateway decoded to U+0080 (review I1), task 596.
      *
      * @throws \UnexpectedValueException When PCRE fails
      */
@@ -652,12 +661,18 @@ class MessageCleaner
             return $text;
         }
         $text = self::replace('/&amp;#(\d+);/', '&#$1;', $text);
-        $out = preg_replace_callback('/&#([0-9]{1,10})(?![0-9]);?/', static function (array $m): string {
-            $digits = ltrim($m[1], '0');
-            if (strlen($digits) > 7 || (int) $digits > 0x10FFFF) {
+        $pattern = '/&#(?:([0-9]{1,10})(?![0-9])|x([0-9a-fA-F]{1,8})(?![0-9a-fA-F]));?/';
+        $out = preg_replace_callback($pattern, static function (array $m): string {
+            // 2026-10-21 12:51 +03: group 2 is the hex form (review I1), task 596.
+            $hex = isset($m[2]) && $m[2] !== '';
+            $digits = ltrim($hex ? $m[2] : $m[1], '0');
+            if (strlen($digits) > ($hex ? 6 : 7)) {
                 return $m[0];
             }
-            $cp = (int) $digits;
+            $cp = $hex ? (int) hexdec($digits === '' ? '0' : $digits) : (int) $digits;
+            if ($cp > 0x10FFFF) {
+                return $m[0];
+            }
 
             return $cp >= 0xD800 && $cp <= 0xDFFF ? '' : (string) mb_chr($cp, 'UTF-8');
         }, $text);
