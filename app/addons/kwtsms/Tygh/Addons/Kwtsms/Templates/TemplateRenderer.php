@@ -15,7 +15,7 @@
  *            literal "{customer_first_name}". Customer-typed values (names) get the anti-smishing cleaner of
  *            PRD 6.2.1; values the shop or core produced (order id, total, brand, status, method names) do
  *            not, because that cleaner would delete the digits of a 6-digit order id or an 8-digit total.
- *            "without a double quote": 2026-10-21 11:51 +03, ruling R42; stamped 2026-10-21 13:03 +03, review M7.
+ *            "without a double quote": 2026-10-21 11:51 +03, R42; stamped 2026-10-21 13:03 +03, review M7, task 596.
  * USAGE:     All methods are static and pure, except the hook call in render().
  *              TemplateRenderer::render($body, ['order_id' => 10234, 'customer_first_name' => 'Ali', ...])
  *                  -> text. Keys are placeholder names without braces; values are RAW (scalars; null and
@@ -38,8 +38,8 @@
  *            backslash after the doubling.
  *            2026-10-21 00:48 +03, fix round 2 F1, task 596: cleaning and brace removal repeat until nothing changes
  *            (the brace strip can build an entity: "&{#92;n}" -> "&#92;n"), and a customer-typed value (FREE_TEXT)
- *            also loses every "&", so a name can hold no entity and two names that touch cannot form one. "AT&T"
- *            is sent as "ATT". See settleValue().
+ *            also loses every "&" and ";", so a name can hold no entity and two names that touch cannot form one.
+ *            "AT&T" is sent as "ATT". See settleValue().
  *            Hook (PRD 5.2): fn_set_hook('kwtsms_render_template_post', $rendered, $body, $vars), all three
  *            by reference; a handler may change $rendered. $body is the template as stored, $vars the values
  *            as passed in (raw).
@@ -59,6 +59,9 @@
  * 2026-10-21 11:51 +03, ruling R42, task 596: a "{...}" holding a double quote ('{"ar":"..."}') is text, not a
  * placeholder, for hasLeftover() and unknownPlaceholders() (TOKEN). Moved here from USAGE 2026-10-21 13:03 +03 to keep
  * the header keys within the first 4000 bytes (review M7).
+ * 2026-10-21 13:41 +03, cleanup 2 item 11, task 596: comments only. The WHY stamp above gains "task 596", and the F1
+ * sentence in the header now says a customer-typed value loses "&" AND ";" (settleValue() drops both since review M1,
+ * 2026-10-21 12:54 +03; the header named only "&").
  */
 
 namespace Tygh\Addons\Kwtsms\Templates;

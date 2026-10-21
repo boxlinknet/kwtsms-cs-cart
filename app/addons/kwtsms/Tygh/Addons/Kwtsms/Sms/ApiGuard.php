@@ -65,7 +65,10 @@ class ApiGuard
      * within 998 ms (Task 1.16: 8 processes x 10 calls on the real slot clock). Task 596.
      * 2026-10-21 13:03 +03: reworded, review M5, task 596. The 10 ms are a margin, not a guarantee: six slots are now
      * 1050 ms apart, so six calls start inside one second only when a call starts more than 50 ms after its slot (a
-     * slow sleep or a busy worker); the measured spans of six were 1042 to 1049 ms.
+     * slow sleep or a busy worker); the measured spans of six were 1045 to 1049 ms.
+     * 2026-10-21 13:42 +03: the span read "1042 to 1049"; the evidence on disk (min_span_of_6_ms in
+     * docs/evidence/1.0.0/1.16/security-{cscart,mve}[-fix].json) holds 1045, 1047, 1047 and 1049, so the comment now
+     * says 1045 to 1049 ms. Cleanup 2 item 11, comment only, task 596.
      */
     public const SPACING_MS = 210;
 
