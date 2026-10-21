@@ -24,6 +24,7 @@
  *            design/backend/templates/addons/kwtsms/views/kwtsms/settings.tpl.
  */
 
+use Tygh\Addons\Kwtsms\Admin\DashboardPage;
 use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
@@ -71,6 +72,12 @@ if ($kwtsms_denied !== null) {
 
 $kwtsms_settings_url = 'kwtsms.settings';
 
+// 2026-10-21 03:23 +03: the Dashboard buttons (Refresh balance, Sync now, Retry now, Resume now) post
+// kwtsms_return=dashboard and come back to the Dashboard; anything else, or an administrator who may not open the
+// Dashboard, goes back to Settings (fixed targets, no open redirect). Task 1.11, task 596.
+$kwtsms_back_url = isset($_REQUEST['kwtsms_return']) && $_REQUEST['kwtsms_return'] === 'dashboard'
+    && fn_check_current_user_access('view_kwtsms') === true ? 'kwtsms.dashboard' : $kwtsms_settings_url;
+
 try {
     if ($kwtsms_method === RequestGate::POST) {
         $kwtsms_page = SettingsPage::fromContainer(Tygh::$app);
@@ -100,10 +107,15 @@ try {
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
 
             case 'save_settings':
+                // 2026-10-21 03:23 +03: turning SMS on (or test mode on while SMS are on) raises the "test mode is on"
+                // bell notice at once (PRD 6.13); the switches before and after the save decide. Task 1.11, task 596.
+                $kwtsms_was_on = Tygh::$app['kwtsms.config']->enabled();
+                $kwtsms_was_test = Tygh::$app['kwtsms.config']->testMode();
                 $kwtsms_page->save(
                     isset($_REQUEST['kwtsms_settings']) ? $_REQUEST['kwtsms_settings'] : [],
                     isset($_REQUEST['kwtsms_ack_test_sender']) ? $_REQUEST['kwtsms_ack_test_sender'] : ''
                 );
+                DashboardPage::fromContainer(Tygh::$app)->afterSettingsSaved($kwtsms_was_on, $kwtsms_was_test);
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
 
@@ -124,22 +136,22 @@ try {
             case 'sync':
                 $kwtsms_page->syncNow();
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
 
             case 'refresh_balance':
                 $kwtsms_page->refreshBalance();
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
 
             case 'retry_gateway':
                 $kwtsms_page->retryGateway();
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
 
             case 'resume_daily_cap':
                 $kwtsms_page->resumeDailyCap();
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
 
             case 'regenerate_cron_key':
                 $kwtsms_page->regenerateCronKey();
@@ -291,12 +303,24 @@ try {
     }
 
     if ($mode === 'dashboard') {
-        // Until the dashboard page exists (Task 1.11) the menu item opens Settings for those who may see it.
-        if (fn_check_current_user_access('manage_kwtsms_gateway') === true) {
-            return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
-        }
+        // 2026-10-21 03:23 +03: the Dashboard (Task 1.11, task 596) replaces the temporary redirect to Settings.
+        // A GET handler never writes, with ONE documented exception: PRD 6.11 says opening the Dashboard drains up to
+        // 20 due outbox rows and syncs when the last sync is stale (what the cron does every minute and every day), and
+        // PRD 6.13's "cron missing" and "outbox backlog" bell notices can only be raised by a page view.
+        $kwtsms_has = static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        };
+        $kwtsms_dashboard = DashboardPage::fromContainer(Tygh::$app);
+        $kwtsms_dashboard->refresh();
 
-        return [CONTROLLER_STATUS_NO_PAGE];
+        $kwtsms_nav = Navigation::sections('dashboard', $kwtsms_has);
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'dashboard');
+
+        Tygh::$app['view']->assign('kwtsms', $kwtsms_dashboard->viewData($kwtsms_has));
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
     }
 
     // GET pages of later tasks.

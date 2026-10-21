@@ -1,0 +1,343 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/dashboard.less
+CREATED:   2026-10-21 03:28 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Dashboard page (views/kwtsms/dashboard.tpl): test-mode band, balance card and status
+           ledger, setup and go-live checklists, counters and list tables, Problems panel.
+WHY:       PRD 6.9 and 7. A file of its own, loaded by hooks/index/styles.post.tpl next to styles.less, so the page tasks
+           that run in parallel never edit the same stylesheet. Everything sits under .kwtsms-page.kwtsms-dashboard; the
+           shared pieces (.kwtsms-badge, .kwtsms-alert, .kwtsms-actions, .kwtsms-inline-form, .kwtsms-section) come from
+           styles.less. The brand shows in two places only: the orange rule of the balance card and the checklist marks.
+           The test-mode band uses the accent blue, so test mode can't be missed or mistaken for a warning. Logical
+           properties only, and no direction / text-align left|right (the core cssjanus flip rewrites those in RTL).
+USAGE:     Compiled by {style src="addons/kwtsms/dashboard.less"}.
+DEPENDS:   styles.less (shared classes).
+*/
+
+@kwtsms-brand: #FFA200;
+@kwtsms-brand-tint: #FFF1D6;
+@kwtsms-text: #434345;
+@kwtsms-accent: #79CCF2;
+@kwtsms-accent-tint: #E4F5FD;
+@kwtsms-line: #E3E3E6;
+@kwtsms-danger: #B42318;
+
+.kwtsms-page.kwtsms-dashboard {
+    max-width: 1100px;
+
+    .kwtsms-label {
+        display: block;
+        margin-block-end: 4px;
+        font-size: 12px;
+        color: lighten(@kwtsms-text, 18%);
+    }
+
+    /* ---- test-mode band: the one loud element when test mode is on ---- */
+    .kwtsms-testband {
+        margin: 0 0 18px;
+        padding: 14px 18px;
+        border: 1px solid @kwtsms-accent;
+        border-inline-start: 6px solid @kwtsms-accent;
+        border-radius: 4px;
+        background: @kwtsms-accent-tint;
+        color: @kwtsms-text;
+        h4 {
+            margin: 0 0 6px;
+            font-size: 16px;
+        }
+        p {
+            margin: 0 0 6px;
+            max-width: 760px;
+        }
+        .btn {
+            margin-block-start: 4px;
+        }
+    }
+    .kwtsms-testband--held {
+        border-color: @kwtsms-line;
+        border-inline-start-color: @kwtsms-accent;
+        background: #fff;
+    }
+
+    /* ---- balance card and status ledger ---- */
+    .kwtsms-overview {
+        display: grid;
+        grid-template-columns: minmax(250px, 330px) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+    .kwtsms-balance-card {
+        padding: 14px 18px 16px;
+        border: 1px solid @kwtsms-line;
+        border-inline-start: 4px solid @kwtsms-brand;
+        border-radius: 4px;
+        background: #fff;
+        color: @kwtsms-text;
+        p {
+            margin: 0 0 6px;
+        }
+        .kwtsms-actions {
+            margin-block-start: 12px;
+        }
+    }
+    .kwtsms-balance-card__number {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        span {
+            font-size: 13px;
+            font-weight: normal;
+            color: lighten(@kwtsms-text, 18%);
+        }
+    }
+    .kwtsms-balance-card__meta {
+        font-size: 12px;
+    }
+    .kwtsms-ledger {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        margin: 0;
+        border: 1px solid @kwtsms-line;
+        border-radius: 4px;
+        background: @kwtsms-line;
+        overflow: hidden;
+    }
+    .kwtsms-ledger__item {
+        padding: 10px 14px 12px;
+        background: #fff;
+        color: @kwtsms-text;
+        dt {
+            margin-block-end: 5px;
+            font-size: 12px;
+            font-weight: normal;
+            color: lighten(@kwtsms-text, 18%);
+        }
+        dd {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 8px;
+            margin: 0;
+            font-weight: 600;
+        }
+        .kwtsms-inline-form .btn {
+            margin: 0;
+        }
+    }
+    .kwtsms-ledger__value {
+        font-weight: 600;
+    }
+    .kwtsms-ledger__note {
+        flex-basis: 100%;
+        font-size: 12px;
+        font-weight: normal;
+        color: lighten(@kwtsms-text, 18%);
+        overflow-wrap: anywhere;
+    }
+
+    /* ---- checklists ---- */
+    .kwtsms-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 28px;
+        margin-block-start: 8px;
+    }
+    .kwtsms-panel {
+        min-width: 0;
+    }
+    .kwtsms-steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: kwtsms-step;
+    }
+    .kwtsms-step {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 2px 12px;
+        padding: 9px 0;
+        border-block-end: 1px solid @kwtsms-line;
+        counter-increment: kwtsms-step;
+        color: @kwtsms-text;
+    }
+    .kwtsms-step__mark {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 24px;
+        height: 24px;
+        border: 2px solid #C4C4CA;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+    }
+    ol.kwtsms-steps .kwtsms-step__mark::before {
+        content: counter(kwtsms-step);
+    }
+    .kwtsms-step__body {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-step__label {
+        font-weight: 600;
+    }
+    .kwtsms-step__value {
+        display: block;
+        font-size: 12px;
+        color: lighten(@kwtsms-text, 18%);
+    }
+    .kwtsms-step__state {
+        font-size: 12px;
+        color: lighten(@kwtsms-text, 18%);
+        white-space: nowrap;
+    }
+    .kwtsms-step__link {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .kwtsms-step--done {
+        .kwtsms-step__mark {
+            border-color: @kwtsms-brand;
+            background: @kwtsms-brand;
+        }
+        .kwtsms-step__mark::before {
+            content: "\2713";
+        }
+        .kwtsms-step__label {
+            font-weight: normal;
+        }
+    }
+    .kwtsms-step--next {
+        .kwtsms-step__mark {
+            border-color: @kwtsms-brand;
+            box-shadow: 0 0 0 3px @kwtsms-brand-tint;
+        }
+        .kwtsms-step__state {
+            color: @kwtsms-text;
+            font-weight: 700;
+        }
+    }
+    .kwtsms-step--progress {
+        .kwtsms-step__mark {
+            border-color: @kwtsms-accent;
+            box-shadow: 0 0 0 3px @kwtsms-accent-tint;
+        }
+        .kwtsms-step__state {
+            color: @kwtsms-text;
+            font-weight: 700;
+        }
+    }
+
+    /* ---- tables ---- */
+    .kwtsms-table-wrap {
+        overflow-x: auto;
+    }
+    .kwtsms-table {
+        margin-block-end: 6px;
+        th,
+        td {
+            vertical-align: middle;
+        }
+    }
+    .kwtsms-table__group {
+        text-align: center;
+        border-block-end: 2px solid @kwtsms-brand;
+    }
+    .kwtsms-table__group--test {
+        border-block-end-color: @kwtsms-accent;
+    }
+    .kwtsms-table__num {
+        text-align: end;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+    td.kwtsms-table__num--test {
+        background: fade(@kwtsms-accent-tint, 55%);
+    }
+    .kwtsms-code-tag {
+        padding: 0 5px;
+        border-radius: 3px;
+        background: #F0F0F2;
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+    }
+
+    /* ---- problems ---- */
+    .kwtsms-problems {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+        grid-auto-flow: dense;
+        gap: 8px 32px;
+        h5 {
+            margin: 0 0 6px;
+            font-size: 13px;
+        }
+        .btn {
+            margin-block-start: 4px;
+        }
+    }
+    .kwtsms-problems__col {
+        min-width: 0;
+    }
+    .kwtsms-problems__col--outcomes {
+        grid-row: span 2;
+    }
+    .kwtsms-plist {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        li {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            align-items: baseline;
+            gap: 4px 10px;
+            padding: 7px 0;
+            border-block-end: 1px solid @kwtsms-line;
+        }
+    }
+    .kwtsms-plist__n {
+        font-weight: 700;
+        text-align: end;
+        font-variant-numeric: tabular-nums;
+    }
+    .kwtsms-plist__text {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-plist__link {
+        white-space: nowrap;
+    }
+}
+
+/* Narrow screens (768 px with the admin menu open): one column, nothing wider than the page. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-dashboard {
+        .kwtsms-overview,
+        .kwtsms-columns,
+        .kwtsms-problems {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .kwtsms-problems__col--outcomes {
+            grid-row: auto;
+        }
+        .kwtsms-balance-card {
+            max-width: none;
+        }
+    }
+}
+@media (max-width: 599px) {
+    .kwtsms-page.kwtsms-dashboard {
+        .kwtsms-ledger {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .kwtsms-step {
+            grid-template-columns: 28px minmax(0, 1fr);
+        }
+    }
+}

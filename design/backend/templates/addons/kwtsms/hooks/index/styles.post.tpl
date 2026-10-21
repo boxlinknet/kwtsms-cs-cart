@@ -12,3 +12,5 @@ DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 {style src="addons/kwtsms/styles.less"}
 {* 2026-10-21 04:38 +03: the Templates page styles, Task 1.12, task 596 *}
 {style src="addons/kwtsms/templates.less"}
+{* 2026-10-21 03:28 +03: the Dashboard styles, Task 1.11, task 596 *}
+{style src="addons/kwtsms/dashboard.less"}

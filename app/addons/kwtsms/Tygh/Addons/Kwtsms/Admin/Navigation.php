@@ -27,7 +27,8 @@ final class Navigation
      * @var string[]
      */
     // 2026-10-21 04:38 +03: Templates added (PRD 7 order: Settings, then Templates), Task 1.12, task 596.
-    public const PAGES = ['settings', 'templates'];
+    // 2026-10-21 03:24 +03: dashboard first (PRD 7 order), Task 1.11, task 596.
+    public const PAGES = ['dashboard', 'settings', 'templates'];
 
     /**
      * @param callable $has_privilege (string $privilege): bool

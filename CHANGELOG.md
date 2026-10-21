@@ -115,3 +115,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Saving a text: a customer text must keep {store_name}; an unknown placeholder needs "Save anyway"; the characters
   cleaning removed are listed; text between angle brackets, touching placeholders, "&", "#" or ";" next to a
   placeholder and promotional wording get a warning. "Reset to default text" and "Load default texts for <language>".
+<!-- 2026-10-21 04:57 +03: entries for the Dashboard and the add-on's own health alerts (Task 1.11), task 596 -->
+- Dashboard (Add-ons > kwtSMS): the setup checklist and the go-live checklist with the state of every step; SMS, connection
+  (naming what fails), test mode, pilot mode, Sender ID, balance with the days it lasts, last sync, cron and outbox;
+  counters for today, 7 and 30 days, live and test apart; problems of the last 7 days by result, kwtSMS code and country,
+  each linking to the filtered log; credits by event and receiver for this month and last month; the last 10 messages.
+  Opening it sends the due outbox rows (up to 20) and syncs when the last sync is stale, so a store without a cron still
+  works.
+- Notices in the admin bell about the add-on itself: test mode on while SMS are on (at once when SMS are switched on, then
+  daily), the cron not run for 2 hours and outbox rows waiting over 10 minutes (notices only, until fixed). A balance of
+  zero ("Customer SMS have stopped", with an e-mail, once a day) is now also raised when a send is blocked for it, by
+  kwtSMS error ERR010 and when a refresh finds it; a refresh that finds the balance under the alert level raises the
+  low-balance alert once per crossing.
+- Attempt log rows carry the test flag of their send, so skipped and deferred messages count under live or test.
