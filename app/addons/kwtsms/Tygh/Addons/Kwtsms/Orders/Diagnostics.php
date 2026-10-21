@@ -38,6 +38,9 @@ use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 class Diagnostics
 {
     public const SWITCHED_OFF = 'switched_off';
+
+    /** 2026-10-21 08:04 +03: SMS on, the add-on not set up (ruling R37), task 596. */
+    public const NOT_CONFIGURED = 'blocked_not_configured';
     public const NOT_NOTIFIED = 'not_notified';
 
     /** @var AttemptLog */
@@ -61,6 +64,9 @@ class Diagnostics
     /** @var callable|null (): bool, SMS on and the add-on set up (2026-10-21 04:21 +03, fix round 1 item 4, task 596) */
     private $active;
 
+    /** @var callable|null (): string, why the add-on is not set up, '' when it is (2026-10-21 08:04 +03, ruling R37, task 596) */
+    private $not_configured;
+
     /**
      * @param callable      $switch        (string $event_id, string $receiver): bool, the fail-closed SMS switch
      * @param callable      $ruleset       (array $rules): Ruleset, core's notification settings Factory::create
@@ -68,6 +74,8 @@ class Diagnostics
      * @param callable|null $actor         (): ['user_id' => int, 'company_id' => int], who caused the change
      * @param callable|null $active        (): bool, true while SMS is on and the add-on is set up; null = the global
      *                                     switch only (2026-10-21 04:21 +03, fix round 1 item 4, task 596)
+     * @param callable|null $not_configured (): string, GatewayState::isConfigured()'s reason, '' when set up
+     *                                     (2026-10-21 08:04 +03, ruling R37, task 596)
      */
     public function __construct(
         AttemptLog $attempts,
@@ -76,7 +84,8 @@ class Diagnostics
         callable $ruleset,
         ?callable $profile_phone = null,
         ?callable $actor = null,
-        ?callable $active = null
+        ?callable $active = null,
+        ?callable $not_configured = null
     ) {
         $this->attempts = $attempts;
         $this->config = $config;
@@ -85,6 +94,27 @@ class Diagnostics
         $this->profile_phone = $profile_phone;
         $this->actor = $actor;
         $this->active = $active;
+        $this->not_configured = $not_configured;
+    }
+
+    /**
+     * One blocked_not_configured row for a receiver whose SMS was not even tried because SMS is on but the add-on is
+     * not set up (no login, Sender ID not in the list or banned), with the reason, so the admin can see why (PRD
+     * goal 5). Written whatever active() says; the caller checks that SMS is on.
+     * 2026-10-21 08:04 +03: added, ruling R37, task 596.
+     *
+     * @param array<string,mixed> $order_info
+     */
+    public function recordNotConfigured(array $order_info, string $event_id, string $receiver): void
+    {
+        try {
+            $reason = $this->not_configured !== null ? (string) call_user_func($this->not_configured) : '';
+            $reason = $reason !== '' ? $reason : 'not_configured';
+            $this->write(self::NOT_CONFIGURED, $reason, $order_info, $event_id, $receiver);
+        } catch (\Throwable $e) {
+            error_log('kwtsms: order diagnostics failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
     }
 
     /**
@@ -146,6 +176,24 @@ class Diagnostics
         if (!$this->active()) {
             return;
         }
+        $this->write($outcome, $reason, $order_info, $event_id, $receiver, $phones);
+    }
+
+    /**
+     * The rows of recordOutcome(), without the gate.
+     * 2026-10-21 08:04 +03: split out for recordNotConfigured() (ruling R37), task 596.
+     *
+     * @param array<string,mixed> $order_info
+     * @param string[]|null       $phones
+     */
+    private function write(
+        string $outcome,
+        string $reason,
+        array $order_info,
+        string $event_id,
+        string $receiver,
+        ?array $phones = null
+    ): void {
         $actor = $this->actor !== null ? (array) call_user_func($this->actor) : [];
         $default_cc = $this->config->defaultCountryCode();
         $hint = PhoneNormalizer::callingCodeForIso(OrderSmsData::countryIso($order_info)) ?? $default_cc;

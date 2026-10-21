@@ -38,6 +38,9 @@
  *            add-on is not set up (Diagnostics::active(), the same predicate as the diagnostics), notify() returns
  *            at once: no dispatch key, no outbox row, no attempt or info row (a status key claimed then would block
  *            that status SMS for 24 h once SMS is on). Only a debug row, when the log level is debug.
+ *            2026-10-21 08:04 +03, ruling R37, task 596: SMS on but not set up writes ONE blocked_not_configured
+ *            attempt row per receiver (the order, the event, the reason) before it returns; still no key, no outbox
+ *            row.
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -149,6 +152,11 @@ class OrderNotifier
         // 2026-10-21 07:53 +03: SMS off or not set up: nothing claimed, queued or written (Task 1.14 review
         // follow-up), task 596.
         if (!$this->diagnostics->active()) {
+            // 2026-10-21 08:04 +03: SMS on but not set up: one blocked_not_configured row with the reason, still no
+            // key and no outbox row (ruling R37, PRD goal 5), task 596.
+            if ($this->config->enabled() && $this->handles($event_id)) {
+                $this->diagnostics->recordNotConfigured($order, $event_id, $receiver);
+            }
             $this->debug('order_sms.notify', 'SMS is off or not set up: nothing to do', [
                 'event_id' => $event_id, 'receiver' => $receiver, 'order_id' => (int) ($order['order_id'] ?? 0),
             ]);
@@ -451,6 +459,16 @@ class OrderNotifier
         } catch (\Throwable $e) {
             FailureLog::report($this->log, 'order_sms.deferred_failed', $e);
         }
+    }
+
+    /**
+     * True for the events this transport sends: order status, kwtsms.order_placed, declared third-party events.
+     * 2026-10-21 08:04 +03: added, ruling R37, task 596.
+     */
+    private function handles(string $event_id): bool
+    {
+        return strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_PLACED
+            || isset($this->declared[$event_id]);
     }
 
     /**

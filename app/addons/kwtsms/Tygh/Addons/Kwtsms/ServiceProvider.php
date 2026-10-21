@@ -304,6 +304,13 @@ class ServiceProvider implements ServiceProviderInterface
                     $config = $app['kwtsms.config'];
 
                     return $config->enabled() && $app['kwtsms.state']->isConfigured($config)[0];
+                },
+                // 2026-10-21 08:04 +03: the reason the add-on is not set up, for blocked_not_configured (ruling R37),
+                // task 596.
+                function () use ($app): string {
+                    $configured = $app['kwtsms.state']->isConfigured($app['kwtsms.config']);
+
+                    return $configured[0] ? '' : (string) $configured[1];
                 }
             );
         };

@@ -367,7 +367,18 @@ class OrderHooks
     private function info(string $action, string $message, array $context): void
     {
         // 2026-10-21 07:53 +03: nothing written while SMS is off or not set up (Task 1.14 review follow-up), task 596.
-        if ($this->log !== null && $this->diagnostics->active()) {
+        if ($this->log === null) {
+            return;
+        }
+        // 2026-10-21 08:04 +03: a failing store read here never stops the hook handler (ruling R37), task 596.
+        try {
+            $active = $this->diagnostics->active();
+        } catch (\Throwable $e) {
+            FailureLog::report($this->log, 'order_sms.active_check_failed', $e);
+
+            return;
+        }
+        if ($active) {
             $this->log->log('info', $action, $message, $context);
         }
     }
