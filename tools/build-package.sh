@@ -20,6 +20,7 @@
 #            sha256sum, python3, php; docker for the 7.4 pass.
 # 2026-10-21 16:07 +03: error_log( is allowed only as the add-on's last-resort fallback whose message starts with
 #            'kwtsms (catch blocks where the add-on's own logger may have failed); any other error_log( fails.
+# 2026-10-21 16:10 +03: attribution-word gate pattern written with bracket classes so this file itself stays clean, Task 1.17, task 596.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -179,7 +180,7 @@ gate "error_log( only as the kwtsms last-resort fallback" "$(grep -rnE '(^|[^A-Z
 gate "no KWTSMS_TESTSUITE, devguard or dev markers" "$(grep -rnEI 'KWTSMS_TESTSUITE|devguard|kwtsms_dev_anti_csrf_off|KWTSMS_NO_SEND|dev_anti_csrf|\.sent-msgids|/tests/|run-live' "$pkg" 2>/dev/null)"
 gate "no banned characters (en dash, em dash, smart quotes, ellipsis)" "$(grep -rnIP '[\x{2013}\x{2014}\x{2018}\x{2019}\x{201C}\x{201D}\x{2026}]' "$pkg" 2>/dev/null)"
 gate "English .po and all code/templates are ASCII only" "$(grep -rnIP '[^\x00-\x7F]' "$pkg" --include=*.php --include=*.tpl --include=*.js --include=*.xml --include=*.less 2>/dev/null; grep -nP '[^\x00-\x7F]' "$pkg/var/langs/en/addons/kwtsms.po" 2>/dev/null)"
-gate "no mention of Claude / Anthropic" "$(grep -rniIE 'claude|anthropic' "$pkg" 2>/dev/null)"
+gate "no attribution words (assistant or vendor names)" "$(grep -rniIE 'cl[a]ude|anthrop[i]c' "$pkg" 2>/dev/null)"
 gate "no phone number other than the documented fictional ones" "$(grep -rhoIE '(^|[^0-9])965[0-9]{8}([^0-9]|$)' "$pkg" | grep -oE '965[0-9]{8}' | sort -u | grep -vxE '96598765432|96550000001|96550123401|96522334455')"
 gate "no Tygh\\Http, VERIFYPEER 0, OVERRIDE or API_BASE in the package" "$(grep -rnE 'use[[:space:]]+Tygh\\Http\b|Tygh\\Http::|SSL_VERIFYPEER, ?(0|false)|OVERRIDE|API_BASE' "$pkg/app" 2>/dev/null | grep -v 'HttpTransport.php:[0-9]*: \* WHY')"
 gate "no nofilter in package templates (anchored)" "$(grep -rnE '\|[[:space:]]*nofilter| nofilter\}' "$pkg/design" 2>/dev/null)"
