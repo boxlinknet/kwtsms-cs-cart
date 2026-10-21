@@ -163,7 +163,7 @@ if git -C "$src" rev-parse --git-dir >/dev/null 2>&1 && [ "$src" = "$here" ]; th
   gate "package files == git-tracked files of the shipped paths" "$(diff <(printf '%s\n' "$want") <(printf '%s\n' "$have"))"
   gate "shipped paths have no uncommitted change" "$(git status --porcelain -- $SHIP)"
 fi
-epoch="$(git -C "$src" log -1 --format=%ct 2>/dev/null || true)"; [ -n "$epoch" ] || epoch="$(date +%s)"
+epoch="$(git -C "$src" log -1 --format=%ct -- $SHIP 2>/dev/null || true)"  # 2026-10-21 16:12 +03: last commit touching a shipped path, so a docs-only commit leaves the archive hash unchanged, Task 1.17, task 596; [ -n "$epoch" ] || epoch="$(date +%s)"
 find "$pkg" -type d -exec chmod 755 {} +
 find "$pkg" -type f -exec chmod 644 {} +
 find "$pkg" -exec touch -h -d "@$epoch" {} +
