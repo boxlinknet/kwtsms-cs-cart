@@ -13,17 +13,22 @@
  *            privilege, and on every POST our own hash_equals() of the session security hash (on top of the core
  *            check, so switching core anti_csrf off cannot expose these POST modes). No state changes on GET.
  * USAGE:     admin.php?dispatch=kwtsms.settings (GET); forms post dispatch[kwtsms.<mode>] (POST). Mode map, methods and
- *            privileges: Admin\RequestGate::MODES. Conventions for later pages:
+ *            privileges: Admin\RequestGate::MODES. Pages (GET), in navigation order: dashboard, settings, templates,
+ *            integrations, admin_alerts, logs (with log_details and export_logs), help. Conventions for later pages:
  *              - add the mode's handler below; never add a mode that is not in RequestGate::MODES and
  *                schemas/permissions/admin.post.php;
  *              - a POST handler ends with a redirect (PRG) to its page; a GET handler never writes;
  *              - add the page to Admin\Navigation::PAGES and a kwtsms.nav.<mode> language variable;
  *              - wrap the work in the try block: a Throwable is logged (class, message, file:line) and the admin sees
  *                a generic error, never a trace.
- * DEPENDS:   Admin\{RequestGate,SettingsPage,Navigation}, Tygh::$app['kwtsms.*'] (ServiceProvider),
- *            design/backend/templates/addons/kwtsms/views/kwtsms/settings.tpl.
+ * DEPENDS:   Admin\{RequestGate,Navigation,CronLine}, the page classes Admin\{Settings,Dashboard,Templates,Alerts,
+ *            Integrations,Logs,Help}Page and Admin\Log{Clearer,Export,Resender}, Tygh::$app['kwtsms.*']
+ *            (ServiceProvider), the page templates in design/backend/templates/addons/kwtsms/views/kwtsms/.
+ * CHANGED:   2026-10-21 07:03 +03: USAGE and DEPENDS list every page (Tasks 1.13 and 1.15 fix round 1, task 596).
  */
 
+// 2026-10-21 07:03 +03: the shared cron line helper, Tasks 1.13 and 1.15 fix round 1, task 596.
+use Tygh\Addons\Kwtsms\Admin\CronLine;
 use Tygh\Addons\Kwtsms\Admin\DashboardPage;
 use Tygh\Addons\Kwtsms\Admin\AlertsPage;
 use Tygh\Addons\Kwtsms\Admin\HelpPage;
@@ -384,8 +389,12 @@ try {
             (array) fn_get_simple_statuses(STATUSES_ORDER, false, true),
             array_flip(array_merge(array_map('strval', (array) fn_get_order_paid_statuses()), ['N', 'T']))
         );
-        $kwtsms_data['cron_command'] = 'php ' . rtrim((string) Registry::get('config.dir.root'), '/') . '/'
-            . (string) Registry::get('config.admin_index') . ' --dispatch=kwtsms_cron.run';
+        // 2026-10-21 07:03 +03: built by Admin\CronLine, the helper the Help page uses, so a path with a space is
+        // quoted the same way on both pages (Tasks 1.13 and 1.15 fix round 1, task 596).
+        $kwtsms_data['cron_command'] = CronLine::command(
+            (string) Registry::get('config.dir.root'),
+            (string) Registry::get('config.admin_index')
+        );
         $kwtsms_data['cron_url'] = fn_url('kwtsms_cron.run', 'A', 'current');
 
         $kwtsms_nav = Navigation::sections('settings', static function (string $privilege): bool {

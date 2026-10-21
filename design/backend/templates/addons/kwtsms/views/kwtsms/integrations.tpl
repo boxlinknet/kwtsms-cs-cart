@@ -77,6 +77,10 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
                                 {elseif $check.id == "validation_mode"}{__("kwtsms.integrations.open.appearance")}
                                 {else}{__("kwtsms.integrations.open.checkout")}{/if}
                             </a>
+                            {* 2026-10-21 07:05 +03: what the checkout fields link opens (fix round 1, Tasks 1.13 and 1.15, task 596) *}
+                            {if $check.id == "phone_required" && $check.detail != "no_field"}
+                                <p class="muted description kwtsms-check__note" id="kwtsms_check_link_note_phone_required">{__("kwtsms.integrations.open.checkout_fields_note")}</p>
+                            {/if}
                         {/if}
                     </div>
                 </li>

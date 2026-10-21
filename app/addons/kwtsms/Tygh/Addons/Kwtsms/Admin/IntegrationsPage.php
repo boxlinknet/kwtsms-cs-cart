@@ -10,20 +10,22 @@
  *            "SMS notifications" (Clickatell) warning, the CAPTCHA recommendation, the add-ons that come later, and the
  *            read-only default country. Handles update_integrations.
  * WHY:       PRD 6.3 and 6.7. An SMS needs a phone number the customer had to give and the gateway can route: the three
- *            readiness checks (a phone field required at checkout, phone validation with country selection, the store
- *            default country equal to the add-on's country hint) each link to the core page that fixes them. The four
- * Multi-Vendor settings exist only in Multi-Vendor (the page does not show them elsewhere and a POST for them
- * elsewhere changes nothing). Core sms_notifications sends its own SMS, so an active one is a warning. Fake guest
- * orders cost credits, so a CAPTCHA on the checkout scenario is recommended. The default country is edited on
- *            Settings only. Every link is shown only to an administrator who may open the core page.
+ *            readiness checks (a phone field required at checkout, the core setting Supported phone numbers set to
+ *            "Phone number with country selection", the store default country equal to the add-on's country hint) each
+ *            link to the core page that fixes them. The four Multi-Vendor settings exist only in Multi-Vendor (the page
+ *            does not show them elsewhere and a POST for them elsewhere changes nothing). Core sms_notifications sends
+ *            its own SMS, so an active one is a warning. Fake guest orders cost credits, so a CAPTCHA on the checkout
+ *            scenario is recommended. The default country is edited on Settings only. Every link is shown only to an
+ *            administrator who may open the core page. The labels use the names the core gives its own setting.
  * USAGE:     $page = IntegrationsPage::fromContainer(Tygh::$app);
  *            $view = $page->viewData($has_privilege);        // GET kwtsms.integrations; callable (string): bool
  *            $page->update($_REQUEST['kwtsms_integrations']);   // POST update_integrations
  *            IntegrationsPage::phoneChecks($fields, $mode, $store_iso, $hint)   // pure
- * DEPENDS: Settings\ConfigInterface, Sms\PhoneNormalizer, Orders\NewOrderDetector, Log\DebugLog; CS-Cart
- * db_get_array(),
- * Registry, fn_get_order_paid_statuses(), fn_get_simple_statuses(), fn_allowed_for(), fn_set_notification(), __()
- *            (through protected methods a test replaces).
+ * DEPENDS:   Settings\ConfigInterface, Sms\PhoneNormalizer, Orders\NewOrderDetector, Log\DebugLog; CS-Cart
+ *            db_get_array(), Registry, fn_get_order_paid_statuses(), fn_get_simple_statuses(), fn_allowed_for(),
+ *            fn_set_notification(), __() (through protected methods a test replaces).
+ * CHANGED:   2026-10-21 07:02 +03: header tidied; the readiness labels use the core names (fix round 1, Tasks 1.13
+ *            and 1.15, task 596).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;

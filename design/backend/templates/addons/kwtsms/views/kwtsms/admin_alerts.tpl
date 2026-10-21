@@ -107,7 +107,12 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                                         <span class="kwtsms-badge kwtsms-badge--ok">{if $r.mode == "check" || !$r.saved_count}{__("kwtsms.alerts.row.valid")}{else}{__("kwtsms.alerts.row.saved")}{/if}</span>
                                     {else}
                                         <span class="kwtsms-badge kwtsms-badge--danger">{if $r.mode == "check"}{__("kwtsms.alerts.row.not_valid")}{else}{__("kwtsms.alerts.row.not_saved")}{/if}</span>
-                                        <span class="kwtsms-reason">{__("kwtsms.alerts.reason.`$row.reason`", ["[max]" => $a.max])}</span>
+                                        {* 2026-10-21 07:05 +03: a check saves nothing, so the limit reason doesn't say "wasn't saved" (fix round 1, task 596) *}
+                                        {if $r.mode == "check" && $row.reason == "limit"}
+                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.limit_check", ["[max]" => $a.max])}</span>
+                                        {else}
+                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.`$row.reason`", ["[max]" => $a.max])}</span>
+                                        {/if}
                                     {/if}
                                 </td>
                                 <td data-th="{__("kwtsms.alerts.table.verdict")}">

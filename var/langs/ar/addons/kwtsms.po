@@ -2767,29 +2767,31 @@ msgctxt "Languages::kwtsms.integrations.check.phone_required.no_field"
 msgid "The store has no phone profile field. Add one under Administration > Profile fields, then make it required at checkout."
 msgstr "لا يوجد حقل هاتف في ملف العميل. أضف حقلا من الإدارة > حقول الملف الشخصي، ثم اجعله إلزاميا عند إتمام الشراء."
 
+# 2026-10-21 07:04 +03: the readiness labels use the names core gives its own setting and options (title, bad,
+# mode.any_digits, mode.international_format), Tasks 1.13 and 1.15 fix round 1, task 596.
 msgctxt "Languages::kwtsms.integrations.check.validation_mode.title"
-msgid "Phone validation with country selection"
-msgstr "التحقق من الهاتف مع اختيار الدولة"
+msgid "Supported phone numbers"
+msgstr "أرقام الهواتف المدعومة"
 
 msgctxt "Languages::kwtsms.integrations.check.validation_mode.ok"
 msgid "Customers pick their country, so every number arrives with its country code."
 msgstr "يختار العميل دولته، فيصل كل رقم ومعه رمز الدولة."
 
 msgctxt "Languages::kwtsms.integrations.check.validation_mode.bad"
-msgid "Phone validation is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
-msgstr "التحقق من الهاتف مضبوط على \"[mode]\". اختر \"رقم الهاتف مع اختيار الدولة\" ليصل كل رقم ومعه رمز الدولة."
+msgid "Supported phone numbers is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
+msgstr "أرقام الهواتف المدعومة مضبوطة على \"[mode]\". اختر \"رقم الهاتف مع اختيار الدولة\" ليصل كل رقم ومعه رمز الدولة."
 
 msgctxt "Languages::kwtsms.integrations.mode.any_digits"
-msgid "Any digits"
-msgstr "أي أرقام"
+msgid "Any digits and +-()"
+msgstr "أي أرقام و ⁦+ - ()⁩"
 
 msgctxt "Languages::kwtsms.integrations.mode.any_symbols"
 msgid "Any symbols"
 msgstr "أي رموز"
 
 msgctxt "Languages::kwtsms.integrations.mode.international_format"
-msgid "International format"
-msgstr "الصيغة الدولية"
+msgid "International phone number"
+msgstr "رقم الهاتف الدولي"
 
 msgctxt "Languages::kwtsms.integrations.mode.unset"
 msgid "Not set"
@@ -3236,7 +3238,7 @@ msgstr "العناصر النائبة"
 
 msgctxt "Languages::kwtsms.help.ph.p1"
 msgid "Write a placeholder in curly braces, like {order_id}. The add-on replaces it when the message goes out. A message with a placeholder the add-on doesn't know is blocked before sending."
-msgstr "اكتب العنصر النائب بين قوسين معقوفين، مثل {order_id}. تستبدله الإضافة عند إرسال الرسالة. تُحجب الرسالة التي فيها عنصر نائب لا تعرفه الإضافة قبل إرسالها."
+msgstr "اكتب العنصر النائب بين قوسين معقوصين، مثل {order_id}. تستبدله الإضافة عند إرسال الرسالة. تُحجب الرسالة التي فيها عنصر نائب لا تعرفه الإضافة قبل إرسالها."
 
 msgctxt "Languages::kwtsms.help.ph.col_name"
 msgid "Placeholder"
@@ -4281,3 +4283,31 @@ msgstr "عرض الكل في سجلات kwtSMS"
 msgctxt "Languages::kwtsms.gdpr.failed"
 msgid "The customer's SMS logs couldn't be anonymized. Check the PHP error log and try again."
 msgstr "تعذر إخفاء هوية سجلات رسائل العميل. راجع سجل أخطاء PHP وحاول مجددا."
+
+# 2026-10-21 07:04 +03: Tasks 1.13 and 1.15 fix round 1, task 596. kwtsms.alerts.warn.* the W notices of the kwtSMS verdict
+# (shown with the badge, also when kwtSMS can't be reached), kwtsms.alerts.refused_check and kwtsms.alerts.reason.limit_check
+# the wording of a check (it saves nothing, so it never says "not saved"), kwtsms.integrations.open.checkout_fields_note the
+# note next to the Open checkout fields button.
+msgctxt "Languages::kwtsms.alerts.refused_check"
+msgid "Not valid: [count]. The table below gives the reason for each number."
+msgstr "غير صالحة: [count]. يوضح الجدول أدناه سبب كل رقم."
+
+msgctxt "Languages::kwtsms.alerts.reason.limit_check"
+msgid "Only [max] numbers fit. This one is over the limit."
+msgstr "تتسع القائمة لـ [max] أرقام فقط. هذا الرقم فوق الحد."
+
+msgctxt "Languages::kwtsms.alerts.warn.cannot_route_one"
+msgid "kwtSMS cannot route 1 number. The table below shows which one."
+msgstr "لا يستطيع kwtSMS توجيه رقم واحد. يبين الجدول أدناه أي رقم هو."
+
+msgctxt "Languages::kwtsms.alerts.warn.cannot_route"
+msgid "kwtSMS cannot route [count] numbers. The table below shows which ones."
+msgstr "لا يستطيع kwtSMS توجيه [count] من الأرقام. يبين الجدول أدناه أيها."
+
+msgctxt "Languages::kwtsms.alerts.warn.unchecked"
+msgid "Could not check with kwtSMS now. The table below says why."
+msgstr "تعذر الفحص مع kwtSMS الآن. يبين الجدول أدناه السبب."
+
+msgctxt "Languages::kwtsms.integrations.open.checkout_fields_note"
+msgid "Opens the storefront block manager in edit mode."
+msgstr "يفتح مدير كتل واجهة المتجر في وضع التحرير."

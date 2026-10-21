@@ -9,22 +9,25 @@
  *            (checked one by one, saved when they pass the local checks), the alert language, the read-only admin
  *            switches, and the kwtSMS /validate/ verdict per number. Handles update_admin_alerts (save, or check only).
  * WHY:       PRD 6.3 and 6.6. Config refuses a whole list for one bad number and does not say which, so this page runs
- * PhoneNormalizer::validateInput() on each number itself (per-number reasons), passes Config only the numbers
- * that passed, and so a typo never costs the other nine. Local checks decide saving; the /validate/ verdict is
- * a warning shown next to the number ("kwtSMS cannot route this number" / "Could not check with kwtSMS now"),
- * also when kwtSMS cannot be reached or no account is connected. /validate/ is called only here: on save and on
- *            the Check helper, once per request, with the numbers that passed. A list where every number was refused
- *            keeps the saved list; an empty box clears it. The log holds counts and key names, never a number.
+ *            PhoneNormalizer::validateInput() on each number itself (per-number reasons), passes Config only the
+ *            numbers that passed, and so a typo never costs the other nine. Local checks decide saving; the /validate/
+ *            verdict is a warning, shown next to the number ("kwtSMS cannot route this number" / "Could not check with
+ *            kwtSMS now") and as a W notice, also when kwtSMS cannot be reached or no account is connected.
+ *            /validate/ is called only here: on save and on the Check helper, once per request, with the numbers that
+ *            passed. A list where every number was refused keeps the saved list; an empty box clears it. The log holds
+ *            counts and key names, never a number. The Check helper saves nothing and never says "saved".
  * USAGE:     $page = AlertsPage::fromContainer(Tygh::$app);
  *            $view  = $page->viewData($flash_or_null);          // GET kwtsms.admin_alerts
  *            $flash = $page->update($_REQUEST['kwtsms_alerts'], $check_only);   // POST update_admin_alerts[.check]
  *            AlertsPage::parse($text, $hint)    // pure: ['entries' => [...], 'accepted' => [...], 'ignored' => n]
  *            AlertsPage::verdicts($numbers, $api_reply)   // pure: number => ['status', 'code']
  *            The flash goes into the session for one redirect: mode, rows (raw, phone, ok, reason, repeat, verdict,
- *            verdict_code), saved_count, kept_old, lang_ok, ignored, at.
- * DEPENDS: Settings\ConfigInterface, Sms\{PhoneNormalizer,ApiErrors}, Log\DebugLog; CS-Cart fn_set_notification(),
- * __(),
- * fn_html_escape(), Tygh\Languages\Languages, EventDispatcherProvider (through protected methods a test replaces).
+ *            verdict_code), saved_count, kept_old, lang_ok, ignored, typed, at.
+ * DEPENDS:   Settings\ConfigInterface, Sms\{PhoneNormalizer,ApiErrors}, Log\DebugLog; CS-Cart fn_set_notification(),
+ *            __(), fn_html_escape(), Tygh\Languages\Languages, EventDispatcherProvider (through protected methods a
+ *            test replaces).
+ * CHANGED:   2026-10-21 07:02 +03: header tidied; the kwtSMS verdict also raises a W notice; the Check helper
+ *            never says "not saved" (fix round 1, Tasks 1.13 and 1.15, task 596).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -367,6 +370,17 @@ class AlertsPage
                 $refused++;
             }
         }
+        // 2026-10-21 07:04 +03: how many numbers kwtSMS can't route and how many it could not be asked about, for the
+        // W notices (fix round 1, Tasks 1.13 and 1.15, task 596).
+        $cannot_route = 0;
+        $unchecked = 0;
+        foreach ($verdicts as $verdict) {
+            if ($verdict['status'] === 'cannot_route') {
+                $cannot_route++;
+            } elseif ($verdict['status'] === 'unchecked') {
+                $unchecked++;
+            }
+        }
         $this->log->log('info', 'alerts.update', $check_only ? 'check' : 'save', [
             'typed' => count($parsed['entries']),
             'accepted' => count($accepted),
@@ -378,7 +392,18 @@ class AlertsPage
             'validated' => $accepted !== [] && $this->connected(),
         ]);
 
-        $this->say($check_only, $stored, $store_failed, $saved_count, $kept_old, $refused, $lang_ok, $text === null);
+        $this->say(
+            $check_only,
+            $stored,
+            $store_failed,
+            $saved_count,
+            $kept_old,
+            $refused,
+            $lang_ok,
+            $text === null,
+            $cannot_route,
+            $unchecked
+        );
 
         return [
             'mode' => $check_only ? 'check' : 'save',
@@ -401,7 +426,9 @@ class AlertsPage
         bool $kept_old,
         int $refused,
         bool $lang_ok,
-        bool $nothing_posted
+        bool $nothing_posted,
+        int $cannot_route = 0,
+        int $unchecked = 0
     ): void {
         if ($nothing_posted) {
             $this->notify('E', $this->text('kwtsms.alerts.nothing_posted'), false);
@@ -418,10 +445,27 @@ class AlertsPage
             $this->notify('W', $this->text('kwtsms.alerts.kept_old'), false);
         }
         if ($refused > 0 && !$kept_old) {
-            $this->notify('W', $this->text('kwtsms.alerts.refused', ['[count]' => (string) $refused]), false);
+            // 2026-10-21 07:04 +03: a check saves nothing, so it never says "not saved" (fix round 1, task 596).
+            $key = $check_only ? 'kwtsms.alerts.refused_check' : 'kwtsms.alerts.refused';
+            $this->notify('W', $this->text($key, ['[count]' => (string) $refused]), false);
         }
         if (!$lang_ok) {
             $this->notify('W', $this->text('kwtsms.alerts.lang_refused'), false);
+        }
+        // 2026-10-21 07:04 +03: the kwtSMS verdict is a warning next to the badge, also when kwtSMS can't be reached
+        // (fix round 1, task 596). It never blocks saving.
+        if ($cannot_route > 0) {
+            $this->notify(
+                'W',
+                $this->text(
+                    $cannot_route === 1 ? 'kwtsms.alerts.warn.cannot_route_one' : 'kwtsms.alerts.warn.cannot_route',
+                    ['[count]' => (string) $cannot_route]
+                ),
+                false
+            );
+        }
+        if ($unchecked > 0) {
+            $this->notify('W', $this->text('kwtsms.alerts.warn.unchecked'), false);
         }
     }
 

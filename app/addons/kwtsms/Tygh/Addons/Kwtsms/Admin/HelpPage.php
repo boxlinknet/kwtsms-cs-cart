@@ -5,25 +5,25 @@
  * CREATED:   2026-10-21 04:39 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
- * WHAT: The Help page of the kwtsms admin controller: the facts of THIS install that the help text needs (the exact
- * crontab line from the core root path and config.admin_index, the URL-mode line, whether the core lock backend
- * gives mutual exclusion), the nine kwtSMS links, the SMS length numbers, the template placeholders, and which
- *            pages of the add-on the administrator may open (so the text links only to pages they can see).
+ * WHAT:      The Help page of the kwtsms admin controller: the facts of this install that the help text needs (the
+ *            exact crontab line, the URL-mode line, whether the core lock backend gives mutual exclusion), the nine
+ *            kwtSMS links, the SMS length numbers, the template placeholders, and which pages of the add-on the
+ *            administrator may open (so the text links only to pages they can see).
  * WHY:       PRD 6.10 and 6.11. The page is plain documentation in English and Arabic (language variables
- *            kwtsms.help.*); only what depends on the install is computed here. The cron line is the one the Settings
- * page shows (php <root>/<admin script> --dispatch=kwtsms_cron.run, a path with unusual characters quoted for the
- *            shell). The URL mode is POST only with the key in the header X-Kwtsms-Cron-Key; the Help page shows a
- * placeholder, never the real key (the key is for the gateway privilege and lives on Settings). Without a lock
- * backend of database or redis the core falls back to a dummy store: there is no mutual exclusion between two
- * cron runs (Task 1.7 concern 3), which the page says. SMS lengths come from MessageCleaner so the text can't
- *            drift from the counter.
+ *            kwtsms.help.*); only what depends on the install is computed here. The cron line is the one the
+ *            Settings page shows (Admin\CronLine builds both). The URL mode is POST only with the key in the header
+ *            X-Kwtsms-Cron-Key; the Help page shows a placeholder, never the real key (the key is for the gateway
+ *            privilege and lives on Settings). Without a lock backend of database or redis the core falls back to a
+ *            dummy store: there is no mutual exclusion between two cron runs (Task 1.7 concern 3), which the page
+ *            says. SMS lengths come from MessageCleaner so the text can't drift from the counter.
  * USAGE:     $page = HelpPage::fromContainer(Tygh::$app);
- *            $view = $page->viewData($has_privilege);    // GET kwtsms.help; callable (string $privilege): bool
- *            HelpPage::LINKS                                // key => https URL
- *            HelpPage::lockGivesMutualExclusion('dummy')  // false
- * DEPENDS: Settings\ConfigInterface, Admin\RequestGate (privilege of each page), Sms\MessageCleaner,
- * Templates\Defaults;
- *            CS-Cart Registry and fn_url() (through protected methods a test replaces).
+ *            $view = $page->viewData($has_privilege);     // GET kwtsms.help; callable (string $privilege): bool
+ *            HelpPage::LINKS                               // key => https URL
+ *            HelpPage::lockGivesMutualExclusion('dummy')   // false
+ * DEPENDS:   Settings\ConfigInterface, Admin\{CronLine,Navigation,RequestGate}, Sms\MessageCleaner,
+ *            Templates\Defaults; CS-Cart Registry and fn_url() (through protected methods a test replaces).
+ * CHANGED:   2026-10-21 07:02 +03: header tidied; the crontab line comes from Admin\CronLine, the same helper the
+ *            Settings page uses (a path with a space was quoted here and not there). Fix round 1, task 596.
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -58,9 +58,6 @@ class HelpPage
     /** The pages of the add-on the text may link to, in the order of PRD 7. */
     private const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'logs'];
 
-    /** What the cron controller is called by. */
-    private const DISPATCH = 'kwtsms_cron.run';
-
     /** @var ConfigInterface */
     private $config;
 
@@ -94,8 +91,10 @@ class HelpPage
     {
         $root = rtrim($this->rootDir(), '/');
         $script = trim($this->adminIndex());
-        $script = $script === '' ? 'admin.php' : $script;
-        $command = 'php ' . self::shellPath($root . '/' . $script) . ' --dispatch=' . self::DISPATCH;
+        $script = $script === '' ? CronLine::DEFAULT_SCRIPT : $script;
+        // 2026-10-21 07:02 +03: built by the helper the Settings page uses, so both quote the path the same way
+        // (fix round 1).
+        $command = CronLine::command($root, $script);
         $backend = $this->lockBackend();
 
         $pages = [];
@@ -114,7 +113,8 @@ class HelpPage
                 'line' => '* * * * * ' . $command,
                 'url' => $this->cronUrl(),
                 // POST only; the key travels in a header, never in the query string; the real key is not shown here.
-                'curl' => "curl -fsS -X POST -H 'X-Kwtsms-Cron-Key: YOUR_CRON_KEY' " . self::shellArg($this->cronUrl()),
+                'curl' => "curl -fsS -X POST -H 'X-Kwtsms-Cron-Key: YOUR_CRON_KEY' "
+                    . CronLine::quote($this->cronUrl()),
                 'url_enabled' => $this->config->cronUrlEnabled(),
                 'lock_backend' => $backend,
                 'lock_ok' => self::lockGivesMutualExclusion($backend),
@@ -130,23 +130,6 @@ class HelpPage
             'placeholders' => Defaults::PLACEHOLDERS,
             'pages' => $pages,
         ];
-    }
-
-    /** A path as one shell word: left alone when it holds only safe characters, else single-quoted. */
-    private static function shellPath(string $path): string
-    {
-        return preg_match('~^[A-Za-z0-9_./:@%+=,-]+$~', $path) === 1 ? $path : self::quote($path);
-    }
-
-    /** A URL as one single-quoted shell word. */
-    private static function shellArg(string $url): string
-    {
-        return self::quote($url);
-    }
-
-    private static function quote(string $text): string
-    {
-        return "'" . str_replace("'", "'\\''", $text) . "'";
     }
 
     // ================================================================== seams
@@ -166,7 +149,7 @@ class HelpPage
     /** The URL of the cron controller (URL mode). */
     protected function cronUrl(): string
     {
-        return (string) fn_url(self::DISPATCH, 'A', 'current');
+        return (string) fn_url(CronLine::DISPATCH, 'A', 'current');
     }
 
     /** The core lock backend (config.lock_backend). */

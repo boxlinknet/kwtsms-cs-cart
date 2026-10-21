@@ -199,3 +199,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - GDPR: a customer's SMS rows (messages, attempts and queued SMS) are part of their personal data, and anonymizing the
   customer replaces their numbers with one-way tokens, the texts with "[anonymized]" and clears the IP address.
 - Indexes for the msg-id lookup, the recipients of a message, index-only Dashboard counters and the Debug log by action.
+<!-- 2026-10-21 07:12 +03: entry for the Admin SMS alerts, Integrations and Help fix round 1 (Tasks 1.13 and 1.15), task 596 -->
+- Admin SMS alerts: the kwtSMS verdict is also shown as a warning notice ("kwtSMS cannot route 3 numbers", "Could not check
+  with kwtSMS now") next to the badge in the table, and Check numbers never says "Not saved" (it saves nothing).
+- Integrations: the readiness labels use the names core gives its own setting ("Supported phone numbers", "International
+  phone number", "Any digits and +-()"), in English and Arabic, and "Open checkout fields" says that it opens the storefront
+  block manager in edit mode.
+- Muted text on the Admin SMS alerts, Integrations and Help pages meets the 4.5:1 contrast of WCAG AA.
+- Settings and Help build the crontab line with one helper, so a path with a space is quoted the same way on both pages.

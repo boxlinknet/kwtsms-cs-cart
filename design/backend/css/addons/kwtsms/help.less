@@ -17,7 +17,9 @@ DEPENDS:   Nothing at build time.
 */
 @kwt-brand: #FFA200;
 @kwt-text: #434345;
-@kwt-muted: lighten(@kwt-text, 22%);
+// 2026-10-21 07:03 +03: muted text is #666669, 5.7:1 on white and 5.2:1 on the #F7F7F8 wash (AA needs 4.5:1); the old
+// lighten(@kwt-text, 22%) was #7A7A7E, 4.3:1 on white (fix round 1, Tasks 1.13 and 1.15, task 596).
+@kwt-muted: #666669;
 @kwt-accent: #79CCF2;
 @kwt-line: #E3E3E6;
 @kwt-wash: #F7F7F8;
@@ -26,6 +28,11 @@ DEPENDS:   Nothing at build time.
 
 .kwtsms-page.kwtsms-help {
     max-width: 1060px;
+
+    // 2026-10-21 07:03 +03: the core muted class is lighter than AA; on this page it uses the token above.
+    .muted {
+        color: @kwt-muted;
+    }
 
     .kwtsms-intro {
         max-width: 720px;

@@ -18,7 +18,9 @@ DEPENDS:   Nothing at build time.
 @kwt-brand: #FFA200;
 @kwt-brand-tint: #FFF1D6;
 @kwt-text: #434345;
-@kwt-muted: lighten(@kwt-text, 22%);
+// 2026-10-21 07:03 +03: muted text is #666669, 5.7:1 on white and 5.2:1 on the #F7F7F8 wash (AA needs 4.5:1); the old
+// lighten(@kwt-text, 22%) was #7A7A7E, 4.3:1 on white (fix round 1, Tasks 1.13 and 1.15, task 596).
+@kwt-muted: #666669;
 @kwt-accent: #79CCF2;
 @kwt-accent-tint: #E4F5FD;
 @kwt-line: #E3E3E6;
@@ -29,6 +31,11 @@ DEPENDS:   Nothing at build time.
 .kwtsms-page.kwtsms-alerts,
 .kwtsms-page.kwtsms-integrations {
     max-width: 980px;
+
+    // 2026-10-21 07:03 +03: the core muted class is lighter than AA; on these pages it uses the token above.
+    .muted {
+        color: @kwt-muted;
+    }
 
     .kwtsms-intro {
         max-width: 720px;
@@ -167,6 +174,14 @@ DEPENDS:   Nothing at build time.
     .kwtsms-check__body .description {
         margin: 6px 0 0;
     }
+    // 2026-10-21 07:05 +03: the note under the Open checkout fields button wraps inside the action column
+    // (fix round 1, Tasks 1.13 and 1.15, task 596).
+    .kwtsms-check__note {
+        max-width: 200px;
+        margin: 6px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
+    }
 
     /* ---- placed statuses and the later add-ons ---- */
     .kwtsms-chips,
@@ -205,6 +220,9 @@ DEPENDS:   Nothing at build time.
         }
         .kwtsms-check__action {
             padding-block-start: 4px;
+            .kwtsms-check__note {
+                max-width: none;
+            }
         }
         .kwtsms-facts {
             grid-template-columns: minmax(0, 1fr);
