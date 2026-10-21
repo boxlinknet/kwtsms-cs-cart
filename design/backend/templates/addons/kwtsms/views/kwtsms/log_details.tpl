@@ -46,13 +46,16 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <div><dt>{__("kwtsms.logs.numbers")}</dt><dd class="kwtsms-logs-numbers">{foreach $r.numbers as $number}<bdi dir="ltr" class="kwtsms-logs-number">{$number}</bdi> {/foreach}<span class="muted">{__("kwtsms.logs.numbers_accepted", ["[accepted]" => $r.numbers_accepted, "[count]" => $r.recipient_count])}</span></dd></div>
                 <div><dt>{__("kwtsms.logs.col.msg_id")}</dt><dd>{if $r.api_msg_id}<bdi dir="ltr" class="kwtsms-code-tag">{$r.api_msg_id}</bdi>{else}-{/if}</dd></div>
                 <div><dt>{__("kwtsms.logs.f.code")}</dt><dd>{if $r.api_code}<bdi dir="ltr" class="kwtsms-code-tag">{$r.api_code}</bdi> <span class="muted">{__("kwtsms.logs.code_source.`$r.code_source`")}</span>{else}-{/if}</dd></div>
-                <div><dt>{__("kwtsms.logs.pages")}</dt><dd><bdi dir="ltr">{$r.pages}</bdi> <span class="muted"><bdi dir="ltr">{$r.encoding}</bdi>{if $r.lang_code} <bdi dir="ltr">{$r.lang_code}</bdi>{/if}{if $r.batch_total > 1} {__("kwtsms.logs.batch", ["[no]" => $r.batch_no, "[total]" => $r.batch_total])}{/if}</span></dd></div>
+                {* 2026-10-21 14:11 +03: "1 page, GSM (English)" instead of "1 gsm en" (Admin\LogsPage::pagesText), cleanup 2 item 6, task 596 *}
+                <div><dt>{__("kwtsms.logs.pages")}</dt><dd><bdi>{$r.pages_text}</bdi>{if $r.batch_total > 1} <span class="muted">{__("kwtsms.logs.batch", ["[no]" => $r.batch_no, "[total]" => $r.batch_total])}</span>{/if}</dd></div>
                 <div><dt>{__("kwtsms.logs.col.credits")}</dt><dd><bdi dir="ltr">{$r.points_charged}</bdi> <span class="muted">{__("kwtsms.logs.balance_after", ["[balance]" => $r.balance_after])}</span></dd></div>
                 <div><dt>{__("kwtsms.logs.col.ms")}</dt><dd><bdi dir="ltr">{$r.duration_ms}</bdi></dd></div>
             {else}
                 <div><dt>{__("kwtsms.logs.f.phone")}</dt><dd><bdi dir="ltr" class="kwtsms-logs-number">{$r.phone}</bdi>{if $r.phone_raw && $r.phone_raw != $r.phone} <span class="muted">{__("kwtsms.logs.phone_typed")} <bdi dir="ltr">{$r.phone_raw}</bdi></span>{/if}</dd></div>
                 {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one, the reason id kept for support (review M2), task 596 *}
-                <div><dt>{__("kwtsms.logs.col.reason")}</dt><dd class="kwtsms-logs-text">{if $r.reason_label}{$r.reason_label} <span class="muted"><bdi dir="ltr">{$r.reason}</bdi></span>{else}<bdi>{$r.reason|default:"-"}</bdi>{/if}</dd></div>
+                {* 2026-10-21 14:11 +03: the text and the code, then the stored reason for support when it says more (cleanup 2 item 5), task 596 *}
+                {* 2026-10-21 14:25 +03: the stored reason is left out when it is the code alone, which is already shown in brackets *}
+                <div><dt>{__("kwtsms.logs.col.reason")}</dt><dd class="kwtsms-logs-text">{if $r.reason_label}<bdi>{include file="addons/kwtsms/views/kwtsms/components/log_reason.tpl" row=$r}</bdi>{if $r.reason != $r.reason_code} <span class="muted"><bdi dir="ltr">{$r.reason}</bdi></span>{/if}{else}<bdi>{$r.reason|default:"-"}</bdi>{/if}</dd></div>
                 {if $r.message_id}<div><dt>{__("kwtsms.logs.message")}</dt><dd><a href="{"kwtsms.log_details?tab=messages&id=`$r.message_id`"|fn_url}" id="kwtsms_attempt_message">#{$r.message_id}</a></dd></div>{/if}
                 {if $r.retry_of}<div><dt>{__("kwtsms.logs.resend_of")}</dt><dd><a href="{"kwtsms.log_details?tab=attempts&id=`$r.retry_of`"|fn_url}" id="kwtsms_retry_of">#{$r.retry_of}</a></dd></div>{/if}
                 {if $d.outbox}<div><dt>{__("kwtsms.logs.outbox")}</dt><dd>{__("kwtsms.logs.outbox_state.`$d.outbox.status`")} <span class="muted">{__("kwtsms.logs.outbox_tries", ["[n]" => $d.outbox.attempts])}</span></dd></div>{/if}
@@ -133,7 +136,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                                     <td><bdi dir="ltr" class="kwtsms-logs-number">{if $a.phone}{$a.phone}{else}{$a.phone_raw}{/if}</bdi></td>
                                     <td>{include file="addons/kwtsms/views/kwtsms/components/log_outcome.tpl" row=$a}</td>
                                     {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one (review M2), task 596 *}
-                                    <td class="kwtsms-logs-text"><bdi>{if $a.reason_label}{$a.reason_label}{else}{$a.reason}{/if}</bdi></td>
+                                    {* 2026-10-21 14:11 +03: the text, then the code in brackets (cleanup 2 item 5), task 596 *}
+                                    <td class="kwtsms-logs-text"><bdi>{include file="addons/kwtsms/views/kwtsms/components/log_reason.tpl" row=$a}</bdi></td>
                                     <td class="kwtsms-logs-view">
                                         <a href="{"kwtsms.log_details?tab=attempts&id=`$a.id`"|fn_url}">{__("kwtsms.logs.view")}</a>
                                         {if $a.resend && $a.resend.ok}

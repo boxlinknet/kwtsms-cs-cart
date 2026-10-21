@@ -16,6 +16,9 @@
  *            ends with a NOTE line that says so and from when; before each further chunk the time left under
  *            max_execution_time is checked, and an export that runs out stops after a whole chunk with a NOTE line
  *            "export truncated at N rows" instead of a file cut mid-row by a fatal error.
+ *            2026-10-21 14:11 +03, cleanup 2 item 5, task 596: a last column reason_label holds the plain-language
+ *            text of the api_code (LogsPage::reasonLabel(), in the language of the admin who exports); status and
+ *            api_code stay raw.
  * USAGE:     $rows = $export->stream($_REQUEST, static function (string $line): void { echo $line; });
  *            LogExport::cell('=1+1') -> "'=1+1";  LogExport::line(['a', 'b"c']) -> "a,\"b\"\"c\"\r\n"
  *            LogExport::filename(time()) -> 'kwtsms-messages-20261021-063500.csv'
@@ -43,6 +46,10 @@ class LogExport
         'storefront_id', 'company_id', 'sender', 'recipients', 'recipient_count', 'numbers_accepted', 'message',
         'masked', 'lang_code', 'encoding', 'pages', 'is_test', 'status', 'api_code', 'code_source', 'api_msg_id',
         'points_charged', 'balance_after', 'duration_ms',
+        // 2026-10-21 14:11 +03: last, so no column moves: the plain-language reason of the api_code in the language
+        // of the export (the raw status and api_code stay as they are, stable for spreadsheets). Cleanup 2 item 5,
+        // task 596.
+        'reason_label',
     ];
 
     /** First characters a spreadsheet reads as a formula or a control (PRD 6.8). */
@@ -218,6 +225,11 @@ class LogExport
                 $out[] = date('Y-m-d H:i:s', (int) $row['created_at']);
             } elseif ($column === 'kwtsms_time') {
                 $out[] = LogsPage::kuwaitTime((int) $row['created_at']);
+            } elseif ($column === 'reason_label') {
+                // 2026-10-21 14:11 +03: a message row has no reason column; its reason is the code kwtSMS answered with
+                // (the text of that code, in the language of the export), empty when there is none. Cleanup 2 item 5,
+                // task 596.
+                $out[] = $this->page->reasonLabel((string) ($row['api_code'] ?? ''), '');
             } else {
                 $out[] = (string) ($row[$column] ?? '');
             }

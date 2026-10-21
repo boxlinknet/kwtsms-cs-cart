@@ -267,10 +267,12 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                                 <td class="kwtsms-logs-event" data-label="{__("kwtsms.logs.col.event")}">{if $r.event_label}{$r.event_label}{else}<bdi dir="ltr">{$r.event_id}</bdi>{/if}</td>
                                 {if $l.tab == "messages"}
                                     <td class="kwtsms-table__num" data-label="{__("kwtsms.logs.col.credits")}"><bdi dir="ltr">{$r.points_charged}</bdi></td>
-                                    <td data-label="{__("kwtsms.logs.col.msg_id")}">{if $r.api_msg_id}<bdi dir="ltr" class="kwtsms-code-tag kwtsms-logs-msgid">{$r.api_msg_id}</bdi>{/if}{if $r.api_code} <bdi dir="ltr" class="kwtsms-code-tag">{$r.api_code}</bdi>{/if}</td>
+                                    {* 2026-10-21 14:00 +03: title = the full message id for the clipped cell (cleanup 2 item 7), task 596 *}
+                                    <td data-label="{__("kwtsms.logs.col.msg_id")}">{if $r.api_msg_id}<bdi dir="ltr" class="kwtsms-code-tag kwtsms-logs-msgid" title="{$r.api_msg_id}">{$r.api_msg_id}</bdi>{/if}{if $r.api_code} <bdi dir="ltr" class="kwtsms-code-tag">{$r.api_code}</bdi>{/if}</td>
                                 {else}
                                     {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one (review M2), task 596 *}
-                                    <td class="kwtsms-logs-text" data-label="{__("kwtsms.logs.col.reason")}"><bdi>{if $r.reason_label}{$r.reason_label}{else}{$r.reason}{/if}</bdi></td>
+                                    {* 2026-10-21 14:11 +03: the text, then the code in brackets (cleanup 2 item 5), task 596 *}
+                                    <td class="kwtsms-logs-text" data-label="{__("kwtsms.logs.col.reason")}"><bdi>{include file="addons/kwtsms/views/kwtsms/components/log_reason.tpl" row=$r}</bdi></td>
                                     <td class="kwtsms-table__num" data-label="{__("kwtsms.logs.col.order")}">{if $r.order_id}<bdi dir="ltr">{$r.order_id}</bdi>{/if}</td>
                                 {/if}
                             {/if}

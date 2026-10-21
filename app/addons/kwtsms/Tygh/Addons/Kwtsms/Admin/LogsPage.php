@@ -35,6 +35,7 @@ use Tygh\Addons\Kwtsms\Log\LogStoreInterface;
 use Tygh\Addons\Kwtsms\Log\Redactor;
 use Tygh\Addons\Kwtsms\Log\Schema;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
+use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 
 class LogsPage
@@ -58,7 +59,29 @@ class LogsPage
      * Attempt reasons with a plain-language text (kwtsms.logs.reason.<reason>, EN and AR). 2026-10-21 12:56 +03:
      * added, review M2, task 596.
      */
-    public const LABELLED_REASONS = [SmsService::CAP_RESERVED, 'cap_unavailable'];
+    // 2026-10-21 14:10 +03: also the reasons whose outcome text would mislead or says nothing (a deferred row:
+    // "the reason is in the log", which is where the reader is already): the gateway could not be reached, sending
+    // is paused, quiet hours, too many calls for one request, the outbox could not take the row. Cleanup 2 item 5,
+    // task 596.
+    public const LABELLED_REASONS = [
+        SmsService::CAP_RESERVED, 'cap_unavailable', 'gateway_unreachable', 'suspended', 'quiet_hours',
+        'request_overflow', 'outbox_unavailable',
+    ];
+
+    /**
+     * A kwtSMS or add-on code inside a reason: ERR010 of "ERR010: Zero balance", LOCAL_CONNECT of
+     * "gateway_unreachable: LOCAL_CONNECT", ERR003 of "ERR003_content"; the first one wins.
+     * 2026-10-21 14:10 +03: added, cleanup 2 item 5, task 596.
+     */
+    private const REASON_CODE = '/(?<![A-Za-z0-9_])(ERR[0-9]{3}|LOCAL_[A-Z]+(?:_[A-Z]+)*)(?![A-Za-z0-9])/';
+
+    /**
+     * Reasons of a blocked_not_configured attempt: the texts of the Dashboard connection card (kwtsms.reason.<id>).
+     * 2026-10-21 14:10 +03: added, cleanup 2 item 5, task 596.
+     */
+    private const NOT_CONFIGURED_REASONS = [
+        'no_credentials', 'relogin_required', 'not_logged_in', 'no_sender_ids', 'sender_not_in_list', 'sender_banned',
+    ];
 
     /** @var ConfigInterface */
     private $config;
@@ -603,6 +626,14 @@ class LogsPage
                 'lang_code' => (string) $row['lang_code'],
                 'encoding' => (string) $row['encoding'],
                 'pages' => (int) $row['pages'],
+                // 2026-10-21 14:10 +03: "1 page, GSM (English)", "2 pages, Unicode (Arabic)" for the detail view
+                // instead of "1 gsm en"; the raw values above stay for the support text and the export. Cleanup 2
+                // item 6, task 596.
+                'pages_text' => $this->pagesText(
+                    (int) $row['pages'],
+                    (string) $row['encoding'],
+                    (string) $row['lang_code']
+                ),
                 'batch_no' => (int) $row['batch_no'],
                 'batch_total' => (int) $row['batch_total'],
                 'api_code' => (string) $row['api_code'],
@@ -622,7 +653,11 @@ class LogsPage
             'reason' => (string) $row['reason'],
             // 2026-10-21 12:56 +03: plain-language text of the reasons that have one ('' = show the raw reason),
             // review M2, task 596.
-            'reason_label' => $this->reasonLabel((string) $row['reason']),
+            // 2026-10-21 14:10 +03: every reason gets a text (its code's text, the Dashboard's, or the outcome's)
+            // and the code is kept apart to be shown after it: "Your kwtSMS balance is zero. ... (ERR010)".
+            // Cleanup 2 item 5, task 596.
+            'reason_label' => $this->reasonLabel((string) $row['reason'], $outcome),
+            'reason_code' => $this->reasonCode((string) $row['reason']),
             'message_id' => (int) $row['message_id'],
             'outbox_id' => (int) $row['outbox_id'],
             'retry_of' => (int) $row['retry_of'],
@@ -663,13 +698,97 @@ class LogsPage
     }
 
     /**
-     * Plain-language text of an attempt reason that has one: the cap reservation of a send that did not finish and the
-     * cap check that could not run; '' for every other reason (the page shows the reason itself).
-     * 2026-10-21 12:56 +03: added, review M2, task 596.
+     * Plain-language text of an attempt reason, in the admin's language: never an internal id.
+     * 2026-10-21 12:56 +03: added for the cap reservation and the cap check that could not run, review M2, task 596.
+     * 2026-10-21 14:10 +03: every reason, cleanup 2 item 5, task 596. In this order: the own text of
+     * LABELLED_REASONS; the Dashboard's text of a not-set-up reason (blocked_not_configured); the text of the code
+     * the reason carries
+     * (ApiErrors::describe, the text the Dashboard Problems list shows beside the code), except ERR003_content, where
+     * the login was fine and the TEXT was refused; the text of the outcome (kwtsms.outcome.<outcome>, the text the
+     * Dashboard Problems list and the outcome tooltip show). '' when the reason is empty, or when it has no code and no
+     * known outcome is given: the caller then shows the reason itself.
      */
-    public function reasonLabel(string $reason): string
+    public function reasonLabel(string $reason, string $outcome = ''): string
     {
-        return in_array($reason, self::LABELLED_REASONS, true) ? (string) __('kwtsms.logs.reason.' . $reason) : '';
+        if ($reason === '') {
+            return '';
+        }
+        if (in_array($reason, self::LABELLED_REASONS, true)) {
+            return (string) __('kwtsms.logs.reason.' . $reason);
+        }
+        if ($outcome === 'blocked_not_configured' && in_array($reason, self::NOT_CONFIGURED_REASONS, true)) {
+            return (string) __('kwtsms.reason.' . $reason);
+        }
+        $code = $this->reasonCode($reason);
+        if ($code !== '' && strpos($reason, 'ERR003_content') !== 0) {
+            return ApiErrors::describe($code);
+        }
+
+        return in_array($outcome, SmsService::OUTCOMES, true) ? (string) __('kwtsms.outcome.' . $outcome) : '';
+    }
+
+    /**
+     * The kwtSMS or add-on code a reason carries (ERR010, LOCAL_CONNECT), '' when it carries none. Shown after the text
+     * of the reason so the admin can quote it to kwtSMS support. Cleanup 2 item 5, task 596.
+     */
+    public function reasonCode(string $reason): string
+    {
+        return preg_match(self::REASON_CODE, $reason, $found) === 1 ? $found[1] : '';
+    }
+
+    /**
+     * The pages of a message in words: "1 page, GSM (English)", "2 pages, Unicode (Arabic)" (EN), the same in Arabic
+     * with the Arabic plural forms; the language in brackets only when the message has one. An encoding value this page
+     * does not know is shown as it is, an empty one is left out.
+     * 2026-10-21 14:10 +03: added, cleanup 2 item 6, task 596.
+     */
+    public function pagesText(int $pages, string $encoding, string $lang_code): string
+    {
+        $count = (string) __('kwtsms.logs.pages_n', [$pages]);
+        $kind = strtolower(trim($encoding));
+        if (in_array($kind, ['gsm', 'gsm7'], true)) {
+            $label = (string) __('kwtsms.logs.enc.gsm');
+        } elseif (in_array($kind, ['unicode', 'ucs2'], true)) {
+            $label = (string) __('kwtsms.logs.enc.unicode');
+        } else {
+            $label = trim($encoding);
+        }
+        if ($label === '') {
+            return $count;
+        }
+        $language = $this->languageLabel($lang_code);
+
+        return (string) __(
+            $language === '' ? 'kwtsms.logs.pages_line' : 'kwtsms.logs.pages_line_lang',
+            ['[pages]' => $count, '[encoding]' => $label, '[language]' => $language]
+        );
+    }
+
+    /**
+     * The name of a message language: English and Arabic have a language variable of their own (so an English page says
+     * "Arabic", not the native name), another installed language shows its own name, an unknown code the code.
+     */
+    private function languageLabel(string $lang_code): string
+    {
+        $code = strtolower(trim($lang_code));
+        if ($code === '') {
+            return '';
+        }
+        if ($code === 'en' || $code === 'ar') {
+            return (string) __('kwtsms.logs.lang.' . $code);
+        }
+
+        return $this->installedLanguageName($code);
+    }
+
+    /** The name of an installed language ('' is never returned: the code stands in for an unknown one). */
+    protected function installedLanguageName(string $code): string
+    {
+        $all = class_exists('Tygh\Languages\Languages') ? (array) \Tygh\Languages\Languages::getAll() : [];
+
+        $name = isset($all[$code]['name']) ? (string) $all[$code]['name'] : '';
+
+        return $name !== '' ? $name : strtoupper($code);
     }
 
     public function receiverLabel(string $receiver): string
