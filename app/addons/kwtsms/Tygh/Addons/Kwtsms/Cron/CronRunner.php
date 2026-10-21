@@ -81,15 +81,17 @@ class CronRunner
 
     /**
      * Seconds prune_logs may work in one run; what is left waits for the next run.
-     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 02:17 +03: added (commit 8c23f16), Task 1.7 fix round 1 item 5, task 596.
      * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     * 2026-10-21 10:14 +03: the stamp said 02:30, later than its commit at 02:17; Task 1.16 pre-step, task 596.
      */
     public const PRUNE_BUDGET_SECONDS = 120.0;
 
     /**
      * Outbox rows in a final state are kept this long (ruling R28).
-     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 02:17 +03: added (commit 8c23f16), Task 1.7 fix round 1 item 5, task 596.
      * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     * 2026-10-21 10:14 +03: the stamp said 02:30, later than its commit at 02:17; Task 1.16 pre-step, task 596.
      */
     public const OUTBOX_FINAL_DAYS = 30;
 
@@ -147,8 +149,9 @@ class CronRunner
 
     /**
      * @var callable|null (int $before, int $limit): int
-     *                    2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596
-     *                    (2026-10-21 08:35 +03: this stamp added, cleanup item 6)
+     *                    2026-10-21 02:17 +03: added (commit 8c23f16), Task 1.7 fix round 1 item 5, task 596
+     *                    (2026-10-21 08:35 +03: this stamp added, cleanup item 6; 2026-10-21 10:14 +03: it said
+     *                    02:30, later than its commit, Task 1.16 pre-step)
      */
     private $prune_outbox;
 
@@ -376,8 +379,9 @@ class CronRunner
      * for the next run (the job is not stamped done until every table is finished), so the first prune of a very
      * large table cannot outlive the 600 s lock. A table that fails is reported and the others still run; the whole
      * job is then retried in an hour.
-     * 2026-10-21 02:30 +03: rewritten for chunks, the 120 s budget and the outbox (ruling R28), Task 1.7 fix
-     * round 1 item 5, task 596.
+     * 2026-10-21 02:17 +03: rewritten for chunks, the 120 s budget and the outbox (ruling R28), Task 1.7 fix
+     * round 1 item 5 (commit 8c23f16), task 596.
+     * 2026-10-21 10:14 +03: the stamp said 02:30, later than its commit at 02:17; Task 1.16 pre-step, task 596.
      *
      * @return array<string,mixed>
      */
@@ -474,7 +478,8 @@ class CronRunner
     /**
      * Calls $delete (one chunk of rows per call, returns how many it deleted) until a chunk comes back short, or
      * the deadline passes. A delete that cannot be done in chunks (a store without pruneChunk()) is called once.
-     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 02:17 +03: added (commit 8c23f16), Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 10:14 +03: the stamp said 02:30, later than its commit at 02:17; Task 1.16 pre-step, task 596.
      *
      * @param callable(int):int $delete
      * @param bool              $chunked True when $delete deletes at most the given number of rows
