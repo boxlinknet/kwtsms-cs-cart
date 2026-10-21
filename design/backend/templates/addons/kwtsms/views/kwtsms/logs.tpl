@@ -53,6 +53,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                     {__("kwtsms.logs.clear.cannot_undo")}
                 </p>
                 {if $l.tab == "debug"}<p class="muted">{__("kwtsms.logs.clear.audit_kept")}</p>{/if}
+                {* 2026-10-21 17:25 +03: the sending limits count the attempt rows, so clearing them resets the limits (final review M4), task 596 *}
+                {if $l.tab == "attempts" && $c.scope != "older"}<p class="muted" id="kwtsms_clear_caps">{__("kwtsms.logs.clear.caps_reset")}</p>{/if}
                 <div class="kwtsms-actions">
                     <form action="{""|fn_url}" method="post" name="kwtsms_clear_form" class="kwtsms-inline-form">
                         {foreach $c.hidden as $field}

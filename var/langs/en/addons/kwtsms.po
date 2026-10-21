@@ -4440,3 +4440,13 @@ msgstr "The store got no answer for this SMS, so kwtSMS may already have it. Che
 msgctxt "Languages::kwtsms.scope.select_all_stores"
 msgid "Select All stores to manage kwtSMS. The store selector was set to All stores."
 msgstr "Select All stores to manage kwtSMS. The store selector was set to All stores."
+
+# 2026-10-21 17:25 +03: final review M4, task 596. kwtsms.help.costs.limits_clear (Help) and kwtsms.logs.clear.caps_reset (the
+# Clear confirmation of the Attempts log): the per-number and daily store limits count the attempt rows, so clearing them resets the limits.
+msgctxt "Languages::kwtsms.help.costs.limits_clear"
+msgid "The per-number and daily sending limits count the SMS in the Attempts log. Clearing the Attempts log on the Logs page also resets these limits for the SMS it deletes."
+msgstr "The per-number and daily sending limits count the SMS in the Attempts log. Clearing the Attempts log on the Logs page also resets these limits for the SMS it deletes."
+
+msgctxt "Languages::kwtsms.logs.clear.caps_reset"
+msgid "Clearing the Attempts log also resets the sending limits counted from it: the per-number and daily limits no longer count the deleted SMS."
+msgstr "Clearing the Attempts log also resets the sending limits counted from it: the per-number and daily limits no longer count the deleted SMS."

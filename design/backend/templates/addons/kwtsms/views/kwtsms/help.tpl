@@ -143,6 +143,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
 
                 <h5 class="kwtsms-subtitle">{__("kwtsms.help.costs.low_title")}</h5>
                 <p>{__("kwtsms.help.costs.low_p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="dashboard" pages=$h.pages}</p>
+                {* 2026-10-21 17:25 +03: clearing the Attempts log also resets the sending limits counted from it (final review M4), task 596 *}
+                <p id="kwtsms_help_limits_clear">{__("kwtsms.help.costs.limits_clear")}</p>
             </section>
 
             {* ---- cron ------------------------------------------------------------------------------------------- *}
