@@ -31,10 +31,15 @@
 namespace Tygh\Addons\Kwtsms\Settings;
 
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
+use Tygh\Addons\Kwtsms\Log\ReportsFailures;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 
 class Config implements ConfigInterface
 {
+    // 2026-10-21 03:19 +03: safeMessage() for the reason of a refused write (no query, no value), Task 1.10 fix
+    // round 1 item 14 (carry from Task 1.4), task 596.
+    use ReportsFailures;
+
     /** Prepended to the password before encryption and required after decryption. */
     public const PASSWORD_PREFIX = 'kwtsms1:';
 
@@ -161,6 +166,13 @@ class Config implements ConfigInterface
 
     /** @var callable|null */
     private $decrypt;
+
+    /**
+     * @var array<string, string> key => why the settings store refused the last write of it (class, safe message,
+     *                            file:line; never the value). 2026-10-21 03:19 +03: added, Task 1.10 fix round 1
+     *                            item 14, task 596.
+     */
+    private $write_errors = [];
 
     /** @var array<int, true>|null calling code => true */
     private static $country_codes;
@@ -506,13 +518,31 @@ class Config implements ConfigInterface
      */
     private function tryWrite(string $key, string $value): bool
     {
+        unset($this->write_errors[$key]);
         try {
             $this->backend->write($key, $value);
         } catch (\Exception $e) {
+            // 2026-10-21 03:19 +03: the backend's reason is logged (one error_log line: key, class, message without
+            // any query or digit run, file:line; never the value) and kept for lastWriteError(), Task 1.10 fix round 1
+            // item 14 (carry from Task 1.4), task 596.
+            $reason = get_class($e) . ': ' . $this->safeMessage($e->getMessage())
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine();
+            $this->write_errors[$key] = $reason;
+            error_log('kwtsms: setting "' . $key . '" was not saved: ' . $reason);
+
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Why the settings store refused the last write of $key in this request, or null (it was not refused). Never
+     * holds the value. 2026-10-21 03:19 +03: added, Task 1.10 fix round 1 item 14, task 596.
+     */
+    public function lastWriteError(string $key): ?string
+    {
+        return $this->write_errors[$key] ?? null;
     }
 
     // ------------------------------------------------------------------ normalizers (save)
