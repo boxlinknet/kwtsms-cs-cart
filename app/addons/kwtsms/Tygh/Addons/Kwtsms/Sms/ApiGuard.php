@@ -31,7 +31,8 @@
  *            $guard->recordReached();            // any reply from the gateway: resets the failure count
  *            $guard->runLocked($write);          // 2026-10-21 00:05 +03: $write under the same lock (GatewayState
  *                                                // suspend / resume), false = lock busy, Task 1.6, task 596
- *            Constants: LOCK_PREFIX kwtsms_api_, LOCK_WAIT_SECONDS 2, SLOT_KEY kwtsms_api_slot, SPACING_MS 200.
+ *            Constants: LOCK_PREFIX kwtsms_api_, LOCK_WAIT_SECONDS 2, SLOT_KEY kwtsms_api_slot, SPACING_MS 210
+ *            (2026-10-21 10:46 +03: was 200, Task 1.16, task 596; see the constant).
  *            lockName() is the full lock name for this store's database.
  *            A slot value that is not a number, is in the past, or is more than 10 s ahead (corrupt) is
  *            treated as "now", so a bad row can never stall the store. Suspension is NOT checked here:
@@ -58,8 +59,13 @@ class ApiGuard
 
     public const SLOT_KEY = 'kwtsms_api_slot';
 
-    /** 5 requests per second for one store database. */
-    public const SPACING_MS = 200;
+    /**
+     * At most 5 requests per second for one store database. 2026-10-21 10:46 +03: 210 ms, was 200. With exactly 200 ms
+     * the slot times are 1000 ms apart for six calls, and the millisecond rounding of the wait let six calls start
+     * within 998 ms (Task 1.16: 8 processes x 10 calls on the real slot clock); 10 ms of margin keeps every 1 s window
+     * at five calls or fewer. Task 596.
+     */
+    public const SPACING_MS = 210;
 
     /** A reserved slot further ahead than this is a corrupt value, not a queue. */
     private const MAX_BACKLOG_MS = 10000;
