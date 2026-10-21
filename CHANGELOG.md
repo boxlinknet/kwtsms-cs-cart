@@ -83,3 +83,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   limits and "Resume sending", quiet hours, log detail and retention, the crontab line and the cron key, and a test
   SMS form (at most 10 an hour per administrator) whose result shows the number, the outcome, the message ID, the
   credits, the balance after and, in test mode, how to get the credits back. English and Arabic, 1280 and 768 px.
+<!-- 2026-10-21 03:18 +03: entries for the SMS notification transport and the order events (Task 1.9), task 596 -->
+- SMS is a notification transport of the store: Administration > Notifications shows a kwtSMS column for every
+  order status (custom statuses included) and for the new event "New order placed", for customers and
+  administrators, and the store's own Notify customer / Notify orders department boxes apply. Every SMS switch is
+  OFF until an administrator ticks it (an upgrade, a new status or another add-on's event never starts sending on
+  its own); "New order placed" is ON for the customer and the administrators.
+- One "order received" SMS per order, whatever the way it was placed: storefront checkout, online payment
+  confirmed later, repay after a failed payment, or an order created by an administrator (with the administrator's
+  Notify boxes). A failed, declined or canceled payment is no order; editing an order never sends it again; the
+  status SMS of the same change is replaced by it. A status sent once is not sent again for 24 hours.
+- Multi-Vendor: one customer SMS and one administrator SMS for a checkout of several vendors, listing the vendor
+  order numbers (never the parent order number), or one per vendor order; status SMS per checkout (when the last
+  vendor order reaches the status) or per vendor order, "auto" following the marketplace fulfilment; SMS caused by
+  a vendor can be switched off.
+- Every order SMS that did not go out has a reason in the attempts log (switch off, Notify box unticked, replaced
+  by the order-received SMS, already sent, no number, no text).
+- Third-party add-ons get SMS for their own notification events by declaring them in
+  `schemas/kwtsms/events.post.php` (receivers, placeholders, phone).
+- Storefront order SMS go out after the page has been sent, so a checkout never waits for the SMS gateway.
