@@ -1,0 +1,30 @@
+# FILE:      .github/dependabot.yml
+# CREATED:   2026-10-21 23:15 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      Weekly Dependabot updates (Monday) for the Composer dev tooling and the GitHub Actions versions.
+# WHY:       Keeps phpcs, PHPCompatibility, PHPUnit and the workflow actions current; same layout as the other
+#            kwtSMS repos. The add-on itself ships without Composer dependencies.
+# USAGE:     Read by GitHub automatically.
+# DEPENDS:   composer.json, composer.lock, .github/workflows/.
+
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
