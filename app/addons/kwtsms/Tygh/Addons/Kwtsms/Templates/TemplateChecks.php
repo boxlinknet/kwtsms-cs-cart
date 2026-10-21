@@ -170,7 +170,9 @@ final class TemplateChecks
      */
     private static function promotionalWording(string $body): array
     {
-        $text = (string) preg_replace('/\{[^{}\r\n]*\}/u', ' ', $body);
+        // 2026-10-21 11:51 +03: the placeholder shape of TemplateRenderer::TOKEN, so JSON-like text such as
+        // '{"x":"50% off"}' is read as wording, not taken out as a placeholder (ruling R42), task 596.
+        $text = (string) preg_replace('/\{[^{}\r\n"]*\}/u', ' ', $body);
         $out = [];
         if (strpos($text, '%') !== false) {
             $out[] = '%';

@@ -10,8 +10,8 @@
  *            and leftover "{...}" in a rendered text (send time), and fires the public hook
  *            kwtsms_render_template_post.
  * WHY:       PRD 6.4: an empty value renders as nothing and the text around it must still read well
- *            ("Thanks , order" and "KWD, ." are what a naive replace would send), and any "{...}" left in the
- *            rendered text blocks the send (outcome blocked_placeholder), so a customer never receives a
+ *            ("Thanks , order" and "KWD, ." are what a naive replace would send), and any "{...}" without a double
+ *            quote left in the rendered text blocks the send (outcome blocked_placeholder), so a customer never gets a
  *            literal "{customer_first_name}". Customer-typed values (names) get the anti-smishing cleaner of
  *            PRD 6.2.1; values the shop or core produced (order id, total, brand, status, method names) do
  *            not, because that cleaner would delete the digits of a 6-digit order id or an 8-digit total.
@@ -23,7 +23,8 @@
  *                  -> ['{typo}', ...] unique, in order of appearance (names compared case-sensitively;
  *                     $allowed may carry braces or not). The Templates page needs "Save anyway" for these.
  *              TemplateRenderer::hasLeftover($rendered)
- *                  -> true when any "{...}" remains; the send is blocked (blocked_placeholder).
+ *                  -> true when any "{...}" without a double quote remains; the send is blocked (blocked_placeholder).
+ *                     2026-10-21 11:51 +03: '{"ar":"..."}' is text, not a placeholder (ruling R42), task 596.
  *            The FINAL full MessageCleaner::clean() of the rendered text is the CALLER's job (SmsService,
  *            Task 1.6, ruling R18: cleaning happens once, at send, and it also decodes the typed escapes
  *            of the stored body exactly once). render() only cleans the customer-typed values it inserts.
@@ -72,10 +73,13 @@ class TemplateRenderer
     public const FREE_TEXT = ['customer_first_name', 'customer_last_name', 'vendor_name'];
 
     /**
-     * Any "{...}" on one line. Wider than the placeholder names on purpose: "{Order_ID}", "{order id}" and
-     * "{}" are mistakes too, and none of them may reach a customer (PRD 6.4: any "{...}" blocks the send).
+     * Any "{...}" on one line without a double quote. Wider than the placeholder names on purpose: "{Order_ID}",
+     * "{order id}" and "{}" are mistakes too, and none of them may reach a customer (PRD 6.4: any "{...}" without a
+     * double quote blocks the send).
+     * 2026-10-21 11:51 +03: a double quote inside the braces makes it JSON-like text, not a placeholder: '{"ar":"..."}'
+     * is sent as typed (procedure case 14, deviation D-14 closed), ruling R42, task 596. Was /\{[^{}\r\n]*\}/.
      */
-    private const TOKEN = '/\{[^{}\r\n]*\}/';
+    private const TOKEN = '/\{[^{}\r\n"]*\}/';
 
     /** What an empty value leaves in the text until the tidy pass has run. */
     private const MARK = "\x00";
@@ -156,8 +160,9 @@ class TemplateRenderer
         }
 
         // SOH and STX stand for the braces of a known placeholder while the rest is scanned.
+        // 2026-10-21 11:51 +03: the same token shape as TOKEN, no double quote inside (ruling R42), task 596.
         $work = str_replace(["\x01", "\x02"], '', $body);
-        $work = (string) preg_replace_callback('/\{([^{}\r\n]*)\}/', static function (array $m) use ($known): string {
+        $work = (string) preg_replace_callback('/\{([^{}\r\n"]*)\}/', static function (array $m) use ($known): string {
             return isset($known[$m[1]]) ? "\x01" . $m[1] . "\x02" : $m[0];
         }, $work);
 

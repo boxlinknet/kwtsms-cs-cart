@@ -379,10 +379,11 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         allowed.forEach(function (name) {
             known[String(name).replace(/^\{+|\}+$/g, '')] = true;
         });
-        work = String(body).replace(/[\u0001\u0002]/g, '').replace(/\{([^{}\r\n]*)\}/g, function (whole, inner) {
+        // 2026-10-21 11:51 +03: no double quote inside the braces, like TemplateRenderer::TOKEN (ruling R42), task 596.
+        work = String(body).replace(/[\u0001\u0002]/g, '').replace(/\{([^{}\r\n"]*)\}/g, function (whole, inner) {
             return known[inner] === true ? '\u0001' + inner + '\u0002' : whole;
         });
-        found = work.match(/\{[^{}\r\n]*\}/g) || [];
+        found = work.match(/\{[^{}\r\n"]*\}/g) || [];
         found.forEach(function (token) {
             token = token.replace(/\u0001/g, '{').replace(/\u0002/g, '}');
             if (out.indexOf(token) === -1) {
@@ -448,7 +449,8 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         }
 
         list = [];
-        text = body.replace(/\{[^{}\r\n]*\}/g, ' ');
+        // 2026-10-21 11:51 +03: the placeholder shape without a double quote, like TemplateChecks (ruling R42), task 596.
+        text = body.replace(/\{[^{}\r\n"]*\}/g, ' ');
         if (text.indexOf('%') !== -1) {
             list.push('%');
         }
