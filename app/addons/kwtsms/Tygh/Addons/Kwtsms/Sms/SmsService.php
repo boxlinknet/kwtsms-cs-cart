@@ -1358,6 +1358,9 @@ class SmsService
      * API call, or a not-sent outcome when a later step stops the send. A busy or unavailable lock throws, and the
      * caller defers every open recipient as cap_unavailable: never sent, never skipped silently.
      * 2026-10-21 12:04 +03: the lock and the reservation added, the counts moved to checkCaps(), ruling R41, task 596.
+     * 2026-10-21 13:03 +03: the reservation relies on autocommit; send() must not run inside an open transaction, or
+     * the INSERT stays invisible to other sessions after the lock is released and the race returns (review M6),
+     * task 596.
      *
      * @param array<int,array<string,mixed>> $rcpt
      * @param array<string,mixed>            $context

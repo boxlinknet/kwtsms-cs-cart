@@ -18,6 +18,10 @@
  *                                                                                       // $work did not run
  *            $lock->lockName();   // kwtsms_caps_ + 16 hex, at most 28 characters (MariaDB allows 64)
  *            An exception thrown by $work goes on to the caller after the lock is released.
+ *            2026-10-21 13:03 +03, review M6, task 596: the reservation written under this lock relies on autocommit.
+ *            SmsService::send() must not run inside an open database transaction: the reservation INSERT would stay
+ *            invisible to the other sessions after RELEASE_LOCK, and two requests to one number could pass the cap
+ *            again.
  *            Test seams (protected): lock(), unlock(), databaseIdentity().
  * DEPENDS:   CS-Cart db_get_field() (without it the lock is "unavailable" and runLocked() answers false: fail closed),
  *            Tygh\Registry (config.db_name, config.table_prefix).

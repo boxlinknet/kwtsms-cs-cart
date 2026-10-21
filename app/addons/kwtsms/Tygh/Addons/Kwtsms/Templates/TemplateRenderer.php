@@ -15,6 +15,7 @@
  *            literal "{customer_first_name}". Customer-typed values (names) get the anti-smishing cleaner of
  *            PRD 6.2.1; values the shop or core produced (order id, total, brand, status, method names) do
  *            not, because that cleaner would delete the digits of a 6-digit order id or an 8-digit total.
+ *            "without a double quote": 2026-10-21 11:51 +03, ruling R42; stamped 2026-10-21 13:03 +03, review M7.
  * USAGE:     All methods are static and pure, except the hook call in render().
  *              TemplateRenderer::render($body, ['order_id' => 10234, 'customer_first_name' => 'Ali', ...])
  *                  -> text. Keys are placeholder names without braces; values are RAW (scalars; null and
@@ -24,7 +25,6 @@
  *                     $allowed may carry braces or not). The Templates page needs "Save anyway" for these.
  *              TemplateRenderer::hasLeftover($rendered)
  *                  -> true when any "{...}" without a double quote remains; the send is blocked (blocked_placeholder).
- *                     2026-10-21 11:51 +03: '{"ar":"..."}' is text, not a placeholder (ruling R42), task 596.
  *            The FINAL full MessageCleaner::clean() of the rendered text is the CALLER's job (SmsService,
  *            Task 1.6, ruling R18: cleaning happens once, at send, and it also decodes the typed escapes
  *            of the stored body exactly once). render() only cleans the customer-typed values it inserts.
@@ -56,6 +56,9 @@
  * another customer value included, cannot complete one ("Ali\" + "u000a"). For the same reason a backslash in the
  * template directly in front of a placeholder, or in front of "u" and up to three hex digits that run into one
  * ("\{customer_first_name}", "\u00{order_id}"), is removed before the values go in.
+ * 2026-10-21 11:51 +03, ruling R42, task 596: a "{...}" holding a double quote ('{"ar":"..."}') is text, not a
+ * placeholder, for hasLeftover() and unknownPlaceholders() (TOKEN). Moved here from USAGE 2026-10-21 13:03 +03 to keep
+ * the header keys within the first 4000 bytes (review M7).
  */
 
 namespace Tygh\Addons\Kwtsms\Templates;

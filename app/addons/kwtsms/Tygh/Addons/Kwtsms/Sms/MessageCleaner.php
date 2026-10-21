@@ -44,6 +44,8 @@
  *            (Task 1.12) must give the same numbers; tests/fixtures/send-path-cases.json holds both.
  * DEPENDS:   ext-mbstring (mb_convert_encoding, mb_substr, mb_chr), PCRE with UTF-8 support, PHP 7.4 to 8.3, and
  *            PhoneNormalizer::DIGITS_MAP (the 20 Arabic-Indic and Persian digits, one shared table).
+ *            mb_chr added 2026-10-21 11:33 +03 with the \uXXXX decoder (ruling R40); this stamp added
+ *            2026-10-21 13:03 +03 (review M7), task 596.
  *
  * UPSTREAM:  Port of kwtsms-php v1.7.1, src/MessageUtils.php (MIT, Copyright (c) 2026 kwtSMS / boxlink net).
  *            Commit  132285b9f39bcfe33925dfbf9ea614026b87240a

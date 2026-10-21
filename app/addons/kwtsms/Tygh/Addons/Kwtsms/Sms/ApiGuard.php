@@ -62,8 +62,10 @@ class ApiGuard
     /**
      * At most 5 requests per second for one store database. 2026-10-21 10:46 +03: 210 ms, was 200. With exactly 200 ms
      * the slot times are 1000 ms apart for six calls, and the millisecond rounding of the wait let six calls start
-     * within 998 ms (Task 1.16: 8 processes x 10 calls on the real slot clock); 10 ms of margin keeps every 1 s window
-     * at five calls or fewer. Task 596.
+     * within 998 ms (Task 1.16: 8 processes x 10 calls on the real slot clock). Task 596.
+     * 2026-10-21 13:03 +03: reworded, review M5, task 596. The 10 ms are a margin, not a guarantee: six slots are now
+     * 1050 ms apart, so six calls start inside one second only when a call starts more than 50 ms after its slot (a
+     * slow sleep or a busy worker); the measured spans of six were 1042 to 1049 ms.
      */
     public const SPACING_MS = 210;
 
