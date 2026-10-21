@@ -36,7 +36,8 @@
  * DEPENDS:   Gateway\GatewayState, Gateway\SyncService, Log\{LogStoreInterface,DebugLog,Schema},
  *            Settings\ConfigInterface, Storage\KeyValueStoreInterface, Alerts\AdminAlerts. A drain callable
  *            (int $limit, float $time_budget_s, bool $cron): array (SmsService::drainDue; the third argument was
- *            added on 2026-10-21 02:30 +03, Task 1.7 fix round 1 item 7, task 596, and the runner always passes
+ *            added on 2026-10-21 01:54 +03 (commit 09bfa1e; this said 02:30 until 2026-10-21 08:35 +03,
+ *            cleanup item 8), Task 1.7 fix round 1 item 7, task 596, and the runner always passes
  *            true), a lock factory
  *            (string $name, int $ttl): object with acquire(bool): bool and release(), a held-credits callable
  *            (): array{messages: int, credits: float}, an outbox prune callable (int $before, int $limit): int
@@ -78,10 +79,18 @@ class CronRunner
 
     private const DAY = 86400;
 
-    /** Seconds prune_logs may work in one run; what is left waits for the next run. */
+    /**
+     * Seconds prune_logs may work in one run; what is left waits for the next run.
+     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     public const PRUNE_BUDGET_SECONDS = 120.0;
 
-    /** Outbox rows in a final state are kept this long (ruling R28). */
+    /**
+     * Outbox rows in a final state are kept this long (ruling R28).
+     * 2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     public const OUTBOX_FINAL_DAYS = 30;
 
     /**
@@ -107,7 +116,8 @@ class CronRunner
 
     /**
      * @var callable (int $limit, float $time_budget_s, bool $cron): array
-     *               2026-10-21 02:30 +03: $cron added, fix round 1 item 7, task 596
+     *               2026-10-21 01:54 +03: $cron added, fix round 1 item 7, task 596 (this said 02:30 until
+     *               2026-10-21 08:35 +03, cleanup item 8)
      */
     private $drain;
 
@@ -135,7 +145,11 @@ class CronRunner
     /** @var callable|null */
     private $microclock;
 
-    /** @var callable|null (int $before, int $limit): int */
+    /**
+     * @var callable|null (int $before, int $limit): int
+     *                    2026-10-21 02:30 +03: added, Task 1.7 fix round 1 item 5, task 596
+     *                    (2026-10-21 08:35 +03: this stamp added, cleanup item 6)
+     */
     private $prune_outbox;
 
     /** @var callable|null (int $before, int $limit): int, expired status dispatch keys (2026-10-21 04:22 +03, R32, task 596) */
@@ -144,7 +158,8 @@ class CronRunner
     /**
      * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
-     *                                    (2026-10-21 02:30 +03, fix round 1 item 7, task 596)
+     *                                    (2026-10-21 01:54 +03, fix round 1 item 7, task 596; said 02:30 until
+     *                                    2026-10-21 08:35 +03, cleanup item 8)
      * @param callable      $lock_factory (string $name, int $ttl): object with acquire(bool): bool and release()
      * @param callable|null $held         (): array{messages: int, credits: float}, the test messages that hold credits
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
@@ -276,8 +291,9 @@ class CronRunner
             $out['suspension'] = $this->sync->retrySuspension(false, 'cli');
         }
         $left = max(0.0, self::BUDGET_SECONDS - ($this->micro() - $run_started));
-        // 2026-10-21 02:30 +03: true = the cron's drain: no web request budget and cli timeouts, also when the run
-        // came in over the URL mode, Task 1.7 fix round 1 item 7, task 596.
+        // 2026-10-21 01:54 +03: true = the cron's drain: no web request budget and cli timeouts, also when the run
+        // came in over the URL mode, Task 1.7 fix round 1 item 7, task 596 (said 02:30 until 2026-10-21 08:35 +03,
+        // cleanup item 8).
         $out['drain'] = $this->summarize(call_user_func($this->drain, self::DRAIN_ROWS, $left, true));
         $handled = $out['drain']['claimed'] + $out['drain']['reaped'];
         $this->note($handled > 0 ? 'info' : 'debug', 'cron.drain_outbox', $handled > 0 ? 'drained' : 'nothing due', [

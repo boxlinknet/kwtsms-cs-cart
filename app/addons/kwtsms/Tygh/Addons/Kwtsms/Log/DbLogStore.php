@@ -12,7 +12,9 @@
  *            (Log\Schema) with typed placeholders, the list never selects the raw request and response,
  *            and deletes are either by id or by age in chunks of 5000 (PRD 6.8, 10).
  * USAGE:     $store = new DbLogStore();  (wired in Task 1.6; used by MessageLog, AttemptLog, DebugLog)
- *            2026-10-21 01:00 +03: also BulkLogStoreInterface: insertMany() (one INSERT, ids consecutive) and
+ *            2026-10-21 01:00 +03: also BulkLogStoreInterface: insertMany() (one INSERT per 500 rows; it returns
+ *            every id: the first id of each INSERT plus k times @@auto_increment_increment, 2026-10-21 01:43 +03;
+ *            "ids consecutive" was wrong, fixed 2026-10-21 08:35 +03, cleanup item 8) and
  *            countAttemptsByPhone() (the abuse-cap counts of a whole send in one grouped query on the
  *            (phone, created_at) index; countAttemptsByPhoneSql() is its text for EXPLAIN), Task 1.6 fix round 1,
  *            task 596.

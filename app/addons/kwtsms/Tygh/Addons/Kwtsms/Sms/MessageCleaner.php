@@ -10,7 +10,7 @@
  *            customer-typed placeholder values such as names (anti-smishing).
  * WHY:       The gateway rejects or mis-bills what it cannot carry: an empty body (ERR009), HTML (ERR027),
  *            emoji (ERR036, gw7 and gw1), more than 7 pages (ERR012). The body is cleaned locally first so
- *            the page count shown in the admin and charged for matches the gateway's count exactly, and so
+ *            the page count shown in the admin matches the kwtSMS rules in PRD 6.2 step 9, and so
  *            the common causes of those rejections (invisible-only text, tags, emoji) are removed before the
  *            call. Cleaning does not guarantee acceptance. PRD 6.2.1 keeps a lone < or > (a price such as
  *            "<10 KD"), while the gateway rejects ANY <...> span: those spans are detected by
@@ -110,6 +110,11 @@
  *  17. TYPOGRAPHY also maps U+2010, U+2011 and U+FF0D to "-" (more dash forms that force UCS-2).
  *  18. The WHY paragraph no longer claims that what is left is always accepted, and clean() and cleanBody()
  *      carry dated comments for the round 1 edits.
+ *
+ * CLEANUP BATCH (2026-10-21 08:35 +03, task 596):
+ *  19. The WHY paragraph no longer says the page count matches the gateway's count "exactly": it matches the kwtSMS
+ *      rules in PRD 6.2 step 9, and the gateway has the last word on the billed count. Comment stamps that were
+ *      later than the commit holding them (c908a6f, 21:56) are set to 21:56.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -134,9 +139,13 @@ class MessageCleaner
     public const PLACEHOLDER_MAX_CHARS = 20;
 
     /**
-     * Last labels that make a dotted token in a placeholder value a domain a phone would turn into a link
-     * (lower case; matching is case-insensitive). Anything else, such as "Mr.Smith" or "A.B", is a name.
+     * Labels that make a dotted token in a placeholder value a domain a phone would turn into a link (lower
+     * case; matching is case-insensitive): the last label, or any label after the first, and each
+     * hyphen-separated segment of such a label counts, so "evil.com-pay" and "evil.pay-com" match too.
+     * Anything else, such as "Mr.Smith" or "A.B", is a name.
      * 2026-10-20 21:41 +03: added with the bare-domain rule, fix round 1, task 596.
+     * 2026-10-20 22:04 +03: the hyphen-segment rule, fix round 2, task 596.
+     * 2026-10-21 08:35 +03: described here, cleanup item 5, task 596.
      */
     public const URL_TLDS = [
         'com', 'net', 'org', 'info', 'biz', 'xyz', 'top', 'io', 'ly', 'me', 'co', 'app', 'link', 'site',
@@ -210,8 +219,10 @@ class MessageCleaner
      * path, query or fragment that follows it (looked at, not consumed, so a kept run does not hide a domain
      * in its query: "a.b?q=1x.com"). Possessive, so a long run of "a.a.a." or "a-a-a-" is scanned once.
      * 2026-10-20 21:41 +03: bare-domain rule, fix round 1, task 596. 21:55: a label cannot be a lone
-     * hyphen (the em dash maps to "-", so "evil.com.-" must still end the run at com). 22:02: the path is a
+     * hyphen (the em dash maps to "-", so "evil.com.-" must still end the run at com). 21:56: the path is a
      * lookahead. Both found by the fuzz test.
+     * 2026-10-21 08:35 +03: the stamps 22:02 here, 21:58 (removeDomains) and 22:10 (settlePlaceholder)
+     * were later than the commit that holds them (c908a6f, 21:56); set to 21:56, cleanup item 5, task 596.
      */
     private const HOST_RUN = '~(?<![\p{L}\p{N}-])-*+([\p{L}\p{N}][\p{L}\p{N}-]*+'
         . '(?:(?:\.|\[\.\]|\(\.\))[\p{L}\p{N}][\p{L}\p{N}-]*+)++)(?=([/?#])?)~u';
@@ -321,8 +332,9 @@ class MessageCleaner
 
     /**
      * Clean a customer-typed value that is inserted into a template (names): clean it like a body, then
-     * remove every < and >, scheme:// URLs, "www." hosts, bare domains (a dotted token ending in one of
-     * URL_TLDS, also written [.] or (.), or any dotted token followed by a /path) and runs of 6 or more
+     * remove every < and >, scheme:// URLs, "www." hosts, bare domains (a dotted token with one of URL_TLDS as
+     * a label after its first, also in a hyphen-separated segment of a label: "evil.com-pay"; also written
+     * [.] or (.); or any dotted token followed by a /path) and runs of 6 or more
      * digits, collapse each run of whitespace (newlines and tabs too) into one space, cut to 20 code points
      * and trim. Anti-smishing: a phone turns a bare domain into a link, a name cannot inject a line break
      * or an HTML-like span. Returns '' when the value cannot be settled (fail closed).
@@ -330,6 +342,8 @@ class MessageCleaner
      */
     public static function cleanPlaceholderValue(string $value): string
     {
+        // 2026-10-21 00:46 +03: delegates to placeholderValue() (the escapes decode here, once), Task 1.8 fix round 2
+        // F1, task 596. Comment added 2026-10-21 08:35 +03, cleanup item 6.
         return self::placeholderValue($value, true);
     }
 
@@ -345,6 +359,11 @@ class MessageCleaner
         return self::placeholderValue($value, false);
     }
 
+    /**
+     * The one body of cleanPlaceholderValue() ($decode_escapes true) and recleanPlaceholderValue() (false).
+     * 2026-10-21 00:46 +03: added, Task 1.8 fix round 2 F1, task 596.
+     * 2026-10-21 08:35 +03: this docblock added, cleanup item 6, task 596.
+     */
     private static function placeholderValue(string $value, bool $decode_escapes): string
     {
         try {
@@ -437,7 +456,7 @@ class MessageCleaner
 
     /**
      * The placeholder passes of cleanPlaceholderValue(), repeated until a whole pass changes nothing.
-     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 22:10: split out so the "does not settle" branch
+     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 21:56: split out so the "does not settle" branch
      * can be tested with a small $maxPasses.
      *
      * @throws \UnexpectedValueException When the value still changes after $maxPasses or PCRE fails
@@ -469,9 +488,14 @@ class MessageCleaner
     /**
      * Remove bare domains from a placeholder value: a dotted run that has a label from URL_TLDS after its
      * first label (the last label, or an earlier one: a phone links "evil.com" inside "evil.com.Smith"), or
-     * any dotted run followed by a /path. "Mr.Smith", "St.John" and "A.B" are names and stay.
-     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 21:58: any label after the first, not only the
+     * any dotted run followed by a /path. Each hyphen-separated segment of a label is checked, not the label
+     * as a whole: "evil.com-x", "evil.com--x", "evil.com-pay" and "evil.pay-com" are links too (a phone
+     * stops the host at the hyphen), and "Jo.Smith-Co" is removed (that cost is accepted). "Mr.Smith",
+     * "St.John", "A.B" and "Anne.Marie-Claire" are names and stay.
+     * 2026-10-20 21:41 +03: added, fix round 1, task 596. 21:56: any label after the first, not only the
      * last, found by the fuzz test ("Smith" + "evil.COM" + ".Mr.Smith" built a linkable domain).
+     * 2026-10-20 22:04 +03: the hyphen-segment rule, fix round 2, task 596.
+     * 2026-10-21 08:35 +03: described here, cleanup item 5, task 596.
      *
      * @throws \UnexpectedValueException When PCRE fails
      */

@@ -65,13 +65,21 @@ class SyncService
     /** One sync a day (PRD 6.11). */
     public const DAY_SECONDS = 86400;
 
-    /** Local failures that mean "kwtSMS could not be reached" (the text of kwtsms.login.unreachable). */
+    /**
+     * Local failures that mean "kwtSMS could not be reached" (the text of kwtsms.login.unreachable).
+     * 2026-10-21 01:59 +03: added, Task 1.7 fix round 1 items 2 and 8, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     private const UNREACHABLE = [
         'LOCAL_CONNECT', 'LOCAL_DNS', 'LOCAL_TLS', 'LOCAL_TIMEOUT', 'LOCAL_BREAKER', 'LOCAL_DEFERRED', 'LOCAL_BUSY',
         'LOCAL_REFUSED',
     ];
 
-    /** Local failures that mean "kwtSMS answered, but not with a usable reply" (kwtsms.login.bad_reply). */
+    /**
+     * Local failures that mean "kwtSMS answered, but not with a usable reply" (kwtsms.login.bad_reply).
+     * 2026-10-21 01:59 +03: added, Task 1.7 fix round 1 items 2 and 8, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     private const BAD_REPLY = ['LOCAL_BAD_JSON', 'LOCAL_HTTP'];
 
     /** @var ConfigInterface */
@@ -310,12 +318,18 @@ class SyncService
     {
         // 2026-10-21 02:29 +03: entry and exit rows at debug, body in runStaleSync(), fix round 1 item 9, task 596.
         $started = $this->enter('sync.stale', 'syncIfStale()', ['max_age' => $max_age]);
+        // 2026-10-21 06:20 +03: the timeout context goes along (Task 1.11 fix round 2 item 1, task 596). Comment added
+        // 2026-10-21 08:35 +03, cleanup item 7.
         $ok = $this->runStaleSync($max_age, $timeout_context);
         $this->leave('sync.stale', $started, $ok ? 'synced' : 'not run or failed', ['ok' => $ok]);
 
         return $ok;
     }
 
+    /**
+     * The body of syncIfStale(). 2026-10-21 02:29 +03: split out, Task 1.7 fix round 1 item 9; 06:20: takes
+     * $timeout_context, Task 1.11 fix round 2 item 1, task 596. Docblock added 2026-10-21 08:35 +03, cleanup item 7.
+     */
     private function runStaleSync(int $max_age, string $timeout_context): bool
     {
         if ($this->config->credentialsState() !== ConfigInterface::CREDENTIALS_OK) {
@@ -748,6 +762,8 @@ class SyncService
 
     /**
      * Entry line of a public method at debug (PRD 11); returns the start time for leave().
+     * 2026-10-21 01:59 +03: added, Task 1.7 fix round 1 item 9, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
      *
      * @param array<mixed> $context
      */
@@ -760,6 +776,8 @@ class SyncService
 
     /**
      * Exit line of a public method at debug, with its duration.
+     * 2026-10-21 01:59 +03: added, Task 1.7 fix round 1 item 9, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
      *
      * @param array<mixed> $context
      */
@@ -768,6 +786,7 @@ class SyncService
         $this->note('debug', $action . '.exit', $result, $context, $this->msSince($started));
     }
 
+    /** Milliseconds since $started. 2026-10-21 01:59 +03: added with enter() and leave(), task 596 (2026-10-21 08:35 +03, cleanup item 6). */
     private function msSince(float $started): int
     {
         return (int) round((microtime(true) - $started) * 1000);

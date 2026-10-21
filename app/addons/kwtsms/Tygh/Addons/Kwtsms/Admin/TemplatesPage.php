@@ -8,8 +8,9 @@
  * WHAT:      The Templates page of the kwtsms admin controller: the matrix (one row per order status and receiver, with
  *            the core SMS switch of the row), the language tabs, the text and badge of each row, and every POST
  *            action of the page: update_template (save), reset_template, load_template_defaults, toggle_event,
- *            preview_template, test_template (2026-10-21 05:16 +03: "Send a test of this template"), update_brand_names (2026-10-21 05:16 +03: the
- *            SMS brand-name editor above the matrix; Task 1.12 fix round 1 items 2 and 3, rulings R30 and R33).
+ *            preview_template, test_template (2026-10-21 05:16 +03: "Send a test of this template"),
+ *            update_brand_names (2026-10-21 05:16 +03: the SMS brand-name editor above the matrix; Task 1.12 fix
+ *            round 1 items 2 and 3, rulings R30 and R33).
  * WHY:       PRD 6.4, 7 and 10. The controller stays a thin gate and router; the rules live here:
  *            - a row's switch is the core notification switch (table notification_settings, transport kwtsms), written
  *              with core's own fn_set_notification_settings(), so Administration > Notifications shows the change and
@@ -31,12 +32,15 @@
  *            $page->testTemplate($posted, $admin_id, $ip);   $page->saveBrandNames($posted_brand);
  *            $result['draft'] is what the controller keeps in the session for the redirect (a refused save shows the
  *            typed text again); $result['lang'] and $result['edit'] build the redirect.
- * DEPENDS:   Templates\{TemplateRepository,TemplateRenderer,TemplateChecks,SampleData,Defaults,BrandNames}, Admin\SettingsPage
+ * DEPENDS:   Templates\{TemplateRepository,TemplateRenderer,TemplateChecks,SampleData,Defaults,BrandNames},
+ *            Admin\SettingsPage
  *            (its send half: the 10-an-hour cap and SmsService::sendTest()),
  *            Notifications\OrderSmsData,
  *            Sms\MessageCleaner, Log\DebugLog, Settings\ConfigInterface; CS-Cart __(), fn_set_notification(),
  *            fn_html_escape(), fn_set_notification_settings(), fn_get_order_info(), Tygh\Languages\Languages,
  *            Tygh\Providers\EventDispatcherProvider (all through protected methods a test can replace).
+ * CHANGED:   2026-10-21 08:37 +03: lines over 120 columns wrapped so phpcs is clean, no change of behaviour (cleanup
+ *            batch, task 596).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -63,7 +67,10 @@ class TemplatesPage
     public const BADGE_GENERIC = 'generic';
     public const BADGE_DEFAULT_LANG = 'default_lang';
     public const BADGE_NONE = 'none';
-    /** The Multi-Vendor checkout row answered by the single "Order placed" text (2026-10-21 05:03 +03, Task 1.12 fix round 1 item 10). */
+    /**
+     * The Multi-Vendor checkout row answered by the single "Order placed" text (2026-10-21 05:03 +03, Task 1.12 fix
+     * round 1 item 10).
+     */
     public const BADGE_PLACED = 'placed';
 
     /** Longest snippet of a text in the matrix, in characters. */
@@ -127,7 +134,7 @@ class TemplatesPage
      * @param string                    $edit_key   "event_id:receiver" of the row whose editor is open, or ''
      * @param array<string,mixed>|null  $draft      A refused save to show again: key, lang, body, unknown, reason
      * @param bool                      $can_toggle Whether the administrator may change the core switches
-     * @param bool                      $can_test   Whether the administrator holds manage_kwtsms_gateway (the test send)
+     * @param bool                      $can_test   Whether the administrator holds manage_kwtsms_gateway (test send)
      * @param array<string,mixed>|null  $test_result The panel of the test just sent (shown once, in its row's editor)
      *
      * @return array<string,mixed>
@@ -141,7 +148,11 @@ class TemplatesPage
         ?array $test_result = null
     ): array {
         $started = microtime(true);
-        $this->note('debug', 'view.enter', 'viewData()', ['lang' => $lang_param, 'edit' => $edit_key, 'draft' => $draft !== null]);
+        $this->note('debug', 'view.enter', 'viewData()', [
+            'lang' => $lang_param,
+            'edit' => $edit_key,
+            'draft' => $draft !== null,
+        ]);
         $languages = $this->languages();
         $default_lang = $this->defaultLang();
         $lang = (string) key($languages);
@@ -165,7 +176,8 @@ class TemplatesPage
             $rows[] = $row;
         }
 
-        // 2026-10-21 05:03 +03: entry, exit and the info row (Task 1.12 fix round 1 item 9, task 596). Names only, never a body.
+        // 2026-10-21 05:03 +03: entry, exit and the info row (Task 1.12 fix round 1 item 9, task 596). Names only,
+        // never a body.
         $this->note('info', 'view', 'Templates page opened', [
             'lang' => $lang,
             'rows' => count($rows),
@@ -186,10 +198,13 @@ class TemplatesPage
             'sms_enabled' => $this->config->enabled(),
             'test_mode' => $this->config->testMode(),
             'has_shipped' => $this->hasShippedTexts($lang),
-            // 2026-10-21 05:16 +03: the brand-name editor and the test send (Task 1.12 fix round 1 items 2 and 3, task 596).
+            // 2026-10-21 05:16 +03: the brand-name editor and the test send (Task 1.12 fix round 1 items 2 and 3,
+            // task 596).
             'brand' => $this->brandBlock($lang),
             'can_test' => $can_test && $this->settings !== null,
-            'test_result' => is_array($test_result) && ($test_result['key'] ?? '') === $edit_key && ($test_result['lang'] ?? '') === $lang
+            'test_result' => is_array($test_result)
+                && ($test_result['key'] ?? '') === $edit_key
+                && ($test_result['lang'] ?? '') === $lang
                 ? $test_result : null,
             'test_per_hour' => SettingsPage::TEST_SMS_PER_HOUR,
             'test_country' => '+' . preg_replace('/\D/', '', $this->config->defaultCountryCode()),
@@ -352,7 +367,8 @@ class TemplatesPage
             'advice' => $this->advice($stored, (string) $row['receiver'], (string) $row['event_id']),
             // 2026-10-21 08:28 +03: the editor sample shows the store's real brand, cleanup item 3, task 596.
             'reference' => $this->reference($lang, $status_name),
-            // 2026-10-21 05:03 +03: the row's own status name is part of the worst case (a custom status), item 4, task 596.
+            // 2026-10-21 05:03 +03: the row's own status name is part of the worst case (a custom status), item 4,
+            // task 596.
             'worst' => $this->worstValues($lang, $status_name),
             'allowed' => Defaults::allowedPlaceholders((string) $row['event_id'], (string) $row['receiver']),
         ];
@@ -417,8 +433,16 @@ class TemplatesPage
             $result['reason'] = 'unknown_row';
             $result['edit'] = '';
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
-            // 2026-10-21 05:04 +03: every refusal leaves an info row, names only (Task 1.12 fix round 1 item 9, task 596).
-            $this->trace('info', 'save', 'Template not saved: unknown row or language', $input, $started, 'unknown_row');
+            // 2026-10-21 05:04 +03: every refusal leaves an info row, names only (Task 1.12 fix round 1 item 9,
+            // task 596).
+            $this->trace(
+                'info',
+                'save',
+                'Template not saved: unknown row or language',
+                $input,
+                $started,
+                'unknown_row'
+            );
 
             return $result;
         }
@@ -436,13 +460,16 @@ class TemplatesPage
             return $result;
         }
 
-        // 2026-10-21 05:04 +03: the two refusals the repository would make (too long, unknown placeholders not confirmed) are
-        // decided HERE, before ensureTemplate(), so a refused save does not even create the row's empty template
-        // (Task 1.12 fix round 1 item 6, task 596). The repository still checks them (defence in depth).
+        // 2026-10-21 05:04 +03: the two refusals the repository would make (too long, unknown placeholders not
+        // confirmed) are decided HERE, before ensureTemplate(), so a refused save does not even create the row's
+        // empty template (Task 1.12 fix round 1 item 6, task 596). The repository still checks them (defence in
+        // depth).
         if (mb_strlen($input['body'], 'UTF-8') > TemplateRepository::MAX_BODY_CHARS) {
             $result['reason'] = 'too_long';
             $result['draft'] = $this->draft($input, [], 'too_long');
-            $this->say('E', 'kwtsms.templates.not_saved_too_long', ['[max]' => (string) TemplateRepository::MAX_BODY_CHARS]);
+            $this->say('E', 'kwtsms.templates.not_saved_too_long', [
+                '[max]' => (string) TemplateRepository::MAX_BODY_CHARS,
+            ]);
             $this->trace('info', 'save', 'Template not saved: too long', $input, $started, 'too_long');
 
             return $result;
@@ -458,7 +485,14 @@ class TemplatesPage
             $result['reason'] = 'unknown_placeholders';
             $result['draft'] = $this->draft($input, $unknown, 'unknown_placeholders');
             $this->say('W', 'kwtsms.templates.not_saved_unknown', ['[found]' => implode(' ', $unknown)]);
-            $this->trace('info', 'save', 'Template not saved: unknown placeholders', $input, $started, 'unknown_placeholders');
+            $this->trace(
+                'info',
+                'save',
+                'Template not saved: unknown placeholders',
+                $input,
+                $started,
+                'unknown_placeholders'
+            );
 
             return $result;
         }
@@ -479,7 +513,8 @@ class TemplatesPage
                 $result['edit'] = '';
                 $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
             }
-            $this->trace('info', 'save', 'Template not saved: ' . $saved['reason'], $input, $started, (string) $saved['reason']);
+            $reason = (string) $saved['reason'];
+            $this->trace('info', 'save', 'Template not saved: ' . $reason, $input, $started, $reason);
 
             return $result;
         }
@@ -523,7 +558,14 @@ class TemplatesPage
         $row = $this->rowFor($input['event_id'], $input['receiver']);
         if ($row === null || !$this->languageInstalled($input['lang'])) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
-            $this->trace('info', 'reset', 'Template not reset: unknown row or language', $input, $started, 'unknown_row');
+            $this->trace(
+                'info',
+                'reset',
+                'Template not reset: unknown row or language',
+                $input,
+                $started,
+                'unknown_row'
+            );
 
             return $result;
         }
@@ -536,7 +578,14 @@ class TemplatesPage
             $this->trace('info', 'reset', 'Template not reset', $input, $started, 'not_found');
         } elseif ($body === '') {
             $this->say('N', 'kwtsms.templates.reset_cleared', $params);
-            $this->trace('info', 'reset', 'Template cleared: no shipped text for this row and language', $input, $started, 'cleared');
+            $this->trace(
+                'info',
+                'reset',
+                'Template cleared: no shipped text for this row and language',
+                $input,
+                $started,
+                'cleared'
+            );
         } else {
             $this->say('N', 'kwtsms.templates.reset_done', $params);
             $this->trace('info', 'reset', 'Template reset to the shipped text', $input, $started, '');
@@ -557,7 +606,13 @@ class TemplatesPage
         $this->note('debug', 'load_defaults.enter', 'loadDefaults()', ['lang' => $lang]);
         if (!$this->languageInstalled($lang)) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
-            $this->note('info', 'load_defaults', 'Defaults not loaded: language not installed', ['lang' => $lang], $started);
+            $this->note(
+                'info',
+                'load_defaults',
+                'Defaults not loaded: language not installed',
+                ['lang' => $lang],
+                $started
+            );
 
             return ['lang' => $this->defaultLang()];
         }
@@ -568,7 +623,8 @@ class TemplatesPage
         } else {
             $this->say('W', 'kwtsms.templates.loaded_none', $params);
         }
-        $this->note('info', 'load_defaults', 'Default texts loaded', ['lang' => $lang, 'written' => $written], $started);
+        $loaded = ['lang' => $lang, 'written' => $written];
+        $this->note('info', 'load_defaults', 'Default texts loaded', $loaded, $started);
         $this->note('debug', 'load_defaults.exit', 'loadDefaults()', ['written' => $written], $started);
 
         return ['lang' => $lang];
@@ -593,7 +649,13 @@ class TemplatesPage
         $input = $this->readInput($post);
         $phone = isset($post['phone']) && is_string($post['phone']) ? $post['phone'] : '';
         $intl = isset($post['intl']) && $post['intl'] === 'Y';
-        $result = ['sent' => false, 'result' => null, 'lang' => $input['lang'], 'edit' => $input['key'], 'draft' => null];
+        $result = [
+            'sent' => false,
+            'result' => null,
+            'lang' => $input['lang'],
+            'edit' => $input['key'],
+            'draft' => null,
+        ];
         $this->trace('debug', 'test.enter', 'testTemplate()', $input, $started, '');
 
         $row = $this->rowFor($input['event_id'], $input['receiver']);
@@ -617,10 +679,13 @@ class TemplatesPage
         );
         $text = TemplateRenderer::render(TemplateRepository::storedForm($input['body']), $values);
         if (MessageCleaner::clean($text) === '' || $this->settings === null) {
-            $this->say('E', $this->settings === null ? 'kwtsms.templates.test_unavailable' : 'kwtsms.templates.test_empty');
-            $this->trace('info', 'test', 'Test not sent: nothing to send', $input, $started, $this->settings === null ? 'unavailable' : 'empty');
-            // 2026-10-21 08:28 +03: debug exit, cleanup item 4, task 596.
             $why = $this->settings === null ? 'unavailable' : 'empty';
+            $this->say(
+                'E',
+                $this->settings === null ? 'kwtsms.templates.test_unavailable' : 'kwtsms.templates.test_empty'
+            );
+            $this->trace('info', 'test', 'Test not sent: nothing to send', $input, $started, $why);
+            // 2026-10-21 08:28 +03: debug exit, cleanup item 4, task 596.
             $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, $why);
 
             return $result;
@@ -666,12 +731,20 @@ class TemplatesPage
     public function saveBrandNames(array $post): array
     {
         $started = microtime(true);
-        $lang = isset($post['lang']) && is_string($post['lang']) && preg_match('/^[a-z]{2}$/', $post['lang']) === 1 ? $post['lang'] : '';
+        $lang = isset($post['lang']) && is_string($post['lang']) && preg_match('/^[a-z]{2}$/', $post['lang']) === 1
+            ? $post['lang']
+            : '';
         $result = ['lang' => $lang !== '' ? $lang : $this->defaultLang(), 'saved' => 0];
         $this->note('debug', 'brand.enter', 'saveBrandNames()', ['lang' => $lang]);
         if (!$this->languageInstalled($lang)) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
-            $this->note('info', 'brand', 'Brand names not saved: language not installed', ['lang' => $lang, 'saved' => 0], $started);
+            $this->note(
+                'info',
+                'brand',
+                'Brand names not saved: language not installed',
+                ['lang' => $lang, 'saved' => 0],
+                $started
+            );
             // 2026-10-21 08:28 +03: a debug exit row on every way out, cleanup item 4, task 596.
             $this->note('debug', 'brand.exit', 'saveBrandNames()', ['lang' => $lang, 'saved' => 0], $started);
 
@@ -1218,9 +1291,9 @@ class TemplatesPage
     }
 
     /**
-     * The storefronts of this store: id => name (the allow-list of the brand-name editor). In Multi-Vendor these are the
-     * marketplace's storefronts; a vendor is a company, not a storefront, and never appears.
-     * 2026-10-21 05:16 +03: added, Task 1.12 fix round 1 item 3.
+     * The storefronts of this store: id => name (the allow-list of the brand-name editor). In Multi-Vendor these
+     * are the marketplace's storefronts; a vendor is a company, not a storefront, and never appears.
+     * 2026-10-21 05:16 +03: added, Task 1.12 fix round 1 item 3, task 596.
      *
      * @return array<int,string>
      */
@@ -1236,8 +1309,9 @@ class TemplatesPage
 
             return $out;
         } catch (\Throwable $e) {
+            $where = basename($e->getFile()) . ':' . $e->getLine();
             $this->note('error', 'brand.storefronts_failed', 'The storefronts could not be listed', [
-                'error' => get_class($e) . ': ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine(),
+                'error' => get_class($e) . ': ' . $e->getMessage() . ' in ' . $where,
             ]);
 
             return [];

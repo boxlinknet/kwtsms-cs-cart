@@ -69,7 +69,11 @@ class TemplateRenderer
     /** What an empty value leaves in the text until the tidy pass has run. */
     private const MARK = "\x00";
 
-    /** Passes of clean and brace strip settleValue() makes at most; a value that needs more is dropped. */
+    /**
+     * Passes of clean and brace strip settleValue() makes at most; a value that needs more is dropped.
+     * 2026-10-21 00:44 +03: added with settleValue(), Task 1.8 fix round 2 F1, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     private const MAX_VALUE_PASSES = 8;
 
     /** Separators inside a sentence: , ; : and the Arabic comma and semicolon. */

@@ -74,11 +74,17 @@ final class SampleData
      *                                           A custom status can have a longer name than any shipped one, and the
      *                                           estimate must count it.
      *                                           2026-10-21 05:03 +03: added, Task 1.12 fix round 1 item 4, task 596.
+     *                                           2026-10-21 08:37 +03: the signature is wrapped to 120
+     *                                           columns (phpcs), cleanup batch, task 596.
      *
      * @return array<string,string>
      */
-    public static function worst(string $lang, array $status_names, array $currency_names, string $own_status_name = ''): array
-    {
+    public static function worst(
+        string $lang,
+        array $status_names,
+        array $currency_names,
+        string $own_status_name = ''
+    ): array {
         if ($own_status_name !== '') {
             $status_names[] = $own_status_name;
         }

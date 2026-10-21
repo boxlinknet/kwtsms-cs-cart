@@ -619,10 +619,13 @@ class SmsService
     }
 
     /**
-     * What a throw inside the pipeline leaves behind: the claimed row goes back to pending when no API call was
-     * made (with one more attempt counted, so a throw that repeats ends at the expiry) and is final "unknown"
+     * What a throw inside the pipeline leaves behind: the claimed row goes back to pending when no /send/ was
+     * transmitted ($api_called: only a /send/ that may have reached kwtSMS counts; a /balance/ refresh or probe
+     * does not), with one more attempt counted so a throw that repeats ends at the expiry, and is final "unknown"
      * otherwise (it may have been sent); a recipient is never "deferred" without an outbox row; attempt rows already
      * written are not written again. 2026-10-21 01:04 +03: added (fix round 1, items 4 and 9), task 596.
+     * 2026-10-21 01:43 +03: "no API call" became "no /send/ transmitted" (fix round 2, item E); docblock reworded
+     * 2026-10-21 08:35 +03, cleanup item 8.
      *
      * @param array<int,array<string,mixed>> $rcpt
      * @param array<string,mixed>            $context
@@ -753,9 +756,11 @@ class SmsService
         }
 
         // Step 1: kwtsms_send_pre may edit the phones, the text and the context, or cancel.
-        // 2026-10-21 01:04 +03: NOT for a drained row: the hook ran on its first attempt and the row holds the text it
-        // returned; running it again would edit an edited text and could cancel a send already promised (fix
-        // round 1, important 3), task 596.
+        // 2026-10-21 01:04 +03: NOT for a drained row whose hook already ran: the hook ran on its first attempt and the
+        // row holds the text it returned; running it again would edit an edited text and could cancel a send
+        // already promised (fix round 1, important 3), task 596.
+        // 2026-10-21 08:35 +03: a row queued for after the response is a first attempt and the hook runs on it
+        // once ($hook_due below, 2026-10-21 04:19 and 05:08 +03); cleanup item 8, task 596.
         $cancel = false;
         $outbox_id = $context['outbox_id'];
         // 2026-10-21 03:15 +03: sendTest() skips step 2 for this send only; read and cleared before any hook runs

@@ -8,7 +8,8 @@
  * WHAT:      The "SMS brand name" a message shows as {store_name}: the brand the admin set for the storefront in
  *            the message language, else the storefront name, else the company name; at most 20 characters, on
  *            one plain line. Also the writer of the brand tables for the Templates page's brand-name editor
- *            (2026-10-21 05:10 +03: typed(), fallback(), normalize() and store() added, Task 1.12 fix round 1 item 3, ruling R33).
+ *            (2026-10-21 05:10 +03: typed(), fallback(), normalize() and store() added, Task 1.12 fix round 1 item 3,
+ *            ruling R33).
  * WHY:       PRD 6.4: customers must recognise the sender in the first words of the SMS, and a long shop name
  *            would eat the page budget (the defaults are sized for a 20-character brand). In Multi-Vendor the
  *            brand is the marketplace's, never a vendor's: the company name used is the marketplace setting, and
@@ -109,7 +110,10 @@ class BrandNames
             return '';
         }
         db_query(
-            'INSERT INTO ?:kwtsms_brand_names (storefront_id, enabled) VALUES (?i, ?s) ON DUPLICATE KEY UPDATE enabled = ?s',
+            // 2026-10-21 08:37 +03: the statement is split over two lines for 120 columns (phpcs), same SQL,
+            // cleanup batch, task 596.
+            'INSERT INTO ?:kwtsms_brand_names (storefront_id, enabled) VALUES (?i, ?s)'
+            . ' ON DUPLICATE KEY UPDATE enabled = ?s',
             $storefront_id,
             'Y',
             'Y'
@@ -185,7 +189,7 @@ class BrandNames
 
     /**
      * Cleaned for storage, the characters above U+FFFF out (the column is utf8mb3), one plain line, not yet cut.
-     * 2026-10-21 05:15 +03: split out of fit(), Task 1.12 fix round 1 item 3.
+     * 2026-10-21 05:15 +03: split out of fit(), Task 1.12 fix round 1 item 3, task 596.
      */
     private static function oneLine(string $name): string
     {

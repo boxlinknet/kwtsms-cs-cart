@@ -220,7 +220,11 @@ class SettingsPage
         return $code !== '' ? ApiErrors::describe($code) : (string) __('kwtsms.settings.sync_no_reason');
     }
 
-    /** Class, message and file:line of a caught throwable, for an error row (no trace, PRD 10). */
+    /**
+     * Class, message and file:line of a caught throwable, for an error row (no trace, PRD 10).
+     * 2026-10-21 03:16 +03: added, Task 1.10 fix round 1 items 3 and 9, task 596.
+     * 2026-10-21 08:35 +03: this stamp added, cleanup item 6.
+     */
     private static function describeThrowable(\Throwable $e): string
     {
         return get_class($e) . ': ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine();
@@ -431,12 +435,19 @@ class SettingsPage
      * through SmsService::sendTest() (ruling R30: it works before SMS are switched on, every other gate applies).
      * Used by testSms() (the fixed text) and by the Templates page's "Send a test of this template" (a rendered
      * template with sample data).
-     * 2026-10-21 05:19 +03: split out of testSms(), behaviour of testSms() unchanged. Task 1.12 fix round 1 item 2, task 596.
+     * 2026-10-21 05:19 +03: split out of testSms(), behaviour of testSms() unchanged. Task 1.12 fix round 1 item 2,
+     * task 596. 2026-10-21 08:37 +03: the signature is wrapped to 120 columns (phpcs), cleanup batch, task 596.
      *
      * @return array<string,mixed>|null The result panel, or null when nothing was sent (a notification says why)
      */
-    public function sendTestText(string $phone, bool $intl, string $text, int $admin_id, string $ip, string $lang_code): ?array
-    {
+    public function sendTestText(
+        string $phone,
+        bool $intl,
+        string $text,
+        int $admin_id,
+        string $ip,
+        string $lang_code
+    ): ?array {
         $phone = trim($phone);
         if ($phone === '') {
             $this->say('E', 'kwtsms.test_sms.phone_required');

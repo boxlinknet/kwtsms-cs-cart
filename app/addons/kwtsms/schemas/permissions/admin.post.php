@@ -56,8 +56,8 @@ $schema['kwtsms'] = [
         'toggle_event'           => ['permissions' => 'manage_kwtsms'],
         // 2026-10-21 03:27 +03: the Templates page preview (POST, sends nothing), Task 1.12, task 596.
         'preview_template'       => ['permissions' => 'manage_kwtsms'],
-        // 2026-10-21 05:19 +03: Task 1.12 fix round 1 (the template test send needs the gateway privilege; the brand-name editor the
-        // template privilege), task 596.
+        // 2026-10-21 05:19 +03: Task 1.12 fix round 1 (the template test send needs the gateway privilege; the
+        // brand-name editor the template privilege), task 596.
         'test_template'          => ['permissions' => 'manage_kwtsms_gateway'],
         'update_brand_names'     => ['permissions' => 'manage_kwtsms'],
         'update_admin_alerts'    => ['permissions' => 'manage_kwtsms'],

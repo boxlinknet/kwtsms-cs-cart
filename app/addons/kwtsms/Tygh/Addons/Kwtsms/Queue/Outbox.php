@@ -6,8 +6,11 @@
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      The table kwtsms_outbox: sends that could not go out now (gateway unreachable, queue full,
- *            account suspended, quiet hours, request budget used up) and are retried later by the cron drain
- *            (Task 1.7) through SmsService::send() with context outbox_id.
+ *            account suspended, quiet hours, request budget used up) and are retried later by
+ *            SmsService::drainDue($limit, $time_budget_s, $cron), run by the cron and by the Dashboard (rows are
+ *            claimed and sent there; nothing can point a send at an outbox row).
+ *            2026-10-21 08:35 +03: this said "through SmsService::send() with context outbox_id", which was removed on
+ *            2026-10-21 01:43 +03 (cleanup item 8, task 596).
  * WHY:       PRD 6.11 and Appendix A: deferred sends are retried oldest first with back-off 30, 60, 120, 300 s
  *            and transactional rows expire after 30 minutes; a row is claimed before it is sent, so two drains
  *            (cron and dashboard) can never send it twice. D7: once a row is final, its secret values (OTP
@@ -18,9 +21,11 @@
  * USAGE:     $outbox = new Outbox();
  *            $id = $outbox->enqueue(['+96550000001'], $text, $context, 'gateway_unreachable',
  *                                   time() + 30, time() + 1800);
- *            2026-10-21 01:43 +03: the drain is SmsService::drainDue($limit, $time_budget_s) ONLY (fix round 2,
- *            item F, task 596); it reaps, reads due(), claims each row with the attempts it read, and sends what
- *            the claimed row holds. The old "send($row['phones'], ..., ['outbox_id' => ...])" drain and the one-
+ *            2026-10-21 01:43 +03: the drain is SmsService::drainDue($limit, $time_budget_s, $cron) ONLY (fix round 2,
+ *            item F, task 596; the $cron argument is 2026-10-21 01:54 +03, Task 1.7 fix round 1 item 7, named
+ *            here 2026-10-21 08:35 +03, cleanup item 8); it reaps, reads due(), claims each row
+ *            with the attempts it read, and sends what the claimed row holds. The old
+ *            "send($row['phones'], ..., ['outbox_id' => ...])" drain and the one-
  *            argument claim($id) are gone. The row API it uses:
  *            $outbox->due(20);             // [['outbox_id','created_at','retry_at','expires_at','attempts',
  *                                          //   'reason','status','phones'=>[],'message'=>'','context'=>[]], ...]

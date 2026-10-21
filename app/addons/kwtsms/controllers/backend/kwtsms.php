@@ -5,8 +5,10 @@
  * CREATED:   2026-10-21 02:00 +03
  * TASK:      596
  * AUTHOR:    kwtSMS
- * WHAT:      The kwtsms admin controller: the security gate of every mode, the add-on navigation and the Settings page
- *            with its POST actions. Later page tasks (1.11-1.15) add their pages here.
+ * WHAT:      The kwtsms admin controller: the security gate of every mode, the add-on navigation and the seven
+ *            pages (Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Logs, Help) with their POST
+ *            actions (login, save, test SMS, template save and test, brand names, alerts, Logs clear, resend,
+ *            export and the rest).
  * WHY:       PRD 7 and 10. Before any work: 1 only GET and POST (anything else: 405 and the access-denied page),
  *            2 RequestGate::deny(): a mode outside the explicit map is denied, each mode answers its own method only,
  *            root administrators on All storefronts only (ruling R12), fn_check_current_user_access() with the mode's
@@ -25,6 +27,7 @@
  *            Integrations,Logs,Help}Page and Admin\Log{Clearer,Export,Resender}, Tygh::$app['kwtsms.*']
  *            (ServiceProvider), the page templates in design/backend/templates/addons/kwtsms/views/kwtsms/.
  * CHANGED:   2026-10-21 07:03 +03: USAGE and DEPENDS list every page (Tasks 1.13 and 1.15 fix round 1, task 596).
+ *            2026-10-21 08:39 +03: WHAT describes the finished seven pages (cleanup item 13, task 596).
  */
 
 // 2026-10-21 07:03 +03: the shared cron line helper, Tasks 1.13 and 1.15 fix round 1, task 596.
