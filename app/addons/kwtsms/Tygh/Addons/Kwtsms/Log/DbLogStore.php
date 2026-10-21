@@ -87,10 +87,15 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
 
     /**
      * 2026-10-21 01:00 +03: one statement for many rows (Task 1.6 review, N+1), task 596. Rows longer than
-     * BULK_CHUNK go in several statements; the ids are consecutive within one statement (innodb_autoinc_lock_mode
-     * 0 or 1, and simple inserts in mode 2), so a caller that needs every id passes at most BULK_CHUNK rows.
+     * BULK_CHUNK go in several statements.
      * 2026-10-21 01:43 +03: returns every id: the first id of each statement plus k times @@auto_increment_increment
      * (read once per request; a Galera or multi-source cluster sets it above 1), fix round 2, item C, task 596.
+     * 2026-10-21 13:42 +03: reworded, cleanup 2 item 9, task 596. The ids are computed, not read back: the first id
+     * the statement generated plus k times the step, which autoIncrementStep() reads BEFORE the INSERT. That equals
+     * the stored ids only for the rows of ONE multi-row INSERT under InnoDB's consecutive lock mode
+     * (innodb_autoinc_lock_mode 0 or 1); this method does not check the mode or read the ids back, and the ids of two
+     * statements (two chunks) are not related. A caller that needs every id exact passes at most BULK_CHUNK rows and
+     * runs on a server in that mode.
      *
      * @return int[]
      *
