@@ -4414,3 +4414,9 @@ msgstr "تعذر الفحص مع kwtSMS الآن. يبين الجدول أدنا
 msgctxt "Languages::kwtsms.integrations.open.checkout_fields_note"
 msgid "Opens the storefront block manager in edit mode."
 msgstr "يفتح مدير كتل واجهة المتجر في وضع التحرير."
+
+# 2026-10-21 16:56 +03: final review I2 (ruling R52), task 596. kwtsms.help.cron.host_p1 says when order SMS go out on a host
+# without PHP-FPM or LiteSpeed (the cron sends them while it runs, else they are sent during the checkout).
+msgctxt "Languages::kwtsms.help.cron.host_p1"
+msgid "On PHP-FPM and LiteSpeed servers, order SMS go out right after the shopper's page is sent. On other servers (for example Apache with mod_php), order SMS wait in the queue for the cron while it runs every minute, so the checkout never waits for kwtSMS. If the cron does not run, they are sent during the checkout, which makes it slower."
+msgstr "على خوادم PHP-FPM وLiteSpeed تُرسل رسائل الطلبات فور إرسال الصفحة إلى المتسوق. على الخوادم الأخرى (مثل Apache مع mod_php) تنتظر رسائل الطلبات في قائمة الانتظار لترسلها المهمة المجدولة ما دامت تعمل كل دقيقة، فلا ينتظر إتمام الطلب kwtSMS أبدا. إذا لم تعمل المهمة المجدولة تُرسل الرسائل أثناء إتمام الطلب، فيصبح أبطأ."

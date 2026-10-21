@@ -41,6 +41,11 @@
  *            2026-10-21 08:04 +03, ruling R37, task 596: SMS on but not set up writes ONE blocked_not_configured
  *            attempt row per receiver (the order, the event, the reason) before it returns; still no key, no outbox
  *            row.
+ *            2026-10-21 16:52 +03, final review I2 (ruling R52), task 596: the send mode comes from the AfterResponse
+ *            seam: after the response under PHP-FPM (fastcgi_finish_request) or LiteSpeed (litespeed_finish_request);
+ *            with neither, the outbox row is left for the cron when the cron ran within 2 intervals (log
+ *            order_sms.queued_for_cron), else the SMS is sent in the request (ApiClient caps a web call's slot wait
+ *            at 1 s; past it the send is deferred to the outbox).
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -97,8 +102,14 @@ class OrderNotifier
     /** @var array<string,array<string,mixed>> declared third-party events */
     private $declared;
 
-    /** @var callable (array $actor): bool, true = send after the response (2026-10-21 03:11 +03, task 596) */
+    /**
+     * @var callable (array $actor): string|bool, an AfterResponse mode; true = fpm, false = inline (2026-10-21 03:11
+     *      +03, task 596; 2026-10-21 16:52 +03: a mode string, final review I2, task 596)
+     */
     private $after_response;
+
+    /** @var string AfterResponse mode of the rows in $deferred (2026-10-21 16:52 +03: final review I2, task 596) */
+    private $finish_mode = AfterResponse::FPM;
 
     /** @var int[] outbox ids waiting for flushDeferred() (2026-10-21 04:20 +03: were closures, task 596) */
     private $deferred = [];
@@ -108,8 +119,10 @@ class OrderNotifier
 
     /**
      * @param array<mixed,mixed> $declared       The kwtsms events schema (fn_get_schema('kwtsms', 'events'))
-     * @param callable|null      $after_response (array $actor): bool; null = sendsAfterResponse() (2026-10-21 03:11
-     *                                           +03, Task 1.9 scenario 14, task 596)
+     * @param callable|null      $after_response (array $actor): string|bool; null = sendsAfterResponse() (2026-10-21
+     *                                           03:11 +03, Task 1.9 scenario 14, task 596). 2026-10-21 16:52 +03: an
+     *                                           AfterResponse mode (fpm, litespeed, cron, inline) or a bool (true =
+     *                                           fpm), final review I2, task 596.
      */
     public function __construct(
         SmsService $sms,
@@ -406,9 +419,20 @@ class OrderNotifier
         // so the shopper never waits for the gateway (scenario 14 measured about 0.75 s per kwtSMS call); the
         // dispatch key is already claimed above, so the decision is final. Task 1.9, task 596.
         // 2026-10-21 04:20 +03: the SMS waits in the outbox, due now, not in PHP memory (fix round 1 item 1), task 596.
-        if (call_user_func($this->after_response, $actor)) {
+        // 2026-10-21 16:52 +03: the mode decides: fpm/litespeed send after the response, cron leaves the row for the
+        // cron, inline sends now (final review I2, ruling R52), task 596.
+        $mode = $this->sendMode($actor);
+        if (AfterResponse::afterResponse($mode) || $mode === AfterResponse::CRON) {
             $outbox_id = $this->sms->queueAfterResponse($phones, $text, $context);
+            if ($outbox_id > 0 && $mode === AfterResponse::CRON) {
+                $this->info('order_sms.queued_for_cron', 'order SMS left in the outbox for the cron', $log + [
+                    'outbox_id' => $outbox_id,
+                ]);
+
+                return true;
+            }
             if ($outbox_id > 0) {
+                $this->finish_mode = $mode;
                 $this->deferred[] = $outbox_id;
                 if (!$this->shutdown_registered) {
                     $this->shutdown_registered = true;
@@ -435,15 +459,15 @@ class OrderNotifier
      * 2026-10-21 03:11 +03: added, Task 1.9 scenario 14, task 596.
      * 2026-10-21 04:20 +03: sends the queued outbox rows by id through the outbox claim; a row the cron already
      * took is left to it (fix round 1 item 1), task 596.
+     * 2026-10-21 16:52 +03: ends the response with the function of the mode (fastcgi_finish_request or
+     * litespeed_finish_request), final review I2, task 596.
      */
     public function flushDeferred(): void
     {
         if ($this->deferred === []) {
             return;
         }
-        if (function_exists('fastcgi_finish_request')) {
-            @fastcgi_finish_request();
-        }
+        AfterResponse::finish($this->finish_mode);
         $ids = $this->deferred;
         $this->deferred = [];
         try {
@@ -474,12 +498,30 @@ class OrderNotifier
     /**
      * Default rule for sending after the response: a storefront web request served by PHP-FPM.
      * 2026-10-21 03:11 +03: added, Task 1.9 scenario 14, task 596.
+     * 2026-10-21 16:52 +03: or by LiteSpeed (AfterResponse), final review I2, task 596.
      *
      * @param array<string,mixed> $actor OrderSource::actor()
      */
     public static function sendsAfterResponse(array $actor): bool
     {
-        return ($actor['area'] ?? '') === 'C' && PHP_SAPI !== 'cli' && function_exists('fastcgi_finish_request');
+        return AfterResponse::afterResponse((new AfterResponse())->mode($actor));
+    }
+
+    /**
+     * The AfterResponse mode of the seam for this actor; true is fpm, any other non-string is inline.
+     * 2026-10-21 16:52 +03: added, final review I2, task 596.
+     *
+     * @param array<string,mixed> $actor
+     */
+    private function sendMode(array $actor): string
+    {
+        $mode = call_user_func($this->after_response, $actor);
+        if ($mode === true) {
+            return AfterResponse::FPM;
+        }
+        $known = [AfterResponse::FPM, AfterResponse::LITESPEED, AfterResponse::CRON, AfterResponse::INLINE];
+
+        return is_string($mode) && in_array($mode, $known, true) ? $mode : AfterResponse::INLINE;
     }
 
     /**

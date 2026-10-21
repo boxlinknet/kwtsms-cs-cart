@@ -458,7 +458,9 @@ class ApiClient
                 return $this->local($endpoint, $refused, $started, $raw_request);
             }
             try {
-                $this->guard->acquire();
+                // 2026-10-21 16:53 +03: a web call waits at most 1 s for the slot, then defers as LOCAL_BUSY (final
+                // review I2, ruling R52), task 596.
+                $this->guard->acquire($this->context === 'web' ? ApiGuard::WEB_MAX_WAIT_MS : ApiGuard::MAX_WAIT_MS);
             } catch (ApiGuardException $e) {
                 return $this->local($endpoint, $e->apiCode(), $started, $raw_request);
             }

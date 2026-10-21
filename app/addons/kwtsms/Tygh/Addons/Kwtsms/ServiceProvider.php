@@ -59,6 +59,8 @@ use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Notifications\SmsTransport;
+// 2026-10-21 16:53 +03: AfterResponse decides the order SMS send mode (final review I2), task 596.
+use Tygh\Addons\Kwtsms\Orders\AfterResponse;
 use Tygh\Addons\Kwtsms\Orders\CheckoutRules;
 use Tygh\Addons\Kwtsms\Orders\Diagnostics;
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
@@ -327,7 +329,10 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.order_diagnostics'],
                 $app['kwtsms.order_source'],
                 $app['kwtsms.logs.debug'],
-                $app['kwtsms.declared_events']
+                $app['kwtsms.declared_events'],
+                // 2026-10-21 16:53 +03: fpm, litespeed, cron (heartbeat within 2 intervals) or inline (final
+                // review I2, ruling R52), task 596.
+                [new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']), 'mode']
             );
         };
 

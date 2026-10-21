@@ -38,6 +38,10 @@
  *            treated as "now", so a bad row can never stall the store. Suspension is NOT checked here:
  *            the /balance/ probe that ends a suspension has to go out.
  *            Test seams (protected): lock(), unlock(), nowMs(), sleepMs(), databaseIdentity().
+ *            2026-10-21 16:53 +03, final review I2 (ruling R52), task 596: acquire($max_wait_ms) refuses a slot
+ *            further ahead than $max_wait_ms with LOCAL_BUSY and reserves nothing; ApiClient passes WEB_MAX_WAIT_MS
+ *            (1 s) for a web call, so a storefront request never sleeps longer than that for the slot (the send is
+ *            deferred to the outbox for the cron or the next request).
  * DEPENDS:   Storage\KeyValueStoreInterface (getFresh), Gateway\GatewayState, CS-Cart db_get_field() for the
  *            default lock (without it the lock is "unavailable" and acquire() fails closed with LOCAL_BUSY).
  */
@@ -75,6 +79,12 @@ class ApiGuard
     /** A reserved slot further ahead than this is a corrupt value, not a queue. */
     private const MAX_BACKLOG_MS = 10000;
 
+    /** The longest slot wait of a web call (2026-10-21 16:53 +03: final review I2, ruling R52, task 596). */
+    public const WEB_MAX_WAIT_MS = 1000;
+
+    /** The longest slot wait of any other call (2026-10-21 16:53 +03: final review I2, task 596). */
+    public const MAX_WAIT_MS = self::MAX_BACKLOG_MS;
+
     /** @var KeyValueStoreInterface */
     private $store;
 
@@ -106,10 +116,15 @@ class ApiGuard
 
     /**
      * Takes the next global slot and waits for it.
+     * 2026-10-21 16:53 +03: a slot more than $max_wait_ms ahead is not taken (LOCAL_BUSY, nothing reserved), final
+     * review I2, task 596.
      *
-     * @throws ApiGuardException LOCAL_DEFERRED, LOCAL_BREAKER, or LOCAL_BUSY (lock not available in 2 s)
+     * @param int $max_wait_ms The longest wait this call accepts (WEB_MAX_WAIT_MS for a web call)
+     *
+     * @throws ApiGuardException LOCAL_DEFERRED, LOCAL_BREAKER, or LOCAL_BUSY (lock not available in 2 s, or the
+     *                           slot is further ahead than $max_wait_ms)
      */
-    public function acquire(): void
+    public function acquire(int $max_wait_ms = self::MAX_WAIT_MS): void
     {
         $reason = $this->blockReason();
         if ($reason !== null) {
@@ -123,6 +138,10 @@ class ApiGuard
             $next = (int) $this->store->getFresh(self::SLOT_KEY);
             if ($next < $now || $next - $now > self::MAX_BACKLOG_MS) {
                 $next = $now;
+            }
+            // 2026-10-21 16:53 +03: too far ahead for this caller: refuse before reserving (final review I2), task 596.
+            if ($next - $now > max(0, $max_wait_ms)) {
+                throw new ApiGuardException('LOCAL_BUSY');
             }
             $this->store->set(self::SLOT_KEY, (string) ($next + self::SPACING_MS));
         } finally {

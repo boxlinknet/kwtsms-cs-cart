@@ -153,6 +153,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <pre class="kwtsms-pre" id="kwtsms_help_cron_line" dir="ltr" tabindex="0">{$h.cron.line}</pre>
                 <p>{__("kwtsms.help.cron.p3", ["[script]" => $h.cron.admin_index|escape:"html"])} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_cron" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.cron.p4")}</p>
+                {* 2026-10-21 16:56 +03: when order SMS go out on a host without PHP-FPM or LiteSpeed (final review I2), task 596 *}
+                <p id="kwtsms_help_cron_host">{__("kwtsms.help.cron.host_p1")}</p>
 
                 <h5 class="kwtsms-subtitle">{__("kwtsms.help.cron.url_title")}</h5>
                 <p>{__("kwtsms.help.cron.url_p1")}</p>
