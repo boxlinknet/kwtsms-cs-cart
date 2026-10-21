@@ -43,9 +43,15 @@ final class CronKey
      * @param bool  $url_enabled The cron_url_enabled setting
      * @param string $stored     The stored key (Config::cronKey(): '' when none or malformed)
      * @param mixed $supplied    What the request carried; anything that is not a string is refused
+     * 2026-10-21 17:31 +03: #[\SensitiveParameter] on both keys (Task 1.17 review Important 2), task 596.
      */
-    public static function deny(bool $url_enabled, string $stored, $supplied): ?string
-    {
+    public static function deny(
+        bool $url_enabled,
+        #[\SensitiveParameter]
+        string $stored,
+        #[\SensitiveParameter]
+        $supplied
+    ): ?string {
         if (!$url_enabled) {
             return 'url_mode_off';
         }
@@ -70,9 +76,15 @@ final class CronKey
      * @param array<string,mixed> $post   $_POST
      *
      * @return mixed
+     * 2026-10-21 17:31 +03: #[\SensitiveParameter] on both arrays, they carry the key (Task 1.17 review Important
+     * 2), task 596.
      */
-    public static function supplied(array $server, array $post)
-    {
+    public static function supplied(
+        #[\SensitiveParameter]
+        array $server,
+        #[\SensitiveParameter]
+        array $post
+    ) {
         if (array_key_exists(self::SERVER_HEADER, $server)) {
             return $server[self::SERVER_HEADER];
         }

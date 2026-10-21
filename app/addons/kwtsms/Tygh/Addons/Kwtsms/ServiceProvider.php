@@ -139,8 +139,15 @@ class ServiceProvider implements ServiceProviderInterface
 
         // 2026-10-21 01:13 +03: a client on a candidate pair, for SyncService::login() (nothing is saved before
         // /balance/ is OK). Same guard, transport and log as every other client of the request. Task 1.7, task 596.
+        // 2026-10-21 17:31 +03: #[\SensitiveParameter] on the candidate password (hidden from traces on PHP 8.2+;
+        // a comment line on PHP 7.4), Task 1.17 review Important 2, task 596.
         $app['kwtsms.api_client_for'] = $app->protect(
-            function (string $user, string $pass, string $context) use ($app): ApiClient {
+            function (
+                string $user,
+                #[\SensitiveParameter]
+                string $pass,
+                string $context
+            ) use ($app): ApiClient {
                 return new ApiClient(
                     $user,
                     $pass,
