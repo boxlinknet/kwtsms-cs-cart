@@ -1,0 +1,66 @@
+# FILE:      .github/workflows/release.yml
+# CREATED:   2026-10-21 23:09 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      On a pushed tag vX.Y.Z, builds the add-on with tools/build-package.sh (every package gate) and publishes a
+#            GitHub Release with kwtsms-X.Y.Z.zip, kwtsms-X.Y.Z.tgz and SHA256SUMS, notes taken from CHANGELOG.md.
+# WHY:       Anyone can download the zip and install it through Add-ons > Manage add-ons > Manual installation,
+#            without the Marketplace; same release flow as the other kwtSMS integrations.
+# USAGE:     git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z (the tag must equal <version> in addon.xml).
+# DEPENDS:   Repository secret PRIVATE_PATTERNS (the lines of the local, gitignored docs/private-patterns.txt): the
+#            build's private-pattern gate fails closed without it. Docker on the runner for the PHP 7.4 pass.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag must equal the addon.xml version
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          XML="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' app/addons/kwtsms/addon.xml | head -1)"
+          [ "$VERSION" = "$XML" ] || { echo "tag $TAG does not match addon.xml version $XML"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Private patterns for the package gate
+        env:
+          PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
+        run: |
+          [ -n "$PRIVATE_PATTERNS" ] || { echo "secret PRIVATE_PATTERNS is not set"; exit 1; }
+          mkdir -p docs
+          printf '%s\n' "$PRIVATE_PATTERNS" > docs/private-patterns.txt
+
+      - name: Build the package
+        run: bash tools/build-package.sh
+
+      - name: Release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} on && /^## \[/ {exit} on {print}' CHANGELOG.md > notes.md
+          printf '\nInstall: Administration > Add-ons > Manage add-ons > gear icon > Manual installation > upload kwtsms-%s.zip.\n' "$VERSION" >> notes.md
+
+      - name: Publish the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: kwtSMS for CS-Cart v${{ steps.version.outputs.version }}
+          body_path: notes.md
+          files: |
+            dist/kwtsms-${{ steps.version.outputs.version }}.zip
+            dist/kwtsms-${{ steps.version.outputs.version }}.tgz
+            dist/SHA256SUMS
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

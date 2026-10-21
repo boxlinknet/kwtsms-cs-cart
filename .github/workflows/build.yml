@@ -1,0 +1,46 @@
+# FILE:      .github/workflows/build.yml
+# CREATED:   2026-10-21 23:09 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      On every push to main (and on demand), runs tools/build-package.sh with every package gate and keeps the
+#            zip, tgz and SHA256SUMS as a workflow artifact for 14 days.
+# WHY:       A change that breaks a package gate (private pattern, banned character, debug call, PHP 7.4 syntax)
+#            shows up on the commit, not on release day.
+# USAGE:     Automatic on push to main; Actions > Build > Run workflow for a manual run.
+# DEPENDS:   Repository secret PRIVATE_PATTERNS (see release.yml). Docker on the runner for the PHP 7.4 pass.
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Private patterns for the package gate
+        env:
+          PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
+        run: |
+          [ -n "$PRIVATE_PATTERNS" ] || { echo "secret PRIVATE_PATTERNS is not set"; exit 1; }
+          mkdir -p docs
+          printf '%s\n' "$PRIVATE_PATTERNS" > docs/private-patterns.txt
+
+      - name: Build the package
+        run: bash tools/build-package.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kwtsms-package
+          path: |
+            dist/*.zip
+            dist/*.tgz
+            dist/SHA256SUMS
+          retention-days: 14
