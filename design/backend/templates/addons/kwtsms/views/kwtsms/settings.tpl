@@ -11,6 +11,8 @@ WHY:       PRD 6.1, 6.3, 6.14, 7 and 9. Native backend components only, under th
            connected view. Every value is auto-escaped (no nofilter); data for the script sits in data- attributes.
            Each action button is its own small form (forms never nest); the security hash is added to every form by
            the core output filter.
+           2026-10-21 03:18 +03, Task 1.10 fix round 1 item 7, task 596: every value placed into a __() placeholder is
+           escaped here (|escape:"html"), because the core prints __() output as it is.
 USAGE:     Rendered by kwtsms.settings (controllers/backend/kwtsms.php) with $kwtsms = Admin\SettingsPage::viewData()
            plus test_result, order_statuses, cron_command, cron_url; $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, kwtsms.* language variables.
@@ -20,7 +22,8 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-settings" id="kwtsms_settings_page"
      data-kwtsms-test-sender="{$kwtsms.test_sender}"
-     data-kwtsms-test-mode="{$s.test_mode}">
+     data-kwtsms-test-mode="{$s.test_mode}"
+     data-kwtsms-saved-sender="{$s.sender_id}">
 
     {include file="addons/kwtsms/views/kwtsms/components/navigation.tpl" sections=$kwtsms_nav}
 
@@ -64,13 +67,13 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </div>
     </dl>
     {if !$kwtsms.configured}
-        <p class="kwtsms-status__note muted" id="kwtsms_not_ready">{__("kwtsms.status.not_ready", ["[reason]" => $kwtsms.configured_reason])}</p>
+        <p class="kwtsms-status__note muted" id="kwtsms_not_ready">{__("kwtsms.status.not_ready", ["[reason]" => $kwtsms.configured_reason|escape:"html"])}</p>
     {/if}
 
     {* ---- alerts with their own action ------------------------------------------------------------------------- *}
     {if $kwtsms.suspended}
         <div class="alert alert-error kwtsms-alert" id="kwtsms_suspended">
-            <p>{__("kwtsms.settings.suspended", ["[reason]" => $kwtsms.suspended_text])}</p>
+            <p>{__("kwtsms.settings.suspended", ["[reason]" => $kwtsms.suspended_text|escape:"html"])}</p>
             <form action="{""|fn_url}" method="post" name="kwtsms_retry_form" class="kwtsms-inline-form">
                 <input type="submit" class="btn" name="dispatch[kwtsms.retry_gateway]" value="{__("kwtsms.settings.retry_now")}">
             </form>
@@ -229,7 +232,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <label class="checkbox"><input type="checkbox" id="kwtsms_enabled" name="kwtsms_settings[enabled]" value="Y"{if $s.enabled == "Y"} checked="checked"{/if}> {__("kwtsms.settings.enabled_label")}</label>
                     <p class="muted description">{__("kwtsms.settings.enabled_help")}</p>
                     {if !$kwtsms.configured}
-                        <p class="kwtsms-hint" id="kwtsms_enable_reason">{__("kwtsms.settings.enable_blocked", ["[reason]" => $kwtsms.configured_reason])}</p>
+                        <p class="kwtsms-hint" id="kwtsms_enable_reason">{__("kwtsms.settings.enable_blocked", ["[reason]" => $kwtsms.configured_reason|escape:"html"])}</p>
                     {/if}
                 </div>
             </div>
@@ -446,14 +449,14 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <input type="text" id="kwtsms_test_phone" name="kwtsms_test[phone]" value="" class="input-medium" dir="ltr"
                            inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432">
                     <label class="checkbox"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_test[intl]" value="Y"> {__("kwtsms.test_sms.intl")}</label>
-                    <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label])}</p>
+                    <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label|escape:"html"])}</p>
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="kwtsms_test_suffix">{__("kwtsms.test_sms.suffix")}:</label>
                 <div class="controls">
                     <input type="text" id="kwtsms_test_suffix" name="kwtsms_test[suffix]" value="" class="input-large" maxlength="{$kwtsms.test_sms_suffix_max}" autocomplete="off">
-                    <p class="muted description">{__("kwtsms.test_sms.suffix_help", ["[max]" => $kwtsms.test_sms_suffix_max])}</p>
+                    <p class="muted description">{__("kwtsms.test_sms.suffix_help", ["[max]" => $kwtsms.test_sms_suffix_max|escape:"html"])}</p>
                 </div>
             </div>
             <div class="control-group">
@@ -465,7 +468,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_test_send" name="dispatch[kwtsms.test_sms]" value="{__("kwtsms.test_sms.send")}">
-                    <span class="muted">{__("kwtsms.test_sms.limit_help", ["[max]" => $kwtsms.test_sms_per_hour])}</span>
+                    <span class="muted">{__("kwtsms.test_sms.limit_help", ["[max]" => $kwtsms.test_sms_per_hour|escape:"html"])}</span>
                 </div>
             </div>
         </form>

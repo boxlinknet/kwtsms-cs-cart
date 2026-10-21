@@ -1331,3 +1331,29 @@ msgstr "Accepted but not delivered. Delete it from your kwtSMS queue to get the 
 msgctxt "Languages::kwtsms.settings.password_saved"
 msgid "Saved and hidden"
 msgstr "Saved and hidden"
+
+# 2026-10-21 03:19 +03: Task 1.10 fix round 1, task 596. The reason of a failed sync, the notice next to a refusal, the KWT-SMS
+# acknowledgement when the sender is chosen with test mode off, SMS on but not ready, a key the store refused.
+msgctxt "Languages::kwtsms.settings.sync_failed_reason"
+msgid "The sync with kwtSMS failed. [reason] The add-on keeps its saved data and tries again later."
+msgstr "The sync with kwtSMS failed. [reason] The add-on keeps its saved data and tries again later."
+
+msgctxt "Languages::kwtsms.settings.sync_no_reason"
+msgid "kwtSMS gave no reason."
+msgstr "kwtSMS gave no reason."
+
+msgctxt "Languages::kwtsms.settings.saved_others"
+msgid "The other settings were saved."
+msgstr "The other settings were saved."
+
+msgctxt "Languages::kwtsms.settings.ack_required_sender"
+msgid "The Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under Test mode first."
+msgstr "The Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under Test mode first."
+
+msgctxt "Languages::kwtsms.settings.on_not_ready"
+msgid "SMS are switched on, but none go out until this is fixed. [reason]"
+msgstr "SMS are switched on, but none go out until this is fixed. [reason]"
+
+msgctxt "Languages::kwtsms.reason.not_stored"
+msgid "The store couldn't save it. Check the add-on log."
+msgstr "The store couldn't save it. Check the add-on log."

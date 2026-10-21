@@ -34,6 +34,7 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
 
         var testSender = page.getAttribute('data-kwtsms-test-sender') || '';
         var testModeSaved = page.getAttribute('data-kwtsms-test-mode') === 'Y';
+        var savedSender = page.getAttribute('data-kwtsms-saved-sender') || '';
         var sender = page.querySelector('.kwtsms-js-sender');
         var senderType = page.querySelector('.kwtsms-js-sender-type');
         var testMode = page.querySelector('.kwtsms-js-test-mode');
@@ -45,7 +46,10 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
             var isTestSender = !!sender && sender.value === testSender && testSender !== '';
             toggle(warning, isTestSender);
             // The confirmation matters only while test mode is on now and the box is being cleared.
-            toggle(ack, isTestSender && testModeSaved && !!testMode && !testMode.checked);
+            // 2026-10-21 03:19 +03: also when KWT-SMS is chosen while test mode is already off (the saved state was
+            // not yet "off with KWT-SMS"), Task 1.10 fix round 1 item 4, task 596.
+            var alreadyAcknowledged = !testModeSaved && savedSender === testSender;
+            toggle(ack, isTestSender && !!testMode && !testMode.checked && !alreadyAcknowledged);
             if (senderType) {
                 toggle(promo, senderType.value === 'promotional');
             }

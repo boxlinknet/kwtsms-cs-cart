@@ -84,6 +84,9 @@ class SettingsPage
     /** @var DebugLog */
     private $log;
 
+    /** @var array<int,string>|null Country dropdown in the admin language (2026-10-21 03:16 +03, fix round 1 item 8) */
+    private $country_options = null;
+
     public function __construct(
         ConfigInterface $config,
         GatewayState $state,
@@ -156,7 +159,8 @@ class SettingsPage
             'sender_in_list' => in_array($this->config->senderId(), $senders, true),
             'test_sender' => self::TEST_SENDER,
             'settings' => $settings,
-            'countries' => PhoneNormalizer::countryOptions(),
+            // 2026-10-21 03:16 +03: names in the admin language (fix round 1 item 8), task 596.
+            'countries' => $this->countryOptions(),
             'max_pages' => range(1, 7),
             'daily_cap_tripped' => $this->dailyCapTripped(),
             'cron_last_run' => (int) $this->state->lastCron(),
@@ -190,10 +194,36 @@ class SettingsPage
         }
         $this->notify('N', (string) $result['message']);
         if (isset($result['sync']['ok']) && !$result['sync']['ok']) {
-            $this->say('W', 'kwtsms.settings.sync_failed');
+            // 2026-10-21 03:16 +03: the reason of the failed sync, not a generic text (Task 1.10 fix round 1 item 1),
+            // task 596.
+            $this->say('W', 'kwtsms.settings.sync_failed_reason', ['[reason]' => $this->syncReason($result['sync'])]);
         }
 
         return true;
+    }
+
+    /**
+     * Why a sync failed: SyncService's message, else the text of its code, else "no reason given".
+     * 2026-10-21 03:16 +03: added, Task 1.10 fix round 1 item 1, task 596.
+     *
+     * @param mixed $summary SyncService::sync() result
+     */
+    private function syncReason($summary): string
+    {
+        $summary = is_array($summary) ? $summary : [];
+        $message = isset($summary['message']) && is_string($summary['message']) ? trim($summary['message']) : '';
+        if ($message !== '') {
+            return $message;
+        }
+        $code = isset($summary['code']) && is_string($summary['code']) ? $summary['code'] : '';
+
+        return $code !== '' ? ApiErrors::describe($code) : (string) __('kwtsms.settings.sync_no_reason');
+    }
+
+    /** Class, message and file:line of a caught throwable, for an error row (no trace, PRD 10). */
+    private static function describeThrowable(\Throwable $e): string
+    {
+        return get_class($e) . ': ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine();
     }
 
     /** PRD 6.1 Disconnect: credentials, sender and cached data cleared, SMS off. */
@@ -202,7 +232,8 @@ class SettingsPage
         try {
             $this->sync->logout();
         } catch (\RuntimeException $e) {
-            $this->log->log('error', 'settings.logout_failed', get_class($e) . ': ' . $e->getMessage());
+            // 2026-10-21 03:16 +03: with file:line (Task 1.10 fix round 1 item 9), task 596.
+            $this->log->log('error', 'settings.logout_failed', self::describeThrowable($e));
             $this->say('E', 'kwtsms.settings.disconnect_failed');
 
             return false;
@@ -227,6 +258,8 @@ class SettingsPage
             'test_mode' => $this->config->testMode() ? 'Y' : 'N',
             'sender_id' => $this->config->senderId(),
             'default_country_code' => $this->config->defaultCountryCode(),
+            // 2026-10-21 03:16 +03: the account's list decides the effective sender (fix round 1 item 4), task 596.
+            'sender_ids' => $this->state->senderIds(),
         ];
         $prepared = self::prepare(is_array($posted) ? $posted : [], $current, $ack);
         $values = $prepared['values'];
@@ -238,10 +271,21 @@ class SettingsPage
         }
         $saved = array_values(array_diff(array_keys($values), $rejected));
 
-        $this->log->log('info', 'settings.save', 'save_settings', ['saved' => $saved, 'rejected' => $reasons]);
+        // 2026-10-21 03:19 +03: the store's own reason for a key it refused (no value), Task 1.10 fix round 1 item 14,
+        // task 596.
+        $store_errors = [];
+        foreach ($reasons as $key => $reason) {
+            if ($reason === 'not_stored') {
+                $store_errors[$key] = (string) $this->config->lastWriteError($key);
+            }
+        }
+        $this->log->log('info', 'settings.save', 'save_settings', ['saved' => $saved, 'rejected' => $reasons]
+            + ($store_errors === [] ? [] : ['store_errors' => $store_errors]));
 
+        // 2026-10-21 03:16 +03: "Settings saved" only when nothing was refused; next to a refusal the notice says the
+        // OTHER settings were saved (Task 1.10 fix round 1 item 10), task 596.
         if ($saved !== []) {
-            $this->say('N', 'kwtsms.settings.saved');
+            $this->say('N', $reasons === [] ? 'kwtsms.settings.saved' : 'kwtsms.settings.saved_others');
         }
         foreach ($reasons as $key => $reason) {
             $this->notify('E', $this->rejectionText($key, $reason), false);
@@ -258,9 +302,12 @@ class SettingsPage
      * - customer_sms_countries always holds the default country (the posted one, else the current one);
      * - low_balance_threshold empty = auto;
      * - test_mode N while it is on and the sender (posted, else current) is KWT-SMS needs $ack === 'Y' (PRD 6.1).
+     *   2026-10-21 03:16 +03 (fix round 1 item 4, task 596): the posted sender counts only when it is in
+     *   $current['sender_ids']; choosing KWT-SMS while test mode is already off needs the acknowledgement too
+     *   (refused: the sender stays, reason kwtsms_ack_sender).
      *
      * @param array<string,mixed>  $posted
-     * @param array<string,string> $current test_mode, sender_id, default_country_code as stored
+     * @param array<string,mixed>  $current test_mode, sender_id, default_country_code as stored; sender_ids the list
      * @param mixed                $ack
      *
      * @return array{values: array<string,mixed>, reasons: array<string,string>}
@@ -323,17 +370,24 @@ class SettingsPage
             $values['low_balance_threshold'] = 'auto';
         }
 
-        if (
-            array_key_exists('test_mode', $values)
-            && strtoupper(trim($values['test_mode'])) === 'N'
-            && ($current['test_mode'] ?? 'Y') === 'Y'
-        ) {
-            $sender = array_key_exists('sender_id', $values)
-                ? trim((string) $values['sender_id'])
-                : (string) ($current['sender_id'] ?? '');
-            if ($sender === self::TEST_SENDER && $ack !== 'Y') {
+        // 2026-10-21 03:16 +03: the acknowledgement guards the resulting state "test mode off with KWT-SMS", reached
+        // either by turning test mode off or by choosing KWT-SMS while it is already off. The effective sender is the
+        // posted one only when it is on the account's list (Config refuses any other, the saved one stays). Task 1.10
+        // fix round 1 item 4, task 596.
+        $current_test = ($current['test_mode'] ?? 'Y') === 'N' ? 'N' : 'Y';
+        $current_sender = (string) ($current['sender_id'] ?? '');
+        $listed = isset($current['sender_ids']) && is_array($current['sender_ids']) ? $current['sender_ids'] : [];
+        $posted_sender = array_key_exists('sender_id', $values) ? trim((string) $values['sender_id']) : null;
+        $sender = $posted_sender !== null && in_array($posted_sender, $listed, true) ? $posted_sender : $current_sender;
+        $posted_test = array_key_exists('test_mode', $values) ? strtoupper(trim((string) $values['test_mode'])) : '';
+        $test_after = in_array($posted_test, ['Y', 'N'], true) ? $posted_test : $current_test;
+        if ($test_after === 'N' && $sender === self::TEST_SENDER && $ack !== 'Y') {
+            if ($current_test === 'Y') {
                 unset($values['test_mode']);
                 $reasons['test_mode'] = 'kwtsms_ack';
+            } elseif ($current_sender !== self::TEST_SENDER) {
+                unset($values['sender_id']);
+                $reasons['sender_id'] = 'kwtsms_ack_sender';
             }
         }
 
@@ -373,7 +427,8 @@ class SettingsPage
                 'actor_user_id' => $admin_id,
             ]);
         } catch (\Throwable $e) {
-            $this->log->log('error', 'settings.test_sms_count_failed', get_class($e) . ': ' . $e->getMessage());
+            // 2026-10-21 03:16 +03: with file:line (Task 1.10 fix round 1 item 9), task 596.
+            $this->log->log('error', 'settings.test_sms_count_failed', self::describeThrowable($e));
             $this->say('E', 'kwtsms.test_sms.unavailable');
 
             return null;
@@ -393,7 +448,9 @@ class SettingsPage
         $to = $intl ? '+' . $digits_only : $phone;
         $normalized = PhoneNormalizer::normalize($to, $intl ? '' : $this->config->defaultCountryCode());
 
-        $result = $this->sms->send([$to], $this->testSmsText($suffix, $lang_code), [
+        // 2026-10-21 03:16 +03: sendTest(): the test SMS works before SMS is switched on (PRD 6.9 order); every other
+        // gate applies (ruling R30, Task 1.10 fix round 1 item 2), task 596.
+        $result = $this->sms->sendTest([$to], $this->testSmsText($suffix, $lang_code), [
             'source' => 'manual',
             'event_id' => self::TEST_SMS_EVENT,
             'receiver' => 'A',
@@ -421,7 +478,8 @@ class SettingsPage
 
             return false;
         }
-        $this->say('E', 'kwtsms.settings.sync_failed');
+        // 2026-10-21 03:16 +03: the reason of the failed sync (Task 1.10 fix round 1 item 1), task 596.
+        $this->say('E', 'kwtsms.settings.sync_failed_reason', ['[reason]' => $this->syncReason($summary)]);
 
         return false;
     }
@@ -475,7 +533,8 @@ class SettingsPage
         try {
             $this->config->regenerateCronKey();
         } catch (\RuntimeException $e) {
-            $this->log->log('error', 'settings.cron_key_failed', get_class($e) . ': ' . $e->getMessage());
+            // 2026-10-21 03:16 +03: with file:line (Task 1.10 fix round 1 item 9), task 596.
+            $this->log->log('error', 'settings.cron_key_failed', self::describeThrowable($e));
             $this->say('E', 'kwtsms.settings.key_not_regenerated');
 
             return false;
@@ -507,10 +566,13 @@ class SettingsPage
         $recipient = $result->recipients()[0] ?? [];
         $outcome = (string) ($recipient['outcome'] ?? '');
         $ids = $result->messageIds();
+        // 2026-10-21 03:16 +03: the number the pipeline itself normalized and logged (the attempt row's phone); the
+        // page's own normalization only when the pipeline kept none (Task 1.10 fix round 1 item 5), task 596.
+        $pipeline_phone = (string) ($recipient['phone'] ?? '');
 
         return [
             'status' => $result->status(),
-            'phone' => $normalized !== '' ? $normalized : (string) ($recipient['phone'] ?? ''),
+            'phone' => $pipeline_phone !== '' ? $pipeline_phone : $normalized,
             'outcome' => $outcome,
             'outcome_text' => $outcome === '' ? '' : $this->text('kwtsms.outcome.' . $outcome),
             'reason' => (string) ($recipient['reason'] ?? ''),
@@ -534,6 +596,9 @@ class SettingsPage
 
             return $this->attempts->countRecent('', '', $seconds, ['blocked_daily_cap']) > 0;
         } catch (\Throwable $e) {
+            // 2026-10-21 03:16 +03: logged before the fallback (Task 1.10 fix round 1 item 3), task 596.
+            $this->log->log('error', 'settings.daily_cap_check_failed', self::describeThrowable($e));
+
             return false;
         }
     }
@@ -543,11 +608,21 @@ class SettingsPage
     {
         if ($key === 'enabled') {
             list($ok, $why) = $this->state->isConfigured($this->config);
+            // 2026-10-21 03:16 +03: the stored switch decides the wording: still off, or on but unable to send
+            // (Task 1.10 fix round 1 item 10), task 596.
+            if ($ok) {
+                return 'invalid';
+            }
 
-            return $ok ? 'invalid' : 'not_configured:' . (string) $why;
+            return ($this->config->enabled() ? 'on_not_ready:' : 'not_configured:') . (string) $why;
         }
         if ($key === 'sender_id') {
             return 'sender_not_in_list';
+        }
+        // 2026-10-21 03:16 +03: a key the settings store refused (Config logs its reason), Task 1.10 fix round 1
+        // item 14, task 596.
+        if (method_exists($this->config, 'lastWriteError') && $this->config->lastWriteError($key) !== null) {
+            return 'not_stored';
         }
 
         return 'invalid';
@@ -558,14 +633,28 @@ class SettingsPage
         if ($reason === 'kwtsms_ack') {
             return $this->text('kwtsms.settings.ack_required');
         }
-        if (strpos($reason, 'not_configured:') === 0) {
-            $why = $this->knownReason(substr($reason, strlen('not_configured:')));
+        // 2026-10-21 03:16 +03: KWT-SMS chosen while test mode is already off (Task 1.10 fix round 1 item 4), task 596.
+        if ($reason === 'kwtsms_ack_sender') {
+            return $this->text('kwtsms.settings.ack_required_sender');
+        }
+        $prefixes = [
+            'not_configured:' => 'kwtsms.settings.enable_refused',
+            'on_not_ready:' => 'kwtsms.settings.on_not_ready',
+        ];
+        foreach ($prefixes as $prefix => $langvar) {
+            if (strpos($reason, $prefix) === 0) {
+                $why = $this->knownReason(substr($reason, strlen($prefix)));
 
-            return $this->text('kwtsms.settings.enable_refused', ['[reason]' => (string) __('kwtsms.reason.' . $why)]);
+                return $this->text($langvar, ['[reason]' => (string) __('kwtsms.reason.' . $why)]);
+            }
         }
         $field = (string) __('kwtsms.settings.field.' . $key);
-        $why = (string) __($reason === 'unknown_country' ? 'kwtsms.reason.unknown_country'
-            : ($reason === 'sender_not_in_list' ? 'kwtsms.reason.sender_unknown' : 'kwtsms.reason.invalid'));
+        $why_keys = [
+            'unknown_country' => 'kwtsms.reason.unknown_country',
+            'sender_not_in_list' => 'kwtsms.reason.sender_unknown',
+            'not_stored' => 'kwtsms.reason.not_stored',
+        ];
+        $why = (string) __($why_keys[$reason] ?? 'kwtsms.reason.invalid');
 
         return $this->text('kwtsms.settings.not_saved', ['[field]' => $field, '[reason]' => $why]);
     }
@@ -656,9 +745,85 @@ class SettingsPage
 
     private function countryLabel(string $code): string
     {
-        $options = PhoneNormalizer::countryOptions();
+        // 2026-10-21 03:16 +03: the label in the admin language (fix round 1 item 8), task 596.
+        $options = $this->countryOptions();
 
         return ctype_digit($code) && isset($options[(int) $code]) ? (string) $options[(int) $code] : $code;
+    }
+
+    /**
+     * The country dropdown in the admin language (cached per object). 2026-10-21 03:16 +03: added, Task 1.10 fix
+     * round 1 item 8, task 596.
+     *
+     * @return array<int,string>
+     */
+    private function countryOptions(): array
+    {
+        if ($this->country_options === null) {
+            $lang = defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en';
+            $this->country_options = self::localizeCountryOptions(
+                PhoneNormalizer::countryOptions(),
+                $this->countryNames($lang)
+            );
+        }
+
+        return $this->country_options;
+    }
+
+    /**
+     * Country options with the names of core ?:country_descriptions: a calling code that belongs to exactly one ISO2
+     * code of PhoneNormalizer::ISO_CALLING_CODES gets that country's name; any other keeps the English name. The first
+     * option (Kuwait) stays first; the rest are sorted by the shown name. Pure.
+     * 2026-10-21 03:16 +03: added, Task 1.10 fix round 1 item 8, task 596.
+     *
+     * @param array<int,string>    $options      PhoneNormalizer::countryOptions()
+     * @param array<string,string> $names_by_iso ISO2 => country name in the admin language
+     *
+     * @return array<int,string> calling code => "Name (+code)"
+     */
+    public static function localizeCountryOptions(array $options, array $names_by_iso): array
+    {
+        $isos_by_code = [];
+        foreach (PhoneNormalizer::ISO_CALLING_CODES as $iso => $code) {
+            $isos_by_code[(string) $code][] = (string) $iso;
+        }
+        $localized = [];
+        foreach ($options as $code => $label) {
+            $isos = $isos_by_code[(string) $code] ?? [];
+            $name = count($isos) === 1 && isset($names_by_iso[$isos[0]]) ? trim((string) $names_by_iso[$isos[0]]) : '';
+            $localized[$code] = $name !== '' ? $name . ' (+' . $code . ')' : (string) $label;
+        }
+        $first_code = array_key_first($options);
+        $first = $first_code === null ? [] : [$first_code => $localized[$first_code]];
+        unset($localized[$first_code]);
+        uasort($localized, static function (string $a, string $b): int {
+            return strcmp(mb_strtolower($a, 'UTF-8'), mb_strtolower($b, 'UTF-8'));
+        });
+
+        return $first + $localized;
+    }
+
+    /**
+     * ISO2 => country name in $lang from core ?:country_descriptions; [] when it cannot be read (logged).
+     * 2026-10-21 03:16 +03: added, Task 1.10 fix round 1 item 8, task 596.
+     *
+     * @return array<string,string>
+     */
+    protected function countryNames(string $lang): array
+    {
+        try {
+            $names = db_get_hash_single_array(
+                'SELECT code, country FROM ?:country_descriptions WHERE lang_code = ?s',
+                ['code', 'country'],
+                $lang
+            );
+
+            return is_array($names) ? array_map('strval', $names) : [];
+        } catch (\Throwable $e) {
+            $this->log->log('error', 'settings.country_names_failed', self::describeThrowable($e));
+
+            return [];
+        }
     }
 
     /** A credit amount without trailing zeros: 1990, 1990.5. */
@@ -682,6 +847,9 @@ class SettingsPage
 
             return BrandNames::get($storefront_id, $lang);
         } catch (\Throwable $e) {
+            // 2026-10-21 03:16 +03: logged before the fallback (Task 1.10 fix round 1 item 3), task 596.
+            $this->log->log('error', 'settings.brand_failed', self::describeThrowable($e));
+
             return '';
         }
     }

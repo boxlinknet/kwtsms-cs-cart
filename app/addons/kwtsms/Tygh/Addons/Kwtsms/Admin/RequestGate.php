@@ -113,11 +113,7 @@ final class RequestGate
         return null;
     }
 
-    /** True for a mode that only runs on POST. */
-    public static function isPostMode(string $mode): bool
-    {
-        return isset(self::MODES[$mode]) && self::MODES[$mode][0] === self::POST;
-    }
+    // 2026-10-21 03:19 +03: isPostMode() removed, nothing used it (Task 1.10 fix round 1 item 11), task 596.
 
     /**
      * Ruling R12: an administrator account (user type A) of company 0, with no storefront or vendor selected.
