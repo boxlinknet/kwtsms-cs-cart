@@ -26,6 +26,9 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
 @kwtsms-link: #0B62A0;
 @kwtsms-link-hover: #084A78;
 @kwtsms-info-text: #0F5E80;
+// 2026-10-21 13:59 +03: cleanup 2, task 596. The core warning text (#9F6F12) is 4.17:1 on its #FFF8E9 wash; this amber is
+// 5.33:1 there and keeps the hue.
+@kwtsms-warning-text: #8A5F0F;
 @kwtsms-accent: #79CCF2;
 @kwtsms-accent-tint: #E4F5FD;
 @kwtsms-line: #E3E3E6;
@@ -55,6 +58,72 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
     table thead th,
     table thead:not(:hover) th {
         color: @kwtsms-muted;
+    }
+
+    /* 2026-10-21 13:59 +03: cleanup 2 item 1, task 596. Links in tables, lists and the back link of the detail view use the
+       link blue, underlined (the colour alone would not set a link apart from the grey and black text around it): the
+       core link blue (#1D9FF8) is 2.85:1 on white and the core table-header link grey (#7A7A7A) is 4.29:1; #0B62A0 is
+       6.42:1 on white and 6.09:1 on the #F7F9FB card wash of the narrow layout. The nav tabs (.nav) and the buttons
+       made of links (.btn) keep their own look. 2026-10-21 14:02 +03: the table-header link (the sort link of the Logs) is
+       matched once more with the core selector's own shape (`.table thead:not(:hover) th a` sets it to the core grey,
+       4.29:1, and is more specific than the first selector). */
+    table a:not(.btn),
+    table thead:not(:hover) th a:not(.btn),
+    dl a:not(.btn),
+    ol a:not(.btn),
+    ul:not(.nav) a:not(.btn),
+    .kwtsms-logs-back a {
+        color: @kwtsms-link;
+        text-decoration: underline;
+        &:hover,
+        &:focus {
+            color: @kwtsms-link-hover;
+            text-decoration: underline;
+        }
+    }
+
+    /* 2026-10-21 13:59 +03: cleanup 2 item 2, task 596 (controller ruling). Our primary buttons (Apply filter, Send test
+       SMS, ...) are white on #0B62A0 (6.42:1), hover, focus and active white on #084A78 (9.29:1); the core primary is white
+       on #1D9FF8 (2.85:1). Only inside .kwtsms-page: the buttons of the core pages keep the core look. */
+    .btn-primary {
+        background-color: @kwtsms-link;
+        background-image: none;
+        border-color: @kwtsms-link;
+        color: #fff;
+        text-shadow: none;
+        &:hover,
+        &:focus,
+        &:active {
+            background-color: @kwtsms-link-hover;
+            background-image: none;
+            border-color: @kwtsms-link-hover;
+            color: #fff;
+        }
+    }
+
+    /* 2026-10-21 14:24 +03: cleanup 2, task 596. The destructive button of the Logs clear confirmation (white on the core pink
+       #F84F8C, 3.24:1) is white on the danger red #B42318 (6.57:1), hover, focus and active #8E1A10 (9.11:1). Same rule as the
+       primary button: only inside .kwtsms-page. */
+    .btn-danger {
+        background-color: @kwtsms-danger;
+        background-image: none;
+        border-color: @kwtsms-danger;
+        color: #fff;
+        text-shadow: none;
+        &:hover,
+        &:focus,
+        &:active {
+            background-color: #8E1A10;
+            background-image: none;
+            border-color: #8E1A10;
+            color: #fff;
+        }
+    }
+
+    /* 2026-10-21 13:59 +03: cleanup 2, task 596. The core warning alert text is 4.17:1 on its wash (seen on the Dashboard
+       sync warning and the Settings test sender notice); the amber token is 5.33:1. */
+    .alert-warning {
+        color: @kwtsms-warning-text;
     }
 
     /* ---- navigation tabs ---- */
