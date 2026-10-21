@@ -34,6 +34,10 @@
  *            outbox_id); flushDeferred() sends exactly those rows through the outbox claim (sendQueued()). A worker
  *            that dies after the response leaves the row for the next cron drain: never lost, never sent twice.
  *            When the outbox cannot take it, the SMS is sent in the request.
+ *            2026-10-21 07:53 +03, Task 1.9 follow-up of the Task 1.14 review, task 596: while SMS is off or the
+ *            add-on is not set up (Diagnostics::active(), the same predicate as the diagnostics), notify() returns
+ *            at once: no dispatch key, no outbox row, no attempt or info row (a status key claimed then would block
+ *            that status SMS for 24 h once SMS is on). Only a debug row, when the log level is debug.
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -142,6 +146,15 @@ class OrderNotifier
             return false;
         }
         $order = isset($payload['order_info']) && is_array($payload['order_info']) ? $payload['order_info'] : [];
+        // 2026-10-21 07:53 +03: SMS off or not set up: nothing claimed, queued or written (Task 1.14 review
+        // follow-up), task 596.
+        if (!$this->diagnostics->active()) {
+            $this->debug('order_sms.notify', 'SMS is off or not set up: nothing to do', [
+                'event_id' => $event_id, 'receiver' => $receiver, 'order_id' => (int) ($order['order_id'] ?? 0),
+            ]);
+
+            return false;
+        }
         $this->debug('order_sms.notify', 'enter', [
             'event_id' => $event_id, 'receiver' => $receiver, 'order_id' => (int) ($order['order_id'] ?? 0),
         ]);

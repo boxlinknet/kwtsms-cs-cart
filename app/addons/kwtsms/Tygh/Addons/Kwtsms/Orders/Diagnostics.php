@@ -186,8 +186,10 @@ class Diagnostics
     /**
      * True while SMS is on and the add-on is set up (the $active callable; the global switch alone without one).
      * 2026-10-21 05:08 +03: added, shared by recordSkipped() and recordOutcome() (fix round 2 item 3), task 596.
+     * 2026-10-21 07:53 +03: public, the one predicate OrderNotifier and OrderHooks also ask before they write
+     * anything (Task 1.9 follow-up of the Task 1.14 review), task 596.
      */
-    private function active(): bool
+    public function active(): bool
     {
         return $this->active !== null ? (bool) call_user_func($this->active) : $this->config->enabled();
     }

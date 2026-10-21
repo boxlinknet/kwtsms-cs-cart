@@ -36,6 +36,9 @@
  *            - item 4: a checkout's order-placed SMS is dispatched once per request (flag checkout_sent.<parent>),
  *              and the switched_off / not_notified rows of a parent cascade are written once per checkout and
  *              status (flag diag_<S>.<parent>, rows on the parent id).
+ *            2026-10-21 07:53 +03, Task 1.9 follow-up of the Task 1.14 review, task 596: no info row
+ *            (order_sms.new_order, order_sms.order_placed, order_sms.manual_dropped) while SMS is off or not set
+ *            up (Diagnostics::active()).
  * USAGE:     Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatus($to, $from, $order_info, $rules, $place_order);
  *            (see func.php for the six handlers). The dispatcher is a callable (string $event_id, array $data,
  *            array $rules, IProvider $id) wired in ServiceProvider to core's Factory and EventDispatcher.
@@ -363,7 +366,8 @@ class OrderHooks
      */
     private function info(string $action, string $message, array $context): void
     {
-        if ($this->log !== null) {
+        // 2026-10-21 07:53 +03: nothing written while SMS is off or not set up (Task 1.14 review follow-up), task 596.
+        if ($this->log !== null && $this->diagnostics->active()) {
             $this->log->log('info', $action, $message, $context);
         }
     }
