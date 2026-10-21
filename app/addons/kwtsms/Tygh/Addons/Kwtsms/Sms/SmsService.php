@@ -145,6 +145,11 @@ class SmsService
      * the caps, before the API call; outcome "unknown" (counted by the caps). finish() writes the real outcome into the
      * same row. A process that dies in between leaves it counted until its cap window passes (fail safe).
      * 2026-10-21 12:04 +03: added, ruling R41, task 596.
+     * 2026-10-21 13:00 +03: the reservation of a drained outbox row (drainDue(), sendQueued()) carries that row's
+     * outbox_id. When the process dies, the reaper later writes its own "unknown" / outbox_claim_stale row for the same
+     * outbox row (recordReaped()); the two rows share the outbox_id, so the Logs show they are one SMS. Both stay
+     * counted until their window passes (the safe side: one number over-counted, never under-counted). Review M3,
+     * task 596.
      */
     public const CAP_RESERVED = 'cap_reserved';
 
@@ -1469,10 +1474,13 @@ class SmsService
             if (!$rcpt[$i]['valid'] || $phone === '' || isset($rows[$phone])) {
                 continue;
             }
-            $rows[$phone] = [
-                'index' => $i,
-                'row' => $this->attemptRow($rcpt[$i], $context, 'unknown', self::CAP_RESERVED),
-            ];
+            $row = $this->attemptRow($rcpt[$i], $context, 'unknown', self::CAP_RESERVED);
+            // 2026-10-21 13:00 +03: a drained row's reservation carries its outbox_id (the recipient gets it only in
+            // finish()), so a reaped row and the reservation are tied (review M3), task 596.
+            if ((int) $row['outbox_id'] === 0) {
+                $row['outbox_id'] = (int) $context['outbox_id'];
+            }
+            $rows[$phone] = ['index' => $i, 'row' => $row];
         }
         if ($rows === []) {
             return;
