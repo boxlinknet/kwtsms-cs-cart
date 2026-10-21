@@ -902,6 +902,11 @@ class SmsService
                 'required' => $required,
                 'available' => $available,
             ]);
+            // 2026-10-21 03:19 +03: under one credit nothing can go out, whatever the length: "Customer SMS have
+            // stopped", notice and e-mail once per 24 h (PRD 6.13), Task 1.11, task 596.
+            if ($available < 1.0) {
+                $this->alert('balance_zero', [], true, 86400);
+            }
 
             return $this->finish($rcpt, $context, $message, $meta, $row);
         }
@@ -1094,6 +1099,9 @@ class SmsService
         }
         if ($code === 'ERR010') {
             $this->state->setBalance(0.0, null);
+            // 2026-10-21 03:19 +03: kwtSMS says the balance is zero: "Customer SMS have stopped", notice and e-mail
+            // once per 24 h (PRD 6.13), Task 1.11, task 596.
+            $this->alert('balance_zero', [], true, 86400);
         }
         if (in_array($code, self::CLEANER_GAPS, true)) {
             $masked = Redactor::mask((string) ($context['_body'] ?? ''), $context['secret_values']);
@@ -1377,7 +1385,19 @@ class SmsService
         $this->note('info', 'sms.balance_refresh', (string) $r['result'], ['code' => $r['code']]);
         if ($r['result'] === 'OK') {
             $this->last_balance_error = null;
+            // 2026-10-21 03:19 +03: a balance that fell without a send (another system uses the account, or a refund
+            // went the other way) is met here: zero raises "Customer SMS have stopped", a crossing of the low-balance
+            // level raises low_balance, both once (PRD 6.13) and only while SMS are on. No earlier balance cached =
+            // nothing to compare. Task 1.11, task 596.
+            $earlier = $this->state->balance();
             $this->cacheBalance($r);
+            if ($this->config->enabled()) {
+                if ((float) $r['available'] < 1.0) {
+                    $this->alert('balance_zero', [], true, 86400);
+                } elseif ($earlier !== null) {
+                    $this->checkLowBalance((float) $earlier['available'], (float) $r['available']);
+                }
+            }
 
             return (float) $r['available'];
         }
