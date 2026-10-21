@@ -205,6 +205,14 @@ class SmsService
      */
     private $cron_drain = false;
 
+    /**
+     * @var bool True between sendTest() and the start of its pipeline: step 2 (the global switch) is skipped for that
+     *           one send, nothing else. Never a context key, so fn_kwtsms_send() callers cannot skip the merchant's
+     *           switch; cleared before the kwtsms_send_pre hook runs, so a send started from a hook does not inherit
+     *           it. 2026-10-21 03:15 +03: added, ruling R30, Task 1.10 fix round 1 item 2, task 596.
+     */
+    private $test_form = false;
+
     /** @var ApiClient|null The client of the current send() */
     private $client = null;
 
@@ -261,6 +269,26 @@ class SmsService
         unset($context['outbox_id']);
 
         return $this->run($this->phoneList($phones), $message, $this->normalizeContext($context), null);
+    }
+
+    /**
+     * The Settings page's test SMS (PRD 6.9 puts "Send a test SMS" before "Turn on SMS"): send() with step 2, the
+     * global switch, skipped. Every other gate still applies: configured, suspended, caps, numbers, countries,
+     * coverage, cleaning, length, balance, pilot, quiet hours, request budget, and test mode decides test="1".
+     * 2026-10-21 03:15 +03: added, ruling R30, Task 1.10 fix round 1 item 2, task 596.
+     *
+     * @param array<int,mixed>|string $phones
+     * @param array<string,mixed>     $context See the file header
+     */
+    public function sendTest($phones, string $message, array $context = []): SendResult
+    {
+        $was = $this->test_form;
+        $this->test_form = true;
+        try {
+            return $this->send($phones, $message, $context);
+        } finally {
+            $this->test_form = $was;
+        }
     }
 
     /**
@@ -596,6 +624,10 @@ class SmsService
         // round 1, important 3), task 596.
         $cancel = false;
         $outbox_id = $context['outbox_id'];
+        // 2026-10-21 03:15 +03: sendTest() skips step 2 for this send only; read and cleared before any hook runs
+        // (ruling R30, Task 1.10 fix round 1 item 2), task 596.
+        $skip_switch = $this->test_form && $row === null;
+        $this->test_form = false;
         if ($row === null) {
             try {
                 $this->hookSendPre($phones, $message, $context, $cancel);
@@ -617,8 +649,8 @@ class SmsService
             return $this->finish($rcpt, $context, $message, $meta, $row);
         }
 
-        // Step 2: the global switch.
-        if (!$this->config->enabled()) {
+        // Step 2: the global switch (not for the test SMS form, ruling R30, 2026-10-21 03:15 +03, task 596).
+        if (!$skip_switch && !$this->config->enabled()) {
             $this->decideAll($rcpt, 'blocked_disabled', 'enabled_off');
 
             return $this->finish($rcpt, $context, $message, $meta, $row);
