@@ -250,9 +250,16 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             KEY `idx_event_id` (`event_id`),
             KEY `idx_order_id` (`order_id`),
             KEY `idx_parent_order_id` (`parent_order_id`),
-            KEY `idx_company_created_at` (`company_id`, `created_at`)
+            KEY `idx_company_created_at` (`company_id`, `created_at`),
+            KEY `idx_api_msg_id` (`api_msg_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
+        <!-- 2026-10-21 06:04 +03: kwtsms_messages.idx_api_msg_id (the Logs page finds a message by the msg-id kwtSMS
+             support quotes), kwtsms_attempts.idx_message_id (the recipients of one message in the detail view) and
+             idx_created_outcome_test (created_at, outcome, is_test: the Dashboard counters read the index only; 47 ms
+             instead of 756 ms at 1M attempts, ruling R35 evidence); kwtsms_debug_log.idx_action gains created_at, so the
+             Debug log filtered by action is read in time order and counted from the index (785 ms -> index only at 2M rows),
+             Task 1.14, task 596. -->
         <!-- 2026-10-21 03:12 +03: kwtsms_attempts.is_test (Y/N, last column) is the test flag of the send, added in Task 1.11
              so the Dashboard can count skipped and deferred attempts for live and test separately (PRD 6.9); task 596. -->
         <item>
@@ -283,7 +290,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             KEY `idx_ip_created_at` (`ip`, `created_at`),
             KEY `idx_outcome_created_at` (`outcome`, `created_at`),
             KEY `idx_order_id` (`order_id`),
-            KEY `idx_parent_order_id` (`parent_order_id`)
+            KEY `idx_parent_order_id` (`parent_order_id`),
+            KEY `idx_message_id` (`message_id`),
+            KEY `idx_created_outcome_test` (`created_at`, `outcome`, `is_test`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
         <item>
@@ -300,7 +309,7 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             PRIMARY KEY (`log_id`),
             KEY `idx_created_at` (`created_at`),
             KEY `idx_level_created_at` (`level`, `created_at`),
-            KEY `idx_action` (`action`)
+            KEY `idx_action` (`action`, `created_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
         <item>

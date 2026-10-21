@@ -222,8 +222,38 @@ final class Schema
     }
 
     /**
+     * 2026-10-21 05:44 +03: the columns the Logs page text filter searches with LIKE (PRD 6.8: only with a date range
+     * of at most 31 days and at least 3 characters; the caller enforces that rule), Task 1.14, task 596.
+     *
+     * @return string[]
+     */
+    public static function textColumns(string $table): array
+    {
+        $columns = [
+            self::MESSAGES => ['message'],
+            self::ATTEMPTS => ['phone_raw', 'reason'],
+            self::DEBUG => ['action', 'message', 'context'],
+        ];
+        self::info($table);
+
+        return $columns[$table];
+    }
+
+    /**
+     * 2026-10-21 05:44 +03: the messages table has no phone column (recipients is a list in a text column), so its
+     * "phone" filter is answered through the attempts of the send (exact match on the indexed kwtsms_attempts.phone),
+     * Task 1.14, task 596.
+     */
+    public static function hasPhoneLookup(string $table): bool
+    {
+        return $table === self::MESSAGES;
+    }
+
+    /**
      * Accepts created_from, created_to, "order" (tables that have both order_id and parent_order_id) and
      * the equality columns of filters(); anything else is a programming error, not request data.
+     * 2026-10-21 05:44 +03: also "text" (a LIKE on textColumns(), every table) and "phone" on the messages table
+     * (hasPhoneLookup()), Task 1.14, task 596.
      *
      * @param array<string, mixed> $filters
      *
@@ -231,9 +261,12 @@ final class Schema
      */
     public static function assertFilters(string $table, array $filters): void
     {
-        $allowed = array_merge(['created_from', 'created_to'], self::filters($table));
+        $allowed = array_merge(['created_from', 'created_to', 'text'], self::filters($table));
         if (self::hasOrderPair($table)) {
             $allowed[] = 'order';
+        }
+        if (self::hasPhoneLookup($table)) {
+            $allowed[] = 'phone';
         }
         foreach (array_keys($filters) as $key) {
             if (!in_array((string) $key, $allowed, true)) {

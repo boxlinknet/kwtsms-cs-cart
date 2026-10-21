@@ -28,6 +28,17 @@ interface LogStoreInterface
     public const DELETE_CHUNK = 5000;
 
     /**
+     * 2026-10-21 05:45 +03: the audit row of a Logs page clear (PRD 6.8): a debug row with this action, written after
+     * the delete. Clear never deletes it, and retention under 365 days does not either: deleteOlderThan() and
+     * PrunableLogStoreInterface::pruneChunk() on the debug table keep an audit row until it is AUDIT_KEEP_SECONDS old,
+     * whatever the cut-off asked for (Task 1.14 carry), task 596.
+     */
+    public const AUDIT_ACTION = 'logs.cleared';
+
+    /** 2026-10-21 05:45 +03: an audit row is kept at least this long (365 days), task 596. */
+    public const AUDIT_KEEP_SECONDS = 31536000;
+
+    /**
      * Inserts one row. Keys that are not columns of the table (and the primary key) are ignored.
      *
      * @param string               $table Schema::MESSAGES, ATTEMPTS or DEBUG
@@ -74,6 +85,8 @@ interface LogStoreInterface
 
     /**
      * Deletes every row with created_at below $timestamp, oldest first, $chunk rows per statement.
+     * 2026-10-21 05:45 +03: on the debug table an AUDIT_ACTION row younger than AUDIT_KEEP_SECONDS is kept, Task 1.14,
+     * task 596.
      *
      * @return int Rows deleted in total
      */
