@@ -14,3 +14,5 @@ DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 {style src="addons/kwtsms/templates.less"}
 {* 2026-10-21 03:28 +03: the Dashboard styles, Task 1.11, task 596 *}
 {style src="addons/kwtsms/dashboard.less"}
+{* 2026-10-21 04:25 +03: the Admin SMS alerts and Integrations page styles, Task 1.13, task 596 *}
+{style src="addons/kwtsms/alerts.less"}

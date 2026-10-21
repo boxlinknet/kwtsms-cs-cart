@@ -1,0 +1,217 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/alerts.less
+CREATED:   2026-10-21 04:09 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Admin SMS alerts page and the Integrations page: the numbers box, the result table with its
+           local-check and kwtSMS-verdict badges, the read-only facts list, and the readiness checks (a state badge, a
+           title with its explanation, and the link to the core setting).
+WHY:       PRD 7: every selector sits under the .kwtsms-page root, brand primary #FFA200 with text #434345, accent #79CCF2;
+           logical properties only (the core flips left/right for RTL with cssjanus and also turns a "direction"
+           declaration around, so direction comes from the dir attribute only). The two pages are native components
+           (tables, buttons, form controls); the one branded element is the orange inline-start rule of a passing check
+           and a red one on a check that needs attention, so the state reads at a glance and in words (the badge).
+USAGE:     Loaded by hooks/index/styles.post.tpl. Shares the class names .kwtsms-badge and .kwtsms-actions with
+           styles.less and defines its own tokens below so the files stay independent.
+DEPENDS:   Nothing at build time.
+*/
+@kwt-brand: #FFA200;
+@kwt-brand-tint: #FFF1D6;
+@kwt-text: #434345;
+@kwt-muted: lighten(@kwt-text, 22%);
+@kwt-accent: #79CCF2;
+@kwt-accent-tint: #E4F5FD;
+@kwt-line: #E3E3E6;
+@kwt-wash: #F7F7F8;
+@kwt-danger: #B42318;
+@kwt-danger-tint: #FDECEA;
+
+.kwtsms-page.kwtsms-alerts,
+.kwtsms-page.kwtsms-integrations {
+    max-width: 980px;
+
+    .kwtsms-intro {
+        max-width: 720px;
+        margin-block: 0 8px;
+    }
+    .kwtsms-note {
+        max-width: 720px;
+        margin-block: 0 16px;
+        padding: 8px 12px;
+        border-inline-start: 3px solid @kwt-accent;
+        background: @kwt-accent-tint;
+        color: @kwt-text;
+    }
+    .kwtsms-subtitle {
+        margin-block: 18px 6px;
+        font-size: 14px;
+    }
+    .kwtsms-lead {
+        margin-block: 0 12px;
+        font-weight: 600;
+    }
+    .kwtsms-later {
+        margin-block: 8px 0;
+        padding: 8px 12px;
+        border-inline-start: 3px solid @kwt-line;
+        background: @kwt-wash;
+        max-width: 720px;
+    }
+
+    /* ---- numbers box ---- */
+    .kwtsms-phones {
+        width: 100%;
+        max-width: 360px;
+        min-height: 130px;
+        box-sizing: border-box;
+        resize: vertical;
+    }
+    .kwtsms-count {
+        margin: 4px 0 0;
+        color: @kwt-muted;
+    }
+
+    /* ---- result table ---- */
+    .kwtsms-table-wrap {
+        max-width: 900px;
+        overflow-x: auto;
+    }
+    .kwtsms-table {
+        width: 100%;
+        th {
+            white-space: nowrap;
+        }
+        td {
+            vertical-align: top;
+        }
+    }
+    .kwtsms-reason {
+        display: block;
+        margin-block-start: 4px;
+        max-width: 320px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---- facts: a label and its value, read-only ---- */
+    .kwtsms-facts {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 8px 20px;
+        align-items: start;
+        margin: 0 0 12px;
+        dt {
+            padding-block-start: 4px;
+            font-weight: normal;
+            color: @kwt-muted;
+        }
+        dd {
+            margin: 0;
+            min-width: 0;
+        }
+        .description {
+            margin-block-start: 6px;
+        }
+    }
+    .kwtsms-select-wide {
+        width: 100%;
+        max-width: 520px;
+        box-sizing: border-box;
+    }
+    /* A checkbox floats into the gap before the field. In RTL the core flips that to the other side, where the label
+       text of the left column ends, so the box covered the last letter of "Vendor status changes". Moving the label
+       box inward keeps the box in the field column in both directions (Task 1.13, task 596). */
+    .controls label.checkbox {
+        margin-inline-start: 24px;
+    }
+    .kwtsms-readonly-field {
+        width: 100%;
+        max-width: 280px;
+        box-sizing: border-box;
+        margin: 0;
+        margin-inline-end: 8px;
+        background: @kwt-wash;
+    }
+
+    /* ---- readiness checks ---- */
+    .kwtsms-checks {
+        list-style: none;
+        margin: 0 0 18px;
+        padding: 0;
+        max-width: 900px;
+    }
+    .kwtsms-check {
+        display: grid;
+        grid-template-columns: 132px minmax(0, 1fr) auto;
+        gap: 6px 16px;
+        align-items: start;
+        margin-block-end: 8px;
+        padding: 12px 16px;
+        border: 1px solid @kwt-line;
+        border-inline-start: 4px solid @kwt-brand;
+        border-radius: 4px;
+        background: #fff;
+        color: @kwt-text;
+        max-width: 900px;
+    }
+    .kwtsms-check--fix {
+        border-inline-start-color: @kwt-danger;
+    }
+    .kwtsms-check__title {
+        margin: 0 0 4px;
+        font-size: 14px;
+    }
+    .kwtsms-check__text {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-check__body .description {
+        margin: 6px 0 0;
+    }
+
+    /* ---- placed statuses and the later add-ons ---- */
+    .kwtsms-chips,
+    .kwtsms-later-list {
+        list-style: none;
+        margin: 6px 0 8px;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 8px;
+    }
+    .kwtsms-chip {
+        padding: 2px 12px;
+        border: 1px solid @kwt-line;
+        border-radius: 999px;
+        background: @kwt-wash;
+        line-height: 22px;
+    }
+    .kwtsms-later-list li {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px;
+        border: 1px dashed @kwt-line;
+        border-radius: 4px;
+        background: #fff;
+    }
+}
+
+/* Narrow screens (768 px with the admin menu open): stack the check, keep everything inside the page. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-alerts,
+    .kwtsms-page.kwtsms-integrations {
+        .kwtsms-check {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .kwtsms-check__action {
+            padding-block-start: 4px;
+        }
+        .kwtsms-facts {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 2px;
+            dt {
+                padding-block-start: 8px;
+            }
+        }
+    }
+}

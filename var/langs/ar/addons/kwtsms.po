@@ -2470,3 +2470,563 @@ msgstr "رسائل تنتظر في قائمة الإرسال"
 msgctxt "Languages::kwtsms.alert.outbox_backlog.text"
 msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
 msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل."
+
+# 2026-10-21 04:35 +03: Task 1.13, task 596. kwtsms.alerts.* the Admin SMS alerts page (PRD 6.6; kwtsms.alerts.reason.* why a
+# number was refused, kwtsms.alerts.verdict.* the kwtSMS /validate/ verdict), kwtsms.integrations.* the Integrations page
+# (PRD 6.7; phone readiness checks, Multi-Vendor settings, Clickatell warning, CAPTCHA recommendation), kwtsms.nav.integrations
+# and kwtsms.nav.admin_alerts the page navigation.
+msgctxt "Languages::kwtsms.nav.integrations"
+msgid "Integrations"
+msgstr "التكاملات"
+
+msgctxt "Languages::kwtsms.nav.admin_alerts"
+msgid "Admin SMS alerts"
+msgstr "تنبيهات المدير"
+
+msgctxt "Languages::kwtsms.alerts.title"
+msgid "Admin SMS alerts"
+msgstr "تنبيهات المدير بالرسائل النصية"
+
+msgctxt "Languages::kwtsms.alerts.intro"
+msgid "Choose who gets an SMS when a new order arrives or an order changes status. You can add up to [max] numbers."
+msgstr "حدد من يصله تنبيه برسالة نصية عند وصول طلب جديد أو تغير حالة طلب. يمكنك إضافة حتى [max] أرقام."
+
+msgctxt "Languages::kwtsms.alerts.email_note"
+msgid "SMS uses this list. The Receivers setting on Administration > Notifications applies to e-mail."
+msgstr "الرسائل النصية تستخدم هذه القائمة. إعداد المستلمين في الإدارة > الإشعارات يخص البريد الإلكتروني."
+
+msgctxt "Languages::kwtsms.alerts.sms_off"
+msgid "SMS are switched off, so these numbers get nothing yet. They start getting alerts once SMS are on."
+msgstr "الرسائل النصية متوقفة، لذلك لا تصل هذه الأرقام أي رسالة بعد. يبدأ وصول التنبيهات عند تشغيل الرسائل النصية."
+
+msgctxt "Languages::kwtsms.alerts.recipients"
+msgid "Recipients"
+msgstr "المستلمون"
+
+msgctxt "Languages::kwtsms.alerts.numbers"
+msgid "Phone numbers"
+msgstr "أرقام الهاتف"
+
+msgctxt "Languages::kwtsms.alerts.numbers_help"
+msgid "One per line, or separated by commas. Start with the country code, or type a local number for [code]."
+msgstr "رقم في كل سطر، أو افصل بينها بفواصل. ابدأ برمز الدولة، أو اكتب رقما محليا للدولة ⁦[code]⁩."
+
+msgctxt "Languages::kwtsms.alerts.numbers_placeholder"
+msgid "+965 9876 5432"
+msgstr "مثال: ‎+965 9876 5432"
+
+msgctxt "Languages::kwtsms.alerts.count"
+msgid "Saved: [count] of [max]"
+msgstr "المحفوظ: [count] من [max]"
+
+msgctxt "Languages::kwtsms.alerts.lang"
+msgid "Alert language"
+msgstr "لغة التنبيهات"
+
+msgctxt "Languages::kwtsms.alerts.lang_default"
+msgid "Backend default ([name])"
+msgstr "اللغة الافتراضية للوحة الإدارة ([name])"
+
+msgctxt "Languages::kwtsms.alerts.lang_help"
+msgid "The language of the SMS these numbers get."
+msgstr "لغة الرسائل التي تصل إلى هذه الأرقام."
+
+msgctxt "Languages::kwtsms.alerts.check"
+msgid "Check numbers"
+msgstr "افحص الأرقام"
+
+msgctxt "Languages::kwtsms.alerts.check_help"
+msgid "Asks kwtSMS if it can route each number. Nothing is saved."
+msgstr "يسأل kwtSMS إن كان يستطيع توجيه كل رقم. لا يُحفظ شيء."
+
+msgctxt "Languages::kwtsms.alerts.check_needs_account"
+msgid "Log in to kwtSMS on the Settings page to check numbers."
+msgstr "سجل الدخول إلى kwtSMS من صفحة الإعدادات لتتمكن من فحص الأرقام."
+
+msgctxt "Languages::kwtsms.alerts.table.number"
+msgid "Number"
+msgstr "الرقم"
+
+msgctxt "Languages::kwtsms.alerts.table.typed"
+msgid "As typed"
+msgstr "كما كُتب"
+
+msgctxt "Languages::kwtsms.alerts.table.status"
+msgid "Local check"
+msgstr "الفحص المحلي"
+
+msgctxt "Languages::kwtsms.alerts.table.verdict"
+msgid "kwtSMS check"
+msgstr "فحص kwtSMS"
+
+msgctxt "Languages::kwtsms.alerts.table.saved"
+msgid "Saved numbers"
+msgstr "الأرقام المحفوظة"
+
+msgctxt "Languages::kwtsms.alerts.table.result_save"
+msgid "Result of the last save"
+msgstr "نتيجة آخر حفظ"
+
+msgctxt "Languages::kwtsms.alerts.table.result_check"
+msgid "Result of the check. Nothing was saved."
+msgstr "نتيجة الفحص. لم يُحفظ شيء."
+
+msgctxt "Languages::kwtsms.alerts.row.saved"
+msgid "Saved"
+msgstr "محفوظ"
+
+msgctxt "Languages::kwtsms.alerts.row.valid"
+msgid "Valid"
+msgstr "صالح"
+
+msgctxt "Languages::kwtsms.alerts.row.repeat"
+msgid "Listed twice, kept once"
+msgstr "مكرر، يُحفظ مرة واحدة"
+
+msgctxt "Languages::kwtsms.alerts.row.not_saved"
+msgid "Not saved"
+msgstr "غير محفوظ"
+
+msgctxt "Languages::kwtsms.alerts.row.not_valid"
+msgid "Not valid"
+msgstr "غير صالح"
+
+msgctxt "Languages::kwtsms.alerts.not_checked"
+msgid "Not checked yet"
+msgstr "لم يُفحص بعد"
+
+msgctxt "Languages::kwtsms.alerts.verdict.ok"
+msgid "kwtSMS can route this number"
+msgstr "يستطيع kwtSMS توجيه هذا الرقم"
+
+msgctxt "Languages::kwtsms.alerts.verdict.cannot_route"
+msgid "kwtSMS cannot route this number"
+msgstr "لا يستطيع kwtSMS توجيه هذا الرقم"
+
+msgctxt "Languages::kwtsms.alerts.verdict.unchecked"
+msgid "Could not check with kwtSMS now"
+msgstr "تعذر الفحص مع kwtSMS الآن"
+
+msgctxt "Languages::kwtsms.alerts.verdict.not_connected"
+msgid "Log in on the Settings page first."
+msgstr "سجل الدخول من صفحة الإعدادات أولا."
+
+msgctxt "Languages::kwtsms.alerts.verdict_why"
+msgid "Reason: [reason]"
+msgstr "السبب: [reason]"
+
+msgctxt "Languages::kwtsms.alerts.reason.empty"
+msgid "No digits found."
+msgstr "لا توجد أرقام."
+
+msgctxt "Languages::kwtsms.alerts.reason.email"
+msgid "That's an e-mail address, not a phone number."
+msgstr "هذا بريد إلكتروني وليس رقم هاتف."
+
+msgctxt "Languages::kwtsms.alerts.reason.too_short"
+msgid "Too short for a phone number. Add the country code."
+msgstr "قصير جدا لرقم هاتف. أضف رمز الدولة."
+
+msgctxt "Languages::kwtsms.alerts.reason.too_long"
+msgid "Too long for a phone number."
+msgstr "طويل جدا لرقم هاتف."
+
+msgctxt "Languages::kwtsms.alerts.reason.bad_length"
+msgid "The length doesn't fit a number in that country."
+msgstr "طول الرقم لا يناسب أرقام تلك الدولة."
+
+msgctxt "Languages::kwtsms.alerts.reason.not_mobile"
+msgid "Not a mobile number. Landlines can't receive SMS."
+msgstr "ليس رقم جوال. الهواتف الأرضية لا تستقبل الرسائل النصية."
+
+msgctxt "Languages::kwtsms.alerts.reason.characters"
+msgid "Use digits, spaces, and + ( ) . - only."
+msgstr "استخدم الأرقام والمسافات والرموز + ( ) . - فقط."
+
+msgctxt "Languages::kwtsms.alerts.reason.limit"
+msgid "Only [max] numbers fit. This one wasn't saved."
+msgstr "تتسع القائمة لـ [max] أرقام فقط. لم يُحفظ هذا الرقم."
+
+msgctxt "Languages::kwtsms.alerts.ignored"
+msgid "[count] more entries were ignored. Only the first [max] are read."
+msgstr "تم تجاهل [count] إدخالات إضافية. تُقرأ أول [max] فقط."
+
+msgctxt "Languages::kwtsms.alerts.empty"
+msgid "No admin numbers yet. Add one above to get order alerts."
+msgstr "لا توجد أرقام للمدير بعد. أضف رقما أعلاه لتصلك تنبيهات الطلبات."
+
+msgctxt "Languages::kwtsms.alerts.saved"
+msgid "Admin numbers saved: [count]"
+msgstr "أرقام المدير المحفوظة: [count]"
+
+msgctxt "Languages::kwtsms.alerts.refused"
+msgid "Not saved: [count]. The table below gives the reason for each number."
+msgstr "غير محفوظ: [count]. يوضح الجدول أدناه سبب كل رقم."
+
+msgctxt "Languages::kwtsms.alerts.kept_old"
+msgid "Nothing was saved. Every number was refused, so the saved list is unchanged."
+msgstr "لم يُحفظ شيء. رُفضت كل الأرقام، لذلك بقيت القائمة المحفوظة كما هي."
+
+msgctxt "Languages::kwtsms.alerts.lang_refused"
+msgid "That language isn't installed. The alert language is unchanged."
+msgstr "هذه اللغة غير مثبتة. بقيت لغة التنبيهات كما هي."
+
+msgctxt "Languages::kwtsms.alerts.nothing_posted"
+msgid "Nothing to save. The form was empty."
+msgstr "لا يوجد ما يُحفظ. كان النموذج فارغا."
+
+msgctxt "Languages::kwtsms.alerts.not_stored"
+msgid "The store couldn't save the list. Check the add-on log."
+msgstr "تعذر على المتجر حفظ القائمة. راجع سجل الإضافة."
+
+msgctxt "Languages::kwtsms.alerts.switches.title"
+msgid "Which alerts these numbers get"
+msgstr "التنبيهات التي تصل هذه الأرقام"
+
+msgctxt "Languages::kwtsms.alerts.switches.help"
+msgid "The switches are on the Templates page, so there is one place to change them. Here they are read-only."
+msgstr "المفاتيح موجودة في صفحة القوالب، لتكون في مكان واحد. هنا للعرض فقط."
+
+msgctxt "Languages::kwtsms.alerts.switches.placed"
+msgid "New order placed"
+msgstr "طلب جديد"
+
+msgctxt "Languages::kwtsms.alerts.switches.status"
+msgid "Order status changes"
+msgstr "تغيّر حالة الطلب"
+
+msgctxt "Languages::kwtsms.alerts.switches.on"
+msgid "On"
+msgstr "مفعّل"
+
+msgctxt "Languages::kwtsms.alerts.switches.off"
+msgid "Off"
+msgstr "متوقف"
+
+msgctxt "Languages::kwtsms.alerts.switches.unavailable"
+msgid "Not available"
+msgstr "غير متاح"
+
+msgctxt "Languages::kwtsms.alerts.switches.summary"
+msgid "[on] of [total] on"
+msgstr "[on] من [total] مفعّلة"
+
+msgctxt "Languages::kwtsms.alerts.switches.none_on"
+msgid "None on"
+msgstr "لا توجد حالة مفعّلة"
+
+msgctxt "Languages::kwtsms.alerts.switches.open"
+msgid "Open Templates"
+msgstr "افتح القوالب"
+
+msgctxt "Languages::kwtsms.integrations.title"
+msgid "Integrations"
+msgstr "التكاملات"
+
+msgctxt "Languages::kwtsms.integrations.intro"
+msgid "How kwtSMS fits with the rest of your store: whether orders carry a usable phone number, which Multi-Vendor rules apply, and what else can send SMS."
+msgstr "كيف يعمل kwtSMS مع بقية المتجر: هل تحمل الطلبات رقم هاتف صالحا، وما قواعد تعدد البائعين المطبقة، وما الذي قد يرسل رسائل نصية أيضا."
+
+msgctxt "Languages::kwtsms.integrations.status.ok"
+msgid "OK"
+msgstr "سليم"
+
+msgctxt "Languages::kwtsms.integrations.status.fix"
+msgid "Needs attention"
+msgstr "يحتاج إلى معالجة"
+
+msgctxt "Languages::kwtsms.integrations.orders.title"
+msgid "Orders"
+msgstr "الطلبات"
+
+msgctxt "Languages::kwtsms.integrations.orders.ready"
+msgid "Customers give a phone number the way SMS needs it."
+msgstr "يُطلب من العملاء رقم هاتف بالصيغة التي تحتاجها الرسائل النصية."
+
+msgctxt "Languages::kwtsms.integrations.orders.not_ready"
+msgid "Some checks need attention. Until they pass, some orders have no phone number that kwtSMS can use."
+msgstr "بعض الفحوصات تحتاج إلى معالجة. إلى أن تنجح، ستصل بعض الطلبات بلا رقم هاتف يستطيع kwtSMS استخدامه."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.title"
+msgid "Phone required at checkout"
+msgstr "الهاتف مطلوب عند إتمام الشراء"
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.ok"
+msgid "A phone field is shown and required at checkout, guests included."
+msgstr "حقل الهاتف ظاهر وإلزامي عند إتمام الشراء، بما في ذلك الزوار."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.not_required"
+msgid "A phone field is shown at checkout, but customers can leave it empty. Those orders get no SMS."
+msgstr "حقل الهاتف ظاهر عند إتمام الشراء، لكن يمكن للعميل تركه فارغا. هذه الطلبات لا تصلها رسائل نصية."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.not_shown"
+msgid "No phone field is shown at checkout. Customers can't give a number."
+msgstr "لا يظهر حقل هاتف عند إتمام الشراء. لا يستطيع العملاء إدخال رقم."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.no_field"
+msgid "The store has no phone profile field. Add one under Administration > Profile fields, then make it required at checkout."
+msgstr "لا يوجد حقل هاتف في ملف العميل. أضف حقلا من الإدارة > حقول الملف الشخصي، ثم اجعله إلزاميا عند إتمام الشراء."
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.title"
+msgid "Phone validation with country selection"
+msgstr "التحقق من الهاتف مع اختيار الدولة"
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.ok"
+msgid "Customers pick their country, so every number arrives with its country code."
+msgstr "يختار العميل دولته، فيصل كل رقم ومعه رمز الدولة."
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.bad"
+msgid "Phone validation is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
+msgstr "التحقق من الهاتف مضبوط على \"[mode]\". اختر \"رقم الهاتف مع اختيار الدولة\" ليصل كل رقم ومعه رمز الدولة."
+
+msgctxt "Languages::kwtsms.integrations.mode.any_digits"
+msgid "Any digits"
+msgstr "أي أرقام"
+
+msgctxt "Languages::kwtsms.integrations.mode.any_symbols"
+msgid "Any symbols"
+msgstr "أي رموز"
+
+msgctxt "Languages::kwtsms.integrations.mode.international_format"
+msgid "International format"
+msgstr "الصيغة الدولية"
+
+msgctxt "Languages::kwtsms.integrations.mode.unset"
+msgid "Not set"
+msgstr "غير محدد"
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.title"
+msgid "Store country matches the SMS country"
+msgstr "دولة المتجر تطابق دولة الرسائل"
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.ok"
+msgid "The store and kwtSMS both use +[code]."
+msgstr "يستخدم المتجر و kwtSMS الرمز ⁦+[code]⁩ كليهما."
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.mismatch"
+msgid "The store's default country uses +[store], but kwtSMS reads local numbers as +[addon]. Change one of them so they match."
+msgstr "دولة المتجر الافتراضية رمزها ⁦+[store]⁩، لكن kwtSMS يقرأ الأرقام المحلية على أنها ⁦+[addon]⁩. غيّر أحدهما ليتطابقا."
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.unknown"
+msgid "The store's default country is missing or has no known calling code."
+msgstr "دولة المتجر الافتراضية غير محددة أو ليس لها رمز اتصال معروف."
+
+msgctxt "Languages::kwtsms.integrations.open.checkout_fields"
+msgid "Open checkout fields"
+msgstr "افتح حقول إتمام الشراء"
+
+msgctxt "Languages::kwtsms.integrations.open.profile_fields"
+msgid "Open profile fields"
+msgstr "افتح حقول الملف الشخصي"
+
+msgctxt "Languages::kwtsms.integrations.open.appearance"
+msgid "Open Appearance settings"
+msgstr "افتح إعدادات المظهر"
+
+msgctxt "Languages::kwtsms.integrations.open.checkout"
+msgid "Open Checkout settings"
+msgstr "افتح إعدادات إتمام الشراء"
+
+msgctxt "Languages::kwtsms.integrations.open.captcha"
+msgid "Open CAPTCHA settings"
+msgstr "افتح إعدادات الكابتشا"
+
+msgctxt "Languages::kwtsms.integrations.open.addons"
+msgid "Open add-ons"
+msgstr "افتح الإضافات"
+
+msgctxt "Languages::kwtsms.integrations.open.settings"
+msgid "Change on Settings"
+msgstr "غيّر من الإعدادات"
+
+msgctxt "Languages::kwtsms.integrations.country.title"
+msgid "Default country for SMS"
+msgstr "الدولة الافتراضية للرسائل"
+
+msgctxt "Languages::kwtsms.integrations.country.help"
+msgid "A number typed without a country code is read with this country. You change it on the Settings page only."
+msgstr "يُقرأ الرقم المكتوب بلا رمز دولة على أنه من هذه الدولة. تغييرها من صفحة الإعدادات فقط."
+
+msgctxt "Languages::kwtsms.integrations.rule.title"
+msgid "New order rule"
+msgstr "قاعدة الطلب الجديد"
+
+msgctxt "Languages::kwtsms.integrations.rule.text"
+msgid "The new-order SMS goes out the first time an order reaches one of these statuses. Editing an order or moving it between statuses later doesn't send it again."
+msgstr "تُرسل رسالة الطلب الجديد أول مرة يصل فيها الطلب إلى إحدى هذه الحالات. تعديل الطلب أو نقله بين الحالات لاحقا لا يرسلها مرة أخرى."
+
+msgctxt "Languages::kwtsms.integrations.rule.more"
+msgid "Add more statuses on the Settings page."
+msgstr "أضف حالات أخرى من صفحة الإعدادات."
+
+msgctxt "Languages::kwtsms.integrations.mve.title"
+msgid "Multi-Vendor"
+msgstr "تعدد البائعين"
+
+msgctxt "Languages::kwtsms.integrations.mve.help"
+msgid "A checkout with products from several vendors creates one order per vendor. These settings decide how many SMS that sends."
+msgstr "عملية شراء بمنتجات من عدة بائعين تنشئ طلبا لكل بائع. تحدد هذه الإعدادات عدد الرسائل التي تُرسل."
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order"
+msgid "Customer new-order SMS"
+msgstr "رسالة الطلب الجديد للعميل"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.per_checkout"
+msgid "One SMS for the whole checkout"
+msgstr "رسالة واحدة لعملية الشراء كلها"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "رسالة لكل طلب بائع"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.help"
+msgid "One SMS lists every order number of the checkout."
+msgstr "تذكر الرسالة الواحدة أرقام كل طلبات عملية الشراء."
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order"
+msgid "Admin new-order SMS"
+msgstr "رسالة الطلب الجديد للمدير"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.per_checkout"
+msgid "One SMS for the whole checkout"
+msgstr "رسالة واحدة لعملية الشراء كلها"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "رسالة لكل طلب بائع"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.off"
+msgid "No new-order SMS to admins"
+msgstr "لا رسالة طلب جديد للمدراء"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope"
+msgid "Customer status SMS"
+msgstr "رسائل حالة الطلب للعميل"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.auto"
+msgid "Automatic"
+msgstr "تلقائي"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "رسالة لكل طلب بائع"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.per_checkout"
+msgid "One SMS when the last vendor order reaches the status"
+msgstr "رسالة واحدة عندما يصل آخر طلب بائع إلى الحالة"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.help"
+msgid "Automatic sends one SMS per checkout when the marketplace fulfills every vendor order, and one per vendor order otherwise."
+msgstr "يرسل الخيار التلقائي رسالة واحدة لعملية الشراء عندما تتولى السوق تنفيذ كل طلبات البائعين، وإلا فرسالة لكل طلب بائع."
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered"
+msgid "Vendor status changes"
+msgstr "تغييرات البائع"
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered.label"
+msgid "Send the customer an SMS when a vendor changes an order status"
+msgstr "أرسل رسالة للعميل عندما يغيّر البائع حالة الطلب"
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered.help"
+msgid "A status already texted in the last 24 hours is never texted twice."
+msgstr "الحالة التي أُرسلت رسالتها خلال آخر 24 ساعة لا تُرسل مرتين."
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_sms"
+msgid "Vendor SMS: not included in 1.0, planned for 1.1"
+msgstr "رسائل البائعين: غير مضمنة في الإصدار 1.0، ومخطط لها في 1.1"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_customer_new_order"
+msgid "Customer new-order SMS"
+msgstr "رسالة الطلب الجديد للعميل"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_admin_new_order"
+msgid "Admin new-order SMS"
+msgstr "رسالة الطلب الجديد للمدير"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_customer_status_scope"
+msgid "Customer status SMS"
+msgstr "رسائل حالة الطلب للعميل"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_vendor_triggered_sms"
+msgid "Vendor status changes"
+msgstr "تغييرات البائع"
+
+msgctxt "Languages::kwtsms.integrations.saved"
+msgid "Integration settings saved"
+msgstr "تم حفظ إعدادات التكامل"
+
+msgctxt "Languages::kwtsms.integrations.saved_others"
+msgid "The other integration settings were saved"
+msgstr "تم حفظ باقي إعدادات التكامل"
+
+msgctxt "Languages::kwtsms.integrations.not_saved"
+msgid "[field] wasn't saved. Pick one of the listed values."
+msgstr "لم يُحفظ [field]. اختر إحدى القيم المعروضة."
+
+msgctxt "Languages::kwtsms.integrations.mve_only"
+msgid "These settings exist only in Multi-Vendor. Nothing was changed."
+msgstr "هذه الإعدادات موجودة في تعدد البائعين فقط. لم يتغير شيء."
+
+msgctxt "Languages::kwtsms.integrations.captcha.title"
+msgid "CAPTCHA at checkout"
+msgstr "الكابتشا عند إتمام الشراء"
+
+msgctxt "Languages::kwtsms.integrations.captcha.on"
+msgid "CAPTCHA is on for checkout. Fake guest orders are less likely to cost you SMS credits."
+msgstr "الكابتشا مفعّلة عند إتمام الشراء. يقل احتمال أن تستهلك الطلبات الوهمية من الزوار نقاط الرسائل."
+
+msgctxt "Languages::kwtsms.integrations.captcha.off"
+msgid "CAPTCHA is off for checkout. Bots can place fake guest orders, and every order sends SMS. Turn on the Checkout scenario in the CAPTCHA settings."
+msgstr "الكابتشا متوقفة عند إتمام الشراء. يمكن للبرامج الآلية إنشاء طلبات وهمية من الزوار، وكل طلب يرسل رسائل نصية. فعّل سيناريو إتمام الشراء في إعدادات الكابتشا."
+
+msgctxt "Languages::kwtsms.integrations.captcha.recaptcha_on"
+msgid "The reCAPTCHA add-on is active."
+msgstr "إضافة reCAPTCHA مفعّلة."
+
+msgctxt "Languages::kwtsms.integrations.captcha.recaptcha_off"
+msgid "The reCAPTCHA add-on is not active."
+msgstr "إضافة reCAPTCHA غير مفعّلة."
+
+msgctxt "Languages::kwtsms.integrations.clickatell.title"
+msgid "Core SMS notifications (Clickatell)"
+msgstr "إشعارات الرسائل النصية الأساسية (Clickatell)"
+
+msgctxt "Languages::kwtsms.integrations.clickatell.active"
+msgid "The core SMS notifications add-on is active. It sends its own SMS through Clickatell, so a customer or admin can get two messages for one event. Turn it off if kwtSMS should be the only sender."
+msgstr "إضافة إشعارات الرسائل النصية الأساسية مفعّلة. ترسل رسائلها الخاصة عبر Clickatell، فقد يصل العميل أو المدير رسالتان لحدث واحد. أوقفها إن أردت أن يكون kwtSMS المرسل الوحيد."
+
+msgctxt "Languages::kwtsms.integrations.clickatell.inactive"
+msgid "Not active. kwtSMS is the only SMS sender."
+msgstr "غير مفعّلة. kwtSMS هو المرسل الوحيد للرسائل النصية."
+
+msgctxt "Languages::kwtsms.integrations.later.title"
+msgid "Other add-ons"
+msgstr "إضافات أخرى"
+
+msgctxt "Languages::kwtsms.integrations.later.help"
+msgid "Available in a later version."
+msgstr "متاحة في إصدار لاحق."
+
+msgctxt "Languages::kwtsms.integrations.later.installed"
+msgid "Installed in this store"
+msgstr "مثبتة في هذا المتجر"
+
+msgctxt "Languages::kwtsms.integrations.later.rma"
+msgid "Returns (RMA)"
+msgstr "المرتجعات (RMA)"
+
+msgctxt "Languages::kwtsms.integrations.later.call_requests"
+msgid "Call requests"
+msgstr "طلبات الاتصال"
+
+msgctxt "Languages::kwtsms.integrations.later.gift_certificates"
+msgid "Gift certificates"
+msgstr "شهادات الهدايا"
+
+msgctxt "Languages::kwtsms.integrations.later.discussion"
+msgid "Reviews and comments"
+msgstr "التقييمات والتعليقات"
+
+msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
+msgid "Vendor communication"
+msgstr "التواصل مع البائعين"

@@ -2470,3 +2470,563 @@ msgstr "SMS are waiting in the outbox"
 msgctxt "Languages::kwtsms.alert.outbox_backlog.text"
 msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
 msgstr "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
+
+# 2026-10-21 04:35 +03: Task 1.13, task 596. kwtsms.alerts.* the Admin SMS alerts page (PRD 6.6; kwtsms.alerts.reason.* why a
+# number was refused, kwtsms.alerts.verdict.* the kwtSMS /validate/ verdict), kwtsms.integrations.* the Integrations page
+# (PRD 6.7; phone readiness checks, Multi-Vendor settings, Clickatell warning, CAPTCHA recommendation), kwtsms.nav.integrations
+# and kwtsms.nav.admin_alerts the page navigation.
+msgctxt "Languages::kwtsms.nav.integrations"
+msgid "Integrations"
+msgstr "Integrations"
+
+msgctxt "Languages::kwtsms.nav.admin_alerts"
+msgid "Admin SMS alerts"
+msgstr "Admin SMS alerts"
+
+msgctxt "Languages::kwtsms.alerts.title"
+msgid "Admin SMS alerts"
+msgstr "Admin SMS alerts"
+
+msgctxt "Languages::kwtsms.alerts.intro"
+msgid "Choose who gets an SMS when a new order arrives or an order changes status. You can add up to [max] numbers."
+msgstr "Choose who gets an SMS when a new order arrives or an order changes status. You can add up to [max] numbers."
+
+msgctxt "Languages::kwtsms.alerts.email_note"
+msgid "SMS uses this list. The Receivers setting on Administration > Notifications applies to e-mail."
+msgstr "SMS uses this list. The Receivers setting on Administration > Notifications applies to e-mail."
+
+msgctxt "Languages::kwtsms.alerts.sms_off"
+msgid "SMS are switched off, so these numbers get nothing yet. They start getting alerts once SMS are on."
+msgstr "SMS are switched off, so these numbers get nothing yet. They start getting alerts once SMS are on."
+
+msgctxt "Languages::kwtsms.alerts.recipients"
+msgid "Recipients"
+msgstr "Recipients"
+
+msgctxt "Languages::kwtsms.alerts.numbers"
+msgid "Phone numbers"
+msgstr "Phone numbers"
+
+msgctxt "Languages::kwtsms.alerts.numbers_help"
+msgid "One per line, or separated by commas. Start with the country code, or type a local number for [code]."
+msgstr "One per line, or separated by commas. Start with the country code, or type a local number for [code]."
+
+msgctxt "Languages::kwtsms.alerts.numbers_placeholder"
+msgid "+965 9876 5432"
+msgstr "+965 9876 5432"
+
+msgctxt "Languages::kwtsms.alerts.count"
+msgid "Saved: [count] of [max]"
+msgstr "Saved: [count] of [max]"
+
+msgctxt "Languages::kwtsms.alerts.lang"
+msgid "Alert language"
+msgstr "Alert language"
+
+msgctxt "Languages::kwtsms.alerts.lang_default"
+msgid "Backend default ([name])"
+msgstr "Backend default ([name])"
+
+msgctxt "Languages::kwtsms.alerts.lang_help"
+msgid "The language of the SMS these numbers get."
+msgstr "The language of the SMS these numbers get."
+
+msgctxt "Languages::kwtsms.alerts.check"
+msgid "Check numbers"
+msgstr "Check numbers"
+
+msgctxt "Languages::kwtsms.alerts.check_help"
+msgid "Asks kwtSMS if it can route each number. Nothing is saved."
+msgstr "Asks kwtSMS if it can route each number. Nothing is saved."
+
+msgctxt "Languages::kwtsms.alerts.check_needs_account"
+msgid "Log in to kwtSMS on the Settings page to check numbers."
+msgstr "Log in to kwtSMS on the Settings page to check numbers."
+
+msgctxt "Languages::kwtsms.alerts.table.number"
+msgid "Number"
+msgstr "Number"
+
+msgctxt "Languages::kwtsms.alerts.table.typed"
+msgid "As typed"
+msgstr "As typed"
+
+msgctxt "Languages::kwtsms.alerts.table.status"
+msgid "Local check"
+msgstr "Local check"
+
+msgctxt "Languages::kwtsms.alerts.table.verdict"
+msgid "kwtSMS check"
+msgstr "kwtSMS check"
+
+msgctxt "Languages::kwtsms.alerts.table.saved"
+msgid "Saved numbers"
+msgstr "Saved numbers"
+
+msgctxt "Languages::kwtsms.alerts.table.result_save"
+msgid "Result of the last save"
+msgstr "Result of the last save"
+
+msgctxt "Languages::kwtsms.alerts.table.result_check"
+msgid "Result of the check. Nothing was saved."
+msgstr "Result of the check. Nothing was saved."
+
+msgctxt "Languages::kwtsms.alerts.row.saved"
+msgid "Saved"
+msgstr "Saved"
+
+msgctxt "Languages::kwtsms.alerts.row.valid"
+msgid "Valid"
+msgstr "Valid"
+
+msgctxt "Languages::kwtsms.alerts.row.repeat"
+msgid "Listed twice, kept once"
+msgstr "Listed twice, kept once"
+
+msgctxt "Languages::kwtsms.alerts.row.not_saved"
+msgid "Not saved"
+msgstr "Not saved"
+
+msgctxt "Languages::kwtsms.alerts.row.not_valid"
+msgid "Not valid"
+msgstr "Not valid"
+
+msgctxt "Languages::kwtsms.alerts.not_checked"
+msgid "Not checked yet"
+msgstr "Not checked yet"
+
+msgctxt "Languages::kwtsms.alerts.verdict.ok"
+msgid "kwtSMS can route this number"
+msgstr "kwtSMS can route this number"
+
+msgctxt "Languages::kwtsms.alerts.verdict.cannot_route"
+msgid "kwtSMS cannot route this number"
+msgstr "kwtSMS cannot route this number"
+
+msgctxt "Languages::kwtsms.alerts.verdict.unchecked"
+msgid "Could not check with kwtSMS now"
+msgstr "Could not check with kwtSMS now"
+
+msgctxt "Languages::kwtsms.alerts.verdict.not_connected"
+msgid "Log in on the Settings page first."
+msgstr "Log in on the Settings page first."
+
+msgctxt "Languages::kwtsms.alerts.verdict_why"
+msgid "Reason: [reason]"
+msgstr "Reason: [reason]"
+
+msgctxt "Languages::kwtsms.alerts.reason.empty"
+msgid "No digits found."
+msgstr "No digits found."
+
+msgctxt "Languages::kwtsms.alerts.reason.email"
+msgid "That's an e-mail address, not a phone number."
+msgstr "That's an e-mail address, not a phone number."
+
+msgctxt "Languages::kwtsms.alerts.reason.too_short"
+msgid "Too short for a phone number. Add the country code."
+msgstr "Too short for a phone number. Add the country code."
+
+msgctxt "Languages::kwtsms.alerts.reason.too_long"
+msgid "Too long for a phone number."
+msgstr "Too long for a phone number."
+
+msgctxt "Languages::kwtsms.alerts.reason.bad_length"
+msgid "The length doesn't fit a number in that country."
+msgstr "The length doesn't fit a number in that country."
+
+msgctxt "Languages::kwtsms.alerts.reason.not_mobile"
+msgid "Not a mobile number. Landlines can't receive SMS."
+msgstr "Not a mobile number. Landlines can't receive SMS."
+
+msgctxt "Languages::kwtsms.alerts.reason.characters"
+msgid "Use digits, spaces, and + ( ) . - only."
+msgstr "Use digits, spaces, and + ( ) . - only."
+
+msgctxt "Languages::kwtsms.alerts.reason.limit"
+msgid "Only [max] numbers fit. This one wasn't saved."
+msgstr "Only [max] numbers fit. This one wasn't saved."
+
+msgctxt "Languages::kwtsms.alerts.ignored"
+msgid "[count] more entries were ignored. Only the first [max] are read."
+msgstr "[count] more entries were ignored. Only the first [max] are read."
+
+msgctxt "Languages::kwtsms.alerts.empty"
+msgid "No admin numbers yet. Add one above to get order alerts."
+msgstr "No admin numbers yet. Add one above to get order alerts."
+
+msgctxt "Languages::kwtsms.alerts.saved"
+msgid "Admin numbers saved: [count]"
+msgstr "Admin numbers saved: [count]"
+
+msgctxt "Languages::kwtsms.alerts.refused"
+msgid "Not saved: [count]. The table below gives the reason for each number."
+msgstr "Not saved: [count]. The table below gives the reason for each number."
+
+msgctxt "Languages::kwtsms.alerts.kept_old"
+msgid "Nothing was saved. Every number was refused, so the saved list is unchanged."
+msgstr "Nothing was saved. Every number was refused, so the saved list is unchanged."
+
+msgctxt "Languages::kwtsms.alerts.lang_refused"
+msgid "That language isn't installed. The alert language is unchanged."
+msgstr "That language isn't installed. The alert language is unchanged."
+
+msgctxt "Languages::kwtsms.alerts.nothing_posted"
+msgid "Nothing to save. The form was empty."
+msgstr "Nothing to save. The form was empty."
+
+msgctxt "Languages::kwtsms.alerts.not_stored"
+msgid "The store couldn't save the list. Check the add-on log."
+msgstr "The store couldn't save the list. Check the add-on log."
+
+msgctxt "Languages::kwtsms.alerts.switches.title"
+msgid "Which alerts these numbers get"
+msgstr "Which alerts these numbers get"
+
+msgctxt "Languages::kwtsms.alerts.switches.help"
+msgid "The switches are on the Templates page, so there is one place to change them. Here they are read-only."
+msgstr "The switches are on the Templates page, so there is one place to change them. Here they are read-only."
+
+msgctxt "Languages::kwtsms.alerts.switches.placed"
+msgid "New order placed"
+msgstr "New order placed"
+
+msgctxt "Languages::kwtsms.alerts.switches.status"
+msgid "Order status changes"
+msgstr "Order status changes"
+
+msgctxt "Languages::kwtsms.alerts.switches.on"
+msgid "On"
+msgstr "On"
+
+msgctxt "Languages::kwtsms.alerts.switches.off"
+msgid "Off"
+msgstr "Off"
+
+msgctxt "Languages::kwtsms.alerts.switches.unavailable"
+msgid "Not available"
+msgstr "Not available"
+
+msgctxt "Languages::kwtsms.alerts.switches.summary"
+msgid "[on] of [total] on"
+msgstr "[on] of [total] on"
+
+msgctxt "Languages::kwtsms.alerts.switches.none_on"
+msgid "None on"
+msgstr "None on"
+
+msgctxt "Languages::kwtsms.alerts.switches.open"
+msgid "Open Templates"
+msgstr "Open Templates"
+
+msgctxt "Languages::kwtsms.integrations.title"
+msgid "Integrations"
+msgstr "Integrations"
+
+msgctxt "Languages::kwtsms.integrations.intro"
+msgid "How kwtSMS fits with the rest of your store: whether orders carry a usable phone number, which Multi-Vendor rules apply, and what else can send SMS."
+msgstr "How kwtSMS fits with the rest of your store: whether orders carry a usable phone number, which Multi-Vendor rules apply, and what else can send SMS."
+
+msgctxt "Languages::kwtsms.integrations.status.ok"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "Languages::kwtsms.integrations.status.fix"
+msgid "Needs attention"
+msgstr "Needs attention"
+
+msgctxt "Languages::kwtsms.integrations.orders.title"
+msgid "Orders"
+msgstr "Orders"
+
+msgctxt "Languages::kwtsms.integrations.orders.ready"
+msgid "Customers give a phone number the way SMS needs it."
+msgstr "Customers give a phone number the way SMS needs it."
+
+msgctxt "Languages::kwtsms.integrations.orders.not_ready"
+msgid "Some checks need attention. Until they pass, some orders have no phone number that kwtSMS can use."
+msgstr "Some checks need attention. Until they pass, some orders have no phone number that kwtSMS can use."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.title"
+msgid "Phone required at checkout"
+msgstr "Phone required at checkout"
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.ok"
+msgid "A phone field is shown and required at checkout, guests included."
+msgstr "A phone field is shown and required at checkout, guests included."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.not_required"
+msgid "A phone field is shown at checkout, but customers can leave it empty. Those orders get no SMS."
+msgstr "A phone field is shown at checkout, but customers can leave it empty. Those orders get no SMS."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.not_shown"
+msgid "No phone field is shown at checkout. Customers can't give a number."
+msgstr "No phone field is shown at checkout. Customers can't give a number."
+
+msgctxt "Languages::kwtsms.integrations.check.phone_required.no_field"
+msgid "The store has no phone profile field. Add one under Administration > Profile fields, then make it required at checkout."
+msgstr "The store has no phone profile field. Add one under Administration > Profile fields, then make it required at checkout."
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.title"
+msgid "Phone validation with country selection"
+msgstr "Phone validation with country selection"
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.ok"
+msgid "Customers pick their country, so every number arrives with its country code."
+msgstr "Customers pick their country, so every number arrives with its country code."
+
+msgctxt "Languages::kwtsms.integrations.check.validation_mode.bad"
+msgid "Phone validation is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
+msgstr "Phone validation is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
+
+msgctxt "Languages::kwtsms.integrations.mode.any_digits"
+msgid "Any digits"
+msgstr "Any digits"
+
+msgctxt "Languages::kwtsms.integrations.mode.any_symbols"
+msgid "Any symbols"
+msgstr "Any symbols"
+
+msgctxt "Languages::kwtsms.integrations.mode.international_format"
+msgid "International format"
+msgstr "International format"
+
+msgctxt "Languages::kwtsms.integrations.mode.unset"
+msgid "Not set"
+msgstr "Not set"
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.title"
+msgid "Store country matches the SMS country"
+msgstr "Store country matches the SMS country"
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.ok"
+msgid "The store and kwtSMS both use +[code]."
+msgstr "The store and kwtSMS both use +[code]."
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.mismatch"
+msgid "The store's default country uses +[store], but kwtSMS reads local numbers as +[addon]. Change one of them so they match."
+msgstr "The store's default country uses +[store], but kwtSMS reads local numbers as +[addon]. Change one of them so they match."
+
+msgctxt "Languages::kwtsms.integrations.check.default_country.unknown"
+msgid "The store's default country is missing or has no known calling code."
+msgstr "The store's default country is missing or has no known calling code."
+
+msgctxt "Languages::kwtsms.integrations.open.checkout_fields"
+msgid "Open checkout fields"
+msgstr "Open checkout fields"
+
+msgctxt "Languages::kwtsms.integrations.open.profile_fields"
+msgid "Open profile fields"
+msgstr "Open profile fields"
+
+msgctxt "Languages::kwtsms.integrations.open.appearance"
+msgid "Open Appearance settings"
+msgstr "Open Appearance settings"
+
+msgctxt "Languages::kwtsms.integrations.open.checkout"
+msgid "Open Checkout settings"
+msgstr "Open Checkout settings"
+
+msgctxt "Languages::kwtsms.integrations.open.captcha"
+msgid "Open CAPTCHA settings"
+msgstr "Open CAPTCHA settings"
+
+msgctxt "Languages::kwtsms.integrations.open.addons"
+msgid "Open add-ons"
+msgstr "Open add-ons"
+
+msgctxt "Languages::kwtsms.integrations.open.settings"
+msgid "Change on Settings"
+msgstr "Change on Settings"
+
+msgctxt "Languages::kwtsms.integrations.country.title"
+msgid "Default country for SMS"
+msgstr "Default country for SMS"
+
+msgctxt "Languages::kwtsms.integrations.country.help"
+msgid "A number typed without a country code is read with this country. You change it on the Settings page only."
+msgstr "A number typed without a country code is read with this country. You change it on the Settings page only."
+
+msgctxt "Languages::kwtsms.integrations.rule.title"
+msgid "New order rule"
+msgstr "New order rule"
+
+msgctxt "Languages::kwtsms.integrations.rule.text"
+msgid "The new-order SMS goes out the first time an order reaches one of these statuses. Editing an order or moving it between statuses later doesn't send it again."
+msgstr "The new-order SMS goes out the first time an order reaches one of these statuses. Editing an order or moving it between statuses later doesn't send it again."
+
+msgctxt "Languages::kwtsms.integrations.rule.more"
+msgid "Add more statuses on the Settings page."
+msgstr "Add more statuses on the Settings page."
+
+msgctxt "Languages::kwtsms.integrations.mve.title"
+msgid "Multi-Vendor"
+msgstr "Multi-Vendor"
+
+msgctxt "Languages::kwtsms.integrations.mve.help"
+msgid "A checkout with products from several vendors creates one order per vendor. These settings decide how many SMS that sends."
+msgstr "A checkout with products from several vendors creates one order per vendor. These settings decide how many SMS that sends."
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order"
+msgid "Customer new-order SMS"
+msgstr "Customer new-order SMS"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.per_checkout"
+msgid "One SMS for the whole checkout"
+msgstr "One SMS for the whole checkout"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "One SMS for each vendor order"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_new_order.help"
+msgid "One SMS lists every order number of the checkout."
+msgstr "One SMS lists every order number of the checkout."
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order"
+msgid "Admin new-order SMS"
+msgstr "Admin new-order SMS"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.per_checkout"
+msgid "One SMS for the whole checkout"
+msgstr "One SMS for the whole checkout"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "One SMS for each vendor order"
+
+msgctxt "Languages::kwtsms.integrations.mve.admin_new_order.off"
+msgid "No new-order SMS to admins"
+msgstr "No new-order SMS to admins"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope"
+msgid "Customer status SMS"
+msgstr "Customer status SMS"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.auto"
+msgid "Automatic"
+msgstr "Automatic"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.per_suborder"
+msgid "One SMS for each vendor order"
+msgstr "One SMS for each vendor order"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.per_checkout"
+msgid "One SMS when the last vendor order reaches the status"
+msgstr "One SMS when the last vendor order reaches the status"
+
+msgctxt "Languages::kwtsms.integrations.mve.customer_status_scope.help"
+msgid "Automatic sends one SMS per checkout when the marketplace fulfills every vendor order, and one per vendor order otherwise."
+msgstr "Automatic sends one SMS per checkout when the marketplace fulfills every vendor order, and one per vendor order otherwise."
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered"
+msgid "Vendor status changes"
+msgstr "Vendor status changes"
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered.label"
+msgid "Send the customer an SMS when a vendor changes an order status"
+msgstr "Send the customer an SMS when a vendor changes an order status"
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered.help"
+msgid "A status already texted in the last 24 hours is never texted twice."
+msgstr "A status already texted in the last 24 hours is never texted twice."
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_sms"
+msgid "Vendor SMS: not included in 1.0, planned for 1.1"
+msgstr "Vendor SMS: not included in 1.0, planned for 1.1"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_customer_new_order"
+msgid "Customer new-order SMS"
+msgstr "Customer new-order SMS"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_admin_new_order"
+msgid "Admin new-order SMS"
+msgstr "Admin new-order SMS"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_customer_status_scope"
+msgid "Customer status SMS"
+msgstr "Customer status SMS"
+
+msgctxt "Languages::kwtsms.integrations.field.mve_vendor_triggered_sms"
+msgid "Vendor status changes"
+msgstr "Vendor status changes"
+
+msgctxt "Languages::kwtsms.integrations.saved"
+msgid "Integration settings saved"
+msgstr "Integration settings saved"
+
+msgctxt "Languages::kwtsms.integrations.saved_others"
+msgid "The other integration settings were saved"
+msgstr "The other integration settings were saved"
+
+msgctxt "Languages::kwtsms.integrations.not_saved"
+msgid "[field] wasn't saved. Pick one of the listed values."
+msgstr "[field] wasn't saved. Pick one of the listed values."
+
+msgctxt "Languages::kwtsms.integrations.mve_only"
+msgid "These settings exist only in Multi-Vendor. Nothing was changed."
+msgstr "These settings exist only in Multi-Vendor. Nothing was changed."
+
+msgctxt "Languages::kwtsms.integrations.captcha.title"
+msgid "CAPTCHA at checkout"
+msgstr "CAPTCHA at checkout"
+
+msgctxt "Languages::kwtsms.integrations.captcha.on"
+msgid "CAPTCHA is on for checkout. Fake guest orders are less likely to cost you SMS credits."
+msgstr "CAPTCHA is on for checkout. Fake guest orders are less likely to cost you SMS credits."
+
+msgctxt "Languages::kwtsms.integrations.captcha.off"
+msgid "CAPTCHA is off for checkout. Bots can place fake guest orders, and every order sends SMS. Turn on the Checkout scenario in the CAPTCHA settings."
+msgstr "CAPTCHA is off for checkout. Bots can place fake guest orders, and every order sends SMS. Turn on the Checkout scenario in the CAPTCHA settings."
+
+msgctxt "Languages::kwtsms.integrations.captcha.recaptcha_on"
+msgid "The reCAPTCHA add-on is active."
+msgstr "The reCAPTCHA add-on is active."
+
+msgctxt "Languages::kwtsms.integrations.captcha.recaptcha_off"
+msgid "The reCAPTCHA add-on is not active."
+msgstr "The reCAPTCHA add-on is not active."
+
+msgctxt "Languages::kwtsms.integrations.clickatell.title"
+msgid "Core SMS notifications (Clickatell)"
+msgstr "Core SMS notifications (Clickatell)"
+
+msgctxt "Languages::kwtsms.integrations.clickatell.active"
+msgid "The core SMS notifications add-on is active. It sends its own SMS through Clickatell, so a customer or admin can get two messages for one event. Turn it off if kwtSMS should be the only sender."
+msgstr "The core SMS notifications add-on is active. It sends its own SMS through Clickatell, so a customer or admin can get two messages for one event. Turn it off if kwtSMS should be the only sender."
+
+msgctxt "Languages::kwtsms.integrations.clickatell.inactive"
+msgid "Not active. kwtSMS is the only SMS sender."
+msgstr "Not active. kwtSMS is the only SMS sender."
+
+msgctxt "Languages::kwtsms.integrations.later.title"
+msgid "Other add-ons"
+msgstr "Other add-ons"
+
+msgctxt "Languages::kwtsms.integrations.later.help"
+msgid "Available in a later version."
+msgstr "Available in a later version."
+
+msgctxt "Languages::kwtsms.integrations.later.installed"
+msgid "Installed in this store"
+msgstr "Installed in this store"
+
+msgctxt "Languages::kwtsms.integrations.later.rma"
+msgid "Returns (RMA)"
+msgstr "Returns (RMA)"
+
+msgctxt "Languages::kwtsms.integrations.later.call_requests"
+msgid "Call requests"
+msgstr "Call requests"
+
+msgctxt "Languages::kwtsms.integrations.later.gift_certificates"
+msgid "Gift certificates"
+msgstr "Gift certificates"
+
+msgctxt "Languages::kwtsms.integrations.later.discussion"
+msgid "Reviews and comments"
+msgstr "Reviews and comments"
+
+msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
+msgid "Vendor communication"
+msgstr "Vendor communication"

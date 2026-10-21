@@ -25,6 +25,8 @@
  */
 
 use Tygh\Addons\Kwtsms\Admin\DashboardPage;
+use Tygh\Addons\Kwtsms\Admin\AlertsPage;
+use Tygh\Addons\Kwtsms\Admin\IntegrationsPage;
 use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
@@ -179,6 +181,26 @@ try {
                 $kwtsms_page->regenerateCronKey();
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_cron'];
+
+            // 2026-10-21 04:24 +03: the Admin SMS Alerts page (Task 1.13, task 596). Admin\AlertsPage holds the rules;
+            // "dispatch[kwtsms.update_admin_alerts.check]" is the Check helper (nothing saved). The result of the
+            // update (a table of the typed numbers and their verdicts) waits in the session for the one redirect.
+            case 'update_admin_alerts':
+                $kwtsms_flash = AlertsPage::fromContainer(Tygh::$app)->update(
+                    isset($_REQUEST['kwtsms_alerts']) ? $_REQUEST['kwtsms_alerts'] : [],
+                    isset($action) && $action === 'check'
+                );
+                $kwtsms_session['kwtsms_alerts_result'] = $kwtsms_flash;
+
+                return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.admin_alerts#kwtsms_alerts_result'];
+
+            // 2026-10-21 04:24 +03: the Integrations page, Multi-Vendor settings (Task 1.13, task 596).
+            case 'update_integrations':
+                IntegrationsPage::fromContainer(Tygh::$app)->update(
+                    isset($_REQUEST['kwtsms_integrations']) ? $_REQUEST['kwtsms_integrations'] : []
+                );
+
+                return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.integrations'];
 
             // 2026-10-21 05:20 +03: the SMS brand-name editor of the Templates page (Task 1.12 fix round 1 item 3,
             // ruling R33, task 596). Read from the raw POST array like the template fields; the page checks the
@@ -399,6 +421,44 @@ try {
         return [CONTROLLER_STATUS_OK];
     }
 
+    // 2026-10-21 04:24 +03: Admin SMS Alerts and Integrations (Task 1.13, task 596). GET handlers never write; the
+    // result of the last update is shown once.
+    if ($mode === 'admin_alerts') {
+        $kwtsms_flash = null;
+        if (isset($kwtsms_session['kwtsms_alerts_result']) && is_array($kwtsms_session['kwtsms_alerts_result'])) {
+            $kwtsms_flash = $kwtsms_session['kwtsms_alerts_result'];
+            unset($kwtsms_session['kwtsms_alerts_result']);
+        }
+        $kwtsms_nav = Navigation::sections('admin_alerts', static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        });
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'admin_alerts');
+
+        Tygh::$app['view']->assign('kwtsms_alerts', AlertsPage::fromContainer(Tygh::$app)->viewData($kwtsms_flash));
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
+    if ($mode === 'integrations') {
+        $kwtsms_has = static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        };
+        $kwtsms_data = IntegrationsPage::fromContainer(Tygh::$app)->viewData($kwtsms_has);
+        $kwtsms_data['can_open_settings'] = $kwtsms_has('manage_kwtsms_gateway');
+        $kwtsms_data['can_open_templates'] = $kwtsms_has('manage_kwtsms');
+
+        $kwtsms_nav = Navigation::sections('integrations', $kwtsms_has);
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'integrations');
+
+        Tygh::$app['view']->assign('kwtsms_integrations', $kwtsms_data);
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
     // GET pages of later tasks.
     return [CONTROLLER_STATUS_NO_PAGE];
 } catch (\Throwable $e) {
@@ -421,6 +481,13 @@ try {
     $kwtsms_failed_url = $kwtsms_settings_url;
     if (in_array((string) $mode, $kwtsms_templates_modes, true)) {
         $kwtsms_failed_url = 'kwtsms.templates';
+    }
+    // 2026-10-21 04:24 +03: a failed Admin SMS Alerts or Integrations action goes back to its page (Task 1.13,
+    // task 596).
+    if ((string) $mode === 'update_admin_alerts') {
+        $kwtsms_failed_url = 'kwtsms.admin_alerts';
+    } elseif ((string) $mode === 'update_integrations') {
+        $kwtsms_failed_url = 'kwtsms.integrations';
     }
 
     return $kwtsms_method === RequestGate::POST

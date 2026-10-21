@@ -157,3 +157,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 <!-- 2026-10-21 06:22 +03: entry for the Dashboard fix round 2 (Task 1.11), task 596 -->
 - The sync the Dashboard runs when it is opened with a stale last sync uses the short web timeouts (3 seconds to connect,
   8 seconds in all for each call) instead of the admin ones, so a slow gateway holds the page back less.
+<!-- 2026-10-21 04:50 +03: entries for the Admin SMS alerts and Integrations pages (Task 1.13), task 596 -->
+- Admin SMS alerts page: up to 10 administrator numbers, each checked on its own with the reason when one is refused
+  (one typo no longer costs the other nine), the alert language, and the kwtSMS verdict for each number as a warning
+  ("kwtSMS cannot route this number", "Could not check with kwtSMS now"), also when kwtSMS can't be reached. "Check
+  numbers" asks kwtSMS without saving. The admin switches are shown read-only with a link to the Templates page, and
+  the page says plainly that SMS uses this list while the Receivers setting on Administration > Notifications applies
+  to e-mail.
+- Integrations page: three phone readiness checks, each with a link to the core setting that fixes it (a phone field
+  required at checkout, phone validation with country selection, the store default country equal to the SMS country),
+  the statuses that count as a new order, the default country (read-only), the Multi-Vendor settings (Multi-Vendor
+  only, with "Vendor SMS: not included in 1.0, planned for 1.1"), a warning when the core SMS notifications
+  (Clickatell) add-on is active, and a recommendation to turn on CAPTCHA at checkout.
