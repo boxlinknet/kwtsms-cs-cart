@@ -22,6 +22,10 @@ WHY:       PRD 6.4 and Task 1.12: the live counter must give the number the gate
            Preview button asks the server for the exact answer. tests/fixtures/templates-counter-parity.json proves the
            two agree on the bodies of the fixture (the rows marked dom_only run in the browser test only).
            2026-10-21 04:59 +03: stored form and detached-textarea entities added, Task 1.12 fix round 1 items 1 and 8, task 596.
+           2026-10-21 11:36 +03, ruling R40, task 596: clean() also decodes literal \uXXXX the way kwtSMS does (MessageCleaner
+           header, change 20: lowercase u and four hex digits, an escaped surrogate pair is one character, any other
+           surrogate is "?", in every pass after the entities, until none is left; the stored form keeps them as typed),
+           and render() drops a template backslash that would start a \uXXXX a value completes, like TemplateRenderer.
 USAGE:     Browser: window.kwtsmsCounter. Node: require('./counter.js').
              clean(text)                     -> cleaned text ('' when blocked)
              cleanForStorage(text), storedForm(body)        -> the form a body is saved in
@@ -143,12 +147,33 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         return out;
     }
 
+    /**
+     * MessageCleaner::gatewayEntities(): the decimal entities kwtSMS decodes itself when the text holds a complete one
+     * (1 to 10 digits, at most U+10FFFF, the ";" optional; a surrogate is removed). 2026-10-21 11:44 +03: added,
+     * ruling R40, task 596.
+     */
+    function gatewayEntities(text) {
+        if (text.indexOf('&#') === -1 || !/&(?:amp;)?#[0-9]+;/.test(text)) {
+            return text;
+        }
+        return text.replace(/&amp;#([0-9]+);/g, '&#$1;').replace(/&#([0-9]{1,10})(?![0-9]);?/g, function (whole, digits) {
+            var cp;
+            digits = digits.replace(/^0+/, '');
+            cp = digits === '' ? 0 : parseInt(digits, 10);
+            if (digits.length > 7 || cp > 0x10FFFF) {
+                return whole;
+            }
+            return cp >= 0xD800 && cp <= 0xDFFF ? '' : String.fromCodePoint(cp);
+        });
+    }
+
     function settleMarkup(text) {
         var pass;
         var before;
         for (pass = 0; pass < MAX_PASSES; pass++) {
             before = text;
-            text = decodeEntities(text);
+            // 2026-10-21 11:44 +03: then the gateway's own decimal entities (ruling R40), task 596.
+            text = gatewayEntities(decodeEntities(text));
             text = text.replace(COMMENT, '').replace(TAG, '');
             if (text === before) {
                 return text;
@@ -172,6 +197,39 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         });
     }
 
+    /**
+     * MessageCleaner::decodeUnicode(): the kwtSMS decoder's pattern (API/Send.php:57), one left-to-right round at a time,
+     * until no escape is left; throws when one is still left after MAX_PASSES rounds. 2026-10-21 11:36 +03: added,
+     * ruling R40, task 596.
+     */
+    var UNICODE_ESCAPE = /\\u([dD][89abAB][0-9a-fA-F]{2})\\u([dD][c-fC-F][0-9a-fA-F]{2})|\\u([0-9a-fA-F]{4})/g;
+
+    function decodeUnicode(text) {
+        var round;
+        var next;
+        for (round = 0; round < MAX_PASSES; round++) {
+            if (text.indexOf('\\u') === -1) {
+                return text;
+            }
+            next = text.replace(UNICODE_ESCAPE, function (whole, high, low, unit) {
+                var cp;
+                if (high !== undefined && low !== undefined) {
+                    return String.fromCodePoint(0x10000 + ((parseInt(high, 16) - 0xD800) << 10) + (parseInt(low, 16) - 0xDC00));
+                }
+                cp = parseInt(unit, 16);
+                return cp >= 0xD800 && cp <= 0xDFFF ? '?' : String.fromCharCode(cp);
+            });
+            if (next === text) {
+                return text;
+            }
+            text = next;
+        }
+        if (/\\u[0-9a-fA-F]{4}/.test(text)) {
+            throw new Error('unicode escapes nested too deep');
+        }
+        return text;
+    }
+
     function normalize(text) {
         text = text.replace(/\r\n?/g, '\n').replace(/[\u{2028}\u{2029}]/gu, '\n');
         text = text.replace(/[\u{660}-\u{669}]/gu, function (d) {
@@ -186,13 +244,20 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         return trim(text);
     }
 
-    /** MessageCleaner::cleanBody(): the passes of PRD 6.2.1; throws when the text does not settle. */
-    function cleanBody(text, decode) {
+    /**
+     * MessageCleaner::cleanBody(): the passes of PRD 6.2.1; throws when the text does not settle.
+     * 2026-10-21 11:36 +03: unicode (default true) decodes \uXXXX in every pass; only cleanForStorage() passes false
+     * (ruling R40), task 596.
+     */
+    function cleanBody(text, decode, unicode) {
         var pass;
         var next;
         text = dropInvalid(String(text));
         for (pass = 0; pass < MAX_PASSES; pass++) {
             next = settleMarkup(text);
+            if (unicode !== false) {
+                next = decodeUnicode(next);
+            }
             if (decode) {
                 next = decodeEscapes(next);
                 decode = false;
@@ -221,7 +286,8 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         var expected;
         var encoded;
         try {
-            stored = cleanBody(text, false);
+            // 2026-10-21 11:36 +03: the stored form keeps \uXXXX as typed too (ruling R40), task 596.
+            stored = cleanBody(text, false, false);
             expected = cleanBody(text, true);
             if (cleanBody(stored, true) === expected) {
                 return stored;
@@ -279,9 +345,27 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         return { units: units(cleaned), pages: p, unicode: isUnicode(cleaned), over: p > MAX_PAGES };
     }
 
-    /** The body with every known {name} replaced by its value (the sample values need no cleaning). */
+    /**
+     * The body with every known {name} replaced by its value (the sample values need no cleaning).
+     * 2026-10-21 11:36 +03: first, like TemplateRenderer::dropEscapeStartsBefore(), every run of backslashes directly in
+     * front of a placeholder of values, or in front of "u" and up to three hex digits that run into one, is removed,
+     * until nothing changes (ruling R40), task 596.
+     */
     function render(body, values) {
-        return String(body).replace(/\{[a-z_]+\}/g, function (token) {
+        var names = Object.keys(values).map(function (name) {
+            return ('{' + name + '}').replace(/[.*+?^${}()|[\]\\\/-]/g, '\\$&');
+        });
+        var re;
+        var before;
+        body = String(body);
+        if (names.length && body.indexOf('\\') !== -1) {
+            re = new RegExp('\\\\+(?=(?:u[0-9a-fA-F]{0,3})?(?:' + names.join('|') + '))', 'g');
+            do {
+                before = body;
+                body = body.replace(re, '');
+            } while (body !== before);
+        }
+        return body.replace(/\{[a-z_]+\}/g, function (token) {
             var name = token.slice(1, -1);
             return Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : token;
         });

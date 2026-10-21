@@ -44,6 +44,17 @@
  *            as passed in (raw).
  * DEPENDS:   Sms\MessageCleaner (cleanPlaceholderValue, recleanPlaceholderValue, cleanForStorage, dropInvalidUtf8),
  *            CS-Cart fn_set_hook() (tests stub it). 2026-10-21 00:48 +03: list completed, fix round 2, task 596.
+ *            2026-10-21 11:33 +03: also MessageCleaner::decodeUnicodeEscapes() (ruling R40), task 596.
+ *
+ * TASK 1.16 FIX (2026-10-21 11:33 +03, ruling R40, task 596): kwtSMS decodes a literal backslash-u escape whatever
+ * stands before it, and the doubled backslash does not protect it (MessageCleaner header, change 20), so clean() at
+ * send decodes every one in the rendered text. A value is therefore settled to the form it is sent in: its escapes are
+ * decoded in the value itself (a name typed as backslash-u000a is a line break there and becomes a space,
+ * backslash-ud83d backslash-ude00 is an emoji and is removed), and a value never ends in the start of an escape (a
+ * backslash followed by nothing, "u" or "u" and up to three hex digits loses that backslash), so the text after it,
+ * another customer value included, cannot complete one ("Ali\" + "u000a"). For the same reason a backslash in the
+ * template directly in front of a placeholder, or in front of "u" and up to three hex digits that run into one
+ * ("\{customer_first_name}", "\u00{order_id}"), is removed before the values go in.
  */
 
 namespace Tygh\Addons\Kwtsms\Templates;
@@ -76,6 +87,13 @@ class TemplateRenderer
      */
     private const MAX_VALUE_PASSES = 8;
 
+    /**
+     * The start of a literal \uXXXX at the very end of a value: backslashes followed by nothing, by "u", or by "u"
+     * and up to three hex digits. The text after the value could complete it, and kwtSMS decodes \uXXXX whatever
+     * stands in front of it (MessageCleaner header, change 20). 2026-10-21 11:33 +03: added, ruling R40, task 596.
+     */
+    private const ESCAPE_START_AT_END = '/\\\\++(?=(?:u[0-9a-fA-F]{0,3})?\z)/';
+
     /** Separators inside a sentence: , ; : and the Arabic comma and semicolon. */
     private const SEP = '[,;:\x{060C}\x{061B}]';
 
@@ -92,6 +110,9 @@ class TemplateRenderer
         // A NUL cannot occur in a cleaned body; dropping it keeps the mark below unambiguous. Invalid UTF-8 would
         // make the /u patterns of the tidy pass fail ("PCRE error 4"), so it goes too (fix round 1 item 3).
         $template = MessageCleaner::dropInvalidUtf8(str_replace(self::MARK, '', $body));
+        // 2026-10-21 11:33 +03: no backslash of the template may start a \uXXXX that a value completes (ruling R40),
+        // task 596.
+        $template = self::dropEscapeStartsBefore($template, array_keys($vars));
 
         $map = [];
         $has_empty = false;
@@ -214,8 +235,11 @@ class TemplateRenderer
         // decode would eat one more layer of backslashes.
         $first = true;
         for ($pass = 0; $pass < $max_passes; $pass++) {
+            // 2026-10-21 11:33 +03: a shop value has its \uXXXX decoded too (cleanForStorage() keeps them, and clean()
+            // at send would decode them across the doubled backslash); the customer cleaners decode them themselves.
+            // Ruling R40, task 596.
             if (!$free) {
-                $cleaned = MessageCleaner::cleanForStorage($text);
+                $cleaned = MessageCleaner::cleanForStorage(MessageCleaner::decodeUnicodeEscapes($text));
             } elseif ($first) {
                 $cleaned = MessageCleaner::cleanPlaceholderValue($text);
             } else {
@@ -223,6 +247,9 @@ class TemplateRenderer
             }
             $first = false;
             $next = trim((string) preg_replace('/\s+/u', ' ', strtr($cleaned, $drop)));
+            // 2026-10-21 11:33 +03: the value does not end in the start of a \uXXXX the next text could complete
+            // (ruling R40), task 596.
+            $next = (string) preg_replace(self::ESCAPE_START_AT_END, '', $next);
             if ($next === $text) {
                 return $text;
             }
@@ -230,6 +257,33 @@ class TemplateRenderer
         }
 
         return '';
+    }
+
+    /**
+     * The template without the backslashes that start a literal \uXXXX a value would complete: a run of backslashes
+     * directly in front of one of the placeholders in $names, or in front of "u" and up to three hex digits that run
+     * into one ("\{customer_first_name}", "\u00{order_id}"). Removing a run can put an earlier one in that position
+     * ("\u\u{x}"), so it repeats until nothing changes; every round removes at least one character.
+     * 2026-10-21 11:33 +03: added, ruling R40, task 596.
+     *
+     * @param array<int,int|string> $names Placeholder names without braces
+     */
+    private static function dropEscapeStartsBefore(string $template, array $names): string
+    {
+        if ($names === [] || strpos($template, '\\') === false) {
+            return $template;
+        }
+        $tokens = [];
+        foreach ($names as $name) {
+            $tokens[] = preg_quote('{' . $name . '}', '/');
+        }
+        $pattern = '/\\\\++(?=(?:u[0-9a-fA-F]{0,3})?(?:' . implode('|', $tokens) . '))/';
+        do {
+            $before = $template;
+            $template = self::replace($pattern, '', $template);
+        } while ($template !== $before);
+
+        return $template;
     }
 
     /**

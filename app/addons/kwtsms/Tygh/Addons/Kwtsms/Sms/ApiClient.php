@@ -308,6 +308,12 @@ class ApiClient
      * backslash in it is doubled and kwtSMS stores exactly this text, which is also the text the pages were counted
      * on. Without it "C:\next" arrived with a line break and a literal "\u0633" was charged as Unicode.
      * 2026-10-21 10:29 +03: added, Task 1.16 STEP 4 (queue_send bytes of cases 16c and 14b), task 596.
+     * 2026-10-21 11:33 +03, ruling R40, task 596: re-checked against the kwtSMS source and kept. API/Send.php:100-102
+     * turn a backslash and n, r or t into a control character unless a backslash stands before it, and
+     * stripslashes() at Send.php:442 then removes every lone backslash and halves every pair; the doubling protects
+     * against both. It does NOT protect a \uXXXX: Send.php:57 decodes it whatever stands in front (the re-run of
+     * 14b after this method still stored the letters). That is why MessageCleaner::clean() decodes every \uXXXX
+     * itself, so the text that reaches this method holds none.
      */
     public static function gatewayEscape(string $message): string
     {

@@ -42,7 +42,7 @@
  *              MessageCleaner::MAX_PAGES                     -> 7; pages() may return more, the CALLER blocks
  *            Count the CLEANED body: clean() first, then pages(). The JS counter on the Templates page
  *            (Task 1.12) must give the same numbers; tests/fixtures/send-path-cases.json holds both.
- * DEPENDS:   ext-mbstring (mb_convert_encoding, mb_substr), PCRE with UTF-8 support, PHP 7.4 to 8.3, and
+ * DEPENDS:   ext-mbstring (mb_convert_encoding, mb_substr, mb_chr), PCRE with UTF-8 support, PHP 7.4 to 8.3, and
  *            PhoneNormalizer::DIGITS_MAP (the 20 Arabic-Indic and Persian digits, one shared table).
  *
  * UPSTREAM:  Port of kwtsms-php v1.7.1, src/MessageUtils.php (MIT, Copyright (c) 2026 kwtSMS / boxlink net).
@@ -75,9 +75,12 @@
  *      (procedure case 26), so the body it receives must not decode into a tag. A body that is still
  *      changing after 8 passes, or any PCRE failure, returns '' (blocked_empty): fail closed.
  *   7. Smart quotes: U+2018 U+2019 U+201A U+201B to ', U+201C U+201D U+201E U+201F to "; U+2026 to "...".
- *   8. Literal escapes follow the gateway's decoder: \r\n, \n and \t decode; a doubled backslash
- *      collapses to one, so "\\n" is a literal backslash and n (procedure case 16c). A lone \r and \uXXXX
- *      are NOT decoded (PRD 6.2.1 lists only the three); the gateway decodes \uXXXX itself.
+ *   8. Literal escapes: \r\n, \n and \t decode; a doubled backslash collapses to one, so "\\n" is a literal
+ *      backslash and n (procedure case 16c). A lone \r is NOT decoded (PRD 6.2.1 lists only the three).
+ *      2026-10-21 11:33 +03, ruling R40, task 596: corrected. This item used to end "\uXXXX is NOT decoded; the
+ *      gateway decodes \uXXXX itself", which made the local count read 6 ASCII characters where kwtSMS stores and
+ *      bills one letter (Task 1.16 carry 14b: 80 A + 10 literal backslash-u0633 counted 1 page, charged 2).
+ *      \uXXXX is now decoded here, see item 20.
  *   9. Placeholder values (names): cleaned first (so hidden characters, entities and Arabic digits cannot
  *      hide a link), then URLs (scheme://, www., host/path), runs of 6 or more digits removed, then cut to
  *      20 code points, then trimmed. (Extended in change 12.)
@@ -115,6 +118,33 @@
  *  19. The WHY paragraph no longer says the page count matches the gateway's count "exactly": it matches the kwtSMS
  *      rules in PRD 6.2 step 9, and the gateway has the last word on the billed count. Comment stamps that were
  *      later than the commit holding them (c908a6f, 21:56) are set to 21:56.
+ *
+ * TASK 1.16 FIX (2026-10-21 11:33 +03, ruling R40, task 596):
+ *      New public method: MessageCleaner::decodeUnicodeEscapes($text) -> literal \uXXXX decoded the way kwtSMS decodes
+ *      them, until none is left ('' when it does not settle); for callers that clean a value without clean().
+ *  20. Literal \uXXXX escapes are decoded exactly as the kwtSMS /API/send/ handler decodes them (sendv2_decode_text(),
+ *      API/Send.php:55-66, run at Send.php:441 on the JSON-decoded message before \n \r \t, Send.php:98-103, and
+ *      stripslashes(), Send.php:442): a lowercase u and exactly four hex digits of either case; a high surrogate
+ *      (D800-DBFF) followed by an escaped low surrogate (DC00-DFFF) is one character above U+FFFF; any other surrogate
+ *      is "?" (what PHP 8.3 mbstring gives the gateway for it); \u0000 is NUL (removed later with the controls); fewer
+ *      than four hex digits, an uppercase U or a space after the u is not an escape; any number of backslashes in
+ *      front does not stop it (the gateway has no lookbehind for \u, only for \n \r \t). The gateway decodes once;
+ *      here the decode repeats until no escape is left (at most MAX_PASSES rounds, else the body is blocked), because
+ *      a decoded backslash (backslash-u005c, then u0041) or a later removal (a hidden character, a tag, an Arabic
+ *      digit folded to ASCII) can form a new one, and the body sent must hold none: ApiClient::gatewayEscape()
+ *      doubles every backslash, which protects the text from \n \r \t and stripslashes() but not from the \u decoder.
+ *      The decode runs in every pass, after the entities and before the literal escapes, so the hidden-character,
+ *      emoji and digit passes see the decoded character: a typed backslash-ud83d backslash-ude00 is an emoji and is
+ *      removed, backslash-u200b is removed, backslash-u0661 is 1. cleanForStorage() does not decode them (they stay
+ *      as typed, like \n), clean() at send does.
+ *  21. The same message then goes through sendsms_msg_text() (cportal/inc/sendsms_lib.php:40-61, called at
+ *      API/Send.php:105), which decodes decimal entities when the text holds at least one complete "&#N;": every
+ *      "&#" with 1 to 10 digits up to U+10FFFF, the ";" optional (PHP 8.3 mb_decode_numericentity()).
+ *      html_entity_decode() leaves "&#1;", "&#128;", "&#55357;" or "&#65534;" alone, so settleMarkup() now also runs
+ *      that step (gatewayEntities()); a surrogate is removed. Hex and named entities are not decoded by the gateway.
+ *      The gateway's steps after JSON decoding, in order: trim (Send.php:180), \uXXXX (55-66), \n \r \t (98-103), the
+ *      entities (105), stripslashes() and trim (442-443). What is sent holds no \uXXXX and no decimal entity the
+ *      gateway would decode, and every backslash travels doubled, so those steps give back exactly the cleaned body.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -155,6 +185,13 @@ class MessageCleaner
 
     /** Cleaning passes before a body that keeps changing is treated as hostile. */
     private const MAX_PASSES = 8;
+
+    /**
+     * The kwtSMS decoder's own pattern, verbatim (API/Send.php:57): an escaped surrogate pair (groups 1 and 2), or
+     * any four hex digits (group 3). 2026-10-21 11:33 +03: added, ruling R40, task 596.
+     */
+    public const UNICODE_ESCAPE = '/\\\\u([dD][89abAB][0-9a-fA-F]{2})\\\\u([dD][c-fC-F][0-9a-fA-F]{2})'
+        . '|\\\\u([0-9a-fA-F]{4})/';
 
     /** Literal escape pairs, longest first (strtr takes the longest key at each position, no rescanning). */
     private const ESCAPES = [
@@ -288,7 +325,9 @@ class MessageCleaner
     public static function cleanForStorage(string $text): string
     {
         try {
-            $stored = self::cleanBody($text, false);
+            // 2026-10-21 11:33 +03: the stored form decodes neither the literal escapes nor \uXXXX (both stay as typed
+            // and clean() decodes them at send), ruling R40, task 596.
+            $stored = self::cleanBody($text, false, false);
             $expected = self::cleanBody($text, true);
             if (self::cleanBody($stored, true) === $expected) {
                 return $stored;
@@ -388,6 +427,22 @@ class MessageCleaner
     }
 
     /**
+     * Decode literal \uXXXX escapes the way kwtSMS decodes them (header, change 20), again and again until none is
+     * left; '' when the text still holds one after MAX_PASSES rounds (fail closed, like clean()). Only \uXXXX: the
+     * other escapes are decodeEscapes(). For callers that clean a value without clean(), such as the shop values of
+     * TemplateRenderer.
+     * 2026-10-21 11:33 +03: added, ruling R40, task 596.
+     */
+    public static function decodeUnicodeEscapes(string $text): string
+    {
+        try {
+            return self::decodeUnicode($text);
+        } catch (\UnexpectedValueException $e) {
+            return '';
+        }
+    }
+
+    /**
      * True when any character is above U+007F: the whole message is then Unicode (70 / 67 per page).
      * Byte-level on purpose: every non-ASCII character, valid or not, contains a byte above 0x7F.
      */
@@ -427,9 +482,13 @@ class MessageCleaner
      * decoded once, on the first pass, and only when $decodeEscapes is true: a second decode would turn the
      * result of "\\n" into a newline.
      *
+     * 2026-10-21 11:33 +03: $decodeUnicode (default true) decodes \uXXXX in EVERY pass, after the entities and before
+     * the literal escapes and the hidden-character, emoji and digit passes, so the settled text holds no \uXXXX; only
+     * cleanForStorage() passes false. Ruling R40, task 596.
+     *
      * @throws \UnexpectedValueException When the text keeps changing after MAX_PASSES or PCRE fails
      */
-    private static function cleanBody(string $text, bool $decodeEscapes): string
+    private static function cleanBody(string $text, bool $decodeEscapes, bool $decodeUnicode = true): string
     {
         // 2026-10-20 22:04 +03: extracted from clean() with the $decodeEscapes switch and a thrown
         // UnexpectedValueException instead of a silent '' (clean() and cleanPlaceholderValue() catch it and
@@ -439,6 +498,10 @@ class MessageCleaner
 
         for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
             $next = self::settleMarkup($text);
+            // 2026-10-21 11:33 +03: \uXXXX as kwtSMS decodes it, every pass (ruling R40), task 596.
+            if ($decodeUnicode) {
+                $next = self::decodeUnicode($next);
+            }
             if ($decodeEscapes) {
                 $next = self::decodeEscapes($next);
                 $decodeEscapes = false;
@@ -550,6 +613,8 @@ class MessageCleaner
 
     /**
      * Steps 2 and 3: decode entities, then strip HTML comments and real tags, until the text stops changing.
+     * 2026-10-21 11:42 +03: html_entity_decode() is followed by gatewayEntities(), the numeric entities kwtSMS
+     * decodes itself (header, change 21), ruling R40, task 596.
      *
      * @throws \UnexpectedValueException When the text is still changing after MAX_PASSES or PCRE fails
      */
@@ -558,6 +623,7 @@ class MessageCleaner
         for ($pass = 0; $pass < self::MAX_PASSES; $pass++) {
             $before = $text;
             $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $text = self::gatewayEntities($text);
             $text = self::replace(self::COMMENT, '', $text);
             $text = self::replace(self::TAG, '', $text);
             if ($text === $before) {
@@ -566,6 +632,83 @@ class MessageCleaner
         }
 
         throw new \UnexpectedValueException('entity nesting is too deep');
+    }
+
+    /**
+     * The decimal entities kwtSMS decodes in the message (sendsms_msg_text(), cportal/inc/sendsms_lib.php:56-59, called
+     * from API/Send.php:105): only when the text holds a complete "&#123;" or "&amp;#123;"; then "&amp;#123;" becomes
+     * "&#123;" and mb_decode_numericentity() (PHP 8.3) decodes every "&#" with 1 to 10 digits whose value is at most
+     * U+10FFFF, the ";" after it optional. html_entity_decode() before this leaves the control characters, the C1
+     * range, the surrogates and the noncharacters alone, and the gateway would decode them: "&#128;" is one character
+     * above U+007F there (the body turns Unicode) and six ASCII characters here. A surrogate is removed here (the
+     * gateway would store a broken byte sequence). See the header, change 21.
+     * 2026-10-21 11:42 +03: added, ruling R40, task 596.
+     *
+     * @throws \UnexpectedValueException When PCRE fails
+     */
+    private static function gatewayEntities(string $text): string
+    {
+        if (strpos($text, '&#') === false || preg_match('/&(?:amp;)?#\d+;/', $text) !== 1) {
+            return $text;
+        }
+        $text = self::replace('/&amp;#(\d+);/', '&#$1;', $text);
+        $out = preg_replace_callback('/&#([0-9]{1,10})(?![0-9]);?/', static function (array $m): string {
+            $digits = ltrim($m[1], '0');
+            if (strlen($digits) > 7 || (int) $digits > 0x10FFFF) {
+                return $m[0];
+            }
+            $cp = (int) $digits;
+
+            return $cp >= 0xD800 && $cp <= 0xDFFF ? '' : (string) mb_chr($cp, 'UTF-8');
+        }, $text);
+        if (!is_string($out)) {
+            throw new \UnexpectedValueException('PCRE error ' . preg_last_error());
+        }
+
+        return $out;
+    }
+
+    /**
+     * Literal \uXXXX escapes decoded as kwtSMS decodes them (header, change 20), repeated until none is left.
+     * One round is the gateway's own preg_replace_callback (API/Send.php:57-65): left to right, no rescan of what it
+     * produced, so backslash-u005c followed by u0041 needs a second round. Each round that changes the text makes
+     * it shorter.
+     * 2026-10-21 11:33 +03: added, ruling R40, task 596.
+     *
+     * @throws \UnexpectedValueException When an escape is still left after MAX_PASSES rounds or PCRE fails
+     */
+    private static function decodeUnicode(string $text): string
+    {
+        for ($round = 0; $round < self::MAX_PASSES; $round++) {
+            if (strpos($text, '\\u') === false) {
+                return $text;
+            }
+            $next = preg_replace_callback(self::UNICODE_ESCAPE, static function (array $m): string {
+                if ($m[1] !== '' && isset($m[2]) && $m[2] !== '') {
+                    $high = (int) hexdec($m[1]) - 0xD800;
+                    $low = (int) hexdec($m[2]) - 0xDC00;
+
+                    return (string) mb_chr(0x10000 + ($high << 10) + $low, 'UTF-8');
+                }
+                $cp = (int) hexdec($m[3]);
+
+                // A surrogate on its own: the gateway's mb_convert_encoding() answers "?" for it (PHP 8.3).
+                return $cp >= 0xD800 && $cp <= 0xDFFF ? '?' : (string) mb_chr($cp, 'UTF-8');
+            }, $text);
+            if (!is_string($next)) {
+                throw new \UnexpectedValueException('PCRE error ' . preg_last_error());
+            }
+            if ($next === $text) {
+                return $text;
+            }
+            $text = $next;
+        }
+
+        if (preg_match(self::UNICODE_ESCAPE, $text) === 1) {
+            throw new \UnexpectedValueException('unicode escapes nested too deep');
+        }
+
+        return $text;
     }
 
     /**
