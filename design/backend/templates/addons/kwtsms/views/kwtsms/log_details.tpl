@@ -51,7 +51,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <div><dt>{__("kwtsms.logs.col.ms")}</dt><dd><bdi dir="ltr">{$r.duration_ms}</bdi></dd></div>
             {else}
                 <div><dt>{__("kwtsms.logs.f.phone")}</dt><dd><bdi dir="ltr" class="kwtsms-logs-number">{$r.phone}</bdi>{if $r.phone_raw && $r.phone_raw != $r.phone} <span class="muted">{__("kwtsms.logs.phone_typed")} <bdi dir="ltr">{$r.phone_raw}</bdi></span>{/if}</dd></div>
-                <div><dt>{__("kwtsms.logs.col.reason")}</dt><dd class="kwtsms-logs-text"><bdi>{$r.reason|default:"-"}</bdi></dd></div>
+                {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one, the reason id kept for support (review M2), task 596 *}
+                <div><dt>{__("kwtsms.logs.col.reason")}</dt><dd class="kwtsms-logs-text">{if $r.reason_label}{$r.reason_label} <span class="muted"><bdi dir="ltr">{$r.reason}</bdi></span>{else}<bdi>{$r.reason|default:"-"}</bdi>{/if}</dd></div>
                 {if $r.message_id}<div><dt>{__("kwtsms.logs.message")}</dt><dd><a href="{"kwtsms.log_details?tab=messages&id=`$r.message_id`"|fn_url}" id="kwtsms_attempt_message">#{$r.message_id}</a></dd></div>{/if}
                 {if $r.retry_of}<div><dt>{__("kwtsms.logs.resend_of")}</dt><dd><a href="{"kwtsms.log_details?tab=attempts&id=`$r.retry_of`"|fn_url}" id="kwtsms_retry_of">#{$r.retry_of}</a></dd></div>{/if}
                 {if $d.outbox}<div><dt>{__("kwtsms.logs.outbox")}</dt><dd>{__("kwtsms.logs.outbox_state.`$d.outbox.status`")} <span class="muted">{__("kwtsms.logs.outbox_tries", ["[n]" => $d.outbox.attempts])}</span></dd></div>{/if}
@@ -131,7 +132,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                                 <tr data-kwtsms-attempt="{$a.id}">
                                     <td><bdi dir="ltr" class="kwtsms-logs-number">{if $a.phone}{$a.phone}{else}{$a.phone_raw}{/if}</bdi></td>
                                     <td>{include file="addons/kwtsms/views/kwtsms/components/log_outcome.tpl" row=$a}</td>
-                                    <td class="kwtsms-logs-text"><bdi>{$a.reason}</bdi></td>
+                                    {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one (review M2), task 596 *}
+                                    <td class="kwtsms-logs-text"><bdi>{if $a.reason_label}{$a.reason_label}{else}{$a.reason}{/if}</bdi></td>
                                     <td class="kwtsms-logs-view">
                                         <a href="{"kwtsms.log_details?tab=attempts&id=`$a.id`"|fn_url}">{__("kwtsms.logs.view")}</a>
                                         {if $a.resend && $a.resend.ok}

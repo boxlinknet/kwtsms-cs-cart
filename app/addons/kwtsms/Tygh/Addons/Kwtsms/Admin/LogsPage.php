@@ -54,6 +54,12 @@ class LogsPage
     /** RowCleaner's marker at the end of a raw copy cut at 64 KB. */
     private const TRUNCATED = '/ \[truncated, (\d+) bytes\]$/D';
 
+    /**
+     * Attempt reasons with a plain-language text (kwtsms.logs.reason.<reason>, EN and AR). 2026-10-21 12:56 +03:
+     * added, review M2, task 596.
+     */
+    public const LABELLED_REASONS = [SmsService::CAP_RESERVED, 'cap_unavailable'];
+
     /** @var ConfigInterface */
     private $config;
 
@@ -614,6 +620,9 @@ class LogsPage
             'phone' => (string) $row['phone'],
             'phone_raw' => (string) $row['phone_raw'],
             'reason' => (string) $row['reason'],
+            // 2026-10-21 12:56 +03: plain-language text of the reasons that have one ('' = show the raw reason),
+            // review M2, task 596.
+            'reason_label' => $this->reasonLabel((string) $row['reason']),
             'message_id' => (int) $row['message_id'],
             'outbox_id' => (int) $row['outbox_id'],
             'retry_of' => (int) $row['retry_of'],
@@ -651,6 +660,16 @@ class LogsPage
         }
 
         return in_array($outcome, SmsService::OUTCOMES, true) ? (string) __('kwtsms.outcome.' . $outcome) : '';
+    }
+
+    /**
+     * Plain-language text of an attempt reason that has one: the cap reservation of a send that did not finish and the
+     * cap check that could not run; '' for every other reason (the page shows the reason itself).
+     * 2026-10-21 12:56 +03: added, review M2, task 596.
+     */
+    public function reasonLabel(string $reason): string
+    {
+        return in_array($reason, self::LABELLED_REASONS, true) ? (string) __('kwtsms.logs.reason.' . $reason) : '';
     }
 
     public function receiverLabel(string $receiver): string

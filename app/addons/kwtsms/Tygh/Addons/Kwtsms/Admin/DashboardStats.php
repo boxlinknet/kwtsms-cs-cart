@@ -21,13 +21,15 @@
  *            $stats->problems($since, $now);   $stats->outbox($now);   $stats->queries($now) -> name => SQL text
  *            Test seam: fetchRows(), fetchRow(), fetchField() are the only places that call the database.
  * DEPENDS:   CS-Cart db_get_array(), db_get_row(), db_get_field(), db_quote(); Admin\OutcomeGroups;
- *            Sms\PhoneNormalizer;
+ *            Sms\PhoneNormalizer; Sms\SmsService::CAP_RESERVED (2026-10-21 12:56 +03: the Problems panel leaves out a
+ *            cap reservation younger than IN_FLIGHT_SECONDS, review M2, task 596);
  *            tables kwtsms_attempts, kwtsms_messages, kwtsms_outbox, kwtsms_template_descriptions.
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
+use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Registry;
 
 class DashboardStats
@@ -40,6 +42,12 @@ class DashboardStats
 
     /** The event id the Settings test SMS form writes. */
     public const TEST_SMS_EVENT = 'kwtsms.test_sms';
+
+    /**
+     * A cap reservation (SmsService::CAP_RESERVED, outcome unknown) younger than this is a send still in flight, not a
+     * problem: the Problems panel leaves it out. 2026-10-21 12:56 +03: added, review M2, task 596.
+     */
+    public const IN_FLIGHT_SECONDS = 60;
 
     // ------------------------------------------------------------------ counters
 
@@ -127,6 +135,19 @@ class DashboardStats
         foreach ($this->rows($this->problemOutcomeQuery($since, $until)) as $row) {
             $outcomes[(string) $row['outcome']] = (int) $row['n'];
         }
+        // 2026-10-21 12:56 +03: a cap reservation younger than IN_FLIGHT_SECONDS is a send in flight; it is taken off
+        // in a second, small query on the last minute of idx_created_at, so the main count stays index-only
+        // (review M2), task 596.
+        $in_flight_from = max($since, $until - self::IN_FLIGHT_SECONDS);
+        foreach ($this->rows($this->problemInFlightQuery($in_flight_from, $until)) as $row) {
+            $outcome = (string) $row['outcome'];
+            if (isset($outcomes[$outcome])) {
+                $outcomes[$outcome] -= (int) $row['n'];
+                if ($outcomes[$outcome] <= 0) {
+                    unset($outcomes[$outcome]);
+                }
+            }
+        }
         $codes = [];
         foreach ($this->rows($this->problemCodeQuery($since, $until)) as $row) {
             $codes[] = [
@@ -144,6 +165,24 @@ class DashboardStats
         arsort($countries);
 
         return ['outcomes' => $outcomes, 'codes' => $codes, 'countries' => $countries];
+    }
+
+    /**
+     * The cap reservations (still in flight) created after $from, per problem outcome. 2026-10-21 12:56 +03: added,
+     * review M2, task 596.
+     *
+     * @return array<int,mixed>
+     */
+    private function problemInFlightQuery(int $from, int $until): array
+    {
+        return [
+            'SELECT outcome, COUNT(*) AS n FROM ?:kwtsms_attempts FORCE INDEX (idx_created_at)'
+            . ' WHERE created_at > ?i AND created_at <= ?i AND reason = ?s AND outcome IN (?a) GROUP BY outcome',
+            $from,
+            $until,
+            SmsService::CAP_RESERVED,
+            OutcomeGroups::problemOutcomes(),
+        ];
     }
 
     /**
@@ -447,6 +486,8 @@ class DashboardStats
             'attempt_counters' => $this->attemptCounterQuery($now, $today_start),
             'credit_counters' => $this->creditCounterQuery($now, $today_start),
             'problem_outcomes' => $this->problemOutcomeQuery($now - 7 * 86400, $now),
+            // 2026-10-21 12:56 +03: review M2, task 596.
+            'problem_in_flight' => $this->problemInFlightQuery($now - self::IN_FLIGHT_SECONDS, $now),
             'problem_codes' => $this->problemCodeQuery($now - 7 * 86400, $now),
             'problem_countries' => $this->problemCountryQuery($now - 7 * 86400, $now),
             'credits_by_event' => $this->creditsByEventQuery($last, $month, $now),

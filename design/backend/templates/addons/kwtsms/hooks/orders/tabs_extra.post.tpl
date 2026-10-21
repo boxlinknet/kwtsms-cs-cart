@@ -45,7 +45,8 @@ DEPENDS:   $kwtsms_order_sms (Admin\OrderSmsTab::viewData()), components/log_out
                                 <td data-label="{__("kwtsms.logs.col.to")}"><span class="kwtsms-logs-to__who">{$r.receiver_label}</span> <bdi dir="ltr" class="kwtsms-logs-number">{if $r.phone}{$r.phone}{else}{$r.phone_raw}{/if}</bdi></td>
                                 <td class="kwtsms-logs-event" data-label="{__("kwtsms.logs.col.event")}">{if $r.event_label}{$r.event_label}{else}<bdi dir="ltr">{$r.event_id}</bdi>{/if}</td>
                                 <td data-label="{__("kwtsms.logs.col.order")}"><bdi dir="ltr">{$r.order_id}</bdi>{if $r.of_parent} <span class="muted">{__("kwtsms.order_tab.parent")}</span>{elseif $r.of_child} <span class="muted">{__("kwtsms.order_tab.child")}</span>{/if}</td>
-                                <td class="kwtsms-logs-text" data-label="{__("kwtsms.logs.col.reason")}"><bdi>{$r.reason}</bdi></td>
+                                {* 2026-10-21 12:56 +03: the plain-language text of a reason that has one (review M2), task 596 *}
+                                <td class="kwtsms-logs-text" data-label="{__("kwtsms.logs.col.reason")}"><bdi>{if $r.reason_label}{$r.reason_label}{else}{$r.reason}{/if}</bdi></td>
                                 <td class="kwtsms-logs-view"><a href="{"kwtsms.log_details?tab=attempts&id=`$r.id`"|fn_url}">{__("kwtsms.logs.view")}</a></td>
                             </tr>
                         {/foreach}

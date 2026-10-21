@@ -3658,6 +3658,15 @@ msgctxt "Languages::kwtsms.logs.outcome.no_template"
 msgid "No template"
 msgstr "No template"
 
+# 2026-10-21 12:57 +03: kwtsms.logs.reason.<reason>, the attempt reasons shown in plain language (Admin\LogsPage::LABELLED_REASONS), review M2, task 596.
+msgctxt "Languages::kwtsms.logs.reason.cap_reserved"
+msgid "Held under the sending limits; this send did not finish."
+msgstr "Held under the sending limits; this send did not finish."
+
+msgctxt "Languages::kwtsms.logs.reason.cap_unavailable"
+msgid "The sending limits could not be checked; the SMS waits in the queue and is tried again."
+msgstr "The sending limits could not be checked; the SMS waits in the queue and is tried again."
+
 msgctxt "Languages::kwtsms.logs.test_badge"
 msgid "TEST"
 msgstr "TEST"
