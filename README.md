@@ -29,8 +29,10 @@ Send automated SMS notifications to your CS-Cart and Multi-Vendor customers and 
 [Sign up for a kwtSMS account](https://www.kwtsms.com/signup/) to get started. SMS credits are bought from kwtSMS.
 
 <!-- 2026-10-21 16:36 +03: status for 1.0.0, Task 1.17, task 596 -->
-> **Status:** version 1.0.0 (release candidate), the first release. It is published on the CS-Cart Marketplace and as a
-> GitHub release once approved.
+<!-- 2026-10-21 23:17 +03: status line no longer promises a Marketplace listing (not decided); GitHub Releases is
+     the download channel from the first tag, task 596. -->
+> **Status:** version 1.0.0 (release candidate), the first release. The installable zip is published under
+> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) from the first tagged release.
 
 ## Features
 
