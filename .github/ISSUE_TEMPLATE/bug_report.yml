@@ -1,0 +1,89 @@
+# FILE:      .github/ISSUE_TEMPLATE/bug_report.yml
+# CREATED:   2026-10-21 23:15 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      Issue form for bug reports on the kwtSMS add-on for CS-Cart and Multi-Vendor.
+# WHY:       Maintainers need the edition, versions and steps up front, and reporters must be told not to post secrets.
+# USAGE:     Shown by GitHub on New issue; layout follows the kwtSMS Joomla repo.
+# DEPENDS:   Nothing.
+
+name: Bug Report
+description: Report a bug in the kwtSMS add-on for CS-Cart
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste your kwtSMS API password, your cron key or customers' phone numbers** into this form,
+        into logs or into screenshots. Mask them first. Security problems go through the
+        [private advisory form](https://github.com/boxlinknet/kwtsms-cs-cart/security/advisories/new)
+        or support@kwtsms.com, not a public issue.
+
+  - type: dropdown
+    id: edition
+    attributes:
+      label: CS-Cart Edition
+      options:
+        - Ultimate
+        - Multi-Vendor
+    validations:
+      required: true
+
+  - type: input
+    id: cscart_version
+    attributes:
+      label: CS-Cart Version
+      placeholder: "e.g. 4.21.2"
+    validations:
+      required: true
+
+  - type: input
+    id: addon_version
+    attributes:
+      label: Add-on Version
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: php_version
+    attributes:
+      label: PHP Version
+      placeholder: "e.g. 8.3.4"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: What happened? What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Go to Add-ons > kwtSMS > Settings
+        2. Log in with the API user
+        3. Place a test order
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Paste PHP error log lines or entries from the add-on Logs page. Remove the API password, the cron key and every customer phone number before posting.
+      render: text
+
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Secrets check
+      options:
+        - label: I removed the API password, the cron key and customer phone numbers from everything I posted.
+          required: true

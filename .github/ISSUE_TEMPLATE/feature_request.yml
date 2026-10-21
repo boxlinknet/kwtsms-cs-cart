@@ -1,0 +1,49 @@
+# FILE:      .github/ISSUE_TEMPLATE/feature_request.yml
+# CREATED:   2026-10-21 23:15 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      Issue form for feature requests on the kwtSMS add-on for CS-Cart and Multi-Vendor.
+# WHY:       Collects the problem first and the area of the add-on it touches.
+# USAGE:     Shown by GitHub on New issue; layout follows the kwtSMS Joomla repo.
+# DEPENDS:   Nothing.
+
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never paste your kwtSMS API password, your cron key or customers' phone numbers here.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What problem would this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature you'd like to see.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      options:
+        - SMS sending
+        - Templates
+        - Logs
+        - Settings / Credentials
+        - Integrations (notification events)
+        - Admin SMS alerts
+        - Scheduled sync (cron)
+        - Other
+    validations:
+      required: true
