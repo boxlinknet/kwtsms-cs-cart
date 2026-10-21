@@ -628,6 +628,12 @@ class SettingsPage
     /** Why Config::save() refused a key (it returns names only). */
     private function rejectionReason(string $key): string
     {
+        // 2026-10-21 08:25 +03: the store-refused check comes FIRST (it was last): the early returns for `enabled`
+        // and `sender_id` below hid a failed store write behind their own reason, so the page said "invalid" or
+        // "not in the list" and the settings.save row had no store_errors, cleanup item 2, task 596.
+        if (method_exists($this->config, 'lastWriteError') && $this->config->lastWriteError($key) !== null) {
+            return 'not_stored';
+        }
         if ($key === 'enabled') {
             list($ok, $why) = $this->state->isConfigured($this->config);
             // 2026-10-21 03:16 +03: the stored switch decides the wording: still off, or on but unable to send
@@ -642,10 +648,7 @@ class SettingsPage
             return 'sender_not_in_list';
         }
         // 2026-10-21 03:16 +03: a key the settings store refused (Config logs its reason), Task 1.10 fix round 1
-        // item 14, task 596.
-        if (method_exists($this->config, 'lastWriteError') && $this->config->lastWriteError($key) !== null) {
-            return 'not_stored';
-        }
+        // item 14, task 596. 2026-10-21 08:25 +03: that check moved to the top of this method, cleanup item 2.
 
         return 'invalid';
     }

@@ -30,18 +30,23 @@ final class SampleData
 
     /**
      * The values of the PRD reference order (brand "ABC Store", order 10234, total 12.500 in KWD, first name Yousef).
+     * 2026-10-21 08:27 +03: $brand replaces "ABC Store" when it is not empty (the Templates page passes the store's
+     * real brand, so the preview, the editor sample and the test SMS show the text the store would send), cleanup
+     * item 3, task 596.
      *
      * @param string $lang        Language of the message (ar gets Arabic names and currency name)
      * @param string $status_name The order status name in that language (the page passes the row's status)
+     * @param string $brand       The store's SMS brand name in that language ('' = the PRD sample brand)
      *
      * @return array<string,string>
      */
-    public static function reference(string $lang, string $status_name = ''): array
+    public static function reference(string $lang, string $status_name = '', string $brand = ''): array
     {
         $ar = $lang === 'ar';
         $paid = $ar ? "\u{0645}\u{062F}\u{0641}\u{0648}\u{0639}" : 'Paid';
         $values = [
-            'store_name' => 'ABC Store',
+            // 2026-10-21 08:27 +03: the real brand when given, cleanup item 3, task 596.
+            'store_name' => $brand !== '' ? $brand : 'ABC Store',
             'order_id' => '10234',
             'order_ids' => '10234, 10235',
             'vendor_name' => 'Gulf Gadgets',

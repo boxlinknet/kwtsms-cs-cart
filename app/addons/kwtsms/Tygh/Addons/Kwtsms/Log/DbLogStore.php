@@ -113,11 +113,14 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
                 }
                 $clean[] = $values;
             }
+            // 2026-10-21 08:25 +03: the increment is read BEFORE the INSERT (it was after): a throw in this read used
+            // to leave the rows written and AttemptLog::recordMany() then recorded them again one by one (duplicate
+            // attempt rows); now a throw here means nothing was written, cleanup item 1, task 596.
+            $step = $this->autoIncrementStep();
             $first = $this->runInsertMany($name, $clean);
             if ($first < 1) {
                 throw new \RuntimeException('Could not insert into ' . $name);
             }
-            $step = $this->autoIncrementStep();
             foreach (array_keys($clean) as $k) {
                 $ids[] = $first + $k * $step;
             }

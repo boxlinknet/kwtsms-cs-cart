@@ -84,6 +84,12 @@ class TemplatesPage
     /** @var SettingsPage|null The Settings page, for the send half of a test SMS (2026-10-21 05:16 +03, item 2) */
     private $settings;
 
+    /**
+     * @var array<string,string> The store brand by language, read once per request
+     *                           (2026-10-21 08:28 +03, cleanup item 3, task 596)
+     */
+    private $brand_cache = [];
+
     public function __construct(
         TemplateRepository $templates,
         DebugLog $log,
@@ -228,7 +234,8 @@ class TemplatesPage
 
         $status = (string) $source['status'];
         $status_name = $status === '' ? '' : $this->statusNameIn($status, $lang, (string) $source['status_name']);
-        $sent = MessageCleaner::clean(TemplateRenderer::render($effective, SampleData::reference($lang, $status_name)));
+        // 2026-10-21 08:28 +03: the reference values carry the store's real brand (cleanup item 3, task 596).
+        $sent = MessageCleaner::clean(TemplateRenderer::render($effective, $this->reference($lang, $status_name)));
 
         $switch = null;
         $note = '';
@@ -343,7 +350,8 @@ class TemplatesPage
             // 2026-10-21 04:00 +03: JSON, so a name that holds a comma can still be confirmed. Task 1.12, task 596.
             'confirm' => (string) json_encode($unknown),
             'advice' => $this->advice($stored, (string) $row['receiver'], (string) $row['event_id']),
-            'reference' => SampleData::reference($lang, $status_name),
+            // 2026-10-21 08:28 +03: the editor sample shows the store's real brand, cleanup item 3, task 596.
+            'reference' => $this->reference($lang, $status_name),
             // 2026-10-21 05:03 +03: the row's own status name is part of the worst case (a custom status), item 4, task 596.
             'worst' => $this->worstValues($lang, $status_name),
             'allowed' => Defaults::allowedPlaceholders((string) $row['event_id'], (string) $row['receiver']),
@@ -593,13 +601,17 @@ class TemplatesPage
             $result['edit'] = '';
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
             $this->trace('info', 'test', 'Test not sent: unknown row or language', $input, $started, 'unknown_row');
+            // 2026-10-21 08:28 +03: a debug exit row on every way out, cleanup item 4, task 596.
+            $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, 'unknown_row');
 
             return $result;
         }
         $result['draft'] = $this->draft($input, [], 'test');
 
         $status = (string) $row['status'];
-        $values = SampleData::reference(
+        // 2026-10-21 08:28 +03: the same values as the preview (the store's real brand), so the test SMS is the
+        // preview text, cleanup item 3, task 596.
+        $values = $this->reference(
             $input['lang'],
             $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name'])
         );
@@ -607,6 +619,9 @@ class TemplatesPage
         if (MessageCleaner::clean($text) === '' || $this->settings === null) {
             $this->say('E', $this->settings === null ? 'kwtsms.templates.test_unavailable' : 'kwtsms.templates.test_empty');
             $this->trace('info', 'test', 'Test not sent: nothing to send', $input, $started, $this->settings === null ? 'unavailable' : 'empty');
+            // 2026-10-21 08:28 +03: debug exit, cleanup item 4, task 596.
+            $why = $this->settings === null ? 'unavailable' : 'empty';
+            $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, $why);
 
             return $result;
         }
@@ -615,6 +630,8 @@ class TemplatesPage
         if ($panel === null) {
             // The Settings page has said why (no number, the cap, the count failed).
             $this->trace('info', 'test', 'Test not sent', $input, $started, 'not_sent');
+            // 2026-10-21 08:28 +03: debug exit, cleanup item 4, task 596.
+            $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, 'not_sent');
 
             return $result;
         }
@@ -627,6 +644,8 @@ class TemplatesPage
             'outcome' => (string) ($panel['outcome'] ?? ''),
             'status' => (string) ($panel['status'] ?? ''),
         ], (int) round((microtime(true) - $started) * 1000));
+        // 2026-10-21 08:28 +03: debug exit, cleanup item 4, task 596.
+        $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, '');
 
         return $result;
     }
@@ -653,6 +672,8 @@ class TemplatesPage
         if (!$this->languageInstalled($lang)) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
             $this->note('info', 'brand', 'Brand names not saved: language not installed', ['lang' => $lang, 'saved' => 0], $started);
+            // 2026-10-21 08:28 +03: a debug exit row on every way out, cleanup item 4, task 596.
+            $this->note('debug', 'brand.exit', 'saveBrandNames()', ['lang' => $lang, 'saved' => 0], $started);
 
             return $result;
         }
@@ -699,6 +720,11 @@ class TemplatesPage
             'saved' => $result['saved'],
             'refused' => $refused,
         ], $started);
+        // 2026-10-21 08:28 +03: the stored brand changed: forget the brands read for the sample values (a later call on
+        // this object shows the new name), and a debug exit, cleanup items 3 and 4, task 596.
+        $this->brand_cache = [];
+        $exit = ['lang' => $lang, 'saved' => $result['saved']];
+        $this->note('debug', 'brand.exit', 'saveBrandNames()', $exit, $started);
 
         return $result;
     }
@@ -816,7 +842,8 @@ class TemplatesPage
             }
         } else {
             $order_id = 0;
-            $values = SampleData::reference(
+            // 2026-10-21 08:28 +03: the store's real brand, shared with the test SMS (cleanup item 3, task 596).
+            $values = $this->reference(
                 $input['lang'],
                 $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name'])
             );
@@ -1011,7 +1038,59 @@ class TemplatesPage
      */
     private function placeholderWords(string $lang): array
     {
-        return SampleData::reference($lang, '');
+        // 2026-10-21 08:28 +03: the {store_name} chip shows the store's real brand, cleanup item 3, task 596.
+        return $this->reference($lang, '');
+    }
+
+    /**
+     * The reference values of the page (SampleData::reference) with the store's real brand as {store_name}: the matrix
+     * length, the editor sample, the preview and the test SMS all use this one method, so they agree.
+     * 2026-10-21 08:28 +03: added, cleanup item 3, task 596.
+     *
+     * @return array<string,string>
+     */
+    private function reference(string $lang, string $status_name): array
+    {
+        return SampleData::reference($lang, $status_name, $this->brandOf($lang));
+    }
+
+    /**
+     * The SMS brand name of the default storefront in a language, read once per language and request ('' when none is
+     * named or it cannot be read: the PRD sample brand then stands in). 2026-10-21 08:28 +03: added, cleanup item 3,
+     * task 596.
+     */
+    private function brandOf(string $lang): string
+    {
+        if (!isset($this->brand_cache[$lang])) {
+            $this->brand_cache[$lang] = $this->brand($lang);
+        }
+
+        return $this->brand_cache[$lang];
+    }
+
+    /**
+     * The brand of the default storefront, the one the Settings test SMS and the Dashboard use. 2026-10-21 08:28 +03:
+     * added (a test replaces it), cleanup item 3, task 596.
+     */
+    protected function brand(string $lang): string
+    {
+        try {
+            $storefront_id = 0;
+            $app = \Tygh\Tygh::$app;
+            if (isset($app['storefront.repository'])) {
+                $storefront = $app['storefront.repository']->findDefault();
+                $storefront_id = $storefront ? (int) $storefront->storefront_id : 0;
+            }
+
+            return BrandNames::get($storefront_id, $lang);
+        } catch (\Throwable $e) {
+            $where = basename($e->getFile()) . ':' . $e->getLine();
+            $this->note('error', 'brand.read_failed', 'The store brand could not be read', [
+                'error' => get_class($e) . ': ' . $e->getMessage() . ' in ' . $where,
+            ]);
+
+            return '';
+        }
     }
 
     /**
