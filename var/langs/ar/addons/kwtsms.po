@@ -3030,3 +3030,486 @@ msgstr "التقييمات والتعليقات"
 msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
 msgid "Vendor communication"
 msgstr "التواصل مع البائعين"
+
+# 2026-10-21 04:43 +03: Task 1.15, task 596. kwtsms.help.* the Help page (PRD 6.10, English and Arabic): overview, kwtSMS account and Sender ID,
+# setup, go-live checklist, switches, placeholders, costs, cron (PRD 6.11), test mode, IP lockdown, "message not received",
+# support, links; kwtsms.nav.help its navigation entry.
+msgctxt "Languages::kwtsms.nav.help"
+msgid "Help"
+msgstr "المساعدة"
+
+msgctxt "Languages::kwtsms.help.page_title"
+msgid "kwtSMS help"
+msgstr "مساعدة kwtSMS"
+
+msgctxt "Languages::kwtsms.help.intro"
+msgid "Set up kwtSMS, understand what it costs, and fix delivery problems. Pick a topic."
+msgstr "أعدّ kwtSMS، وافهم تكلفته، وعالج مشاكل التسليم. اختر موضوعا."
+
+msgctxt "Languages::kwtsms.help.toc"
+msgid "Topics"
+msgstr "المواضيع"
+
+msgctxt "Languages::kwtsms.help.open_page"
+msgid "Open [page]"
+msgstr "افتح [page]"
+
+msgctxt "Languages::kwtsms.help.overview.title"
+msgid "What kwtSMS does"
+msgstr "ما الذي يفعله kwtSMS"
+
+msgctxt "Languages::kwtsms.help.overview.p1"
+msgid "kwtSMS sends SMS from your store through the kwtSMS gateway. Customers and administrators get a message when an order is placed and when its status changes, in English and Arabic."
+msgstr "يرسل kwtSMS رسائل نصية من متجرك عبر بوابة kwtSMS. يصل العملاء والمدراء رسالة عند تقديم الطلب وعند تغيّر حالته، بالعربية والإنجليزية."
+
+msgctxt "Languages::kwtsms.help.overview.li1"
+msgid "A text for every order status and receiver, in each language, that you edit on the Templates page."
+msgstr "نص لكل حالة طلب ولكل مستلم، بكل لغة، تعدّله من صفحة القوالب."
+
+msgctxt "Languages::kwtsms.help.overview.li2"
+msgid "A switch for each message, so nothing goes out until you turn it on."
+msgstr "مفتاح لكل رسالة، فلا يُرسل شيء حتى تشغّله."
+
+msgctxt "Languages::kwtsms.help.overview.li3"
+msgid "Test mode, pilot mode, daily limits, and quiet hours to keep cost and noise under control."
+msgstr "وضع الاختبار والوضع التجريبي وحدود يومية وساعات هدوء، لتضبط التكلفة وعدد الرسائل."
+
+msgctxt "Languages::kwtsms.help.overview.li4"
+msgid "A dashboard, a log of every message, and a list of administrator numbers for order alerts."
+msgstr "لوحة معلومات، وسجل لكل رسالة، وقائمة بأرقام المدراء لتنبيهات الطلبات."
+
+msgctxt "Languages::kwtsms.help.overview.p2"
+msgid "kwtSMS sends one-way messages, so customers can't reply. Vendor SMS is not included in version 1.0 and is planned for 1.1."
+msgstr "يرسل kwtSMS رسائل باتجاه واحد، فلا يستطيع العملاء الرد. رسائل البائعين غير مضمنة في الإصدار 1.0 ومخطط لها في 1.1."
+
+msgctxt "Languages::kwtsms.help.account.title"
+msgid "Your kwtSMS account"
+msgstr "حسابك في kwtSMS"
+
+msgctxt "Languages::kwtsms.help.account.p1"
+msgid "Create an account on the kwtSMS website and buy credits. One credit pays for one SMS page."
+msgstr "أنشئ حسابا في موقع kwtSMS واشترِ نقاطا. تدفع النقطة الواحدة ثمن صفحة رسالة واحدة."
+
+msgctxt "Languages::kwtsms.help.account.p2"
+msgid "Then turn on API access in your kwtSMS account and create an API username and password. The add-on signs in with them. The API username is not your account mobile number, and the API password is not your store password."
+msgstr "بعد ذلك فعّل الوصول عبر API في حسابك في kwtSMS وأنشئ اسم مستخدم وكلمة مرور لـ API. تسجّل الإضافة الدخول بهما. اسم مستخدم API ليس رقم جوال حسابك، وكلمة مرور API ليست كلمة مرور متجرك."
+
+msgctxt "Languages::kwtsms.help.account.sender_title"
+msgid "Sender ID"
+msgstr "معرف المرسل"
+
+msgctxt "Languages::kwtsms.help.account.sender_p1"
+msgid "The Sender ID is the name customers see as the sender. kwtSMS gives every account KWT-SMS for testing only. It can delay messages and doesn't reach Virgin Kuwait numbers. Register your own Sender ID before you go live."
+msgstr "معرف المرسل هو الاسم الذي يراه العميل كمرسل. يمنح kwtSMS كل حساب المعرف KWT-SMS للاختبار فقط. قد يؤخر الرسائل ولا يصل إلى أرقام Virgin الكويت. سجّل معرف مرسل خاصا بك قبل أن تبدأ العمل الفعلي."
+
+msgctxt "Languages::kwtsms.help.account.sender_transactional"
+msgid "Transactional: for order confirmations and status updates sent to one customer. It reaches numbers on the Do Not Disturb (DND) list. One-time fee: 15 KD."
+msgstr "تشغيلي: لتأكيدات الطلبات وتحديثات الحالة التي تُرسل إلى عميل واحد. يصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND). رسم لمرة واحدة: 15 دينارا."
+
+msgctxt "Languages::kwtsms.help.account.sender_promotional"
+msgid "Promotional: for offers sent to many people. Messages to DND numbers are blocked, and the credits are still spent. One-time fee: 10 KD."
+msgstr "ترويجي: للعروض التي تُرسل إلى عدد كبير من الناس. تُحجب الرسائل الموجهة إلى أرقام DND وتُخصم النقاط مع ذلك. رسم لمرة واحدة: 10 دنانير."
+
+msgctxt "Languages::kwtsms.help.account.sender_p2"
+msgid "Use a transactional Sender ID for order SMS. kwtSMS registers a Sender ID in about 5 working days. The fees above were right when this page was written. The Sender ID help page has the current ones."
+msgstr "استخدم معرف مرسل تشغيليا لرسائل الطلبات. يستغرق تسجيل معرف المرسل في kwtSMS نحو 5 أيام عمل. الرسوم أعلاه صحيحة وقت كتابة هذه الصفحة، وتجد الرسوم الحالية في صفحة مساعدة معرف المرسل."
+
+msgctxt "Languages::kwtsms.help.account.intl_title"
+msgid "Sending outside Kuwait"
+msgstr "الإرسال خارج الكويت"
+
+msgctxt "Languages::kwtsms.help.account.intl_p1"
+msgid "International sending is off until you ask kwtSMS to turn it on. Once it is on, bots can place fake orders from other countries and spend your credits fast. Turn on CAPTCHA at checkout before you ask for it."
+msgstr "الإرسال الدولي متوقف حتى تطلب من kwtSMS تفعيله. بعد تفعيله، يمكن للبرامج الآلية تقديم طلبات وهمية من دول أخرى واستهلاك نقاطك بسرعة. فعّل الكابتشا عند إتمام الشراء قبل أن تطلب التفعيل."
+
+msgctxt "Languages::kwtsms.help.account.intl_p2"
+msgid "kwtSMS also caps international SMS per day. When you reach the cap, the gateway answers ERR035: customers in other countries get no SMS until the next day, Kuwait numbers are not affected, and the add-on shows a notice."
+msgstr "يحدد kwtSMS أيضا سقفا يوميا للرسائل الدولية. عند بلوغه تردّ البوابة بالرمز ERR035: لا يصل العملاء في الدول الأخرى أي رسالة حتى اليوم التالي، ولا تتأثر أرقام الكويت، وتعرض الإضافة إشعارا."
+
+msgctxt "Languages::kwtsms.help.account.intl_p3"
+msgid "On Settings, choose the countries where customers can get SMS."
+msgstr "من صفحة الإعدادات، اختر الدول التي يمكن للعملاء تلقي الرسائل فيها."
+
+msgctxt "Languages::kwtsms.help.setup.title"
+msgid "Set up, step by step"
+msgstr "الإعداد خطوة بخطوة"
+
+msgctxt "Languages::kwtsms.help.setup.intro"
+msgid "Follow these steps in order. The Dashboard shows which ones are done."
+msgstr "اتبع هذه الخطوات بالترتيب. تعرض لوحة المعلومات الخطوات المنجزة."
+
+msgctxt "Languages::kwtsms.help.setup.s1"
+msgid "Log in. On Settings, enter your API username and password."
+msgstr "سجّل الدخول. في صفحة الإعدادات، أدخل اسم مستخدم API وكلمة المرور."
+
+msgctxt "Languages::kwtsms.help.setup.s2"
+msgid "Choose a Sender ID from the list. Don't keep KWT-SMS on a live store."
+msgstr "اختر معرف مرسل من القائمة. لا تُبقِ KWT-SMS في متجر يعمل فعليا."
+
+msgctxt "Languages::kwtsms.help.setup.s3"
+msgid "Check the default country. A number typed without a country code is read as a number from that country."
+msgstr "راجع الدولة الافتراضية. يُقرأ الرقم المكتوب بلا رمز دولة على أنه رقم من تلك الدولة."
+
+msgctxt "Languages::kwtsms.help.setup.s4"
+msgid "Set your SMS brand name on the Templates page. Customers see it at the start of every message."
+msgstr "حدد اسم علامتك للرسائل في صفحة القوالب. يراه العملاء في بداية كل رسالة."
+
+msgctxt "Languages::kwtsms.help.setup.s5"
+msgid "Send a test SMS to your own phone from Settings."
+msgstr "أرسل رسالة اختبار إلى هاتفك من صفحة الإعدادات."
+
+msgctxt "Languages::kwtsms.help.setup.s6"
+msgid "Review the switches and texts on the Templates page, in English and Arabic."
+msgstr "راجع المفاتيح والنصوص في صفحة القوالب، بالإنجليزية والعربية."
+
+msgctxt "Languages::kwtsms.help.setup.s7"
+msgid "Turn off test mode when you are ready for real messages."
+msgstr "أوقف وضع الاختبار عندما تكون جاهزا للرسائل الفعلية."
+
+msgctxt "Languages::kwtsms.help.setup.s8"
+msgid "Turn on SMS."
+msgstr "شغّل الرسائل النصية."
+
+msgctxt "Languages::kwtsms.help.golive.title"
+msgid "Before you go live"
+msgstr "قبل البدء الفعلي"
+
+msgctxt "Languages::kwtsms.help.golive.intro"
+msgid "Check these before customers get real SMS."
+msgstr "راجع ما يلي قبل أن يتلقى العملاء رسائل فعلية."
+
+msgctxt "Languages::kwtsms.help.golive.g1"
+msgid "A transactional Sender ID is registered. It takes about 5 working days."
+msgstr "معرف المرسل التشغيلي مسجّل. يستغرق ذلك نحو 5 أيام عمل."
+
+msgctxt "Languages::kwtsms.help.golive.g2"
+msgid "The English and Arabic templates are reviewed."
+msgstr "قوالب الإنجليزية والعربية تمت مراجعتها."
+
+msgctxt "Languages::kwtsms.help.golive.g3"
+msgid "Administrator numbers are added on the Admin SMS alerts page."
+msgstr "أُضيفت أرقام المدراء في صفحة تنبيهات المدير."
+
+msgctxt "Languages::kwtsms.help.golive.g4"
+msgid "A pilot run with your own numbers worked. Pilot mode sends real SMS only to the administrator numbers and logs the rest."
+msgstr "نجحت تجربة بأرقامك أنت. يرسل الوضع التجريبي رسائل حقيقية إلى أرقام المدير فقط ويسجل ما سواها."
+
+msgctxt "Languages::kwtsms.help.golive.g5"
+msgid "Test mode is off, and the test messages that held credits are deleted from your kwtSMS queue."
+msgstr "وضع الاختبار متوقف، ورسائل الاختبار التي حجزت نقاطا محذوفة من قائمة الانتظار في kwtSMS."
+
+msgctxt "Languages::kwtsms.help.golive.g6"
+msgid "CAPTCHA is on at checkout, so bots can't place fake orders that send SMS."
+msgstr "الكابتشا مفعّلة عند إتمام الشراء، فلا تستطيع البرامج الآلية تقديم طلبات وهمية ترسل رسائل."
+
+msgctxt "Languages::kwtsms.help.switches.title"
+msgid "SMS switches and the Notify boxes"
+msgstr "مفاتيح الرسائل ومربعات الإشعار"
+
+msgctxt "Languages::kwtsms.help.switches.intro"
+msgid "Three things decide whether an SMS goes out."
+msgstr "ثلاثة أمور تقرر إن كانت الرسالة ستُرسل."
+
+msgctxt "Languages::kwtsms.help.switches.s1"
+msgid "The main switch on Settings. Nothing is sent while SMS are off."
+msgstr "المفتاح الرئيسي في صفحة الإعدادات. لا يُرسل شيء ما دامت الرسائل النصية متوقفة."
+
+msgctxt "Languages::kwtsms.help.switches.s2"
+msgid "The switch of each message, on the Templates page and on Administration > Notifications. They are the same switches, so a change in one place shows in the other."
+msgstr "مفتاح كل رسالة، في صفحة القوالب وفي الإدارة > الإشعارات. هي المفاتيح نفسها، فما تغيّره في مكان يظهر في الآخر."
+
+msgctxt "Languages::kwtsms.help.switches.s3"
+msgid "The Notify boxes on the order page and when you change a status. If you untick Notify for the customer, that customer gets no SMS for that change."
+msgstr "مربعات الإشعار في صفحة الطلب وعند تغيير الحالة. إذا ألغيت تحديد إشعار العميل فلن تصله رسالة عن ذلك التغيير."
+
+msgctxt "Languages::kwtsms.help.switches.p1"
+msgid "After install, only the new order messages for customers and administrators are on. Every status message is off until you turn it on."
+msgstr "بعد التثبيت، لا يعمل سوى رسالتي الطلب الجديد للعملاء وللمدراء. كل رسائل الحالات متوقفة حتى تشغّلها."
+
+msgctxt "Languages::kwtsms.help.switches.p2"
+msgid "The Receivers setting on Administration > Notifications is the list of e-mail recipients. SMS to administrators use the list on the Admin SMS alerts page."
+msgstr "إعداد المستلمين في الإدارة > الإشعارات هو قائمة مستلمي البريد الإلكتروني. أما الرسائل النصية للمدراء فتستخدم القائمة في صفحة تنبيهات المدير."
+
+msgctxt "Languages::kwtsms.help.ph.title"
+msgid "Placeholders"
+msgstr "العناصر النائبة"
+
+msgctxt "Languages::kwtsms.help.ph.p1"
+msgid "Write a placeholder in curly braces, like {order_id}. The add-on replaces it when the message goes out. A message with a placeholder the add-on doesn't know is blocked before sending."
+msgstr "اكتب العنصر النائب بين قوسين معقوفين، مثل {order_id}. تستبدله الإضافة عند إرسال الرسالة. تُحجب الرسالة التي فيها عنصر نائب لا تعرفه الإضافة قبل إرسالها."
+
+msgctxt "Languages::kwtsms.help.ph.col_name"
+msgid "Placeholder"
+msgstr "العنصر النائب"
+
+msgctxt "Languages::kwtsms.help.ph.col_meaning"
+msgid "What it becomes"
+msgstr "ما يتحول إليه"
+
+msgctxt "Languages::kwtsms.help.ph.store_name"
+msgid "Your SMS brand name"
+msgstr "اسم علامتك للرسائل"
+
+msgctxt "Languages::kwtsms.help.ph.order_id"
+msgid "The order number"
+msgstr "رقم الطلب"
+
+msgctxt "Languages::kwtsms.help.ph.order_ids"
+msgid "The order numbers of one checkout: the first three, then how many more (Multi-Vendor)"
+msgstr "أرقام طلبات عملية شراء واحدة: أول ثلاثة ثم عدد الباقي (تعدد البائعين)"
+
+msgctxt "Languages::kwtsms.help.ph.vendor_name"
+msgid "The vendor's name (Multi-Vendor)"
+msgstr "اسم البائع (تعدد البائعين)"
+
+msgctxt "Languages::kwtsms.help.ph.order_total"
+msgid "The order total, in the order's currency"
+msgstr "إجمالي الطلب بعملة الطلب"
+
+msgctxt "Languages::kwtsms.help.ph.currency"
+msgid "The currency code, or its Arabic name in Arabic texts"
+msgstr "رمز العملة، أو اسمها بالعربية في النصوص العربية"
+
+msgctxt "Languages::kwtsms.help.ph.order_status"
+msgid "The name of the order status"
+msgstr "اسم حالة الطلب"
+
+msgctxt "Languages::kwtsms.help.ph.customer_first_name"
+msgid "The customer's first name"
+msgstr "الاسم الأول للعميل"
+
+msgctxt "Languages::kwtsms.help.ph.customer_last_name"
+msgid "The customer's last name"
+msgstr "اسم عائلة العميل"
+
+msgctxt "Languages::kwtsms.help.ph.order_date"
+msgid "The order date"
+msgstr "تاريخ الطلب"
+
+msgctxt "Languages::kwtsms.help.ph.payment_method"
+msgid "The payment method"
+msgstr "طريقة الدفع"
+
+msgctxt "Languages::kwtsms.help.ph.shipping_method"
+msgid "The shipping method"
+msgstr "طريقة الشحن"
+
+msgctxt "Languages::kwtsms.help.costs.title"
+msgid "What an SMS costs"
+msgstr "تكلفة الرسالة النصية"
+
+msgctxt "Languages::kwtsms.help.costs.p1"
+msgid "kwtSMS charges one credit for each SMS page. An English page holds [gsm_single] characters. A longer text uses pages of [gsm_multi] characters."
+msgstr "يخصم kwtSMS نقطة واحدة عن كل صفحة رسالة. تتسع الصفحة الإنجليزية لـ [gsm_single] حرفا. والنص الأطول يستخدم صفحات من [gsm_multi] حرفا."
+
+msgctxt "Languages::kwtsms.help.costs.p2"
+msgid "Arabic changes the count. A text with even one Arabic letter, or any other character outside the English set, becomes Unicode. A page then holds only [unicode_single] characters, or [unicode_multi] when there is more than one page. The same text can need two or three times as many pages."
+msgstr "العربية تغيّر الحساب. أي نص فيه حرف عربي واحد، أو أي حرف آخر خارج المجموعة الإنجليزية، يصبح نص Unicode. عندها تتسع الصفحة لـ [unicode_single] حرفا فقط، أو [unicode_multi] إذا زاد النص عن صفحة. وقد يحتاج النص نفسه إلى ضعفين أو ثلاثة أضعاف عدد الصفحات."
+
+msgctxt "Languages::kwtsms.help.costs.p3"
+msgid "A long brand name works the same way: it takes characters from every message. Keep your SMS brand name short, and in English letters if your texts are English. A customer's name can also turn an English SMS into Unicode when it is written in Arabic."
+msgstr "الاسم الطويل للعلامة يعمل بالطريقة نفسها: يستهلك أحرفا من كل رسالة. اجعل اسم علامتك للرسائل قصيرا، وبأحرف إنجليزية إذا كانت نصوصك إنجليزية. وقد يحوّل اسم العميل المكتوب بالعربية رسالة إنجليزية إلى Unicode."
+
+msgctxt "Languages::kwtsms.help.costs.p4"
+msgid "A message can have at most [max_pages] pages. The Templates page shows the page count of every text as you type, and the worst case."
+msgstr "يمكن أن تتكون الرسالة من [max_pages] صفحات على الأكثر. تعرض صفحة القوالب عدد صفحات كل نص أثناء الكتابة، وأسوأ حالة."
+
+msgctxt "Languages::kwtsms.help.costs.low_title"
+msgid "Know when credits run low"
+msgstr "اعرف متى تقترب النقاط من النفاد"
+
+msgctxt "Languages::kwtsms.help.costs.low_p1"
+msgid "The Dashboard shows your balance and warns you when it runs low. Also turn on the low-balance notification in your kwtSMS account, so you hear about it when you are not in the store. At zero credits, customer SMS stop."
+msgstr "تعرض لوحة المعلومات رصيدك وتنبهك عند اقترابه من النفاد. فعّل أيضا إشعار انخفاض الرصيد في حسابك في kwtSMS لتعرف ذلك وأنت خارج المتجر. عند وصول الرصيد إلى صفر تتوقف رسائل العملاء."
+
+msgctxt "Languages::kwtsms.help.cron.title"
+msgid "Cron: sending queued SMS"
+msgstr "المهمة المجدولة: إرسال الرسائل المنتظرة"
+
+msgctxt "Languages::kwtsms.help.cron.p1"
+msgid "Some SMS wait in a queue: status updates held for quiet hours, and messages kwtSMS couldn't take yet. A cron job sends them. It also syncs your account once a day and cleans old logs."
+msgstr "بعض الرسائل تنتظر في قائمة: تحديثات الحالة المؤجلة لساعات الهدوء، والرسائل التي لم يستطع kwtSMS استلامها بعد. تتولى المهمة المجدولة إرسالها. وتزامن حسابك مرة في اليوم وتنظف السجلات القديمة."
+
+msgctxt "Languages::kwtsms.help.cron.p2"
+msgid "Add this line to the crontab of the user that runs your web server. It runs every minute."
+msgstr "أضف هذا السطر إلى crontab للمستخدم الذي يشغّل خادم الويب. يعمل كل دقيقة."
+
+msgctxt "Languages::kwtsms.help.cron.p3"
+msgid "The line is made for this store from its folder and its admin script ([script]). If cron can't find php, write the full path of the PHP command line program instead of php. In /etc/cron.d, put the user name after the five time fields."
+msgstr "السطر مُعدّ لهذا المتجر من مجلده ومن سكربت الإدارة فيه ([script]). إذا لم تجد المهمة المجدولة php فاكتب المسار الكامل لبرنامج PHP لسطر الأوامر بدلا منه. في ⁦/etc/cron.d⁩ ضع اسم المستخدم بعد حقول الوقت الخمسة."
+
+msgctxt "Languages::kwtsms.help.cron.p4"
+msgid "Without cron, opening the Dashboard sends up to 20 waiting SMS and runs the daily sync if the last sync is old. This happens for any administrator who opens it, including one who can only view it. It is a fallback for stores without a working cron. Nothing is sent while nobody opens the Dashboard, so the real fix is the cron line above."
+msgstr "بدون المهمة المجدولة، يؤدي فتح لوحة المعلومات إلى إرسال ما يصل إلى 20 رسالة منتظرة وإلى تشغيل المزامنة اليومية إذا كانت آخر مزامنة قديمة. يحدث هذا لأي مدير يفتحها، حتى من لديه صلاحية العرض فقط. هذا حل احتياطي للمتاجر التي لا تعمل فيها المهمة المجدولة. لا يُرسل شيء ما دام لا أحد يفتح لوحة المعلومات، لذلك الحل الحقيقي هو سطر المهمة المجدولة أعلاه."
+
+msgctxt "Languages::kwtsms.help.cron.url_title"
+msgid "No crontab? Use the URL"
+msgstr "لا يوجد crontab؟ استخدم الرابط"
+
+msgctxt "Languages::kwtsms.help.cron.url_p1"
+msgid "Some hosts only offer a URL cron. Turn on the cron URL on Settings, copy the key shown there, and call this address every minute. Replace YOUR_CRON_KEY with that key."
+msgstr "بعض الاستضافات توفر مهمة مجدولة عبر رابط فقط. فعّل رابط المهمة المجدولة في صفحة الإعدادات، وانسخ المفتاح الظاهر هناك، واستدعِ هذا العنوان كل دقيقة. استبدل YOUR_CRON_KEY بذلك المفتاح."
+
+msgctxt "Languages::kwtsms.help.cron.url_p2"
+msgid "The URL takes POST requests only. Send the key in the header X-Kwtsms-Cron-Key and never in the address, because servers log addresses. Any other request is refused. A good call answers {\"ok\":true}."
+msgstr "يقبل الرابط طلبات POST فقط. أرسل المفتاح في الترويسة X-Kwtsms-Cron-Key وليس في العنوان أبدا، لأن الخوادم تسجل العناوين. يُرفض أي طلب آخر. والنداء الناجح يردّ بـ ⁦{\"ok\":true}⁩."
+
+msgctxt "Languages::kwtsms.help.cron.url_off"
+msgid "The cron URL is off on this store. It is off until you turn it on."
+msgstr "رابط المهمة المجدولة متوقف في هذا المتجر. يبقى متوقفا حتى تفعّله."
+
+msgctxt "Languages::kwtsms.help.cron.url_on"
+msgid "The cron URL is on."
+msgstr "رابط المهمة المجدولة مفعّل."
+
+msgctxt "Languages::kwtsms.help.cron.timeout_title"
+msgid "A 504 error is not always a failure"
+msgstr "خطأ 504 لا يعني الفشل دائما"
+
+msgctxt "Languages::kwtsms.help.cron.timeout_p1"
+msgid "Some proxies and hosts cut a request after 60 seconds and show a 504 error, although the run keeps going and finishes. Check Cron last ran on the Dashboard before you decide the run failed."
+msgstr "بعض الوسطاء والاستضافات تقطع الطلب بعد 60 ثانية وتعرض الخطأ 504، مع أن التنفيذ يستمر وينتهي. راجع آخر تشغيل للمهمة المجدولة في لوحة المعلومات قبل أن تحكم بفشله."
+
+msgctxt "Languages::kwtsms.help.cron.lock_title"
+msgid "Two runs at once"
+msgstr "تشغيلان في وقت واحد"
+
+msgctxt "Languages::kwtsms.help.cron.lock_p1"
+msgid "Runs should not overlap. The add-on uses the core lock for that, and the lock works only when lock_backend is database or redis. With lock_backend set to dummy there is no mutual exclusion: two runs can overlap. Set lock_backend in config.local.php."
+msgstr "يجب ألا يتداخل تشغيلان. تستخدم الإضافة قفل النظام لذلك، ولا يعمل القفل إلا عندما يكون lock_backend بالقيمة database أو redis. عندما يكون lock_backend بالقيمة dummy لا يوجد منع للتداخل: يمكن أن يتداخل تشغيلان. اضبط lock_backend في ملف config.local.php."
+
+msgctxt "Languages::kwtsms.help.cron.lock_state"
+msgid "This store uses lock_backend [backend]."
+msgstr "يستخدم هذا المتجر lock_backend بالقيمة [backend]."
+
+msgctxt "Languages::kwtsms.help.cron.lock_ok"
+msgid "That gives mutual exclusion: only one run works at a time."
+msgstr "هذا يمنع التداخل: يعمل تشغيل واحد فقط في كل مرة."
+
+msgctxt "Languages::kwtsms.help.cron.lock_bad"
+msgid "That gives no mutual exclusion. Change it to database or redis."
+msgstr "هذا لا يمنع التداخل. غيّره إلى database أو redis."
+
+msgctxt "Languages::kwtsms.help.test.title"
+msgid "Test mode and held credits"
+msgstr "وضع الاختبار والنقاط المحجوزة"
+
+msgctxt "Languages::kwtsms.help.test.p1"
+msgid "Test mode is on after install. Every message then goes to kwtSMS as a test: kwtSMS accepts it and never delivers it."
+msgstr "وضع الاختبار مفعّل بعد التثبيت. عندها تصل كل رسالة إلى kwtSMS كاختبار: يقبلها ولا يسلمها أبدا."
+
+msgctxt "Languages::kwtsms.help.test.p2"
+msgid "Each test message still holds credits in your kwtSMS queue until you delete it. Delete them at kwtsms.com > Account > Queue to get the credits back. The Dashboard shows how many credits are held."
+msgstr "تحجز كل رسالة اختبار نقاطا في قائمة الانتظار في kwtSMS حتى تحذفها. احذفها من kwtsms.com > الحساب > قائمة الانتظار لاسترداد النقاط. تعرض لوحة المعلومات عدد النقاط المحجوزة."
+
+msgctxt "Languages::kwtsms.help.test.p3"
+msgid "Turn test mode off on Settings when you are ready for real messages. If the Sender ID is still KWT-SMS, you must confirm first."
+msgstr "أوقف وضع الاختبار من صفحة الإعدادات عندما تكون جاهزا للرسائل الفعلية. إذا كان معرف المرسل لا يزال KWT-SMS فعليك التأكيد أولا."
+
+msgctxt "Languages::kwtsms.help.ip.title"
+msgid "IP restrictions and proxies"
+msgstr "قيود عنوان IP والوسطاء"
+
+msgctxt "Languages::kwtsms.help.ip.p1"
+msgid "kwtSMS can accept API calls only from the IP addresses you list. If your server's address is not on the list, kwtSMS answers ERR024 and the add-on pauses sending."
+msgstr "يمكن لـ kwtSMS قبول نداءات API من عناوين IP التي تحددها فقط. إذا لم يكن عنوان خادمك في القائمة فإن kwtSMS يردّ بالرمز ERR024 وتوقف الإضافة الإرسال مؤقتا."
+
+msgctxt "Languages::kwtsms.help.ip.p2"
+msgid "Ask your host for the server's public outgoing IP, add it in the API settings of your kwtSMS account, then select Retry now on Settings."
+msgstr "اسأل استضافتك عن عنوان IP العام الصادر لخادمك، وأضفه في إعدادات API في حسابك في kwtSMS، ثم اختر إعادة المحاولة الآن في صفحة الإعدادات."
+
+msgctxt "Languages::kwtsms.help.ip.p3"
+msgid "ERR034 means kwtSMS sees your server's address as a proxy or VPN. Ask your host for the server's public outgoing IP. If kwtSMS still blocks it, contact kwtSMS support with that address."
+msgstr "الرمز ERR034 يعني أن kwtSMS يرى عنوان خادمك كوسيط أو شبكة VPN. اسأل استضافتك عن عنوان IP العام الصادر لخادمك. إذا ظل kwtSMS يحجبه فتواصل مع دعم kwtSMS وأرسل له هذا العنوان."
+
+msgctxt "Languages::kwtsms.help.missing.title"
+msgid "Message not received"
+msgstr "الرسالة لم تصل"
+
+msgctxt "Languages::kwtsms.help.missing.intro"
+msgid "Work through these steps in order before you contact support."
+msgstr "اتبع هذه الخطوات بالترتيب قبل أن تتواصل مع الدعم."
+
+msgctxt "Languages::kwtsms.help.missing.s1"
+msgid "Check the queue at kwtsms.com > Account > Queue. A message here was accepted but not sent on. Delete it to get its credits back. Bad language, spam filters, and wrong formats are common causes."
+msgstr "راجع قائمة الانتظار في kwtsms.com > الحساب > قائمة الانتظار. الرسالة الموجودة هناك قُبلت ولم تُرسل. احذفها لاسترداد نقاطها. من الأسباب الشائعة الألفاظ السيئة ومرشحات الرسائل المزعجة والصيغ الخاطئة."
+
+msgctxt "Languages::kwtsms.help.missing.s2"
+msgid "Check that test mode is off. Test messages are never delivered. In the add-on log they carry a TEST badge."
+msgstr "تأكد أن وضع الاختبار متوقف. رسائل الاختبار لا تُسلَّم أبدا. وتحمل في سجل الإضافة شارة TEST."
+
+msgctxt "Languages::kwtsms.help.missing.s3"
+msgid "Check the archive at kwtsms.com > Account > Archive. A message in the archive left kwtSMS for the mobile network. A message that is not there was never sent, so look for its error in the add-on log. Kuwait networks send no delivery reports, so the archive is the last proof kwtSMS can give you."
+msgstr "راجع الأرشيف في kwtsms.com > الحساب > الأرشيف. الرسالة الموجودة في الأرشيف غادرت kwtSMS إلى شبكة الجوال. والرسالة غير الموجودة فيه لم تُرسل أصلا، فابحث عن خطئها في سجل الإضافة. شبكات الكويت لا ترسل تقارير تسليم، لذلك يكون الأرشيف آخر دليل يقدمه لك kwtSMS."
+
+msgctxt "Languages::kwtsms.help.missing.s4"
+msgid "Check the number. Open the message in the archive. The number must be a mobile number in international format, for example 96598765432."
+msgstr "تحقق من الرقم. افتح الرسالة في الأرشيف. يجب أن يكون الرقم رقم جوال بالصيغة الدولية، مثل 96598765432."
+
+msgctxt "Languages::kwtsms.help.missing.s5"
+msgid "Check Do Not Disturb. Some customers ask their network to block promotional messages. A promotional Sender ID, and KWT-SMS, can't reach them. A transactional Sender ID can."
+msgstr "تحقق من قائمة عدم الإزعاج. بعض العملاء يطلبون من شبكتهم حجب الرسائل الترويجية. لا يصل إليهم معرف المرسل الترويجي ولا KWT-SMS، بينما يصل إليهم معرف المرسل التشغيلي."
+
+msgctxt "Languages::kwtsms.help.missing.s6"
+msgid "Wait a few minutes. KWT-SMS is slow, especially on busy days. Give a message 3 to 5 minutes before you decide it is lost, and use your own Sender ID."
+msgstr "انتظر بضع دقائق. KWT-SMS بطيء، خاصة في الأيام المزدحمة. أمهل الرسالة من 3 إلى 5 دقائق قبل أن تحكم بضياعها، واستخدم معرف مرسل خاصا بك."
+
+msgctxt "Languages::kwtsms.help.missing.s7"
+msgid "Still missing? Contact kwtSMS support as described below."
+msgstr "ما زالت مفقودة؟ تواصل مع دعم kwtSMS كما هو موضح أدناه."
+
+msgctxt "Languages::kwtsms.help.support.title"
+msgid "Contact kwtSMS support"
+msgstr "التواصل مع دعم kwtSMS"
+
+msgctxt "Languages::kwtsms.help.support.p1"
+msgid "If the steps above don't help, contact kwtSMS support. On the Logs page, open the message and select Copy details for kwtSMS support. Paste the result into your message."
+msgstr "إذا لم تنفع الخطوات أعلاه فتواصل مع دعم kwtSMS. في صفحة السجلات افتح الرسالة واختر نسخ التفاصيل لدعم kwtSMS. ثم الصق النتيجة في رسالتك."
+
+msgctxt "Languages::kwtsms.help.support.p2"
+msgid "It holds what support asks for: your API username, the message ID, the Kuwait date and time, the Sender ID, the numbers, the text, the test flag, and the error code. It never holds your password."
+msgstr "يحتوي على ما يطلبه الدعم: اسم مستخدم API ومعرف الرسالة وتاريخ ووقت الكويت ومعرف المرسل والأرقام والنص وعلامة الاختبار ورمز الخطأ. ولا يحتوي أبدا على كلمة مرورك."
+
+msgctxt "Languages::kwtsms.help.links.title"
+msgid "Links"
+msgstr "الروابط"
+
+msgctxt "Languages::kwtsms.help.links.intro"
+msgid "These open on the kwtSMS website in a new tab."
+msgstr "تُفتح هذه الروابط في موقع kwtSMS في تبويب جديد."
+
+msgctxt "Languages::kwtsms.help.links.home"
+msgid "kwtSMS website"
+msgstr "موقع kwtSMS"
+
+msgctxt "Languages::kwtsms.help.links.support"
+msgid "Support"
+msgstr "الدعم"
+
+msgctxt "Languages::kwtsms.help.links.sender_id"
+msgid "Sender ID help"
+msgstr "مساعدة معرف المرسل"
+
+msgctxt "Languages::kwtsms.help.links.faq"
+msgid "Questions and answers"
+msgstr "الأسئلة والأجوبة"
+
+msgctxt "Languages::kwtsms.help.links.api_docs"
+msgid "API documentation"
+msgstr "وثائق API"
+
+msgctxt "Languages::kwtsms.help.links.integrations"
+msgid "Integrations"
+msgstr "التكاملات"
+
+msgctxt "Languages::kwtsms.help.links.developers"
+msgid "Developers and client libraries"
+msgstr "المطورون ومكتبات العملاء"
+
+msgctxt "Languages::kwtsms.help.links.best_practices"
+msgid "Best practices for SMS API integrations"
+msgstr "أفضل الممارسات لتكامل SMS API"
+
+msgctxt "Languages::kwtsms.help.links.api_pdf"
+msgid "API documentation (PDF)"
+msgstr "وثائق API (PDF)"

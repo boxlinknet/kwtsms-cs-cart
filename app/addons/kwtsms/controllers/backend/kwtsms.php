@@ -26,6 +26,7 @@
 
 use Tygh\Addons\Kwtsms\Admin\DashboardPage;
 use Tygh\Addons\Kwtsms\Admin\AlertsPage;
+use Tygh\Addons\Kwtsms\Admin\HelpPage;
 use Tygh\Addons\Kwtsms\Admin\IntegrationsPage;
 use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
@@ -454,6 +455,23 @@ try {
         Registry::set('navigation.dynamic.active_section', 'integrations');
 
         Tygh::$app['view']->assign('kwtsms_integrations', $kwtsms_data);
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
+    // 2026-10-21 04:56 +03: the Help page (Task 1.15, task 596). Read only: the text is language variables, and what
+    // depends on this install (the crontab line, the lock backend, the SMS lengths, which pages the administrator may
+    // open) is computed by Admin\HelpPage.
+    if ($mode === 'help') {
+        $kwtsms_has = static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        };
+        $kwtsms_nav = Navigation::sections('help', $kwtsms_has);
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'help');
+
+        Tygh::$app['view']->assign('kwtsms_help', HelpPage::fromContainer(Tygh::$app)->viewData($kwtsms_has));
         Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
 
         return [CONTROLLER_STATUS_OK];

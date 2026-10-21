@@ -169,3 +169,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   the statuses that count as a new order, the default country (read-only), the Multi-Vendor settings (Multi-Vendor
   only, with "Vendor SMS: not included in 1.0, planned for 1.1"), a warning when the core SMS notifications
   (Clickatell) add-on is active, and a recommendation to turn on CAPTCHA at checkout.
+<!-- 2026-10-21 04:50 +03: entries for the Help page (Task 1.15), task 596 -->
+- Help page in English and Arabic: what the add-on does, the kwtSMS account (the API user is not the account mobile
+  number), transactional and promotional Sender IDs with their fees and about 5 working days, international sending and
+  its fraud risk and daily limit (ERR035), setup step by step, the go-live checklist, SMS switches against the Notify
+  boxes, placeholders, what an SMS costs (why one Arabic letter or a long brand name can double it), cron, test mode
+  and the credits it holds, IP restrictions and proxies (ERR024, ERR034), "message not received", what to send support,
+  and the kwtSMS links.
+- The Help page shows the exact crontab line of this store, built from its folder and its admin script name; the URL
+  mode (POST only, the key in a header, a 504 from a 60-second proxy is not always a failure); and a warning when the
+  core lock backend is "dummy", which gives no mutual exclusion between two cron runs.

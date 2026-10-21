@@ -1,0 +1,196 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/help.less
+CREATED:   2026-10-21 04:43 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Help page: the topic list beside the text (above it on narrow screens), readable text
+           measure, the numbered steps, the lines of code (crontab and curl) and the links list.
+WHY:       PRD 7: every selector sits under the .kwtsms-page root, brand primary #FFA200 with text #434345, accent #79CCF2;
+           logical properties only (the core flips left/right for RTL with cssjanus and also turns a "direction"
+           declaration around, so direction comes from the dir attribute only: the code lines carry dir="ltr" in the
+           markup). The page is documentation, so it stays quiet: one branded element, the lines of code, which are dark
+           strips with an orange rule on their inline-start edge (the thing an administrator copies). Text never runs
+           wider than about 70 characters.
+USAGE:     Loaded by hooks/index/styles.post.tpl. Shares .kwtsms-badge, .kwtsms-section and .kwtsms-inline-alert with
+           styles.less and defines its own tokens below so the files stay independent.
+DEPENDS:   Nothing at build time.
+*/
+@kwt-brand: #FFA200;
+@kwt-text: #434345;
+@kwt-muted: lighten(@kwt-text, 22%);
+@kwt-accent: #79CCF2;
+@kwt-line: #E3E3E6;
+@kwt-wash: #F7F7F8;
+@kwt-code-bg: #2B2B2E;
+@kwt-code-text: #F4F4F5;
+
+.kwtsms-page.kwtsms-help {
+    max-width: 1060px;
+
+    .kwtsms-intro {
+        max-width: 720px;
+        margin-block: 0 14px;
+    }
+
+    .kwtsms-help__layout {
+        display: grid;
+        grid-template-columns: 210px minmax(0, 1fr);
+        gap: 0 36px;
+        align-items: start;
+    }
+
+    /* ---- topic list ---- */
+    .kwtsms-help__toc {
+        position: sticky;
+        top: 120px;
+        /* the escape keeps lessphp from doing the arithmetic (it turned the calc into 0) */
+        max-height: ~"calc(100vh - 150px)";
+        overflow-y: auto;
+        padding-inline-end: 12px;
+        border-inline-end: 1px solid @kwt-line;
+        ol {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        a {
+            display: block;
+            padding: 5px 10px;
+            border-inline-start: 3px solid transparent;
+            color: @kwt-text;
+            text-decoration: none;
+            &:hover,
+            &:focus {
+                border-inline-start-color: @kwt-brand;
+                background: @kwt-wash;
+            }
+        }
+    }
+    .kwtsms-help__toc-title {
+        margin: 0 0 6px;
+        padding-inline-start: 13px;
+        font-size: 13px;
+        color: @kwt-muted;
+    }
+
+    /* ---- the text ---- */
+    .kwtsms-help__body {
+        max-width: 740px;
+        min-width: 0;
+        color: @kwt-text;
+        p,
+        li {
+            line-height: 1.6;
+            max-width: 70ch;
+        }
+        p {
+            margin: 0 0 10px;
+        }
+        ul,
+        ol {
+            margin: 0 0 12px;
+            padding-inline-start: 24px;
+            margin-inline-start: 0;
+        }
+        li {
+            margin-block-end: 6px;
+        }
+    }
+    .kwtsms-help__section {
+        margin-block-start: 6px;
+        padding-block-end: 8px;
+        scroll-margin-block-start: 120px;
+    }
+    .kwtsms-subtitle {
+        margin-block: 16px 6px;
+        font-size: 14px;
+    }
+    .kwtsms-help__link {
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    /* ---- lines of code ---- */
+    .kwtsms-pre {
+        display: block;
+        margin: 0 0 12px;
+        padding: 12px 16px;
+        border: 0;
+        border-inline-start: 4px solid @kwt-brand;
+        border-radius: 3px;
+        background: @kwt-code-bg;
+        color: @kwt-code-text;
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .kwtsms-token {
+        font-family: Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .kwtsms-table-wrap {
+        max-width: 720px;
+        overflow-x: auto;
+    }
+
+    /* ---- links list ---- */
+    .kwtsms-help__links {
+        list-style: none;
+        margin-inline-start: 0;
+        padding-inline-start: 0;
+        li {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 2px 14px;
+            margin: 0;
+            padding: 7px 0;
+            border-block-end: 1px solid @kwt-line;
+            max-width: 720px;
+        }
+    }
+    .kwtsms-help__url {
+        color: @kwt-muted;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Narrow screens (768 px with the admin menu open): the topic list goes above the text as a wrapped row. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-help {
+        .kwtsms-help__layout {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+        }
+        .kwtsms-help__toc {
+            position: static;
+            max-height: none;
+            margin-block-end: 14px;
+            padding: 0 0 8px;
+            border-inline-end: 0;
+            border-block-end: 1px solid @kwt-line;
+            ol {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 2px 8px;
+            }
+            a {
+                padding: 3px 10px;
+                border: 1px solid @kwt-line;
+                border-radius: 999px;
+            }
+        }
+        .kwtsms-help__toc-title {
+            padding-inline-start: 0;
+        }
+        .kwtsms-help__section {
+            scroll-margin-block-start: 80px;
+        }
+    }
+}
