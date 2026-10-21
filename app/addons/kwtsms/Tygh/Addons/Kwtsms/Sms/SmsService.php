@@ -78,6 +78,10 @@
  *            conditional claim as drainDue(); a row nobody sent (the worker died after fastcgi_finish_request()) is
  *            sent by the next drainDue(), once. Such a row is still a first attempt: kwtsms_send_pre runs on it
  *            (once; a retry keeps the text the hook returned) and its back-off starts at 30 s.
+ *            2026-10-21 05:08 +03, Task 1.9 fix round 2, task 596: the row's context carries hook_ran ("0" when
+ *            queued, "1" as soon as kwtsms_send_pre ran, stored with the phones, text and context the hook
+ *            returned), so the hook runs exactly once whatever re-pends the row first; and its back-off counts its
+ *            own first try, so it follows 30, 60, 120, 300 s like any other deferred send.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -349,7 +353,9 @@ class SmsService
             $id = $this->outbox->enqueue(
                 $this->phoneList($phones),
                 $message,
-                ['test' => $flag] + $context,
+                // 2026-10-21 05:08 +03: hook_ran "0": kwtsms_send_pre still has to run on it (fix round 2 item 1),
+                // task 596.
+                ['test' => $flag, 'hook_ran' => '0'] + $context,
                 self::AFTER_RESPONSE,
                 $now,
                 $now + Outbox::TTL_SECONDS
@@ -384,14 +390,14 @@ class SmsService
                 continue;
             }
             $claimed = false;
-            $attempts = 0;
+            $tries = 0;
             try {
                 $snapshot = $this->outbox->find($id);
                 if ($snapshot === null || $snapshot['status'] !== Outbox::STATUS_PENDING) {
                     continue;
                 }
-                $attempts = (int) $snapshot['attempts'];
-                $claimed = $this->outbox->claim($id, $attempts);
+                $tries = self::triesMade($snapshot);
+                $claimed = $this->outbox->claim($id, (int) $snapshot['attempts']);
                 if (!$claimed) {
                     continue;
                 }
@@ -399,7 +405,7 @@ class SmsService
             } catch (\Throwable $e) {
                 $this->noteThrowable('sms.send_queued_claim_failed', $e);
                 if ($claimed) {
-                    $this->repend($id, $attempts);
+                    $this->repend($id, $tries);
                 }
                 continue;
             }
@@ -413,14 +419,30 @@ class SmsService
     }
 
     /**
-     * True for a row queued by queueAfterResponse() that was never tried: it is the first attempt of its send.
-     * 2026-10-21 04:19 +03: added, Task 1.9 fix round 1 item 1, task 596.
+     * True for a row queued by queueAfterResponse() on which kwtsms_send_pre has not run yet (context hook_ran "0"),
+     * whatever its reason and attempts.
+     * 2026-10-21 04:19 +03: added as firstAttempt(), Task 1.9 fix round 1 item 1; 2026-10-21 05:08 +03: by the hook_ran
+     * marker, not by reason and attempts, which a re-pend changes (fix round 2 item 1), task 596.
      *
      * @param array<string,mixed>|null $row
      */
-    private static function firstAttempt(?array $row): bool
+    private static function hookPending(?array $row): bool
     {
-        return $row !== null && ($row['reason'] ?? '') === self::AFTER_RESPONSE && (int) ($row['attempts'] ?? 0) === 0;
+        return $row !== null && is_array($row['context'] ?? null) && ($row['context']['hook_ran'] ?? null) === '0';
+    }
+
+    /**
+     * Tries already made for a row: a row queued after a send failed counts that send (attempts + 1); a row queued
+     * by queueAfterResponse() (it carries hook_ran) was never tried before its first claim (attempts).
+     * 2026-10-21 05:08 +03: added, Task 1.9 fix round 2 item 2 (back-off 30, 60, 120, 300 s), task 596.
+     *
+     * @param array<string,mixed> $row
+     */
+    private static function triesMade(array $row): int
+    {
+        $queued = is_array($row['context'] ?? null) && array_key_exists('hook_ran', $row['context']);
+
+        return (int) ($row['attempts'] ?? 0) + ($queued ? 0 : 1);
     }
 
     /**
@@ -471,7 +493,8 @@ class SmsService
                 // 2026-10-21 01:43 +03: claimed but not read: nothing was sent, so the row goes back to pending,
                 // the same as send()'s catch (fix round 2, item D), task 596.
                 if ($claimed) {
-                    $this->repend((int) $snapshot['outbox_id'], (int) $snapshot['attempts']);
+                    // 2026-10-21 05:08 +03: the row's own tries count (fix round 2 item 2), task 596.
+                    $this->repend((int) $snapshot['outbox_id'], self::triesMade($snapshot));
                 }
                 continue;
             }
@@ -610,7 +633,8 @@ class SmsService
         $repended = false;
         try {
             if ($row !== null) {
-                $repended = !$api_called && $this->repend((int) $row['outbox_id'], (int) $row['attempts']);
+                // 2026-10-21 05:08 +03: the row's own tries count (fix round 2 item 2), task 596.
+                $repended = !$api_called && $this->repend((int) $row['outbox_id'], self::triesMade($row));
                 if (!$repended) {
                     $this->outbox->markUnknown((int) $row['outbox_id']);
                 }
@@ -652,10 +676,12 @@ class SmsService
      * failure that repeats ends at the expiry. 2026-10-21 01:43 +03: added (shared by send()'s catch and drainDue()),
      * task 596.
      */
-    private function repend(int $id, int $attempts): bool
+    private function repend(int $id, int $tries): bool
     {
         try {
-            return $this->outbox->markRetry($id, $this->now() + Outbox::backoff($attempts + 1), 'error');
+            // 2026-10-21 05:08 +03: $tries = triesMade() of the row (was its attempts, + 1 here), fix round 2 item 2,
+            // task 596.
+            return $this->outbox->markRetry($id, $this->now() + Outbox::backoff($tries), 'error');
         } catch (\Throwable $e) {
             $this->noteThrowable('sms.repend_failed', $e);
 
@@ -738,7 +764,9 @@ class SmsService
         $this->test_form = false;
         // 2026-10-21 04:19 +03: a row queued for after the response is a first attempt: the hook runs on it once
         // (fix round 1 item 1), task 596.
-        if ($row === null || self::firstAttempt($row)) {
+        // 2026-10-21 05:08 +03: once = until its hook_ran marker says so (fix round 2 item 1), task 596.
+        $hook_due = $row === null || self::hookPending($row);
+        if ($hook_due) {
             try {
                 $this->hookSendPre($phones, $message, $context, $cancel);
             } catch (\Throwable $e) {
@@ -751,6 +779,18 @@ class SmsService
             $context = $this->normalizeContext(is_array($context) ? $context : []);
         }
         $context['outbox_id'] = $outbox_id;
+        // 2026-10-21 05:08 +03: the queued row keeps what the hook returned and the mark that it ran, before anything
+        // else can re-pend it (fix round 2 item 1), task 596.
+        if ($row !== null && $hook_due && !$cancel) {
+            $stored = is_array($row['context']) ? $row['context'] : [];
+            $merged = array_merge($stored, $context);
+            $marked = $this->outbox->markHookRan((int) $row['outbox_id'], $phones, $message, $merged);
+            if (!$marked) {
+                $this->note('warning', 'sms.hook_mark_failed', 'kwtsms_send_pre may run again on a retry', [
+                    'outbox_id' => (int) $row['outbox_id'],
+                ]);
+            }
+        }
         $rcpt = $this->recipients($phones);
         $this->stage('1_send_pre', $rcpt);
         if ($cancel) {
@@ -1517,15 +1557,14 @@ class SmsService
                 // 2026-10-21 01:04 +03: quiet hours move the expiry past the window end (fix round 1, item 10),
                 // task 596.
                 $expires = $first['reason'] === 'quiet_hours' ? $first['retry_at'] + Outbox::TTL_SECONDS : null;
-                // 2026-10-21 04:19 +03: a first attempt keeps the text kwtsms_send_pre returned for its retries
-                // (fix round 1 item 1), task 596.
+                // 2026-10-21 05:08 +03: the text kwtsms_send_pre returned is already in the row (markHookRan,
+                // fix round 2 item 1), task 596.
                 $retried = $this->outbox->markRetry(
                     (int) $row['outbox_id'],
                     $first['retry_at'],
                     $first['reason'],
                     $phones,
-                    $expires,
-                    self::firstAttempt($row) ? $message : null
+                    $expires
                 );
                 $id = $retried ? (int) $row['outbox_id'] : 0;
             } else {
@@ -1897,8 +1936,9 @@ class SmsService
         // 2026-10-21 01:04 +03: the claimed row of this send (no second read), task 596.
         unset($context);
 
-        // 2026-10-21 04:19 +03: a row queued for after the response is a first attempt (fix round 1 item 1), task 596.
-        return $this->row === null || self::firstAttempt($this->row) ? 0 : (int) $this->row['attempts'] + 1;
+        // 2026-10-21 04:19 +03: a row queued for after the response is a first attempt (fix round 1 item 1).
+        // 2026-10-21 05:08 +03: its own tries count, so 30, 60, 120, 300 s (fix round 2 item 2), task 596.
+        return $this->row === null ? 0 : self::triesMade($this->row);
     }
 
     /**

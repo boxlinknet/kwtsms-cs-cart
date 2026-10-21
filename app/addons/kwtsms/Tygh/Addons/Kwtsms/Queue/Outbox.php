@@ -91,6 +91,9 @@ class Outbox
         'caller' => 's', 'retry_of' => 'i', 'secret_values' => 'a',
         // 2026-10-21 01:03 +03: the test flag of the original send, "1" or "0" (ruling R26), task 596.
         'test' => 's',
+        // 2026-10-21 05:08 +03: a row queued for after the response: "0" until kwtsms_send_pre ran on it, then "1"
+        // (Task 1.9 fix round 2 item 1), task 596.
+        'hook_ran' => 's',
     ];
 
     /** @var callable|null returns the current Unix time */
@@ -237,19 +240,17 @@ class Outbox
     /**
      * Back to pending for another try, one more attempt counted.
      * 2026-10-21 01:03 +03: $expires_at moves the expiry (a drained row deferred for quiet hours), task 596.
-     * 2026-10-21 04:19 +03: $message replaces the stored text (the text kwtsms_send_pre returned on the first
-     * attempt of a row queued for after the response, Task 1.9 fix round 1 item 1), task 596.
+     * 2026-10-21 05:08 +03: the $message argument of fix round 1 is gone again: markHookRan() stores the hook's text
+     * (Task 1.9 fix round 2 item 1), task 596.
      *
-     * @param array<int,mixed>|null $phones  The numbers still to send (null = unchanged)
-     * @param string|null           $message The text to send from now on (null = unchanged)
+     * @param array<int,mixed>|null $phones The numbers still to send (null = unchanged)
      */
     public function markRetry(
         int $id,
         int $retry_at,
         string $reason,
         ?array $phones = null,
-        ?int $expires_at = null,
-        ?string $message = null
+        ?int $expires_at = null
     ): bool {
         $row = $this->selectRow($id);
         if ($row === null) {
@@ -268,14 +269,37 @@ class Outbox
         if ($expires_at !== null) {
             $changes['expires_at'] = max((int) $row['expires_at'], $expires_at);
         }
-        if ($message !== null) {
-            $json = json_encode($message, self::JSON_FLAGS);
-            if (is_string($json) && strlen($json) <= self::MAX_JSON_BYTES) {
-                $changes['message'] = $json;
-            }
-        }
 
         return $this->updateRow($id, $changes, [self::STATUS_SENDING, self::STATUS_PENDING]) === 1;
+    }
+
+    /**
+     * The row being sent (status sending) takes the phones, text and context kwtsms_send_pre returned, with
+     * context hook_ran "1", so no retry runs the hook again and every retry sends what it returned.
+     * 2026-10-21 05:08 +03: added, Task 1.9 fix round 2 item 1, task 596.
+     *
+     * @param array<int,mixed>    $phones
+     * @param array<string,mixed> $context The stored context merged with the one the hook returned
+     */
+    public function markHookRan(int $id, array $phones, string $message, array $context): bool
+    {
+        try {
+            $phones_json = json_encode(array_values(array_map('strval', $phones)), self::JSON_FLAGS);
+            $message_json = json_encode($message, self::JSON_FLAGS);
+            $context_json = json_encode($this->keepContext(['hook_ran' => '1'] + $context), self::JSON_FLAGS);
+            foreach ([$phones_json, $message_json, $context_json] as $json) {
+                if (!is_string($json) || strlen($json) > self::MAX_JSON_BYTES) {
+                    return false;
+                }
+            }
+            $changes = ['phones' => $phones_json, 'message' => $message_json, 'context' => $context_json];
+
+            return $this->updateRow($id, $changes, [self::STATUS_SENDING]) === 1;
+        } catch (\Throwable $e) {
+            $this->reportFailure($e);
+
+            return false;
+        }
     }
 
     public function markDone(int $id): bool

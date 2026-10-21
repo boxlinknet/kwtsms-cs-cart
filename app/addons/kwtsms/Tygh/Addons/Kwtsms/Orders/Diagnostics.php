@@ -22,6 +22,7 @@
  *            2026-10-21 04:21 +03, Task 1.9 fix round 1 item 4, task 596: recordSkipped() writes nothing while SMS
  *            is off or the add-on is not set up (the $active callable: enabled and configured); the administrators
  *            get ONE row per outcome, carrying the first admin number, not one row per admin number.
+ *            2026-10-21 05:08 +03: recordOutcome() follows the same gate (Task 1.9 fix round 2 item 3), task 596.
  * DEPENDS:   Log\AttemptLog, Settings\ConfigInterface, Sms\PhoneNormalizer, Notifications\OrderSmsData; the switch
  *            reader and core's notification settings Factory (wired in ServiceProvider).
  */
@@ -104,8 +105,7 @@ class Diagnostics
         }
         try {
             // 2026-10-21 04:21 +03: no rows while SMS is off or not set up (fix round 1 item 4), task 596.
-            $active = $this->active !== null ? (bool) call_user_func($this->active) : $this->config->enabled();
-            if (!$active) {
+            if (!$this->active()) {
                 return;
             }
             $probe = [];
@@ -141,6 +141,11 @@ class Diagnostics
         string $receiver,
         ?array $phones = null
     ): void {
+        // 2026-10-21 05:08 +03: the transport's rows (superseded, duplicate_event, no_phone, no_template) follow the
+        // same gate (fix round 2 item 3), task 596.
+        if (!$this->active()) {
+            return;
+        }
         $actor = $this->actor !== null ? (array) call_user_func($this->actor) : [];
         $default_cc = $this->config->defaultCountryCode();
         $hint = PhoneNormalizer::callingCodeForIso(OrderSmsData::countryIso($order_info)) ?? $default_cc;
@@ -176,6 +181,15 @@ class Diagnostics
                 'phone' => $raw === '' ? '' : PhoneNormalizer::normalize($raw, $receiver === 'A' ? $default_cc : $hint),
             ]);
         }
+    }
+
+    /**
+     * True while SMS is on and the add-on is set up (the $active callable; the global switch alone without one).
+     * 2026-10-21 05:08 +03: added, shared by recordSkipped() and recordOutcome() (fix round 2 item 3), task 596.
+     */
+    private function active(): bool
+    {
+        return $this->active !== null ? (bool) call_user_func($this->active) : $this->config->enabled();
     }
 
     /**
