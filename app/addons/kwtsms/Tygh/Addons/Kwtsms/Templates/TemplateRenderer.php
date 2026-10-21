@@ -98,6 +98,14 @@ class TemplateRenderer
      */
     private const ESCAPE_START_AT_END = '/\\\\++(?=(?:u[0-9a-fA-F]{0,3})?\z)/';
 
+    /**
+     * The start of a reference at the very end of a value: a bare "&", "&#" and decimal digits, or "&#x" / "&#X" and
+     * hex digits. The text after the value could complete it ("&#0" + "10;" is a line break). A named start ("AT&T") is
+     * not touched: html_entity_decode() needs its ";", which a customer value never holds, and the gateway decodes no
+     * named reference. 2026-10-21 12:54 +03: added, review M1, task 596.
+     */
+    private const REFERENCE_START_AT_END = '/&(?:#(?:[xX][0-9a-fA-F]*|[0-9]*))?\z/';
+
     /** Separators inside a sentence: , ; : and the Arabic comma and semicolon. */
     private const SEP = '[,;:\x{060C}\x{061B}]';
 
@@ -230,11 +238,17 @@ class TemplateRenderer
      * placeholders that touch ("{customer_first_name}{customer_last_name}" holding "&" and "#92;n"). The price is
      * that "AT&T" is sent as "ATT". A shop value keeps its ampersand.
      * 2026-10-21 00:44 +03: added, fix round 2 F1, task 596.
+     * 2026-10-21 12:54 +03: a customer-typed value also loses every ";", and every value loses a trailing bare "&",
+     * "&#digits" or "&#x..." (REFERENCE_START_AT_END), so no reference can be completed across a shop value and the
+     * customer value after it: "B&N" + "ewLine;x", "AT&T" + "ab;x", "&#0" + "10;" built a line break or a tab at send.
+     * html_entity_decode() completes no reference without ";", and the gateway's semicolon-less decimal and hex form
+     * needs the "&#" the trailing rule removes. "AT&T" and "H&M" stay as they are (review M1), task 596.
      */
     private static function settleValue(string $name, string $text, int $max_passes): string
     {
         $free = in_array($name, self::FREE_TEXT, true);
-        $drop = $free ? ['{' => '', '}' => '', '&' => ''] : ['{' => '', '}' => ''];
+        // 2026-10-21 12:54 +03: ";" added for a customer-typed value (review M1), task 596.
+        $drop = $free ? ['{' => '', '}' => '', '&' => '', ';' => ''] : ['{' => '', '}' => ''];
 
         // A customer-typed value has its literal escapes decoded once, in the first pass (as clean() does); a second
         // decode would eat one more layer of backslashes.
@@ -255,6 +269,8 @@ class TemplateRenderer
             // 2026-10-21 11:33 +03: the value does not end in the start of a \uXXXX the next text could complete
             // (ruling R40), task 596.
             $next = (string) preg_replace(self::ESCAPE_START_AT_END, '', $next);
+            // 2026-10-21 12:54 +03: nor in the start of a numeric reference or a bare "&" (review M1), task 596.
+            $next = trim((string) preg_replace(self::REFERENCE_START_AT_END, '', $next));
             if ($next === $text) {
                 return $text;
             }
