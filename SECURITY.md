@@ -13,8 +13,15 @@ DEPENDS:   Nothing.
 
 ## Reporting a Vulnerability
 
-Email **support@kwtsms.com** with the subject line `Security: kwtSMS CS-Cart add-on`.
-Support portal: https://www.kwtsms.com/support.html
+**Do not open a public GitHub issue for security vulnerabilities.** Report privately, either way:
+
+1. **GitHub Security Advisory** (preferred): [create a private advisory](https://github.com/boxlinknet/kwtsms-cs-cart/security/advisories/new)
+   on the Security tab of this repository.
+2. **Email** **support@kwtsms.com** with the subject line `Security: kwtSMS CS-Cart add-on`.
+   Support portal: https://www.kwtsms.com/support.html
+
+<!-- 2026-10-21 23:15 +03: GitHub private advisory added as the preferred channel, as kwtsms-php and kwtsms-rust do; task 596 -->
+Never put the API password or the cron key in a report.
 
 Please include:
 
@@ -23,13 +30,17 @@ Please include:
 - Any proof-of-concept code or screenshots
 
 We acknowledge reports within 48 hours. Please do not disclose the issue publicly until a fixed
-version has been released.
+version has been released. Once a fix is out, the issue is described in the GitHub release notes with credit to the
+reporter, unless you ask to stay anonymous.
 
 ## Supported Versions
 
 | Add-on version | Supported |
 |----------------|-----------|
 | 1.x            | Yes       |
+
+Only the latest release receives security fixes. Supported platforms are CS-Cart and CS-Cart Multi-Vendor
+4.20.1 to 4.21.2.
 
 ## Scope
 

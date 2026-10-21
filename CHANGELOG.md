@@ -29,6 +29,9 @@ has not been verified yet.
 ### Added
 
 - Repository scaffolding: README, SECURITY, CHANGELOG, .gitignore, .gitattributes, .editorconfig.
+<!-- 2026-10-21 23:15 +03: GitHub community files listed, task 596 -->
+- GitHub community files: CONTRIBUTING, issue forms, pull request template, Dependabot, CI (php -l on PHP 7.4 to 8.3,
+  phpcs, package build), CodeQL and stale workflows.
 - MIT license.
 <!-- 2026-10-20 21:57 +03: entries for the settings, gateway state and log services (Task 1.4), task 596 -->
 - Typed settings with one allow-listed save mode per admin form; the API password is stored encrypted with a
