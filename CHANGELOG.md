@@ -128,3 +128,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   kwtSMS error ERR010 and when a refresh finds it; a refresh that finds the balance under the alert level raises the
   low-balance alert once per crossing.
 - Attempt log rows carry the test flag of their send, so skipped and deferred messages count under live or test.
+<!-- 2026-10-21 05:58 +03: entries for the Dashboard fix round 1 (Task 1.11), task 596 -->
+- Dashboard setup checklist: "Default country", "SMS brand name" and "Review the SMS switches" have a "Mark as done" button
+  (needs the template permission), and the default country starts as to do; saving the Settings form with a country, or
+  marking it, finishes that step. The checklist counts as complete, and goes away, once every step is done or SMS are on,
+  test mode is off and at least one live message was accepted.
+- A cron that never ran is now reported: the add-on keeps the time it first saw the cron missing with SMS on, and the
+  Dashboard's own fallback sync no longer hides a dead cron. When the outbox drain on opening the Dashboard used more than
+  3 seconds, that open skips the sync. Outbox rows deferred for quiet hours count as waiting again once their time has
+  passed.
+- "Customer SMS have stopped" is no longer raised for a balance that was never read. The test-mode notice no longer says
+  "0 test messages hold about 0 credits". The weak encryption key warning says that changing the key makes encrypted
+  values, including the saved API password, unreadable. Last 10 shows "Accepted by kwtSMS" with the note that delivery
+  is not reported back.

@@ -944,7 +944,9 @@ class SmsService
             ]);
             // 2026-10-21 03:19 +03: under one credit nothing can go out, whatever the length: "Customer SMS have
             // stopped", notice and e-mail once per 24 h (PRD 6.13), Task 1.11, task 596.
-            if ($available < 1.0) {
+            // 2026-10-21 05:16 +03: only a KNOWN balance counts: availableBalance() answers 0.0 for a balance that was
+            // never cached, and that is not "the balance is zero" (Task 1.11 fix round 1 item 5, task 596).
+            if ($this->state->balance() !== null && $available < 1.0) {
                 $this->alert('balance_zero', [], true, 86400);
             }
 

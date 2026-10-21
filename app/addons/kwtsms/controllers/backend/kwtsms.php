@@ -111,11 +111,18 @@ try {
                 // bell notice at once (PRD 6.13); the switches before and after the save decide. Task 1.11, task 596.
                 $kwtsms_was_on = Tygh::$app['kwtsms.config']->enabled();
                 $kwtsms_was_test = Tygh::$app['kwtsms.config']->testMode();
-                $kwtsms_page->save(
+                $kwtsms_saved = $kwtsms_page->save(
                     isset($_REQUEST['kwtsms_settings']) ? $_REQUEST['kwtsms_settings'] : [],
                     isset($_REQUEST['kwtsms_ack_test_sender']) ? $_REQUEST['kwtsms_ack_test_sender'] : ''
                 );
-                DashboardPage::fromContainer(Tygh::$app)->afterSettingsSaved($kwtsms_was_on, $kwtsms_was_test);
+                // 2026-10-21 05:16 +03: the keys the form saved go along: a saved default country ticks that step
+                // of the Dashboard checklist (ruling R36), SMS switched on starts the cron watch. Task 1.11 fix
+                // round 1 item 3, task 596.
+                DashboardPage::fromContainer(Tygh::$app)->afterSettingsSaved(
+                    $kwtsms_was_on,
+                    $kwtsms_was_test,
+                    isset($kwtsms_saved['saved']) && is_array($kwtsms_saved['saved']) ? $kwtsms_saved['saved'] : []
+                );
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
 
@@ -150,6 +157,21 @@ try {
 
             case 'resume_daily_cap':
                 $kwtsms_page->resumeDailyCap();
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
+
+            // 2026-10-21 05:16 +03: ruling R36, "Mark as done" of an optional step of the Dashboard setup checklist
+            // (default country, brand name, SMS switches). The gate has checked POST, manage_kwtsms and the security
+            // hash; DashboardState accepts only those three step ids. Task 1.11 fix round 1 item 3, task 596.
+            case 'mark_step':
+                $kwtsms_step = isset($_REQUEST['kwtsms_step']) && is_string($_REQUEST['kwtsms_step'])
+                    ? $_REQUEST['kwtsms_step']
+                    : '';
+                if (DashboardPage::fromContainer(Tygh::$app)->markStep($kwtsms_step)) {
+                    fn_set_notification('N', __('notice'), (string) __('kwtsms.dash.mark.done'));
+                } else {
+                    fn_set_notification('E', __('error'), (string) __('kwtsms.dash.mark.invalid'));
+                }
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back_url];
 

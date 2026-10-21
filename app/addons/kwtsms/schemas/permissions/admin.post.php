@@ -58,6 +58,9 @@ $schema['kwtsms'] = [
         'preview_template'       => ['permissions' => 'manage_kwtsms'],
         'update_admin_alerts'    => ['permissions' => 'manage_kwtsms'],
         'update_integrations'    => ['permissions' => 'manage_kwtsms'],
+        // 2026-10-21 05:16 +03: "Mark as done" of an optional Dashboard checklist step (R36), Task 1.11 fix round 1,
+        // task 596.
+        'mark_step'              => ['permissions' => 'manage_kwtsms'],
     ],
 ];
 

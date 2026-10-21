@@ -49,6 +49,13 @@ class AdminAlerts
         'sms_not_attached',
     ];
 
+    /**
+     * 2026-10-21 05:16 +03: conditions whose text has a variant for "[count] is 0"
+     * (kwtsms.alert.<condition>.text_none): "0 test messages hold about 0 credits" is not said (Task 1.11 fix round 1
+     * item 12, task 596).
+     */
+    private const ZERO_COUNT_TEXT = ['test_mode'];
+
     /** Bookkeeping entries older than this are forgotten. */
     private const KEEP_SECONDS = 604800;
 
@@ -133,7 +140,15 @@ class AdminAlerts
                 $safe[(string) $name] = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
             }
             $title = (string) __('kwtsms.alert.' . $condition . '.title', $safe, $lang);
-            $text = (string) __('kwtsms.alert.' . $condition . '.text', $safe, $lang);
+            $text_key = 'kwtsms.alert.' . $condition . '.text';
+            if (
+                in_array($condition, self::ZERO_COUNT_TEXT, true)
+                && isset($params['[count]'])
+                && (string) $params['[count]'] === '0'
+            ) {
+                $text_key .= '_none';
+            }
+            $text = (string) __($text_key, $safe, $lang);
         } catch (\Throwable $e) {
             $this->failed('alert.failed', $condition, $e);
 

@@ -281,7 +281,9 @@ class DashboardStats
 
     /**
      * Rows waiting in the outbox. Backlog = pending or sending rows queued $older_than seconds ago or longer,
-     * except rows that wait for the end of quiet hours on purpose.
+     * except rows that wait for the end of quiet hours on purpose: a quiet-hours row whose retry time has passed is
+     * a backlog again, because nothing sent it when its window ended (2026-10-21 05:16 +03, Task 1.11 fix round 1
+     * item 9, task 596).
      *
      * @return array{waiting:int,held:int,oldest:?int,backlog:int}
      */
@@ -325,10 +327,11 @@ class DashboardStats
     {
         return [
             'SELECT COUNT(*) FROM ?:kwtsms_outbox FORCE INDEX (idx_status_retry_at)'
-            . ' WHERE status IN (?a) AND created_at <= ?i AND reason <> ?s',
+            . ' WHERE status IN (?a) AND created_at <= ?i AND (reason <> ?s OR retry_at <= ?i)',
             self::WAITING,
             $now - $older_than,
             self::QUIET_REASON,
+            $now,
         ];
     }
 

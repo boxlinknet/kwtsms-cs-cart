@@ -68,6 +68,9 @@ final class RequestGate
         'preview_template'       => [self::POST, 'manage_kwtsms'],
         'update_admin_alerts'    => [self::POST, 'manage_kwtsms'],
         'update_integrations'    => [self::POST, 'manage_kwtsms'],
+        // 2026-10-21 05:16 +03: "Mark as done" of an optional Dashboard checklist step (ruling R36), Task 1.11 fix
+        // round 1 item 3, task 596.
+        'mark_step'              => [self::POST, 'manage_kwtsms'],
     ];
 
     /**

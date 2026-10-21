@@ -61,6 +61,12 @@ class DashboardPage
 
     public const LAST_MESSAGES = 10;
 
+    /**
+     * 2026-10-21 05:16 +03: when the drain has used more than this many seconds, the stale sync is left for a
+     * later open of the page (page time budget, Task 1.11 fix round 1 item 8, task 596).
+     */
+    public const SYNC_SKIP_AFTER_SECONDS = 3.0;
+
     /** Where a merchant asks kwtSMS for a country (PRD 6.9 request-coverage link) and orders a Sender ID. */
     public const URL_COVERAGE = 'https://www.kwtsms.com/support.html';
     public const URL_SENDER_ID = 'https://www.kwtsms.com/sender-id-help.html';
@@ -96,6 +102,16 @@ class DashboardPage
     /** @var array<string,mixed>|null The health facts of this request (refresh() computes them once) */
     private $health;
 
+    /** @var DashboardState|null The cron watch time and the "Mark as done" flags (null: nothing is kept) */
+    private $marks;
+
+    /** @var callable|null Returns microtime(true) (tests); null = microtime(true) */
+    private $timer;
+
+    /**
+     * 2026-10-21 05:16 +03: $marks (cron watch, R36 step marks) and $timer (page time budget) added, Task 1.11 fix
+     * round 1, task 596.
+     */
     public function __construct(
         ConfigInterface $config,
         GatewayState $state,
@@ -104,7 +120,9 @@ class DashboardPage
         DashboardStats $stats,
         ?AdminAlerts $alerts,
         DebugLog $log,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?DashboardState $marks = null,
+        ?callable $timer = null
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -114,6 +132,8 @@ class DashboardPage
         $this->alerts = $alerts;
         $this->log = $log;
         $this->clock = $clock;
+        $this->marks = $marks;
+        $this->timer = $timer;
     }
 
     /**
@@ -128,7 +148,9 @@ class DashboardPage
             $app['kwtsms.sms'],
             new DashboardStats(),
             $app['kwtsms.alerts'],
-            $app['kwtsms.logs.debug']
+            $app['kwtsms.logs.debug'],
+            null,
+            new DashboardState($app['kwtsms.storage'])
         );
     }
 
@@ -139,11 +161,18 @@ class DashboardPage
      * minute) and sync when the last sync is stale (what it does once a day), then raise the notices that need a
      * page view. Never throws; each step is logged and the page renders whatever happens.
      *
-     * @return array{claimed:int,due:int,synced:bool,raised:string[]}
+     * 2026-10-21 05:16 +03: a drain that took more than SYNC_SKIP_AFTER_SECONDS leaves the stale sync for a later
+     * open (the sync would run with the web timeouts of 3 and 8 s a call, and the page must not run past its time
+     * budget; the cron or the next open does it). Debug enter and exit rows. Task 1.11 fix round 1 items 8 and 13,
+     * task 596.
+     *
+     * @return array{claimed:int,due:int,synced:bool,sync_skipped:bool,raised:string[]}
      */
     public function refresh(): array
     {
-        $out = ['claimed' => 0, 'due' => 0, 'synced' => false, 'raised' => []];
+        $started = $this->enter('dashboard.refresh', 'refresh()');
+        $out = ['claimed' => 0, 'due' => 0, 'synced' => false, 'sync_skipped' => false, 'raised' => []];
+        $drain_started = $this->microtime();
         try {
             $drain = $this->sms->drainDue(self::DRAIN_LIMIT, self::DRAIN_SECONDS);
             $out['claimed'] = (int) ($drain['claimed'] ?? 0);
@@ -151,10 +180,17 @@ class DashboardPage
         } catch (\Throwable $e) {
             $this->failed('dashboard.drain_failed', $e);
         }
-        try {
-            $out['synced'] = $this->sync->syncIfStale();
-        } catch (\Throwable $e) {
-            $this->failed('dashboard.sync_failed', $e);
+        if ($this->microtime() - $drain_started > self::SYNC_SKIP_AFTER_SECONDS) {
+            $out['sync_skipped'] = true;
+            $this->log->log('warning', 'dashboard.sync_skipped', 'the drain used the page time budget', [
+                'claimed' => $out['claimed'],
+            ]);
+        } else {
+            try {
+                $out['synced'] = $this->sync->syncIfStale();
+            } catch (\Throwable $e) {
+                $this->failed('dashboard.sync_failed', $e);
+            }
         }
         try {
             $out['raised'] = $this->raiseHealthNotices();
@@ -162,6 +198,7 @@ class DashboardPage
             $this->failed('dashboard.notices_failed', $e);
         }
         $this->log->log('info', 'dashboard.refresh', 'opened', $out);
+        $this->leave('dashboard.refresh', $started, 'done', $out);
 
         return $out;
     }
@@ -175,8 +212,11 @@ class DashboardPage
      */
     public function raiseHealthNotices(): array
     {
+        $started = $this->enter('dashboard.notices', 'raiseHealthNotices()');
         $raised = [];
         if ($this->alerts === null) {
+            $this->leave('dashboard.notices', $started, 'no alert channel', ['raised' => 0]);
+
             return $raised;
         }
         $health = $this->health();
@@ -195,6 +235,7 @@ class DashboardPage
                 $raised[] = 'test_mode';
             }
         }
+        $this->leave('dashboard.notices', $started, 'checked', ['raised' => $raised]);
 
         return $raised;
     }
@@ -203,29 +244,69 @@ class DashboardPage
      * After the Settings form was saved: SMS on with test mode on, newly so (SMS were off, or test mode was off),
      * raises the "SMS test mode is on" bell notice now, whatever the 23 h repeat (PRD 6.13: "Enabled and test mode
      * on" with the held credits). Never throws.
+     * 2026-10-21 05:16 +03: also (R36) a saved default country marks the "Default country" step done, and SMS
+     * switched on starts the cron watch again, so a cron that never ran is dated from that moment. $saved = the keys
+     * the form saved.
+     * Task 1.11 fix round 1 items 1, 3 and 13, task 596.
+     *
+     * @param string[] $saved
      */
-    public function afterSettingsSaved(bool $was_enabled, bool $was_test_mode): bool
+    public function afterSettingsSaved(bool $was_enabled, bool $was_test_mode, array $saved = []): bool
     {
+        $started = $this->enter('dashboard.after_save', 'afterSettingsSaved()', ['saved' => count($saved)]);
         try {
-            if ($this->alerts === null || !$this->config->enabled() || !$this->config->testMode()) {
-                return false;
+            if ($this->marks !== null) {
+                if (in_array('default_country_code', $saved, true)) {
+                    $this->marks->mark('country');
+                }
+                if (!$was_enabled && $this->config->enabled()) {
+                    $this->marks->startCronWatch(true);
+                }
             }
-            if ($was_enabled && $was_test_mode) {
-                return false;
+        } catch (\Throwable $e) {
+            $this->failed('dashboard.save_marks_failed', $e);
+        }
+        $raised = false;
+        try {
+            $newly = !($was_enabled && $was_test_mode);
+            if ($this->alerts !== null && $this->config->enabled() && $this->config->testMode() && $newly) {
+                $held = $this->stats->heldTest($this->now() - 30 * 86400, $this->now());
+                $raised = $this->alerts->raise(
+                    'test_mode',
+                    ['[count]' => $held['messages'], '[credits]' => self::number($held['credits'])],
+                    false,
+                    0
+                );
             }
-            $held = $this->stats->heldTest($this->now() - 30 * 86400, $this->now());
-
-            return $this->alerts->raise(
-                'test_mode',
-                ['[count]' => $held['messages'], '[credits]' => self::number($held['credits'])],
-                false,
-                0
-            );
         } catch (\Throwable $e) {
             $this->failed('dashboard.save_notice_failed', $e);
-
-            return false;
         }
+        $this->leave('dashboard.after_save', $started, $raised ? 'raised' : 'nothing raised');
+
+        return $raised;
+    }
+
+    /**
+     * Ruling R36: marks an optional setup step (default country, brand name, SMS switches) as done. The controller
+     * has already checked the method, the privilege and the security hash. Never throws.
+     *
+     * @return bool False for a step that can't be marked
+     */
+    public function markStep(string $step): bool
+    {
+        $started = $this->enter('dashboard.mark_step', 'markStep()', ['step' => substr($step, 0, 20)]);
+        $ok = false;
+        try {
+            $ok = $this->marks !== null && $this->marks->mark($step);
+            if ($ok) {
+                $this->log->log('info', 'dashboard.step_marked', 'step marked as done', ['step' => $step]);
+            }
+        } catch (\Throwable $e) {
+            $this->failed('dashboard.mark_step_failed', $e);
+        }
+        $this->leave('dashboard.mark_step', $started, $ok ? 'marked' : 'refused');
+
+        return $ok;
     }
 
     /**
@@ -239,8 +320,20 @@ class DashboardPage
             $now = $this->now();
             $last = $this->state->lastCron();
             $box = $this->stats->outbox($now, self::BACKLOG_SECONDS);
+            $enabled = $this->config->enabled();
+            // 2026-10-21 05:16 +03: a cron that never ran is dated from the time the add-on first saw it missing
+            // with SMS on (written once, never touched by a sync, login or send), NOT from the last sync: the
+            // page's own fallback sync touches that and a dead cron would never be reported. Task 1.11 fix round 1
+            // item 1, task 596.
+            $watch = null;
+            if ($enabled && ($last === null || $last <= 0) && $this->marks !== null) {
+                $watch = $this->marks->cronWatchSince();
+                if ($watch === null) {
+                    $watch = $this->marks->startCronWatch();
+                }
+            }
             $this->health = [
-                'cron_state' => self::cronState($last, $this->state->lastSync(), $now, $this->config->enabled()),
+                'cron_state' => self::cronState($last, $watch, $now, $enabled),
                 'cron_last' => $last,
                 'backlog' => $box['backlog'],
                 'waiting' => $box['waiting'],
@@ -263,6 +356,7 @@ class DashboardPage
      */
     public function viewData(callable $has_privilege): array
     {
+        $started = $this->enter('dashboard.view', 'viewData()');
         $now = $this->now();
         $today = (int) strtotime('today', $now);
         $health = $this->health();
@@ -305,6 +399,7 @@ class DashboardPage
             'backlog' => $health['backlog'],
             'sync_failures' => $connected ? $this->state->syncFailures() : 0,
             'weak_crypt_key' => self::isWeakCryptKey((string) Registry::get('config.crypt_key')),
+            'marks' => $this->marks === null ? [] : array_keys($this->marks->marks()),
         ];
 
         $can = [
@@ -318,7 +413,7 @@ class DashboardPage
         $month = $counters['live']['month']['credits'];
         $held = $this->stats->heldTest($now - 30 * 86400, $now);
 
-        return [
+        $data = [
             'now' => $now,
             'can' => $can,
             'enabled' => $facts['enabled'],
@@ -347,7 +442,7 @@ class DashboardPage
             ],
             'warnings' => $this->warningRows(self::warnings($facts)),
             'setup' => [
-                'complete' => self::setupComplete($setup),
+                'complete' => self::setupComplete($setup, $facts),
                 'steps' => $this->withLinks($setup, $has_privilege),
             ],
             'golive' => ['steps' => $this->withLinks($golive, $has_privilege)],
@@ -372,6 +467,12 @@ class DashboardPage
             ],
             'has_templates_page' => in_array('templates', $pages, true),
         ];
+        $this->leave('dashboard.view', $started, 'built', [
+            'warnings' => count($data['warnings']),
+            'setup_complete' => $data['setup']['complete'],
+        ]);
+
+        return $data;
     }
 
     // ================================================================== pure rules
@@ -386,6 +487,7 @@ class DashboardPage
      */
     public static function setupSteps(array $f): array
     {
+        $marks = isset($f['marks']) && is_array($f['marks']) ? $f['marks'] : [];
         $steps = [
             self::step('login', !empty($f['connected']), '', 'settings', 'kwtsms_account'),
             self::step(
@@ -395,16 +497,35 @@ class DashboardPage
                 'settings',
                 'kwtsms_sender'
             ),
+            // 2026-10-21 05:16 +03: R36. Default country, Brand name and Review SMS switches are the merchant's to
+            // judge: they are done when the merchant marked them (or saved Settings, for the country), the brand and
+            // the switches also when their data exist. The country no longer starts as done. Task 1.11 fix round 1
+            // item 3, task 596.
             self::step(
                 'country',
-                (string) $f['default_country_label'] !== '',
+                in_array('country', $marks, true),
                 (string) $f['default_country_label'],
                 'settings',
-                'kwtsms_default_country'
+                'kwtsms_default_country',
+                true
             ),
-            self::step('brand', !empty($f['brand_saved']), (string) $f['brand'], 'templates', 'kwtsms_brand'),
+            self::step(
+                'brand',
+                !empty($f['brand_saved']) || in_array('brand', $marks, true),
+                (string) $f['brand'],
+                'templates',
+                'kwtsms_brand',
+                true
+            ),
             self::step('test_sms', !empty($f['test_sms_done']), '', 'settings', 'kwtsms_test_sms'),
-            self::step('switches', !empty($f['switches_reviewed']), '', 'templates', ''),
+            self::step(
+                'switches',
+                !empty($f['switches_reviewed']) || in_array('switches', $marks, true),
+                '',
+                'templates',
+                '',
+                true
+            ),
             self::step('test_mode_off', empty($f['test_mode']), '', 'settings', 'kwtsms_test_mode'),
             self::step('enable', !empty($f['enabled']), '', 'settings', 'kwtsms_enabled'),
         ];
@@ -436,16 +557,23 @@ class DashboardPage
     }
 
     /**
-     * @return array{id:string,state:string,value:string,page:string,anchor:string}
+     * @return array{id:string,state:string,value:string,page:string,anchor:string,optional:bool}
      */
-    private static function step(string $id, bool $done, string $value, string $page, string $anchor): array
-    {
+    private static function step(
+        string $id,
+        bool $done,
+        string $value,
+        string $page,
+        string $anchor,
+        bool $optional = false
+    ): array {
         return [
             'id' => $id,
             'state' => $done ? 'done' : 'todo',
             'value' => $value,
             'page' => $page,
             'anchor' => $anchor,
+            'optional' => $optional,
         ];
     }
 
@@ -467,10 +595,18 @@ class DashboardPage
     }
 
     /**
-     * @param array<int,array<string,string>> $steps
+     * 2026-10-21 05:16 +03: R36, the checklist must be completable. Complete when every step is done, OR when SMS
+     * are on, test mode is off and kwtSMS accepted at least one live message (the store is evidently running).
+     * Task 1.11 fix round 1 item 3, task 596.
+     *
+     * @param array<int,array<string,mixed>> $steps
+     * @param array<string,mixed>            $f     Facts: enabled, test_mode, live_accepted
      */
-    public static function setupComplete(array $steps): bool
+    public static function setupComplete(array $steps, array $f = []): bool
     {
+        if (!empty($f['enabled']) && empty($f['test_mode']) && !empty($f['live_accepted'])) {
+            return true;
+        }
         foreach ($steps as $step) {
             if ($step['state'] !== 'done') {
                 return false;
@@ -495,7 +631,9 @@ class DashboardPage
     /**
      * 'off' when SMS is off, 'ok' (the cron ran within 2 h), 'stale' (it ran, but over 2 h ago), 'never' (it never ran
      * and the account was set up over 2 h ago), 'new' (it never ran, but the account is recent or has no date: wait).
-     * The reference time of a store that never ran the cron is its last complete sync (login time at the latest).
+     * The reference time of a store that never ran the cron is the cron watch time (DashboardState): when the add-on
+     * first saw the cron missing with SMS on, or when SMS were last switched on. It is NOT the last sync (the page's
+     * own fallback sync touches that). 2026-10-21 05:16 +03, Task 1.11 fix round 1 item 1, task 596.
      */
     public static function cronState(?int $last_cron, ?int $reference, int $now, bool $enabled): string
     {
@@ -856,6 +994,11 @@ class DashboardPage
             'accepted', 'test_queued', 'partial_accept', 'failed', 'unknown', 'rejected', 'deferred', 'expired',
             'invalid', 'cancelled', 'blocked_balance', 'no_coverage',
         ];
+        if ($status === 'accepted') {
+            // 2026-10-21 05:16 +03: PRD 6.8, "Accepted by kwtSMS" (the template adds the tooltip). Task 1.11 fix
+            // round 1 item 10, task 596.
+            return (string) __('kwtsms.dash.group.accepted');
+        }
         if (in_array($status, $short, true)) {
             return (string) __('kwtsms.dash.msg.' . $status);
         }
@@ -871,14 +1014,25 @@ class DashboardPage
     protected function orderStatuses(): array
     {
         try {
-            $names = function_exists('fn_get_simple_statuses')
-                ? (array) fn_get_simple_statuses(STATUSES_ORDER, true, true)
-                : [];
-
-            return array_map('strval', $names);
+            return array_map('strval', $this->fetchOrderStatuses());
         } catch (\Throwable $e) {
+            // 2026-10-21 05:16 +03: logged before the fallback, Task 1.11 fix round 1 item 2, task 596.
+            $this->failed('dashboard.order_statuses_failed', $e);
+
             return [];
         }
+    }
+
+    /**
+     * The core status list (a seam: tests replace it).
+     *
+     * @return array<string,string>
+     */
+    protected function fetchOrderStatuses(): array
+    {
+        return function_exists('fn_get_simple_statuses')
+            ? (array) fn_get_simple_statuses(STATUSES_ORDER, true, true)
+            : [];
     }
 
     // ================================================================== facts
@@ -886,6 +1040,40 @@ class DashboardPage
     private function now(): int
     {
         return $this->clock === null ? time() : (int) call_user_func($this->clock);
+    }
+
+    private function microtime(): float
+    {
+        return $this->timer === null ? microtime(true) : (float) call_user_func($this->timer);
+    }
+
+    /**
+     * Entry line of a public method at debug (sanitized context: counts and ids, never a value from the request).
+     * 2026-10-21 05:16 +03: added, Task 1.11 fix round 1 item 13, task 596.
+     *
+     * @param array<string,mixed> $context
+     */
+    private function enter(string $action, string $label, array $context = []): float
+    {
+        $this->log->log('debug', $action . '.enter', $label, $context);
+
+        return $this->microtime();
+    }
+
+    /**
+     * Exit line of a public method at debug, with its duration in milliseconds.
+     *
+     * @param array<string,mixed> $context
+     */
+    private function leave(string $action, float $started, string $result, array $context = []): void
+    {
+        $this->log->log(
+            'debug',
+            $action . '.exit',
+            $result,
+            $context,
+            (int) round(($this->microtime() - $started) * 1000)
+        );
     }
 
     /** The balance level under which the page warns: the setting, else the cached daily "auto" level, else 100. */
@@ -900,7 +1088,7 @@ class DashboardPage
         return $auto === null ? 100 : $auto;
     }
 
-    private function dailyCapTripped(int $now): bool
+    protected function dailyCapTripped(int $now): bool
     {
         try {
             $since = max((int) strtotime('today', $now), $this->state->dailyCapResumedAt());
@@ -908,6 +1096,9 @@ class DashboardPage
 
             return $this->stats->outcomeSince('blocked_daily_cap', $now - $seconds) > 0;
         } catch (\Throwable $e) {
+            // 2026-10-21 05:16 +03: logged before the fallback, Task 1.11 fix round 1 item 2, task 596.
+            $this->failed('dashboard.daily_cap_check_failed', $e);
+
             return false;
         }
     }
@@ -918,6 +1109,9 @@ class DashboardPage
         try {
             return NotificationSettingsExtender::storedRows() !== [];
         } catch (\Throwable $e) {
+            // 2026-10-21 05:16 +03: logged before the fallback, Task 1.11 fix round 1 item 2, task 596.
+            $this->failed('dashboard.switches_check_failed', $e);
+
             return false;
         }
     }
@@ -935,6 +1129,9 @@ class DashboardPage
 
             return BrandNames::get($storefront_id, defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en');
         } catch (\Throwable $e) {
+            // 2026-10-21 05:16 +03: logged before the fallback, Task 1.11 fix round 1 item 2, task 596.
+            $this->failed('dashboard.brand_failed', $e);
+
             return '';
         }
     }

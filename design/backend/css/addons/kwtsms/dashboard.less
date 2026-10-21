@@ -192,6 +192,15 @@ DEPENDS:   styles.less (shared classes).
         font-size: 12px;
         color: lighten(@kwtsms-text, 18%);
     }
+    /* 2026-10-21 05:16 +03: the "Mark as done" button under the label of an optional step (R36), Task 1.11 fix round 1,
+       task 596. */
+    .kwtsms-step__mark-form {
+        display: block;
+        margin-block-start: 4px;
+        .btn {
+            margin: 0;
+        }
+    }
     .kwtsms-step__state {
         font-size: 12px;
         color: lighten(@kwtsms-text, 18%);

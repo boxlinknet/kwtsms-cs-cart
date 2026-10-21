@@ -724,6 +724,11 @@ msgctxt "Languages::kwtsms.alert.test_mode.text"
 msgid "Customers are not receiving SMS because test mode is on. [count] test messages hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
 msgstr "Customers are not receiving SMS because test mode is on. [count] test messages hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
 
+# 2026-10-21 05:16 +03: Task 1.11 fix round 1, task 596. text_none is the test-mode notice when no test message holds credits.
+msgctxt "Languages::kwtsms.alert.test_mode.text_none"
+msgid "Customers are not receiving SMS because test mode is on. Turn test mode off in the kwtSMS settings."
+msgstr "Customers are not receiving SMS because test mode is on. Turn test mode off in the kwtSMS settings."
+
 msgctxt "Languages::kwtsms.alert.balance_zero.title"
 msgid "Customer SMS have stopped"
 msgstr "Customer SMS have stopped"
@@ -2352,8 +2357,8 @@ msgid "The last kwtSMS sync failed. SMS keep going out with the saved balance an
 msgstr "The last kwtSMS sync failed. SMS keep going out with the saved balance and Sender IDs, and the add-on tries again by itself."
 
 msgctxt "Languages::kwtsms.dash.warn.weak_crypt_key"
-msgid "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php."
-msgstr "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php."
+msgid "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php. Changing crypt_key makes every encrypted value unreadable, including the saved API password, so log in to kwtSMS again afterwards."
+msgstr "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php. Changing crypt_key makes every encrypted value unreadable, including the saved API password, so log in to kwtSMS again afterwards."
 
 msgctxt "Languages::kwtsms.dash.action.retry_gateway"
 msgid "Retry now"
@@ -2366,6 +2371,19 @@ msgstr "Resume now"
 msgctxt "Languages::kwtsms.dash.action.sync"
 msgid "Sync now"
 msgstr "Sync now"
+
+# 2026-10-21 05:16 +03: Task 1.11 fix round 1, task 596 (ruling R36). "Mark as done" of the optional setup steps.
+msgctxt "Languages::kwtsms.dash.mark.button"
+msgid "Mark as done"
+msgstr "Mark as done"
+
+msgctxt "Languages::kwtsms.dash.mark.done"
+msgid "Step marked as done."
+msgstr "Step marked as done."
+
+msgctxt "Languages::kwtsms.dash.mark.invalid"
+msgid "That step can't be marked as done."
+msgstr "That step can't be marked as done."
 
 msgctxt "Languages::kwtsms.alert.cron_missing.title"
 msgid "The cron isn't running"

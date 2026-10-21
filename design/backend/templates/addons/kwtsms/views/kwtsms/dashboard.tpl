@@ -172,6 +172,15 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                             <span class="kwtsms-step__body">
                                 <span class="kwtsms-step__label">{__("kwtsms.dash.setup.`$step.id`")}</span>
                                 {if $step.value}<bdi class="kwtsms-step__value">{$step.value}</bdi>{/if}
+                                {* 2026-10-21 05:16 +03: ruling R36, Task 1.11 fix round 1 item 3, task 596: only the merchant can
+                                   judge these steps, so the merchant marks them done (a POST with the security hash). *}
+                                {if $step.optional && $step.state != "done" && $kwtsms.can.manage}
+                                    <form action="{""|fn_url}" method="post" name="kwtsms_mark_{$step.id}_form" class="kwtsms-inline-form kwtsms-step__mark-form">
+                                        <input type="hidden" name="kwtsms_return" value="dashboard">
+                                        <input type="hidden" name="kwtsms_step" value="{$step.id}">
+                                        <input type="submit" class="btn btn-mini" id="kwtsms_mark_{$step.id}" name="dispatch[kwtsms.mark_step]" value="{__("kwtsms.dash.mark.button")}">
+                                    </form>
+                                {/if}
                             </span>
                             <span class="kwtsms-step__state">{__("kwtsms.dash.state.`$step.state`")}</span>
                             {if $step.href}
@@ -362,7 +371,7 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                                 <td>{$m.receiver_label}</td>
                                 <td class="kwtsms-table__num">{$m.recipients}</td>
                                 <td class="kwtsms-table__num">{$m.credits}</td>
-                                <td>
+                                <td{if $m.status == "accepted"} title="{__("kwtsms.dash.group.accepted_tip")}"{/if}>
                                     {$m.status_label}
                                     {if $m.is_test} <span class="kwtsms-badge kwtsms-badge--test">{__("kwtsms.dash.last.test")}</span>{/if}
                                     {if $m.api_code} <bdi dir="ltr" class="kwtsms-code-tag">{$m.api_code}</bdi>{/if}
