@@ -20,11 +20,16 @@
  *            the same outbox row and number counts as "already resent", and a held row of that one number is closed
  *            (expired) on resend so it never expires into another resendable row (item 5); verdicts() decides for
  *            many attempts with two list reads and one read per distinct message or outbox row (item 7).
+ *            2026-10-21 16:58 +03, final review M1, task 596: before send() the resend claims the dispatch key
+ *            resend:<attempt_id> for 60 s (Orders\DispatchKeys, one atomic INSERT); a second POST inside the window
+ *            (a double click, a second tab) is refused with kwtsms.logs.resend.in_progress and sends nothing; a key
+ *            that cannot be written refuses too (no SMS is better than a duplicate).
  * USAGE:     $resender = LogResender::fromContainer(Tygh::$app);
  *            $resender->verdict($attempt_row);   // ['ok' => bool, 'reason' => 'kwtsms.logs.resend.<why>']
  *            $resender->verdicts($attempt_rows); // attempt_id => verdict, for a message's recipients
  *            $resender->resend(15, $admin_id, $ip);   // ['ok' => true, 'outcome' => 'test_queued', 'attempt_id' => 16]
- * DEPENDS:   Log\{LogStoreInterface,Schema,Redactor,DebugLog}, Queue\Outbox, Sms\{SmsService,SendResult}.
+ * DEPENDS:   Log\{LogStoreInterface,Schema,Redactor,DebugLog}, Queue\Outbox, Sms\{SmsService,SendResult},
+ *            Orders\DispatchKeys (2026-10-21 16:58 +03: final review M1, task 596).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -33,6 +38,8 @@ use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\LogStoreInterface;
 use Tygh\Addons\Kwtsms\Log\Redactor;
 use Tygh\Addons\Kwtsms\Log\Schema;
+// 2026-10-21 16:58 +03: the resend claim (final review M1), task 596.
+use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 
@@ -50,6 +57,9 @@ class LogResender
      * item 5, task 596.
      */
     private const SIBLING_WINDOW = 172800;
+
+    /** Window of the resend:<attempt_id> claim (2026-10-21 16:58 +03: final review M1, task 596). */
+    public const CLAIM_WINDOW = 60;
 
     /** @var array<int,array<string,mixed>|null> message rows read during one verdicts() call */
     private $messages = [];
@@ -69,12 +79,32 @@ class LogResender
     /** @var DebugLog */
     private $log;
 
-    public function __construct(LogStoreInterface $store, SmsService $sms, Outbox $outbox, DebugLog $log)
-    {
+    /** @var DispatchKeys (2026-10-21 16:58 +03: final review M1, task 596) */
+    private $keys;
+
+    /**
+     * 2026-10-21 16:58 +03: $keys added (null = new DispatchKeys()), final review M1, task 596.
+     */
+    public function __construct(
+        LogStoreInterface $store,
+        SmsService $sms,
+        Outbox $outbox,
+        DebugLog $log,
+        ?DispatchKeys $keys = null
+    ) {
         $this->store = $store;
         $this->sms = $sms;
         $this->outbox = $outbox;
         $this->log = $log;
+        $this->keys = $keys ?? new DispatchKeys();
+    }
+
+    /**
+     * The claim key of a resend of this attempt. 2026-10-21 16:58 +03: added, final review M1, task 596.
+     */
+    public static function claimKey(int $attempt_id): string
+    {
+        return 'resend:' . $attempt_id;
     }
 
     /**
@@ -86,7 +116,9 @@ class LogResender
             $app['kwtsms.logs.store'],
             $app['kwtsms.sms'],
             $app['kwtsms.outbox'],
-            $app['kwtsms.logs.debug']
+            $app['kwtsms.logs.debug'],
+            // 2026-10-21 16:58 +03: the resend claim (final review M1), task 596.
+            $app['kwtsms.dispatch_keys']
         );
     }
 
@@ -295,6 +327,16 @@ class LogResender
             $verdict = $this->verdict($attempt);
             if (!$verdict['ok']) {
                 $out['reason'] = $verdict['reason'];
+
+                return $out;
+            }
+            // 2026-10-21 16:58 +03: one resend per attempt per 60 s, claimed before anything is sent (final review
+            // M1), task 596.
+            if (!$this->keys->claim(self::claimKey($attempt_id), self::CLAIM_WINDOW)) {
+                $out['reason'] = 'kwtsms.logs.resend.in_progress';
+                $this->log->log('info', 'logs.resend_refused', 'Resend of attempt ' . $attempt_id . ' is claimed', [
+                    'original' => $attempt_id, 'admin_id' => $admin_id,
+                ]);
 
                 return $out;
             }

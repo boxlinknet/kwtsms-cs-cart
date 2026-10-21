@@ -106,7 +106,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
             {if $d.resend.ok}
                 <form action="{""|fn_url}" method="post" name="kwtsms_resend_form" class="kwtsms-inline-form kwtsms-resend">
                     <input type="hidden" name="attempt_id" value="{$d.id}">
-                    <input type="submit" class="btn btn-primary" id="kwtsms_resend" name="dispatch[kwtsms.resend]" value="{__("kwtsms.logs.resend.button")}">
+                    {* 2026-10-21 16:58 +03: confirm first; an unknown outcome says to check the kwtSMS archive (final review M1), task 596 *}
+                    <input type="submit" class="btn btn-primary cm-confirm" id="kwtsms_resend" name="dispatch[kwtsms.resend]" value="{__("kwtsms.logs.resend.button")}" data-ca-confirm-text="{if $r.outcome == "unknown"}{__("kwtsms.logs.resend.confirm_unknown")}{else}{__("kwtsms.logs.resend.confirm")}{/if}">
                     <span class="muted">{__("kwtsms.logs.resend.help")}</span>
                 </form>
             {elseif $r.resendable}
@@ -143,7 +144,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                                         {if $a.resend && $a.resend.ok}
                                             <form action="{""|fn_url}" method="post" name="kwtsms_resend_{$a.id}" class="kwtsms-inline-form">
                                                 <input type="hidden" name="attempt_id" value="{$a.id}">
-                                                <input type="submit" class="btn btn-small" name="dispatch[kwtsms.resend]" value="{__("kwtsms.logs.resend.button")}">
+                                                {* 2026-10-21 16:58 +03: confirm first, unknown wording for an unknown attempt (final review M1), task 596 *}
+                                                <input type="submit" class="btn btn-small cm-confirm" name="dispatch[kwtsms.resend]" value="{__("kwtsms.logs.resend.button")}" data-ca-confirm-text="{if $a.outcome == "unknown"}{__("kwtsms.logs.resend.confirm_unknown")}{else}{__("kwtsms.logs.resend.confirm")}{/if}">
                                             </form>
                                         {/if}
                                     </td>

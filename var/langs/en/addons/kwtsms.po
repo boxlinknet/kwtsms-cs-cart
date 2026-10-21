@@ -4419,3 +4419,18 @@ msgstr "Opens the storefront block manager in edit mode."
 msgctxt "Languages::kwtsms.help.cron.host_p1"
 msgid "On PHP-FPM and LiteSpeed servers, order SMS go out right after the shopper's page is sent. On other servers (for example Apache with mod_php), order SMS wait in the queue for the cron while it runs every minute, so the checkout never waits for kwtSMS. If the cron does not run, they are sent during the checkout, which makes it slower."
 msgstr "On PHP-FPM and LiteSpeed servers, order SMS go out right after the shopper's page is sent. On other servers (for example Apache with mod_php), order SMS wait in the queue for the cron while it runs every minute, so the checkout never waits for kwtSMS. If the cron does not run, they are sent during the checkout, which makes it slower."
+
+# 2026-10-21 16:58 +03: final review M1, task 596. kwtsms.logs.resend.in_progress the refusal of a second resend of the same
+# attempt within 60 s; kwtsms.logs.resend.confirm and kwtsms.logs.resend.confirm_unknown the confirmation of the Resend button (the
+# second for an attempt whose outcome is unknown).
+msgctxt "Languages::kwtsms.logs.resend.in_progress"
+msgid "This SMS was resent less than a minute ago. Check its result in the Logs before you resend it again."
+msgstr "This SMS was resent less than a minute ago. Check its result in the Logs before you resend it again."
+
+msgctxt "Languages::kwtsms.logs.resend.confirm"
+msgid "Send this SMS again to this number? Every SMS rule applies, test mode included."
+msgstr "Send this SMS again to this number? Every SMS rule applies, test mode included."
+
+msgctxt "Languages::kwtsms.logs.resend.confirm_unknown"
+msgid "The store got no answer for this SMS, so kwtSMS may already have it. Check the kwtSMS message archive first. Send it again anyway?"
+msgstr "The store got no answer for this SMS, so kwtSMS may already have it. Check the kwtSMS message archive first. Send it again anyway?"
