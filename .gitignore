@@ -27,6 +27,13 @@ CLAUDE.md
 napkin.md
 .remember/
 .worktrees/
+# 2026-10-21 23:15 +03: local planning workspace and the assistant files the sibling kwtSMS repos ignore, task 596
+.superpowers/
+.gemini/
+.mcp.json
+.playwright*/
+AGENTS.md
+GEMINI.md
 
 # Secrets
 .env
