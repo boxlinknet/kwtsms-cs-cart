@@ -25,7 +25,10 @@
  *            default language), else render() and send() with the order context. Every skip writes an attempt row
  *            (Diagnostics::recordOutcome), so the Logs explain every SMS that did not go out.
  * USAGE:     $notifier->notify('order.status_changed.c', 'C', ['order_info' => $order_info]);   // SmsTransport
- *            Returns true when send() was called.
+ *            Returns true when send() was called (or queued for after the response).
+ *            2026-10-21 03:11 +03, Task 1.9 scenario 14, task 596: in a storefront request served by PHP-FPM the
+ *            send() itself runs after the response (register_shutdown_function + fastcgi_finish_request, see
+ *            flushDeferred()); everything that decides the SMS (key claim, numbers, text) still runs in the request.
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -82,8 +85,19 @@ class OrderNotifier
     /** @var array<string,array<string,mixed>> declared third-party events */
     private $declared;
 
+    /** @var callable (array $actor): bool, true = send after the response (2026-10-21 03:11 +03, task 596) */
+    private $after_response;
+
+    /** @var callable[] sends waiting for flushDeferred() */
+    private $deferred = [];
+
+    /** @var bool */
+    private $shutdown_registered = false;
+
     /**
-     * @param array<mixed,mixed> $declared The kwtsms events schema (fn_get_schema('kwtsms', 'events'))
+     * @param array<mixed,mixed> $declared       The kwtsms events schema (fn_get_schema('kwtsms', 'events'))
+     * @param callable|null      $after_response (array $actor): bool; null = sendsAfterResponse() (2026-10-21 03:11
+     *                                           +03, Task 1.9 scenario 14, task 596)
      */
     public function __construct(
         SmsService $sms,
@@ -96,8 +110,10 @@ class OrderNotifier
         Diagnostics $diagnostics,
         OrderSource $orders,
         ?DebugLog $log = null,
-        array $declared = []
+        array $declared = [],
+        ?callable $after_response = null
     ) {
+        $this->after_response = $after_response ?? [self::class, 'sendsAfterResponse'];
         $this->sms = $sms;
         $this->config = $config;
         $this->templates = $templates;
@@ -335,8 +351,7 @@ class OrderNotifier
             $vars[$name] = $value;
         }
         $text = TemplateRenderer::render((string) $template['body'], $vars);
-
-        $result = $this->sms->send($phones, $text, [
+        $context = [
             'source' => 'event',
             'event_id' => $event_id,
             'receiver' => $receiver,
@@ -351,17 +366,71 @@ class OrderNotifier
             'audience' => ($actor['area'] ?? '') === 'C' ? 'storefront' : 'admin',
             'interactive' => false,
             'country_iso' => $receiver === 'C' ? OrderSmsData::countryIso($order) : '',
-        ]);
-        $this->info('order_sms.sent', 'order SMS handed to the send pipeline', [
+        ];
+        $log = [
             'event_id' => $event_id,
             'receiver' => $receiver,
             'order_id' => (int) ($ids['order_id'] ?? 0),
             'template' => $template['fallback'] ?? '',
             'lang' => $text_lang,
-            'status' => $result->status(),
-        ]);
+        ];
+        $send = function () use ($phones, $text, $context, $log): void {
+            $result = $this->sms->send($phones, $text, $context);
+            $log['status'] = $result->status();
+            $this->info('order_sms.sent', 'order SMS handed to the send pipeline', $log);
+        };
+
+        // 2026-10-21 03:11 +03: a storefront request (checkout, payment callback, repay) sends after the response,
+        // so the shopper never waits for the gateway (scenario 14 measured about 0.75 s per kwtSMS call); the
+        // dispatch key is already claimed above, so the decision is final. Task 1.9, task 596.
+        if (call_user_func($this->after_response, $actor)) {
+            $this->deferred[] = $send;
+            if (!$this->shutdown_registered) {
+                $this->shutdown_registered = true;
+                register_shutdown_function([$this, 'flushDeferred']);
+            }
+
+            return true;
+        }
+        $send();
 
         return true;
+    }
+
+    /**
+     * Sends what a storefront request deferred, after the response went to the browser (fastcgi_finish_request()).
+     * Runs as a shutdown function; public only for that. Never throws.
+     * 2026-10-21 03:11 +03: added, Task 1.9 scenario 14, task 596.
+     */
+    public function flushDeferred(): void
+    {
+        if ($this->deferred === []) {
+            return;
+        }
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        $sends = $this->deferred;
+        $this->deferred = [];
+        foreach ($sends as $send) {
+            try {
+                $send();
+            } catch (\Throwable $e) {
+                error_log('kwtsms: a deferred order SMS failed: ' . get_class($e) . ': ' . $e->getMessage()
+                    . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+            }
+        }
+    }
+
+    /**
+     * Default rule for sending after the response: a storefront web request served by PHP-FPM.
+     * 2026-10-21 03:11 +03: added, Task 1.9 scenario 14, task 596.
+     *
+     * @param array<string,mixed> $actor OrderSource::actor()
+     */
+    public static function sendsAfterResponse(array $actor): bool
+    {
+        return ($actor['area'] ?? '') === 'C' && PHP_SAPI !== 'cli' && function_exists('fastcgi_finish_request');
     }
 
     /**
