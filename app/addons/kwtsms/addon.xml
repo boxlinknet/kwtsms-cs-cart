@@ -395,6 +395,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>
         <item for="uninstall">DELETE FROM ?:notification_event_receivers WHERE event_id LIKE 'kwtsms.%';</item>
+        <!-- 2026-10-21 16:26 +03: the Notification Center item the add-on raises (tag kwtsms, e.g. 'SMS test mode is on') stayed behind after an
+             uninstall on the fresh-copy run; removed here so nothing of ours is left (PRD 13), Task 1.17, task 596 -->
+        <item for="uninstall">DELETE FROM ?:notifications WHERE tag = 'kwtsms';</item>
         <!-- "|" escapes the underscore, so only keys that start with "kwtsms_" match (not "kwtsmsX..."). -->
         <item for="uninstall">DELETE FROM ?:storage_data WHERE data_key LIKE 'kwtsms|_%' ESCAPE '|';</item>
         <item for="uninstall">DELETE FROM ?:language_values WHERE name LIKE 'kwtsms.%';</item>
