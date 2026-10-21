@@ -1156,6 +1156,80 @@ msgctxt "Languages::kwtsms.templates.switch_unknown"
 msgid "Nothing changed. That row has no SMS switch."
 msgstr "لم يتغير شيء. ليس لهذا الصف مفتاح رسائل."
 
+# 2026-10-21 05:20 +03: Task 1.12 fix round 1, task 596. The badge of the Multi-Vendor checkout row, "Send a test of this template" and the SMS
+# brand-name editor of the Templates page.
+msgctxt "Languages::kwtsms.templates.badge_placed"
+msgid "Uses the Order placed text"
+msgstr "يستخدم نص «طلب جديد»"
+
+msgctxt "Languages::kwtsms.templates.editor_help_placed"
+msgid "This row has no text of its own. The box starts from the Order placed text that is sent now. Saving makes it this row's own text."
+msgstr "لا نص خاص بهذا الصف. يبدأ الحقل بنص «طلب جديد» المُرسَل الآن، وعند الحفظ يصبح نصًا خاصًا بهذا الصف."
+
+msgctxt "Languages::kwtsms.templates.test_title"
+msgid "Send a test of this template"
+msgstr "إرسال تجربة لهذا القالب"
+
+msgctxt "Languages::kwtsms.templates.test_help"
+msgid "Sends the text above, filled with the sample data, to one number. In test mode kwtSMS accepts the message but does not deliver it. It counts toward the limit of [max] test SMS an hour."
+msgstr "يرسل النص أعلاه مملوءًا بالبيانات التجريبية إلى رقم واحد. في وضع الاختبار تقبل kwtSMS الرسالة ولا تسلّمها. تُحتسب ضمن حد [max] رسائل تجريبية في الساعة."
+
+msgctxt "Languages::kwtsms.templates.test_send"
+msgid "Send test"
+msgstr "إرسال التجربة"
+
+msgctxt "Languages::kwtsms.templates.test_locked"
+msgid "Sending a test needs permission to manage the gateway."
+msgstr "إرسال تجربة يتطلب إذن إدارة بوابة الرسائل."
+
+msgctxt "Languages::kwtsms.templates.test_empty"
+msgid "Nothing to send. The text is empty once it is cleaned."
+msgstr "لا شيء للإرسال. النص فارغ بعد التنظيف."
+
+msgctxt "Languages::kwtsms.templates.test_unavailable"
+msgid "Sending a test is not available right now."
+msgstr "إرسال التجربة غير متاح الآن."
+
+msgctxt "Languages::kwtsms.templates.brand_title"
+msgid "SMS brand name"
+msgstr "اسم العلامة في الرسائل"
+
+msgctxt "Languages::kwtsms.templates.brand_help"
+msgid "Shown instead of {store_name} at the start of customer SMS in [language]. Up to [max] characters. Leave a field empty to use the storefront name, then the company name."
+msgstr "يظهر بدل {store_name} في بداية رسائل العملاء باللغة [language]. حتى [max] حرفًا. اترك الحقل فارغًا لاستخدام اسم واجهة المتجر ثم اسم الشركة."
+
+msgctxt "Languages::kwtsms.templates.brand_save"
+msgid "Save brand name"
+msgstr "حفظ اسم العلامة"
+
+msgctxt "Languages::kwtsms.templates.brand_none"
+msgid "No storefront found."
+msgstr "لا توجد واجهة متجر."
+
+msgctxt "Languages::kwtsms.templates.brand_unicode_warn"
+msgid "This name has characters that are not plain text. Every English SMS that carries it is sent as Unicode: 70 characters per SMS instead of 160."
+msgstr "في هذا الاسم أحرف ليست نصًا عاديًا. كل رسالة إنجليزية تحمله تُرسل بترميز يونيكود: 70 حرفًا للرسالة بدل 160."
+
+msgctxt "Languages::kwtsms.templates.brand_saved"
+msgid "SMS brand name saved: [language]."
+msgstr "تم حفظ اسم العلامة: [language]."
+
+msgctxt "Languages::kwtsms.templates.brand_unchanged"
+msgid "No brand name changed."
+msgstr "لم يتغير أي اسم علامة."
+
+msgctxt "Languages::kwtsms.templates.brand_cut"
+msgid "A name was cut to [max] characters."
+msgstr "تم اقتطاع اسم إلى [max] حرفًا."
+
+msgctxt "Languages::kwtsms.templates.brand_unicode"
+msgid "The English brand name has characters that are not plain text, so English SMS that carry it are sent as Unicode (70 characters per SMS)."
+msgstr "في اسم العلامة الإنجليزي أحرف ليست نصًا عاديًا، لذلك تُرسل الرسائل الإنجليزية التي تحمله بترميز يونيكود (70 حرفًا للرسالة)."
+
+msgctxt "Languages::kwtsms.templates.brand_unknown_storefront"
+msgid "A storefront that is not in this store was ignored."
+msgstr "تم تجاهل واجهة متجر ليست ضمن هذا المتجر."
+
 # 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
 # kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
 # kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.

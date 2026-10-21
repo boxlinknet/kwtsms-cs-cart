@@ -115,6 +115,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Saving a text: a customer text must keep {store_name}; an unknown placeholder needs "Save anyway"; the characters
   cleaning removed are listed; text between angle brackets, touching placeholders, "&", "#" or ";" next to a
   placeholder and promotional wording get a warning. "Reset to default text" and "Load default texts for <language>".
+<!-- 2026-10-21 05:25 +03: entries for the Templates page fix round 1 (Task 1.12), task 596 -->
+- Template editor: "Send a test of this template" sends the typed text, filled with the sample data, to one number
+  through the same send pipeline and the same limit (10 test SMS an hour for each administrator) as the Settings test
+  SMS; it needs the gateway permission, and the result shows next to the editor.
+- SMS brand name editor above the matrix, for the language of the tab: one entry for each storefront (the marketplace's
+  own storefronts in Multi-Vendor, never a vendor), a live count of the stored name out of 20, the storefront name and
+  then the company name as the placeholder (an empty field uses it), and a warning when an English name is not plain
+  text, because every English SMS that carries it would then be Unicode.
+- The counter, the warnings and the length on the Templates page use the text as it is stored, which is what gets
+  rendered and sent (characters above U+FFFF are dropped, a name only inside a comment is gone); the browser decodes named
+  HTML entities itself. A refused save no longer creates an empty template row, and every field of a save is read from
+  the POST body only. The Multi-Vendor checkout text that falls back to the single "Order placed" text says so, and the
+  worst-case estimate counts the long name of a custom status.
 <!-- 2026-10-21 04:57 +03: entries for the Dashboard and the add-on's own health alerts (Task 1.11), task 596 -->
 - Dashboard (Add-ons > kwtSMS): the setup checklist and the go-live checklist with the state of every step; SMS, connection
   (naming what fails), test mode, pilot mode, Sender ID, balance with the days it lasts, last sync, cron and outbox;

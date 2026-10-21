@@ -66,6 +66,11 @@ final class RequestGate
         // 2026-10-21 03:27 +03: the Templates page preview (a POST: the text can be long and must not sit in a query
         // string; it sends nothing and writes nothing), Task 1.12, task 596.
         'preview_template'       => [self::POST, 'manage_kwtsms'],
+        // 2026-10-21 05:19 +03: Task 1.12 fix round 1. "Send a test of this template" sends an SMS, so it needs the gateway privilege
+        // like the Settings test SMS (item 2, ruling R30); the SMS brand-name editor belongs to the template privilege
+        // (item 3, ruling R33). Task 596.
+        'test_template'          => [self::POST, 'manage_kwtsms_gateway'],
+        'update_brand_names'     => [self::POST, 'manage_kwtsms'],
         'update_admin_alerts'    => [self::POST, 'manage_kwtsms'],
         'update_integrations'    => [self::POST, 'manage_kwtsms'],
         // 2026-10-21 05:16 +03: "Mark as done" of an optional Dashboard checklist step (ruling R36), Task 1.11 fix

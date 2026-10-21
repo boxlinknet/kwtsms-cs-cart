@@ -180,6 +180,20 @@ try {
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_cron'];
 
+            // 2026-10-21 05:20 +03: the SMS brand-name editor of the Templates page (Task 1.12 fix round 1 item 3,
+            // ruling R33, task 596). Read from the raw POST array like the template fields; the page checks the
+            // storefront ids against the storefronts of the store and the language against the installed ones.
+            case 'update_brand_names':
+                $kwtsms_brand = isset($_POST['kwtsms_brand']) && is_array($_POST['kwtsms_brand'])
+                    ? $_POST['kwtsms_brand']
+                    : [];
+                $kwtsms_result = TemplatesPage::fromContainer(Tygh::$app)->saveBrandNames($kwtsms_brand);
+
+                return [
+                    CONTROLLER_STATUS_REDIRECT,
+                    'kwtsms.templates?lang=' . rawurlencode($kwtsms_result['lang']) . '#kwtsms_brand',
+                ];
+
             // 2026-10-21 03:28 +03: the Templates page actions (Task 1.12, task 596). Admin\TemplatesPage holds the
             // rules; this only reads the posted form (the body raw, from the POST body only), calls it and redirects
             // (PRG).
@@ -188,14 +202,15 @@ try {
             case 'load_template_defaults':
             case 'toggle_event':
             case 'preview_template':
-                // PRD 10: a template body is raw text ("<", "&" must reach the cleaner as typed); the other fields are
-                // plain strings. Only the POST body counts: a query string is logged by servers and proxies.
-                fn_trusted_vars('kwtsms_tpl.body');
-                $kwtsms_tpl = [];
-                $kwtsms_posted = isset($_POST['kwtsms_tpl']) && is_array($_POST['kwtsms_tpl']);
-                if ($kwtsms_posted && isset($_REQUEST['kwtsms_tpl']) && is_array($_REQUEST['kwtsms_tpl'])) {
-                    $kwtsms_tpl = array_intersect_key($_REQUEST['kwtsms_tpl'], $_POST['kwtsms_tpl']);
-                }
+            case 'test_template':
+                // PRD 10: a template body is raw text ("<", "&" must reach the cleaner as typed), and so is every other
+                // field (the confirmation of an unknown name such as {a<b} holds a "<" too). Core strips tags from the
+                // merged request array, so every field is read from the raw POST array, after the gate: the POST body
+                // only (a query string is logged by servers and proxies and must never supply a field).
+                // 2026-10-21 05:07 +03: was the merged request array cut down to the posted keys, with
+                // fn_trusted_vars() for the body alone; the confirmation of a name with a "<" arrived cut short.
+                // Task 1.12 fix round 1 item 5, task 596.
+                $kwtsms_tpl = isset($_POST['kwtsms_tpl']) && is_array($_POST['kwtsms_tpl']) ? $_POST['kwtsms_tpl'] : [];
                 $kwtsms_templates_page = TemplatesPage::fromContainer(Tygh::$app);
                 $kwtsms_templates_url = static function ($lang, $edit = '', $anchor = '') {
                     return 'kwtsms.templates' . (is_string($lang) && $lang !== '' ? '?lang=' . rawurlencode($lang) : '')
@@ -241,6 +256,29 @@ try {
                     $kwtsms_to = $kwtsms_templates_url($kwtsms_result['lang'], '', $kwtsms_anchor);
 
                     return [CONTROLLER_STATUS_REDIRECT, $kwtsms_to];
+                }
+
+                if ($mode === 'test_template') {
+                    // 2026-10-21 05:20 +03: "Send a test of this template" (Task 1.12 fix round 1 item 2, task 596).
+                    // The gate has asked for manage_kwtsms_gateway; the cap and the send are SettingsPage's. The typed
+                    // text comes back into the editor (a draft) and the result panel shows once.
+                    $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+                    $kwtsms_result = $kwtsms_templates_page->testTemplate(
+                        $kwtsms_tpl,
+                        isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                        filter_var($kwtsms_ip, FILTER_VALIDATE_IP) !== false ? $kwtsms_ip : ''
+                    );
+                    if ($kwtsms_result['draft'] !== null) {
+                        $kwtsms_session['kwtsms_template_draft'] = $kwtsms_result['draft'];
+                    }
+                    if ($kwtsms_result['result'] !== null) {
+                        $kwtsms_session['kwtsms_template_test_result'] = $kwtsms_result['result'];
+                    }
+
+                    return [
+                        CONTROLLER_STATUS_REDIRECT,
+                        $kwtsms_templates_url($kwtsms_result['lang'], $kwtsms_result['edit'], '#kwtsms_template_test'),
+                    ];
                 }
 
                 // preview_template: JSON for the script, which shows it with textContent. Sends nothing, writes
@@ -304,11 +342,23 @@ try {
             $kwtsms_draft = $kwtsms_session['kwtsms_template_draft'];
             unset($kwtsms_session['kwtsms_template_draft']);
         }
+        // 2026-10-21 05:20 +03: the result of "Send a test of this template" shows once, in its row's editor
+        // (Task 1.12 fix round 1 item 2, task 596).
+        $kwtsms_test_result = null;
+        if (
+            isset($kwtsms_session['kwtsms_template_test_result'])
+            && is_array($kwtsms_session['kwtsms_template_test_result'])
+        ) {
+            $kwtsms_test_result = $kwtsms_session['kwtsms_template_test_result'];
+            unset($kwtsms_session['kwtsms_template_test_result']);
+        }
         $kwtsms_data = TemplatesPage::fromContainer(Tygh::$app)->viewData(
             isset($_REQUEST['lang']) && is_string($_REQUEST['lang']) ? $_REQUEST['lang'] : '',
             isset($_REQUEST['edit']) && is_string($_REQUEST['edit']) ? $_REQUEST['edit'] : '',
             $kwtsms_draft,
-            fn_check_current_user_access('manage_notification_settings') === true
+            fn_check_current_user_access('manage_notification_settings') === true,
+            fn_check_current_user_access('manage_kwtsms_gateway') === true,
+            $kwtsms_test_result
         );
         $kwtsms_data['can_open_settings'] = fn_check_current_user_access('manage_kwtsms_gateway') === true;
 
@@ -359,8 +409,10 @@ try {
     fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.settings.failed')));
 
     // 2026-10-21 04:38 +03: a failed Templates action goes back to the Templates page (Task 1.12, task 596).
+    // 2026-10-21 05:20 +03: test_template and update_brand_names too (Task 1.12 fix round 1, task 596).
     $kwtsms_templates_modes = [
         'update_template', 'reset_template', 'load_template_defaults', 'toggle_event', 'preview_template',
+        'test_template', 'update_brand_names',
     ];
     $kwtsms_failed_url = $kwtsms_settings_url;
     if (in_array((string) $mode, $kwtsms_templates_modes, true)) {

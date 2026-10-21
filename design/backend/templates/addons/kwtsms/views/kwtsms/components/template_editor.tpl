@@ -5,12 +5,13 @@ TASK:      596
 AUTHOR:    kwtSMS
 WHAT:      The editor of one template text (one row, one language): the text area in the language's direction, the
            placeholder chips, the advice list, the SMS meter with the counter and the worst-case estimate, the preview,
-           and Save / Reset / Close.
+           and Save / Reset / Close, and "Send a test of this template" (2026-10-21 05:18 +03, Task 1.12 fix round 1 item 2).
 WHY:       PRD 6.4. The left column is the only form (Save, Reset); the right column (meter, preview) sits outside it so
            that pressing Enter in the order number box can never submit a save. The script (templates.js) reads the
            data- attributes of the root, counts with counter.js (a mirror of MessageCleaner) and asks the server for the
            exact preview; it shows server text with textContent only. The text of a template is printed only inside the
-           text area, auto-escaped.
+           text area, auto-escaped. The test send is its own small form (outside the main one, like the preview, so Enter
+           in the number box never saves); the script copies the typed text into its hidden field on submit.
 USAGE:     {include file="addons/kwtsms/views/kwtsms/components/template_editor.tpl" e=$editor t=$page row_label=.. receiver_label=..}
            $e: Admin\TemplatesPage::viewData()['editor']; $t: the page data.
 DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}.js, kwtsms.templates.* language variables.
@@ -46,6 +47,8 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 <label class="kwtsms-editor__label" for="kwtsms_body">{__("kwtsms.templates.editor_label", ["[language]" => $e.lang_name])}</label>
                 {if $e.origin == "generic"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_generic")}</p>
+                {elseif $e.origin == "placed"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_placed")}</p>
                 {elseif $e.origin == "default_lang"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_default_lang", ["[language]" => $t.default_lang_name])}</p>
                 {elseif $e.origin == "none"}
@@ -120,6 +123,48 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                     <ul class="kwtsms-preview__notes" id="kwtsms_preview_notes"></ul>
                 </div>
             </fieldset>
+
+            {* ---- Send a test of this template (needs manage_kwtsms_gateway; its own form) ------------------------------ *}
+            {if $t.can_test}
+                <fieldset class="kwtsms-test" id="kwtsms_template_test">
+                    <legend>{__("kwtsms.templates.test_title")}</legend>
+                    <p class="muted kwtsms-test__help">{__("kwtsms.templates.test_help", ["[max]" => $t.test_per_hour])}</p>
+                    {if $t.test_result}
+                        {$r = $t.test_result}
+                        <div class="kwtsms-result kwtsms-result--{$r.status}" id="kwtsms_template_test_result" role="status">
+                            <h5 class="kwtsms-result__title">{__("kwtsms.test_sms.result")}</h5>
+                            <dl class="kwtsms-result__list">
+                                <dt>{__("kwtsms.test_sms.to")}</dt><dd><bdi dir="ltr" id="kwtsms_tpl_result_phone">{$r.phone}</bdi></dd>
+                                <dt>{__("kwtsms.test_sms.outcome")}</dt><dd id="kwtsms_tpl_result_outcome" data-kwtsms-outcome="{$r.outcome}">{$r.outcome_text}</dd>
+                                {if $r.error}<dt>{__("kwtsms.test_sms.details")}</dt><dd id="kwtsms_tpl_result_error">{$r.error}</dd>{/if}
+                                {if $r.msg_id}<dt>{__("kwtsms.test_sms.msg_id")}</dt><dd><bdi dir="ltr" id="kwtsms_tpl_result_msg_id">{$r.msg_id}</bdi></dd>{/if}
+                                {if $r.points !== ""}<dt>{__("kwtsms.test_sms.points")}</dt><dd><bdi id="kwtsms_tpl_result_points">{$r.points}</bdi></dd>{/if}
+                                {if $r.balance_after !== ""}<dt>{__("kwtsms.test_sms.balance_after")}</dt><dd><bdi id="kwtsms_tpl_result_balance">{$r.balance_after}</bdi></dd>{/if}
+                            </dl>
+                            {if $r.test}
+                                <p class="kwtsms-result__note" id="kwtsms_tpl_result_test_note">{__("kwtsms.test_sms.test_note")}</p>
+                            {/if}
+                        </div>
+                    {/if}
+                    <form action="{""|fn_url}" method="post" name="kwtsms_template_test_form" id="kwtsms_test_form" class="kwtsms-test__form" autocomplete="off">
+                        <input type="hidden" name="kwtsms_tpl[event_id]" value="{$e.event_id}">
+                        <input type="hidden" name="kwtsms_tpl[receiver]" value="{$e.receiver}">
+                        <input type="hidden" name="kwtsms_tpl[lang]" value="{$e.lang}">
+                        <input type="hidden" name="kwtsms_tpl[body]" id="kwtsms_test_body" value="{$e.body}">
+                        <label class="control-label" for="kwtsms_test_phone">{__("kwtsms.test_sms.phone")}</label>
+                        <input type="text" id="kwtsms_test_phone" name="kwtsms_tpl[phone]" value="" class="input-medium" dir="ltr"
+                               inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432" required="required">
+                        {* 2026-10-21 06:00 +03: an own flex line instead of the core .checkbox float, which left the box outside the panel in Arabic *}
+                        <label class="kwtsms-checkline"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_tpl[intl]" value="Y"> <span>{__("kwtsms.test_sms.intl")}</span></label>
+                        <p class="muted kwtsms-test__country">{__("kwtsms.test_sms.intl_help", ["[country]" => $t.test_country])}</p>
+                        <div class="kwtsms-actions">
+                            <input type="submit" class="btn" id="kwtsms_test_send" name="dispatch[kwtsms.test_template]" value="{__("kwtsms.templates.test_send")}">
+                        </div>
+                    </form>
+                </fieldset>
+            {else}
+                <p class="muted kwtsms-test-locked" id="kwtsms_test_locked">{__("kwtsms.templates.test_locked")}</p>
+            {/if}
         </aside>
     </div>
 </section>

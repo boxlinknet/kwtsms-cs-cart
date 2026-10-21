@@ -13,18 +13,27 @@ WHY:       PRD 6.4 and Task 1.12: the live counter must give the number the gate
            the gateway refuses more than 7. Cleaning runs first, in the order of PRD 6.2.1 (entities, comments and real
            tags, literal escapes, line endings, digits, hidden characters, special spaces, emoji, smart quotes, trim), up
            to 8 passes, and a text that does not settle counts as empty (fail closed, like clean()).
-           Known limit: named HTML entities are decoded from a short table (amp, lt, gt, quot, apos, nbsp and the common
-           typographic ones); PHP knows the full HTML5 table. The page's Preview button asks the server for the exact
-           answer. tests/fixtures/templates-counter-parity.json proves the two agree on 30 bodies.
+           The page counts what is SENT, which is the stored form of the body: storedForm() is the port of
+           TemplateRepository::storedForm() (MessageCleaner::cleanForStorage(), the characters above U+FFFF dropped, trim).
+           A body is cleaned for storage on save, rendered at send time and cleaned again, so the counter does the same:
+           clean(render(storedForm(body), values)); the advice (analyze) reads the stored form too.
+           Named HTML entities are decoded by the browser itself through a detached textarea (the same HTML5 table PHP's
+           html_entity_decode uses); where there is no DOM (Node, the parity test) a short table stands in. The page's
+           Preview button asks the server for the exact answer. tests/fixtures/templates-counter-parity.json proves the
+           two agree on the bodies of the fixture (the rows marked dom_only run in the browser test only).
+           2026-10-21 04:59 +03: stored form and detached-textarea entities added, Task 1.12 fix round 1 items 1 and 8, task 596.
 USAGE:     Browser: window.kwtsmsCounter. Node: require('./counter.js').
              clean(text)                     -> cleaned text ('' when blocked)
+             cleanForStorage(text), storedForm(body)        -> the form a body is saved in
+             brandName(text)                 -> the form a typed SMS brand name is saved in (20 characters at most)
              isUnicode(text), units(text), pages(text)      on cleaned text
              count(cleaned)                  -> {units, pages, unicode, over}  (over: more than 7 pages)
              render(body, values)            -> body with {name} replaced (known names only)
              analyze(body, receiver, config) -> {code: [found, ...]} for the codes of TemplateChecks, in its order;
                                                 config = {placeholders, promo_en, promo_ar, tlds}
              unknownPlaceholders(body, allowed) -> ['{typo}', ...]
-DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the caller's job and uses textContent.
+DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('textarea') when a DOM exists, for the named
+           entities. Display text is the caller's job and uses textContent.
 */
 (function (root, factory) {
     'use strict';
@@ -37,8 +46,11 @@ DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the c
     'use strict';
 
     var MAX_PAGES = 7;
+    var BRAND_MAX = 20;
     var MAX_PASSES = 8;
 
+    // 2026-10-21 04:59 +03: the table is only the stand-in where there is no DOM (Node); in a browser the textarea below
+    // decodes every named entity. Task 1.12 fix round 1 item 8, task 596.
     var ENTITIES = {
         amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
         nbsp: '\u{A0}', copy: '\u{A9}', reg: '\u{AE}', hellip: '\u{2026}', mdash: '\u{2014}',
@@ -78,6 +90,29 @@ DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the c
             (cp >= 0xE000 && cp <= 0x10FFFF && (cp & 0xFFFF) < 0xFFFE && (cp < 0xFDD0 || cp > 0xFDEF));
     }
 
+    var decoder = null;
+
+    /**
+     * A named entity "&name;" as PHP's html_entity_decode (ENT_QUOTES | ENT_HTML5) reads it. In a browser the entity
+     * goes through a detached textarea (the HTML5 table, nothing else to keep in step). A browser also reads a legacy
+     * name that is followed by more letters ("&notit;" is the sign and "it;"), which PHP leaves alone; a real entity is
+     * one or two characters, so a longer answer means "not this entity" and the text stays as it was.
+     */
+    function namedEntity(whole, name) {
+        var text;
+        var length;
+        if (typeof document !== 'undefined' && document && typeof document.createElement === 'function') {
+            if (decoder === null) {
+                decoder = document.createElement('textarea');
+            }
+            decoder.innerHTML = whole;
+            text = decoder.value;
+            length = Array.from(text).length;
+            return text !== whole && length >= 1 && length <= 2 ? text : whole;
+        }
+        return Object.prototype.hasOwnProperty.call(ENTITIES, name) ? ENTITIES[name] : whole;
+    }
+
     function decodeEntities(text) {
         return text.replace(ENTITY, function (whole, hex, dec, name) {
             var cp;
@@ -85,7 +120,7 @@ DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the c
                 cp = hex !== undefined ? parseInt(hex, 16) : parseInt(dec, 10);
                 return allowedCodePoint(cp) ? String.fromCodePoint(cp) : whole;
             }
-            return Object.prototype.hasOwnProperty.call(ENTITIES, name) ? ENTITIES[name] : whole;
+            return namedEntity(whole, name);
         });
     }
 
@@ -151,29 +186,72 @@ DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the c
         return trim(text);
     }
 
-    /** MessageCleaner::clean(): '' when the text does not settle. */
-    function clean(text) {
-        var decode = true;
+    /** MessageCleaner::cleanBody(): the passes of PRD 6.2.1; throws when the text does not settle. */
+    function cleanBody(text, decode) {
         var pass;
         var next;
-        try {
-            text = dropInvalid(String(text));
-            for (pass = 0; pass < MAX_PASSES; pass++) {
-                next = settleMarkup(text);
-                if (decode) {
-                    next = decodeEscapes(next);
-                    decode = false;
-                }
-                next = normalize(next);
-                if (next === text) {
-                    return text;
-                }
-                text = next;
+        text = dropInvalid(String(text));
+        for (pass = 0; pass < MAX_PASSES; pass++) {
+            next = settleMarkup(text);
+            if (decode) {
+                next = decodeEscapes(next);
+                decode = false;
             }
+            next = normalize(next);
+            if (next === text) {
+                return text;
+            }
+            text = next;
+        }
+        throw new Error('text does not settle');
+    }
+
+    /** MessageCleaner::clean(): '' when the text does not settle. */
+    function clean(text) {
+        try {
+            return cleanBody(text, true);
         } catch (e) {
             return '';
         }
-        return '';
+    }
+
+    /** MessageCleaner::cleanForStorage(): clean() without decoding the typed escapes (they are decoded at send). */
+    function cleanForStorage(text) {
+        var stored;
+        var expected;
+        var encoded;
+        try {
+            stored = cleanBody(text, false);
+            expected = cleanBody(text, true);
+            if (cleanBody(stored, true) === expected) {
+                return stored;
+            }
+            encoded = expected.replace(/\\|\n|\t/g, function (c) {
+                return c === '\\' ? '\\\\' : (c === '\n' ? '\\n' : '\\t');
+            });
+            return cleanBody(encoded, true) === expected ? encoded : '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    /**
+     * TemplateRepository::storedForm(): the form a body is saved in (and so the form that is rendered and sent):
+     * cleaned for storage, the characters above U+FFFF removed (the table is utf8mb3), trimmed.
+     */
+    function storedForm(body) {
+        return trim(cleanForStorage(body).replace(/[\u{10000}-\u{10FFFF}]/gu, ''));
+    }
+
+    /**
+     * Templates\BrandNames::normalize(): the stored form of a typed SMS brand name. Cleaned for storage, the characters
+     * above U+FFFF removed before the cut, every run of white space one space, cut to 20 characters, trimmed. The brand
+     * editor shows its length as "n/20". 2026-10-21 05:10 +03: added, Task 1.12 fix round 1 item 3, task 596.
+     */
+    function brandName(value) {
+        var text = cleanForStorage(String(value)).replace(/[\u{10000}-\u{10FFFF}]/gu, '');
+        text = trim(text.replace(/\s+/g, ' '));
+        return trim(Array.from(text).slice(0, BRAND_MAX).join(''));
     }
 
     function isUnicode(text) {
@@ -319,6 +397,10 @@ DEPENDS:   Nothing (plain JavaScript, no DOM, no library). Display text is the c
     return {
         MAX_PAGES: MAX_PAGES,
         clean: clean,
+        cleanForStorage: cleanForStorage,
+        storedForm: storedForm,
+        brandName: brandName,
+        BRAND_MAX: BRAND_MAX,
         isUnicode: isUnicode,
         units: units,
         pages: pages,

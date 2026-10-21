@@ -320,6 +320,7 @@ DEPENDS:   Nothing at build time.
 
     /* ---- counter, meter, worst case ---- */
     .kwtsms-counter__title,
+    .kwtsms-test legend,
     .kwtsms-preview legend {
         margin: 0 0 6px;
         font-size: 14px;
@@ -389,8 +390,9 @@ DEPENDS:   Nothing at build time.
         font-weight: 600;
     }
 
-    /* ---- preview ---- */
-    .kwtsms-preview {
+    /* ---- preview, and the test send of the template (the same box) ---- */
+    .kwtsms-preview,
+    .kwtsms-test {
         margin: 18px 0 0;
         padding: 12px 14px 14px;
         border: 1px solid @kwt-line;
@@ -436,6 +438,93 @@ DEPENDS:   Nothing at build time.
     .kwtsms-preview__notes {
         margin: 6px 0 0;
         padding-inline-start: 18px;
+    }
+
+    /* ---- Send a test of this template (2026-10-21 05:19 +03, Task 1.12 fix round 1 item 2) ---- */
+    .kwtsms-test__help {
+        margin: 0 0 8px;
+        font-size: 12px;
+    }
+    .kwtsms-test__form .control-label {
+        display: block;
+        margin-block-end: 2px;
+        text-align: start;
+    }
+    .kwtsms-checkline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0 2px;
+        cursor: pointer;
+        input {
+            margin: 0;
+        }
+    }
+    .kwtsms-test__country {
+        margin: 2px 0 8px;
+        font-size: 12px;
+    }
+    .kwtsms-test-locked {
+        margin: 18px 0 0;
+    }
+
+    /* ---- SMS brand name (2026-10-21 05:19 +03, Task 1.12 fix round 1 item 3, ruling R33) ---- */
+    .kwtsms-brand {
+        margin-block: 14px 18px;
+        padding: 12px 14px 14px;
+        border: 1px solid @kwt-line;
+        border-radius: 4px;
+        .subheader {
+            margin: 0 0 4px;
+        }
+    }
+    .kwtsms-brand__help {
+        max-width: 760px;
+        margin: 0 0 10px;
+    }
+    .kwtsms-brand__row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        margin-block-end: 8px;
+    }
+    .kwtsms-brand__label {
+        flex: 0 0 200px;
+        margin: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-brand__input {
+        flex: 0 1 280px;
+        min-width: 0;
+        margin: 0;
+    }
+    .kwtsms-brand__count {
+        min-width: 44px;
+        font-size: 12px;
+        color: @kwt-muted;
+    }
+    /* 2026-10-21 06:00 +03: a full count is expected (the field stops at 20), so it is bold, not an error colour. */
+    .kwtsms-brand__row.is-full .kwtsms-brand__count {
+        color: @kwt-text;
+        font-weight: 600;
+    }
+    .kwtsms-brand__warn {
+        flex: 1 1 100%;
+        margin: 2px 0 0;
+        padding: 6px 10px;
+        border-inline-start: 3px solid @kwt-brand;
+        background: @kwt-brand-tint;
+    }
+}
+
+@media (max-width: 599px) {
+    .kwtsms-page.kwtsms-templates {
+        .kwtsms-brand__label,
+        .kwtsms-brand__input {
+            flex: 1 1 100%;
+        }
     }
 }
 

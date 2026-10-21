@@ -3,7 +3,8 @@ FILE:      design/backend/templates/addons/kwtsms/views/kwtsms/templates.tpl
 CREATED:   2026-10-21 03:24 +03
 TASK:      596
 AUTHOR:    kwtSMS
-WHAT:      The kwtSMS Templates page: language tabs, the matrix (one row per order status and receiver, with the SMS switch,
+WHAT:      The kwtSMS Templates page: language tabs, the SMS brand-name editor of the tab language (2026-10-21 05:18 +03, Task 1.12 fix
+           round 1 item 3, ruling R33), the matrix (one row per order status and receiver, with the SMS switch,
            the text, a badge and the length of each row) and, under the row being edited, the editor with the live counter
            and SMS meter, the worst-case estimate, placeholder chips, the advice, the preview and Save / Reset.
 WHY:       PRD 6.4 and 7. Native backend components under the .kwtsms-page root. Every value is auto-escaped (no nofilter);
@@ -56,6 +57,34 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
     <p class="kwtsms-hint-line muted">
         {if $t.has_shipped}{__("kwtsms.templates.load_defaults_help")}{else}{__("kwtsms.templates.no_shipped", ["[language]" => $t.default_lang_name])}{/if}
     </p>
+
+    {* ---- SMS brand name: what the store_name placeholder is, one entry per storefront, for the language of the tab ------------ *}
+    <section class="kwtsms-brand" id="kwtsms_brand" aria-labelledby="kwtsms_brand_title">
+        <h4 class="subheader" id="kwtsms_brand_title">{__("kwtsms.templates.brand_title")}</h4>
+        <p class="muted kwtsms-brand__help">{__("kwtsms.templates.brand_help", ["[language]" => $t.lang_name, "[max]" => $t.brand.max])}</p>
+        {if $t.brand.storefronts}
+            <form action="{""|fn_url}" method="post" name="kwtsms_brand_form" id="kwtsms_brand_form" class="kwtsms-brand__form" autocomplete="off"
+                  data-kwtsms-brand-max="{$t.brand.max}" data-kwtsms-brand-unicode="{if $t.brand.warn_unicode}1{else}0{/if}">
+                <input type="hidden" name="kwtsms_brand[lang]" value="{$t.lang}">
+                {foreach $t.brand.storefronts as $sf}
+                    <div class="kwtsms-brand__row">
+                        <label class="kwtsms-brand__label" for="kwtsms_brand_{$sf.id}">{$sf.name}</label>
+                        <input type="text" id="kwtsms_brand_{$sf.id}" name="kwtsms_brand[names][{$sf.id}]" value="{$sf.value}"
+                               class="kwtsms-brand__input" maxlength="{$t.brand.max}" dir="{$t.direction}" lang="{$t.lang}"
+                               placeholder="{$sf.fallback}" autocomplete="off" spellcheck="false" data-kwtsms-brand-input="1"
+                               aria-describedby="kwtsms_brand_count_{$sf.id}">
+                        <span class="kwtsms-brand__count" id="kwtsms_brand_count_{$sf.id}" aria-live="polite"><bdi dir="ltr"><span data-kwtsms-brand-n>{$sf.length}</span>/{$t.brand.max}</bdi></span>
+                        <p class="kwtsms-brand__warn{if !$sf.unicode} hidden{/if}" id="kwtsms_brand_warn_{$sf.id}" role="status">{__("kwtsms.templates.brand_unicode_warn")}</p>
+                    </div>
+                {/foreach}
+                <div class="kwtsms-actions">
+                    <input type="submit" class="btn" id="kwtsms_brand_save" name="dispatch[kwtsms.update_brand_names]" value="{__("kwtsms.templates.brand_save")}">
+                </div>
+            </form>
+        {else}
+            <p class="muted" id="kwtsms_brand_none">{__("kwtsms.templates.brand_none")}</p>
+        {/if}
+    </section>
 
     {* ---- the matrix ------------------------------------------------------------------------------------------------ *}
     <table class="table table-middle kwtsms-matrix" id="kwtsms_matrix">

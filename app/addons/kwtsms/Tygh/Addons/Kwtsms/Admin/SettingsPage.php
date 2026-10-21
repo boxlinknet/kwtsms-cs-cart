@@ -421,6 +421,28 @@ class SettingsPage
 
             return null;
         }
+
+        return $this->sendTestText($phone, $intl, $this->testSmsText($suffix, $lang_code), $admin_id, $ip, $lang_code);
+    }
+
+    /**
+     * The send half of a test SMS, for any text: at most 10 an hour per administrator (the one count, whoever sends,
+     * on the attempt log), the number normalized with the default country unless it is international, the text sent
+     * through SmsService::sendTest() (ruling R30: it works before SMS are switched on, every other gate applies).
+     * Used by testSms() (the fixed text) and by the Templates page's "Send a test of this template" (a rendered
+     * template with sample data).
+     * 2026-10-21 05:19 +03: split out of testSms(), behaviour of testSms() unchanged. Task 1.12 fix round 1 item 2, task 596.
+     *
+     * @return array<string,mixed>|null The result panel, or null when nothing was sent (a notification says why)
+     */
+    public function sendTestText(string $phone, bool $intl, string $text, int $admin_id, string $ip, string $lang_code): ?array
+    {
+        $phone = trim($phone);
+        if ($phone === '') {
+            $this->say('E', 'kwtsms.test_sms.phone_required');
+
+            return null;
+        }
         try {
             $sent = $this->attempts->countRecent('', '', 3600, [], [
                 'event_id' => self::TEST_SMS_EVENT,
@@ -450,7 +472,7 @@ class SettingsPage
 
         // 2026-10-21 03:16 +03: sendTest(): the test SMS works before SMS is switched on (PRD 6.9 order); every other
         // gate applies (ruling R30, Task 1.10 fix round 1 item 2), task 596.
-        $result = $this->sms->sendTest([$to], $this->testSmsText($suffix, $lang_code), [
+        $result = $this->sms->sendTest([$to], $text, [
             'source' => 'manual',
             'event_id' => self::TEST_SMS_EVENT,
             'receiver' => 'A',

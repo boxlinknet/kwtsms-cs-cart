@@ -7,7 +7,8 @@
  * AUTHOR:    kwtSMS
  * WHAT:      The "SMS brand name" a message shows as {store_name}: the brand the admin set for the storefront in
  *            the message language, else the storefront name, else the company name; at most 20 characters, on
- *            one plain line.
+ *            one plain line. Also the writer of the brand tables for the Templates page's brand-name editor
+ *            (2026-10-21 05:10 +03: typed(), fallback(), normalize() and store() added, Task 1.12 fix round 1 item 3, ruling R33).
  * WHY:       PRD 6.4: customers must recognise the sender in the first words of the SMS, and a long shop name
  *            would eat the page budget (the defaults are sized for a 20-character brand). In Multi-Vendor the
  *            brand is the marketplace's, never a vendor's: the company name used is the marketplace setting, and
@@ -27,6 +28,10 @@
  * DEPENDS:   CS-Cart db_get_field(), Tygh::$app['storefront.repository'], fn_allowed_for(), fn_get_company_name(),
  *            Tygh\Registry (settings.Company.company_name); Sms\MessageCleaner; tables kwtsms_brand_names and
  *            kwtsms_brand_name_descriptions.
+ *            The editor: typed($id, $lang) is what the admin typed ('' = none), fallback($id) what {store_name} is when
+ *            nothing is typed, normalize($text) the stored form of a typed name (cleaned for storage, characters above
+ *            U+FFFF removed because the table is utf8mb3, white space runs one space, cut to 20, trimmed), store($id,
+ *            $lang, $text) writes it (enabled = Y) and returns it.
  */
 
 namespace Tygh\Addons\Kwtsms\Templates;
@@ -52,6 +57,68 @@ class BrandNames
         if ($brand === '') {
             $brand = self::fit(static::companyName($storefront_id));
         }
+
+        return $brand;
+    }
+
+    /**
+     * What the admin typed for a storefront and language ('' when none or switched off), as the editor shows it.
+     */
+    public static function typed(int $storefront_id, string $lang): string
+    {
+        return static::storedBrand($storefront_id, $lang);
+    }
+
+    /**
+     * What {store_name} is when nothing is typed: the storefront name, else the company name ('' when neither is
+     * named). The editor shows it as the placeholder of the input.
+     */
+    public static function fallback(int $storefront_id): string
+    {
+        $brand = self::fit(static::storefrontName($storefront_id));
+        if ($brand === '') {
+            $brand = self::fit(static::companyName($storefront_id));
+        }
+
+        return $brand;
+    }
+
+    /**
+     * The stored form of a typed brand name: cleaned for storage (ruling R18), the characters above U+FFFF removed
+     * BEFORE the cut (the column is utf8mb3), every run of white space one space, cut to MAX_LENGTH characters.
+     */
+    public static function normalize(string $name): string
+    {
+        return self::fit($name);
+    }
+
+    /**
+     * Writes a typed brand name for a storefront and language (the storefront entry is switched on) and returns what
+     * was stored. An empty result clears the language (the fallback applies); a language with no row and nothing to
+     * store writes nothing. The caller has checked the storefront id and the language.
+     */
+    public static function store(int $storefront_id, string $lang, string $name): string
+    {
+        $brand = self::normalize($name);
+        $has_row = (int) db_get_field(
+            'SELECT COUNT(*) FROM ?:kwtsms_brand_name_descriptions WHERE storefront_id = ?i AND lang_code = ?s',
+            $storefront_id,
+            $lang
+        ) > 0;
+        if ($brand === '' && !$has_row) {
+            return '';
+        }
+        db_query(
+            'INSERT INTO ?:kwtsms_brand_names (storefront_id, enabled) VALUES (?i, ?s) ON DUPLICATE KEY UPDATE enabled = ?s',
+            $storefront_id,
+            'Y',
+            'Y'
+        );
+        db_query('REPLACE INTO ?:kwtsms_brand_name_descriptions ?e', [
+            'storefront_id' => $storefront_id,
+            'lang_code' => $lang,
+            'brand_name' => $brand,
+        ]);
 
         return $brand;
     }
@@ -113,9 +180,26 @@ class BrandNames
      */
     private static function fit(string $name): string
     {
-        $clean = MessageCleaner::cleanForStorage($name);
-        $line = trim((string) preg_replace('/\s+/u', ' ', $clean));
+        return trim(mb_substr(self::oneLine($name), 0, self::MAX_LENGTH, 'UTF-8'));
+    }
 
-        return trim(mb_substr($line, 0, self::MAX_LENGTH, 'UTF-8'));
+    /**
+     * Cleaned for storage, the characters above U+FFFF out (the column is utf8mb3), one plain line, not yet cut.
+     * 2026-10-21 05:15 +03: split out of fit(), Task 1.12 fix round 1 item 3.
+     */
+    private static function oneLine(string $name): string
+    {
+        $clean = MessageCleaner::cleanForStorage($name);
+        $clean = (string) preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $clean);
+
+        return trim((string) preg_replace('/\s+/u', ' ', $clean));
+    }
+
+    /**
+     * Whether the cut to MAX_LENGTH takes characters off a typed name (the editor says so).
+     */
+    public static function wasCut(string $name): bool
+    {
+        return mb_strlen(self::oneLine($name), 'UTF-8') > self::MAX_LENGTH;
     }
 }

@@ -1156,6 +1156,80 @@ msgctxt "Languages::kwtsms.templates.switch_unknown"
 msgid "Nothing changed. That row has no SMS switch."
 msgstr "Nothing changed. That row has no SMS switch."
 
+# 2026-10-21 05:20 +03: Task 1.12 fix round 1, task 596. The badge of the Multi-Vendor checkout row, "Send a test of this template" and the SMS
+# brand-name editor of the Templates page.
+msgctxt "Languages::kwtsms.templates.badge_placed"
+msgid "Uses the Order placed text"
+msgstr "Uses the Order placed text"
+
+msgctxt "Languages::kwtsms.templates.editor_help_placed"
+msgid "This row has no text of its own. The box starts from the Order placed text that is sent now. Saving makes it this row's own text."
+msgstr "This row has no text of its own. The box starts from the Order placed text that is sent now. Saving makes it this row's own text."
+
+msgctxt "Languages::kwtsms.templates.test_title"
+msgid "Send a test of this template"
+msgstr "Send a test of this template"
+
+msgctxt "Languages::kwtsms.templates.test_help"
+msgid "Sends the text above, filled with the sample data, to one number. In test mode kwtSMS accepts the message but does not deliver it. It counts toward the limit of [max] test SMS an hour."
+msgstr "Sends the text above, filled with the sample data, to one number. In test mode kwtSMS accepts the message but does not deliver it. It counts toward the limit of [max] test SMS an hour."
+
+msgctxt "Languages::kwtsms.templates.test_send"
+msgid "Send test"
+msgstr "Send test"
+
+msgctxt "Languages::kwtsms.templates.test_locked"
+msgid "Sending a test needs permission to manage the gateway."
+msgstr "Sending a test needs permission to manage the gateway."
+
+msgctxt "Languages::kwtsms.templates.test_empty"
+msgid "Nothing to send. The text is empty once it is cleaned."
+msgstr "Nothing to send. The text is empty once it is cleaned."
+
+msgctxt "Languages::kwtsms.templates.test_unavailable"
+msgid "Sending a test is not available right now."
+msgstr "Sending a test is not available right now."
+
+msgctxt "Languages::kwtsms.templates.brand_title"
+msgid "SMS brand name"
+msgstr "SMS brand name"
+
+msgctxt "Languages::kwtsms.templates.brand_help"
+msgid "Shown instead of {store_name} at the start of customer SMS in [language]. Up to [max] characters. Leave a field empty to use the storefront name, then the company name."
+msgstr "Shown instead of {store_name} at the start of customer SMS in [language]. Up to [max] characters. Leave a field empty to use the storefront name, then the company name."
+
+msgctxt "Languages::kwtsms.templates.brand_save"
+msgid "Save brand name"
+msgstr "Save brand name"
+
+msgctxt "Languages::kwtsms.templates.brand_none"
+msgid "No storefront found."
+msgstr "No storefront found."
+
+msgctxt "Languages::kwtsms.templates.brand_unicode_warn"
+msgid "This name has characters that are not plain text. Every English SMS that carries it is sent as Unicode: 70 characters per SMS instead of 160."
+msgstr "This name has characters that are not plain text. Every English SMS that carries it is sent as Unicode: 70 characters per SMS instead of 160."
+
+msgctxt "Languages::kwtsms.templates.brand_saved"
+msgid "SMS brand name saved: [language]."
+msgstr "SMS brand name saved: [language]."
+
+msgctxt "Languages::kwtsms.templates.brand_unchanged"
+msgid "No brand name changed."
+msgstr "No brand name changed."
+
+msgctxt "Languages::kwtsms.templates.brand_cut"
+msgid "A name was cut to [max] characters."
+msgstr "A name was cut to [max] characters."
+
+msgctxt "Languages::kwtsms.templates.brand_unicode"
+msgid "The English brand name has characters that are not plain text, so English SMS that carry it are sent as Unicode (70 characters per SMS)."
+msgstr "The English brand name has characters that are not plain text, so English SMS that carry it are sent as Unicode (70 characters per SMS)."
+
+msgctxt "Languages::kwtsms.templates.brand_unknown_storefront"
+msgid "A storefront that is not in this store was ignored."
+msgstr "A storefront that is not in this store was ignored."
+
 # 2026-10-21 02:04 +03: Task 1.10, task 596. kwtsms.status.* the status strip, kwtsms.nav.* the page navigation,
 # kwtsms.settings.* the Settings page (kwtsms.settings.field.<key> names a setting in a "not saved" notice),
 # kwtsms.reason.* why SMS cannot go out yet or why a value was refused, kwtsms.test_sms.* the test SMS form.

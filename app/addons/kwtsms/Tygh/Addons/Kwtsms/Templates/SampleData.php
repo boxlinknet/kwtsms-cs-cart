@@ -62,14 +62,21 @@ final class SampleData
      * The worst case: 20-character brand, 10-character Arabic first name, 7-character Arabic last name, 6-digit order
      * ids (the list of a checkout shows three ids and "+12"), 8-digit total, the longest status and currency name.
      *
-     * @param string            $lang           Language of the message (only used to pick fallback wording)
-     * @param array<int,string> $status_names   Every order status name of that language
-     * @param array<int,string> $currency_names Every currency name of that language
+     * @param string            $lang            Language of the message (only used to pick fallback wording)
+     * @param array<int,string> $status_names    Every order status name of that language
+     * @param array<int,string> $currency_names  Every currency name of that language
+     * @param string            $own_status_name The status name of the row being edited ('' for a row with no status).
+     *                                           A custom status can have a longer name than any shipped one, and the
+     *                                           estimate must count it.
+     *                                           2026-10-21 05:03 +03: added, Task 1.12 fix round 1 item 4, task 596.
      *
      * @return array<string,string>
      */
-    public static function worst(string $lang, array $status_names, array $currency_names): array
+    public static function worst(string $lang, array $status_names, array $currency_names, string $own_status_name = ''): array
     {
+        if ($own_status_name !== '') {
+            $status_names[] = $own_status_name;
+        }
         $ar = $lang === 'ar';
         $dollar = $ar ? "\u{062F}\u{0648}\u{0644}\u{0627}\u{0631}" : 'KWD';
         $awaiting = $ar

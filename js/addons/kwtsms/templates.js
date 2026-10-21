@@ -5,7 +5,8 @@ TASK:      596
 AUTHOR:    kwtSMS
 WHAT:      Script of the kwtSMS Templates page editor: the live counter and SMS meter (counter.js, a mirror of
            MessageCleaner), the worst-case estimate, the advice list, the placeholder chips, and the preview (a POST to
-           kwtsms.preview_template, which sends nothing).
+           kwtsms.preview_template, which sends nothing), the brand-name editor's live "n/20" count and its Unicode warning
+           (2026-10-21 05:19 +03, Task 1.12 fix round 1 item 3), and the test-send form (copies the typed text into its hidden field).
 WHY:       PRD 6.4 and Task 1.12. Display only: the server checks and cleans again on save, and the exact preview comes
            from the server. Everything the server sends back is shown with textContent (never innerHTML), so a template
            body that holds an image tag with an onerror handler is only ever text. Reads its data from data- attributes of the
@@ -125,7 +126,9 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
         }
 
         function update() {
-            var text = body.value;
+            // 2026-10-21 04:59 +03: the counter and the advice read the STORED form of the text (what is saved, rendered
+            // and sent), not the typed text. Task 1.12 fix round 1 item 1, task 596.
+            var text = counter.storedForm(body.value);
             var counts = counter.count(counter.clean(counter.render(text, reference)));
             var worstCounts = counter.count(counter.clean(counter.render(text, worst)));
             var found = counter.analyze(text, receiver, config);
@@ -267,6 +270,15 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
         if (go) {
             go.addEventListener('click', preview);
         }
+
+        // ---- Send a test of this template: its own form, so the typed (maybe unsaved) text goes along ----------------
+        var testForm = root.querySelector('#kwtsms_test_form');
+        var testBody = root.querySelector('#kwtsms_test_body');
+        if (testForm && testBody) {
+            testForm.addEventListener('submit', function () {
+                testBody.value = body.value;
+            });
+        }
         if (orderInput) {
             orderInput.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter') {
@@ -275,6 +287,31 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
                 }
             });
         }
+    }
+
+    /** The brand-name editor: the length of the stored form ("n/20") and the warning for an English name that is not plain text. */
+    function initBrand(page) {
+        var form = page.querySelector('#kwtsms_brand_form');
+        if (!form || form.getAttribute('data-kwtsms-ready') === '1') {
+            return;
+        }
+        form.setAttribute('data-kwtsms-ready', '1');
+        var max = parseInt(form.getAttribute('data-kwtsms-brand-max'), 10) || counter.BRAND_MAX;
+        var warnUnicode = form.getAttribute('data-kwtsms-brand-unicode') === '1';
+        form.querySelectorAll('[data-kwtsms-brand-input]').forEach(function (input) {
+            var row = input.closest('.kwtsms-brand__row');
+            var n = row.querySelector('[data-kwtsms-brand-n]');
+            var warn = row.querySelector('.kwtsms-brand__warn');
+            function update() {
+                var stored = counter.brandName(input.value);
+                var length = Array.from(stored).length;
+                n.textContent = String(length);
+                row.classList.toggle('is-full', length >= max);
+                show(warn, warnUnicode && counter.isUnicode(stored));
+            }
+            input.addEventListener('input', update);
+            update();
+        });
     }
 
     function init(context) {
@@ -286,6 +323,7 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
         if (!page) {
             return;
         }
+        initBrand(page);
         page.querySelectorAll('[data-kwtsms-editor]').forEach(function (editor) {
             initEditor(editor, page);
         });
