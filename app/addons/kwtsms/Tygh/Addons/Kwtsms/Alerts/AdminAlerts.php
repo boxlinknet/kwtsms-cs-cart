@@ -148,6 +148,11 @@ class AdminAlerts
             ) {
                 $text_key .= '_none';
             }
+            // 2026-10-21 17:28 +03: a [count] picks the plural form of the text (core plural langvar, the number
+            // first), final review M5, task 596.
+            if (isset($params['[count]']) && is_numeric($params['[count]'])) {
+                $safe = [0 => (int) $params['[count]']] + $safe;
+            }
             $text = (string) __($text_key, $safe, $lang);
         } catch (\Throwable $e) {
             $this->failed('alert.failed', $condition, $e);

@@ -71,7 +71,9 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
     table thead:not(:hover) th a:not(.btn),
     dl a:not(.btn),
     ol a:not(.btn),
-    ul:not(.nav) a:not(.btn),
+    /* 2026-10-21 17:29 +03: the Templates language tabs (ul.kwtsms-langs) are left out, so their own rule no longer ties with this one
+       on specificity (0,3,2 each) and wins only by stylesheet order (final review M5, cleanup 2 review minor 3), task 596. */
+    ul:not(.nav):not(.kwtsms-langs) a:not(.btn),
     .kwtsms-logs-back a {
         color: @kwtsms-link;
         text-decoration: underline;

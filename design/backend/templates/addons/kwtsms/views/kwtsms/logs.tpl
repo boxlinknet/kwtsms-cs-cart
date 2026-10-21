@@ -45,7 +45,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <p>{__("kwtsms.logs.clear.nothing", ["[log]" => $c.log])}</p>
                 <a class="btn" href="{$l.list_url|fn_url}">{__("kwtsms.logs.clear.back")}</a>
             {else}
-                <h4 id="kwtsms_clear_confirm_title">{__("kwtsms.logs.clear.confirm_title", ["[count]" => $c.count|number_format])}</h4>
+                {* 2026-10-21 17:28 +03: plural forms, the number first (final review M5), task 596 *}
+                <h4 id="kwtsms_clear_confirm_title">{__("kwtsms.logs.clear.confirm_title", [0 => $c.count, "[count]" => $c.count|number_format])}</h4>
                 <p>
                     {if $c.scope == "all"}{__("kwtsms.logs.clear.confirm_all", ["[log]" => $c.log])}
                     {elseif $c.scope == "older"}{__("kwtsms.logs.clear.confirm_older", ["[log]" => $c.log, "[days]" => $c.days])}
@@ -60,7 +61,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                         {foreach $c.hidden as $field}
                             <input type="hidden" name="{$field.name}" value="{$field.value}">
                         {/foreach}
-                        <input type="submit" class="btn btn-danger" id="kwtsms_clear_submit" name="dispatch[kwtsms.clear_logs]" value="{__("kwtsms.logs.clear.submit", ["[count]" => $c.count|number_format])}">
+                        <input type="submit" class="btn btn-danger" id="kwtsms_clear_submit" name="dispatch[kwtsms.clear_logs]" value="{__("kwtsms.logs.clear.submit", [0 => $c.count, "[count]" => $c.count|number_format])}">
                     </form>
                     <a class="btn" id="kwtsms_clear_cancel" href="{$l.list_url|fn_url}">{__("cancel")}</a>
                 </div>
@@ -205,7 +206,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
 
     {* ---- summary and export ------------------------------------------------------------------------------------- *}
     <div class="kwtsms-logs-bar">
-        <p class="kwtsms-logs-bar__count" id="kwtsms_logs_count">{__("kwtsms.logs.count", ["[count]" => $l.search.total_items|number_format])}</p>
+        {* 2026-10-21 17:28 +03: plural forms, the number first (final review M5), task 596 *}
+        <p class="kwtsms-logs-bar__count" id="kwtsms_logs_count">{__("kwtsms.logs.count", [0 => $l.search.total_items, "[count]" => $l.search.total_items|number_format])}</p>
         {if $l.tab == "messages" && $l.can.gateway}
             <a class="btn" id="kwtsms_logs_export" href="{$l.export_url|fn_url}" download>{__("kwtsms.logs.export")}</a>
         {/if}

@@ -720,9 +720,10 @@ msgctxt "Languages::kwtsms.alert.test_mode.title"
 msgid "SMS test mode is on"
 msgstr "وضع اختبار الرسائل مفعل"
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.alert.test_mode.text"
-msgid "Customers are not receiving SMS because test mode is on. [count] test messages hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
-msgstr "لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسالة اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS."
+msgid "Customers are not receiving SMS because test mode is on. [count] test message holds about [credits] credits in your kwtSMS queue. Delete it at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings.|Customers are not receiving SMS because test mode is on. [count] test messages hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
+msgstr "لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسالة اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز رسالة اختبار واحدة نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز رسالتا اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفهما من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسائل اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسالة اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. تحتجز [count] رسالة اختبار نحو [credits] نقطة في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS."
 
 # 2026-10-21 05:16 +03: Task 1.11 fix round 1, task 596. text_none is the test-mode notice when no test message holds credits.
 msgctxt "Languages::kwtsms.alert.test_mode.text_none"
@@ -2173,9 +2174,10 @@ msgid "[n] test message since [date] holds about [credits] in your kwtSMS queue.
 msgstr "لا توجد رسائل اختبار تحجز نقاطا في قائمة الانتظار لدى kwtSMS.|تحجز رسالة اختبار واحدة منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز رسالتا اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفهما من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسائل اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com."
 
 # 2026-10-21 14:08 +03: a number of credits as text (six Arabic forms, core's plural langvar); used inside kwtsms.dash.test.held. Cleanup 2 item 4, task 596.
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.dash.credits_n"
 msgid "[n] credit|[n] credits"
-msgstr "0 نقطة|نقطة واحدة|نقطتان|[n] نقاط|[n] نقطة|[n] نقطة"
+msgstr "[n] نقطة|نقطة واحدة|نقطتان|[n] نقاط|[n] نقطة|[n] نقطة"
 
 msgctxt "Languages::kwtsms.dash.test.none"
 msgid "No test message holds credits in your kwtSMS queue."
@@ -2488,9 +2490,10 @@ msgctxt "Languages::kwtsms.alert.outbox_backlog.title"
 msgid "SMS are waiting in the outbox"
 msgstr "رسائل تنتظر في قائمة الإرسال"
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.alert.outbox_backlog.text"
-msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
-msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل."
+msgid "[count] SMS has waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works.|[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute and that your kwtSMS account works."
+msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل.|انتظرت رسالة واحدة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل.|انتظرت رسالتان في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل.|انتظرت [count] رسائل في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل.|انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل.|انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة وأن حساب kwtSMS يعمل."
 
 # 2026-10-21 04:35 +03: Task 1.13, task 596. kwtsms.alerts.* the Admin SMS alerts page (PRD 6.6; kwtsms.alerts.reason.* why a
 # number was refused, kwtsms.alerts.verdict.* the kwtSMS /validate/ verdict), kwtsms.integrations.* the Integrations page
@@ -3849,9 +3852,10 @@ msgctxt "Languages::kwtsms.logs.notice.deep"
 msgid "Only the first [rows] rows can be paged. Narrow the filter or the date range to see the rest."
 msgstr "يمكن التنقل في أول [rows] صف فقط. ضيق الفلتر أو نطاق التاريخ لرؤية الباقي."
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.logs.count"
-msgid "[count] rows"
-msgstr "[count] صف"
+msgid "[count] row|[count] rows"
+msgstr "[count] صف|صف واحد|صفان|[count] صفوف|[count] صفا|[count] صف"
 
 msgctxt "Languages::kwtsms.logs.export"
 msgid "Export CSV"
@@ -4005,9 +4009,10 @@ msgctxt "Languages::kwtsms.logs.clear.help"
 msgid "You see how many rows go before anything is deleted. Every clear is recorded in the Debug log."
 msgstr "ترى عدد الصفوف قبل حذف أي شيء. يسجل كل مسح في سجل التشخيص."
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.logs.clear.confirm_title"
-msgid "Delete [count] rows?"
-msgstr "حذف [count] صف؟"
+msgid "Delete [count] row?|Delete [count] rows?"
+msgstr "حذف [count] صف؟|حذف صف واحد؟|حذف صفين؟|حذف [count] صفوف؟|حذف [count] صفا؟|حذف [count] صف؟"
 
 msgctxt "Languages::kwtsms.logs.clear.confirm_all"
 msgid "This empties the [log] log."
@@ -4029,9 +4034,10 @@ msgctxt "Languages::kwtsms.logs.clear.audit_kept"
 msgid "The records of earlier clears stay."
 msgstr "تبقى سجلات عمليات المسح السابقة."
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.logs.clear.submit"
-msgid "Delete [count] rows"
-msgstr "حذف [count] صف"
+msgid "Delete [count] row|Delete [count] rows"
+msgstr "حذف [count] صف|حذف صف واحد|حذف صفين|حذف [count] صفوف|حذف [count] صفا|حذف [count] صف"
 
 msgctxt "Languages::kwtsms.logs.clear.nothing_title"
 msgid "Nothing to delete"
@@ -4045,9 +4051,10 @@ msgctxt "Languages::kwtsms.logs.clear.back"
 msgid "Back to the log"
 msgstr "العودة إلى السجل"
 
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.logs.clear.done"
-msgid "Deleted [count] rows from the [log] log."
-msgstr "حذف [count] صف من سجل [log]."
+msgid "Deleted [count] row from the [log] log.|Deleted [count] rows from the [log] log."
+msgstr "حذف [count] صف من سجل [log].|حذف صف واحد من سجل [log].|حذف صفين من سجل [log].|حذف [count] صفوف من سجل [log].|حذف [count] صفا من سجل [log].|حذف [count] صف من سجل [log]."
 
 msgctxt "Languages::kwtsms.logs.clear.left"
 msgid "Some rows are left because the clear stopped after 20 seconds. Clear again to delete the rest."
@@ -4122,9 +4129,10 @@ msgid "part [no] of [total]"
 msgstr "الجزء [no] من [total]"
 
 # 2026-10-21 14:12 +03: the Pages line of a message in words, "1 page, GSM (English)" (Admin\LogsPage::pagesText), cleanup 2 item 6, task 596. Six forms split by "|" (core's Arabic plural rule).
+# 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
 msgctxt "Languages::kwtsms.logs.pages_n"
 msgid "[n] page|[n] pages"
-msgstr "0 صفحة|صفحة واحدة|صفحتان|[n] صفحات|[n] صفحة|[n] صفحة"
+msgstr "[n] صفحة|صفحة واحدة|صفحتان|[n] صفحات|[n] صفحة|[n] صفحة"
 
 # 2026-10-21 14:12 +03: [pages] is kwtsms.logs.pages_n, [encoding] one of kwtsms.logs.enc.*.
 msgctxt "Languages::kwtsms.logs.pages_line"
@@ -4451,3 +4459,9 @@ msgstr "حدود الإرسال لكل رقم والحد اليومي تُحسب
 msgctxt "Languages::kwtsms.logs.clear.caps_reset"
 msgid "Clearing the Attempts log also resets the sending limits counted from it: the per-number and daily limits no longer count the deleted SMS."
 msgstr "مسح سجل المحاولات يعيد ضبط حدود الإرسال المحسوبة منه أيضا: لا تعود حدود كل رقم والحد اليومي تحسب الرسائل المحذوفة."
+
+# 2026-10-21 17:29 +03: final review M5 (cleanup 2 review minor 2), task 596. kwtsms.logs.reason_id the label before the stored reason id that the
+# attempt detail shows for support after the plain-language reason.
+msgctxt "Languages::kwtsms.logs.reason_id"
+msgid "Reason id for support"
+msgstr "معرف السبب للدعم"

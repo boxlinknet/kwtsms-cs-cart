@@ -512,7 +512,9 @@ class LogsPage
         $tab = (string) __('kwtsms.logs.tab.' . $tab_id);
         $out = [[
             'N',
+            // 2026-10-21 17:28 +03: plural forms, the number first (final review M5), task 596.
             $this->text('kwtsms.logs.clear.done', [
+                0 => (int) $result['deleted'],
                 '[count]' => number_format((int) $result['deleted']),
                 '[log]' => $tab,
             ]),
@@ -767,6 +769,8 @@ class LogsPage
     /**
      * The name of a message language: English and Arabic have a language variable of their own (so an English page says
      * "Arabic", not the native name), another installed language shows its own name, an unknown code the code.
+     * Added in commit 567084c (cleanup 2 item 6, committed 2026-10-21 14:36 +03); 2026-10-21 17:29 +03: this dated note
+     * added, cleanup 2 review minor 1, task 596.
      */
     private function languageLabel(string $lang_code): string
     {
@@ -781,7 +785,11 @@ class LogsPage
         return $this->installedLanguageName($code);
     }
 
-    /** The name of an installed language ('' is never returned: the code stands in for an unknown one). */
+    /**
+     * The name of an installed language ('' is never returned: the code stands in for an unknown one).
+     * Added in commit 567084c with languageLabel() (cleanup 2 item 6); 2026-10-21 17:29 +03: this dated note added,
+     * cleanup 2 review minor 1, task 596.
+     */
     protected function installedLanguageName(string $code): string
     {
         $all = class_exists('Tygh\Languages\Languages') ? (array) \Tygh\Languages\Languages::getAll() : [];
