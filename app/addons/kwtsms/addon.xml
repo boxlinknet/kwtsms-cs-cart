@@ -253,6 +253,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             KEY `idx_company_created_at` (`company_id`, `created_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
+        <!-- 2026-10-21 03:12 +03: kwtsms_attempts.is_test (Y/N, last column) is the test flag of the send, added in Task 1.11
+             so the Dashboard can count skipped and deferred attempts for live and test separately (PRD 6.9); task 596. -->
         <item>
             CREATE TABLE IF NOT EXISTS `?:kwtsms_attempts` (
             `attempt_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -274,6 +276,7 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `outcome` varchar(32) NOT NULL DEFAULT '',
             `reason` varchar(255) NOT NULL DEFAULT '',
             `ip` varchar(45) DEFAULT NULL,
+            `is_test` char(1) NOT NULL DEFAULT 'N',
             PRIMARY KEY (`attempt_id`),
             KEY `idx_created_at` (`created_at`),
             KEY `idx_phone_created_at` (`phone`, `created_at`),

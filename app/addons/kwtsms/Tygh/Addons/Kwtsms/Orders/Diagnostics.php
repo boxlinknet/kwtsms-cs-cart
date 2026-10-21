@@ -165,6 +165,9 @@ class Diagnostics
             'actor_user_id' => (int) ($actor['user_id'] ?? 0),
             'outcome' => $outcome,
             'reason' => $reason,
+            // 2026-10-21 03:12 +03: the test flag at the time of the order event (Dashboard counters, PRD 6.9);
+            // Task 1.11, task 596.
+            'is_test' => $this->config->testMode() ? 'Y' : 'N',
         ];
         foreach ($phones as $raw) {
             $raw = (string) $raw;

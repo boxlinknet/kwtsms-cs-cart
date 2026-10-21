@@ -115,11 +115,15 @@ final class Schema
                 'outcome' => ['s', 32],
                 'reason' => ['s', 255],
                 'ip' => ['sn', 45],
+                // 2026-10-21 03:12 +03: the test flag of the send, last column (Task 1.11: the Dashboard counts
+                // skipped and deferred attempts for live and test separately, PRD 6.9), task 596.
+                'is_test' => ['s', 1],
             ],
-            'defaults' => [],
+            'defaults' => ['is_test' => 'N'],
             'filters' => [
                 'message_id', 'outbox_id', 'retry_of', 'source', 'event_id', 'receiver', 'company_id',
                 'parent_order_id', 'storefront_id', 'order_id', 'user_id', 'actor_user_id', 'phone', 'outcome', 'ip',
+                'is_test',
             ],
             'hidden' => [],
         ],

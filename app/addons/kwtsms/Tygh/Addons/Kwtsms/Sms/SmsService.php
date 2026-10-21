@@ -523,6 +523,10 @@ class SmsService
             $rcpt[$i]['phone'] = ltrim($r['phone_raw'], '+');
             $rcpt[$i]['outbox_id'] = (int) $row['outbox_id'];
         }
+        // 2026-10-21 03:12 +03: the reaped row keeps the test flag it was queued with (R26 rule), so its attempt rows
+        // count under the right Dashboard column; Task 1.11, task 596.
+        $stored = is_array($row['context']) && isset($row['context']['test']) ? (string) $row['context']['test'] : '1';
+        $this->test = $stored !== '0' || $this->config->testMode();
         $this->recordAttempts($rcpt, $context);
         $this->note('warning', 'sms.outbox_reaped', $outcome, [
             'outbox_id' => $row['outbox_id'],
@@ -1590,6 +1594,9 @@ class SmsService
                 'outcome' => (string) $r['outcome'],
                 'reason' => $reason,
                 'ip' => $context['ip'] === '' ? null : $context['ip'],
+                // 2026-10-21 03:12 +03: the test flag of this send (a drained row keeps its own, R26), so the Dashboard
+                // counts skipped and deferred attempts for live and test separately; Task 1.11, task 596.
+                'is_test' => $this->test ? 'Y' : 'N',
                 'secret_values' => $context['secret_values'],
             ];
         }
