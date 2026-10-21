@@ -20,10 +20,17 @@
  *            $keys->claim(DispatchKeys::status('12', 'C', 'C'), DispatchKeys::STATUS_WINDOW); // true once per 24 h
  *            $keys->hasOrderPlaced(12);   // an order-placed key exists for C or A of order 12
  *            claim() and exists() are public and overridable (test doubles keep keys in memory).
- * DEPENDS:   CS-Cart db_query(), db_get_field(); table kwtsms_dispatch_keys (dispatch_key varchar(191) PK, created_at).
+ *            2026-10-21 04:18 +03, Task 1.9 fix round 1, task 596: exists() logs a read error at error level (item
+ *            2; it still answers "no key"); pruneStatus($before, $limit) deletes ONE chunk of status:* keys created
+ *            before $before (ruling R32: the cron prune_logs job, 2 days = the 24 h window plus a day of margin);
+ *            order_placed:* keys are permanent and never pruned. new DispatchKeys($clock, $debug_log).
+ * DEPENDS:   CS-Cart db_query(), db_get_field(); table kwtsms_dispatch_keys (dispatch_key varchar(191) PK, created_at);
+ *            Log\DebugLog (optional), Orders\FailureLog.
  */
 
 namespace Tygh\Addons\Kwtsms\Orders;
+
+use Tygh\Addons\Kwtsms\Log\DebugLog;
 
 class DispatchKeys
 {
@@ -33,15 +40,26 @@ class DispatchKeys
     /** Longest key the primary key column holds. */
     public const MAX_LENGTH = 191;
 
+    /**
+     * One chunk of expired status keys, read as a range of the primary key (the "status:" prefix).
+     * 2026-10-21 04:18 +03: added, ruling R32, task 596.
+     */
+    public const PRUNE_STATUS_SQL = "DELETE FROM ?:kwtsms_dispatch_keys WHERE dispatch_key LIKE 'status:%'"
+        . ' AND created_at < ?i LIMIT ?i';
+
     /** @var callable|null */
     private $clock;
+
+    /** @var DebugLog|null 2026-10-21 04:18 +03: read errors are logged (fix round 1 item 2), task 596 */
+    private $log;
 
     /**
      * @param callable|null $clock Returns the current Unix time (tests); null = time()
      */
-    public function __construct(?callable $clock = null)
+    public function __construct(?callable $clock = null, ?DebugLog $log = null)
     {
         $this->clock = $clock;
+        $this->log = $log;
     }
 
     public static function orderPlaced(int $id, string $receiver): string
@@ -103,6 +121,9 @@ class DispatchKeys
         try {
             $created = db_get_field('SELECT created_at FROM ?:kwtsms_dispatch_keys WHERE dispatch_key = ?s', $key);
         } catch (\Throwable $e) {
+            // 2026-10-21 04:18 +03: logged, no longer silent (fix round 1 item 2), task 596.
+            FailureLog::report($this->log, 'order_sms.dispatch_key_read_failed', $e);
+
             return false;
         }
         if ($created === null || $created === false || $created === '') {
@@ -118,6 +139,18 @@ class DispatchKeys
     public function hasOrderPlaced(int $order_id): bool
     {
         return $this->exists(self::orderPlaced($order_id, 'C')) || $this->exists(self::orderPlaced($order_id, 'A'));
+    }
+
+    /**
+     * Deletes ONE chunk of status:* keys created before $before; order_placed:* keys are never touched. Called by
+     * the cron prune_logs job (CronRunner) until a chunk comes back short. A database error is thrown to the caller,
+     * which reports it. 2026-10-21 04:18 +03: added, ruling R32, Task 1.9 fix round 1 item 6, task 596.
+     *
+     * @return int Keys deleted; fewer than $limit means none are left
+     */
+    public function pruneStatus(int $before, int $limit): int
+    {
+        return (int) db_query(self::PRUNE_STATUS_SQL, max(0, $before), max(1, $limit));
     }
 
     private function now(): int

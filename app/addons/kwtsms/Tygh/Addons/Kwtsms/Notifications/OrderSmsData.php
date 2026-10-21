@@ -31,12 +31,18 @@
  *            $vars = $data->placeholders($parent_info, 'en', ['order_ids' => [101, 102, 103]]);  // a checkout
  *            OrderSmsData::customerPhone($order_info, $profile_phone); OrderSmsData::countryIso($order_info);
  *            $data->customerLang($order_info); $data->adminLang($config->adminAlertLang());
+ *            2026-10-21 04:18 +03, Task 1.9 fix round 1 item 2, task 596: a storefront language that cannot be read
+ *            is logged at error level, then the store default is used as before; new OrderSmsData($debug_log).
+ *            Seams storefrontSetting() and defaultFrontendLanguage() split storefrontLanguage().
  * DEPENDS:   Templates\{BrandNames,Defaults}; CS-Cart __(), fn_get_simple_statuses(), fn_get_company_name(),
- *            fn_date_format(), Tygh\Registry, Tygh\Settings, fn_allowed_for() (in the protected lookups only).
+ *            fn_date_format(), Tygh\Registry, Tygh\Settings, fn_allowed_for() (in the protected lookups only);
+ *            Log\DebugLog (optional), Orders\FailureLog.
  */
 
 namespace Tygh\Addons\Kwtsms\Notifications;
 
+use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Orders\FailureLog;
 use Tygh\Addons\Kwtsms\Templates\BrandNames;
 use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Registry;
@@ -52,6 +58,14 @@ class OrderSmsData
 
     /** @var array<string,array<string,string>> lang => code => core status name */
     private $status_names = [];
+
+    /** @var DebugLog|null 2026-10-21 04:18 +03: lookup errors are logged (fix round 1 item 2), task 596 */
+    private $log;
+
+    public function __construct(?DebugLog $log = null)
+    {
+        $this->log = $log;
+    }
 
     /**
      * Every placeholder of PRD 6.4 for one order in one language.
@@ -260,16 +274,36 @@ class OrderSmsData
     {
         $lang = '';
         try {
-            $lang = (string) Settings::instance(['storefront_id' => $storefront_id])
-                ->getValue('frontend_default_language', 'Appearance');
+            $lang = $this->storefrontSetting($storefront_id);
         } catch (\Throwable $e) {
+            // 2026-10-21 04:18 +03: logged, no longer silent (fix round 1 item 2), task 596.
+            FailureLog::report($this->log, 'order_sms.storefront_language_failed', $e);
             $lang = '';
         }
         if ($lang === '') {
-            $lang = (string) Registry::get('settings.Appearance.frontend_default_language');
+            $lang = $this->defaultFrontendLanguage();
         }
 
         return $lang !== '' ? $lang : 'en';
+    }
+
+    /**
+     * The storefront's own default language setting. May throw.
+     * 2026-10-21 04:18 +03: split out of storefrontLanguage() as a test seam, task 596.
+     */
+    protected function storefrontSetting(int $storefront_id): string
+    {
+        return (string) Settings::instance(['storefront_id' => $storefront_id])
+            ->getValue('frontend_default_language', 'Appearance');
+    }
+
+    /**
+     * The store-wide default storefront language.
+     * 2026-10-21 04:18 +03: split out of storefrontLanguage() as a test seam, task 596.
+     */
+    protected function defaultFrontendLanguage(): string
+    {
+        return (string) Registry::get('settings.Appearance.frontend_default_language');
     }
 
     protected function backendLanguage(): string

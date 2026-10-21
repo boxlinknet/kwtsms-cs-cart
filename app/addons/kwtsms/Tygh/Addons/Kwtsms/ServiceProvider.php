@@ -26,6 +26,10 @@
  *            kwtsms.order_flags, kwtsms.dispatch_keys, kwtsms.templates, kwtsms.order_sms_data, kwtsms.order_source,
  *            kwtsms.checkout_rules, kwtsms.order_diagnostics, kwtsms.order_notifier, kwtsms.order_hooks,
  *            kwtsms.declared_events;  ServiceProvider::extendNotifications(Tygh::$app);  (guarded, see there)
+ *            2026-10-21 04:21 +03, Task 1.9 fix round 1, task 596: the order lookups and the dispatch keys log
+ *            their errors to kwtsms.logs.debug (item 2); the diagnostics write only while SMS is on and set up
+ *            (item 4); a tripped extendNotifications() guard also raises the admin notice sms_not_attached after
+ *            the response (item 5); prune_logs also prunes expired status dispatch keys (ruling R32, item 6).
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -199,7 +203,10 @@ class ServiceProvider implements ServiceProviderInterface
                 },
                 null,
                 null,
-                [$app['kwtsms.outbox'], 'pruneFinal']
+                [$app['kwtsms.outbox'], 'pruneFinal'],
+                // 2026-10-21 04:21 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6),
+                // task 596.
+                [$app['kwtsms.dispatch_keys'], 'pruneStatus']
             );
         };
     }
@@ -238,20 +245,21 @@ class ServiceProvider implements ServiceProviderInterface
             return new RuntimeFlags();
         };
 
-        $app['kwtsms.dispatch_keys'] = function (): DispatchKeys {
-            return new DispatchKeys();
+        // 2026-10-21 04:21 +03: the order lookups log their errors (fix round 1 item 2), task 596.
+        $app['kwtsms.dispatch_keys'] = function (Container $app): DispatchKeys {
+            return new DispatchKeys(null, $app['kwtsms.logs.debug']);
         };
 
         $app['kwtsms.templates'] = function (Container $app): TemplateRepository {
             return new TemplateRepository($app['kwtsms.logs.debug']);
         };
 
-        $app['kwtsms.order_sms_data'] = function (): OrderSmsData {
-            return new OrderSmsData();
+        $app['kwtsms.order_sms_data'] = function (Container $app): OrderSmsData {
+            return new OrderSmsData($app['kwtsms.logs.debug']);
         };
 
-        $app['kwtsms.order_source'] = function (): OrderSource {
-            return new OrderSource();
+        $app['kwtsms.order_source'] = function (Container $app): OrderSource {
+            return new OrderSource($app['kwtsms.logs.debug']);
         };
 
         // The kwtsms events schema (our kwtsms.order_placed and third-party declarations, PRD 5.2).
@@ -289,7 +297,14 @@ class ServiceProvider implements ServiceProviderInterface
                     return $app['event.notification_settings.factory']->create($rules);
                 },
                 [$app['kwtsms.order_source'], 'profilePhone'],
-                [$app['kwtsms.order_source'], 'actor']
+                [$app['kwtsms.order_source'], 'actor'],
+                // 2026-10-21 04:21 +03: rows only while SMS is on and the add-on is set up (fix round 1 item 4),
+                // task 596.
+                function () use ($app): bool {
+                    $config = $app['kwtsms.config'];
+
+                    return $config->enabled() && $app['kwtsms.state']->isConfigured($config)[0];
+                }
             );
         };
 
@@ -350,10 +365,14 @@ class ServiceProvider implements ServiceProviderInterface
      * built in this request (another add-on read it during its own init) or Pimple refuses the extension, the
      * extension is skipped and an error is logged, never thrown (the store keeps working, without SMS columns).
      * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
+     * 2026-10-21 04:21 +03: a tripped guard also raises ONE admin notice (AdminAlerts sms_not_attached, at most
+     * once a day) after the response, when every service works; $later runs it (null = register_shutdown_function).
+     * Task 1.9 fix round 1 item 5, task 596.
      *
-     * @param Container $app Tygh::$app (Tygh\Application)
+     * @param Container     $app   Tygh::$app (Tygh\Application)
+     * @param callable|null $later (callable $job): void, runs $job after the response
      */
-    public static function extendNotifications(Container $app): void
+    public static function extendNotifications(Container $app, ?callable $later = null): void
     {
         $extensions = [
             'event.events_schema' => static function ($schema, Container $app) {
@@ -377,19 +396,55 @@ class ServiceProvider implements ServiceProviderInterface
                 }
             },
         ];
+        $skipped = [];
         foreach ($extensions as $id => $extension) {
             try {
                 if (method_exists($app, 'hasInstance') && $app->hasInstance($id)) {
                     error_log('kwtsms: ' . $id . ' was built before the add-on could extend it;'
                         . ' SMS is not attached in this request');
+                    $skipped[] = $id;
                     continue;
                 }
                 $app->extend($id, $extension);
             } catch (FrozenServiceException $e) {
                 self::logError($id . ' is frozen; SMS is not attached in this request', $e);
+                $skipped[] = $id;
             } catch (\Throwable $e) {
                 self::logError($id . ' could not be extended', $e);
+                $skipped[] = $id;
             }
+        }
+        if ($skipped !== []) {
+            self::noticeLater($app, $skipped, $later);
+        }
+    }
+
+    /**
+     * Raises the admin notice sms_not_attached (throttled by AdminAlerts to one a day) after the response; never
+     * throws. 2026-10-21 04:21 +03: added, Task 1.9 fix round 1 item 5, task 596.
+     *
+     * @param string[]      $skipped The services that were not extended
+     * @param callable|null $later   (callable $job): void; null = register_shutdown_function
+     */
+    private static function noticeLater(Container $app, array $skipped, ?callable $later): void
+    {
+        $job = static function () use ($app, $skipped): void {
+            try {
+                if (isset($app['kwtsms.alerts'])) {
+                    $app['kwtsms.alerts']->raise('sms_not_attached', ['[service]' => implode(', ', $skipped)]);
+                }
+            } catch (\Throwable $e) {
+                self::logError('the sms_not_attached notice failed', $e);
+            }
+        };
+        try {
+            if ($later !== null) {
+                call_user_func($later, $job);
+            } else {
+                register_shutdown_function($job);
+            }
+        } catch (\Throwable $e) {
+            self::logError('the sms_not_attached notice could not be scheduled', $e);
         }
     }
 

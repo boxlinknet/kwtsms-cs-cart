@@ -13,17 +13,29 @@
  *            call on every child status change of a checkout.
  * USAGE:     $orders = new OrderSource();
  *            $orders->order(12);  $orders->children(90);  $orders->profilePhone(7);  $orders->actor();
+ *            2026-10-21 04:18 +03, Task 1.9 fix round 1 item 2, task 596: a session that cannot be read is logged at
+ *            error level (the actor is then a guest, user 0); new OrderSource($debug_log). Test seams (protected):
+ *            sessionUserId(), runtime($key).
  * DEPENDS:   CS-Cart fn_get_order_info(), fn_get_suborders_info(), db_get_field(), Tygh\Registry,
- *            Tygh::$app['session'].
+ *            Tygh::$app['session']; Log\DebugLog (optional), Orders\FailureLog.
  */
 
 namespace Tygh\Addons\Kwtsms\Orders;
 
+use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Registry;
 use Tygh\Tygh;
 
 class OrderSource
 {
+    /** @var DebugLog|null 2026-10-21 04:18 +03: errors are logged (fix round 1 item 2), task 596 */
+    private $log;
+
+    public function __construct(?DebugLog $log = null)
+    {
+        $this->log = $log;
+    }
+
     /**
      * @return array<string,mixed> fn_get_order_info() row, [] when the order does not exist
      */
@@ -74,19 +86,42 @@ class OrderSource
     {
         $user_id = 0;
         try {
-            if (isset(Tygh::$app['session']['auth']['user_id'])) {
-                $user_id = (int) Tygh::$app['session']['auth']['user_id'];
-            }
+            $user_id = $this->sessionUserId();
         } catch (\Throwable $e) {
-            $user_id = 0;
+            // 2026-10-21 04:18 +03: logged, no longer silent (fix round 1 item 2), task 596.
+            FailureLog::report($this->log, 'order_sms.actor_failed', $e);
         }
 
         return [
             'area' => defined('AREA') ? (string) AREA : '',
-            'controller' => (string) Registry::get('runtime.controller'),
-            'mode' => (string) Registry::get('runtime.mode'),
+            'controller' => (string) $this->runtime('controller'),
+            'mode' => (string) $this->runtime('mode'),
             'user_id' => $user_id,
-            'company_id' => (int) Registry::get('runtime.company_id'),
+            'company_id' => (int) $this->runtime('company_id'),
         ];
+    }
+
+    /**
+     * The user id of the session, 0 for a guest, the cron and the CLI. May throw (a session store that is down).
+     * 2026-10-21 04:18 +03: split out of actor() as a test seam, task 596.
+     */
+    protected function sessionUserId(): int
+    {
+        if (isset(Tygh::$app['session']['auth']['user_id'])) {
+            return (int) Tygh::$app['session']['auth']['user_id'];
+        }
+
+        return 0;
+    }
+
+    /**
+     * A runtime value of the current request (controller, mode, company_id).
+     * 2026-10-21 04:18 +03: split out of actor() as a test seam, task 596.
+     *
+     * @return mixed
+     */
+    protected function runtime(string $key)
+    {
+        return Registry::get('runtime.' . $key);
     }
 }

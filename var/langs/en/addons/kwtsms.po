@@ -648,6 +648,15 @@ msgctxt "Languages::kwtsms.alert.tls_failure.text"
 msgid "The kwtSMS certificate check failed, so nothing was sent. Queued SMS wait until you resend them. Check the CA certificates of the server."
 msgstr "The kwtSMS certificate check failed, so nothing was sent. Queued SMS wait until you resend them. Check the CA certificates of the server."
 
+# 2026-10-21 04:22 +03: kwtsms.alert.sms_not_attached.*, the admin notice of a tripped notification guard, Task 1.9 fix round 1 item 5, task 596.
+msgctxt "Languages::kwtsms.alert.sms_not_attached.title"
+msgid "Order SMS could not start"
+msgstr "Order SMS could not start"
+
+msgctxt "Languages::kwtsms.alert.sms_not_attached.text"
+msgid "Another add-on loaded the store notifications ([service]) before kwtSMS could add its SMS column, so no order SMS go out while this happens. Check the add-ons you installed or updated last."
+msgstr "Another add-on loaded the store notifications ([service]) before kwtSMS could add its SMS column, so no order SMS go out while this happens. Check the add-ons you installed or updated last."
+
 msgctxt "Languages::kwtsms.alert.intl_limit.title"
 msgid "International SMS limit reached"
 msgstr "International SMS limit reached"

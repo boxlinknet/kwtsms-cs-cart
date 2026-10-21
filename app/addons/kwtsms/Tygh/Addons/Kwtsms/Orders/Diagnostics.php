@@ -12,13 +12,16 @@
  * WHY:       An admin who expected an SMS must find a row saying why: the SMS switch of that status is off, the
  *            Notify customer box was unticked (or the order came from the REST API / admin area, where core sets
  *            every notify rule to false), the order was new so the status SMS was replaced by "order received", the
- *            same status was already sent within 24 h, and so on. One row per receiver, per admin number for A
- *            (like a real send), the customer row carrying the order's phone.
+ *            same status was already sent within 24 h, and so on. One row per receiver (one for all the admin
+ *            numbers since 2026-10-21 04:21 +03, see USAGE), the customer row carrying the order's phone.
  *            The decision "core handed it over" is recomputed exactly as the dispatcher does it: the fail-closed
  *            switch of the event and receiver, then core's Ruleset of the same notify rules.
  * USAGE:     $diag->recordSkipped($order_info, 'order.status_changed.c', $force_notification);        // C and A
  *            $diag->recordSkipped($order_info, 'kwtsms.order_placed', $rules, ['C']);                 // C only
  *            $diag->recordOutcome('duplicate_event', 'status:12:C:C', $order_info, 'order.status_changed.c', 'C');
+ *            2026-10-21 04:21 +03, Task 1.9 fix round 1 item 4, task 596: recordSkipped() writes nothing while SMS
+ *            is off or the add-on is not set up (the $active callable: enabled and configured); the administrators
+ *            get ONE row per outcome, carrying the first admin number, not one row per admin number.
  * DEPENDS:   Log\AttemptLog, Settings\ConfigInterface, Sms\PhoneNormalizer, Notifications\OrderSmsData; the switch
  *            reader and core's notification settings Factory (wired in ServiceProvider).
  */
@@ -54,11 +57,16 @@ class Diagnostics
     /** @var callable|null (): array{user_id:int,company_id:int} */
     private $actor;
 
+    /** @var callable|null (): bool, SMS on and the add-on set up (2026-10-21 04:21 +03, fix round 1 item 4, task 596) */
+    private $active;
+
     /**
      * @param callable      $switch        (string $event_id, string $receiver): bool, the fail-closed SMS switch
      * @param callable      $ruleset       (array $rules): Ruleset, core's notification settings Factory::create
      * @param callable|null $profile_phone (int $user_id): string, last link of the phone chain
      * @param callable|null $actor         (): ['user_id' => int, 'company_id' => int], who caused the change
+     * @param callable|null $active        (): bool, true while SMS is on and the add-on is set up; null = the global
+     *                                     switch only (2026-10-21 04:21 +03, fix round 1 item 4, task 596)
      */
     public function __construct(
         AttemptLog $attempts,
@@ -66,7 +74,8 @@ class Diagnostics
         callable $switch,
         callable $ruleset,
         ?callable $profile_phone = null,
-        ?callable $actor = null
+        ?callable $actor = null,
+        ?callable $active = null
     ) {
         $this->attempts = $attempts;
         $this->config = $config;
@@ -74,6 +83,7 @@ class Diagnostics
         $this->ruleset = $ruleset;
         $this->profile_phone = $profile_phone;
         $this->actor = $actor;
+        $this->active = $active;
     }
 
     /**
@@ -93,6 +103,11 @@ class Diagnostics
             return;
         }
         try {
+            // 2026-10-21 04:21 +03: no rows while SMS is off or not set up (fix round 1 item 4), task 596.
+            $active = $this->active !== null ? (bool) call_user_func($this->active) : $this->config->enabled();
+            if (!$active) {
+                return;
+            }
             $probe = [];
             foreach ($receivers as $receiver) {
                 $probe[$receiver] = [EventsSchemaExtender::TRANSPORT_ID => true];
@@ -132,6 +147,9 @@ class Diagnostics
         if ($phones === null) {
             $phones = $receiver === 'A' ? $this->config->adminPhones() : [$this->customerPhone($order_info)];
         }
+        // 2026-10-21 04:21 +03: one row for the administrators, the first admin number standing for all (fix round 1
+        // item 4), task 596.
+        $phones = $receiver === 'A' ? array_slice(array_values($phones), 0, 1) : $phones;
         if ($phones === []) {
             $phones = [''];
         }

@@ -41,6 +41,10 @@
  *            (string $name, int $ttl): object with acquire(bool): bool and release(), a held-credits callable
  *            (): array{messages: int, credits: float}, an outbox prune callable (int $before, int $limit): int
  *            (Queue\Outbox::pruneFinal, one chunk per call).
+ *            2026-10-21 04:22 +03, ruling R32, Task 1.9 fix round 1 item 6, task 596: prune_logs also deletes
+ *            status:* dispatch keys older than 2 days (the 24 h status window plus a day of margin) through a key
+ *            prune callable (int $before, int $limit): int (Orders\DispatchKeys::pruneStatus, one chunk per call),
+ *            after the outbox, in the same 5,000-row chunks and 120 s budget; order_placed:* keys are never pruned.
  */
 
 namespace Tygh\Addons\Kwtsms\Cron;
@@ -79,6 +83,12 @@ class CronRunner
 
     /** Outbox rows in a final state are kept this long (ruling R28). */
     public const OUTBOX_FINAL_DAYS = 30;
+
+    /**
+     * Status dispatch keys are kept this long: the 24 h status window plus a day of margin (ruling R32).
+     * 2026-10-21 04:22 +03: added, Task 1.9 fix round 1 item 6, task 596.
+     */
+    public const STATUS_KEY_DAYS = 2;
 
     /** A prune that failed is tried again after this many seconds. */
     private const RETRY_AFTER_FAILURE = 3600;
@@ -128,6 +138,9 @@ class CronRunner
     /** @var callable|null (int $before, int $limit): int */
     private $prune_outbox;
 
+    /** @var callable|null (int $before, int $limit): int, expired status dispatch keys (2026-10-21 04:22 +03, R32, task 596) */
+    private $prune_keys;
+
     /**
      * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
@@ -137,6 +150,8 @@ class CronRunner
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
      * @param callable|null $microclock   Returns seconds as a float (tests); null = microtime(true)
      * @param callable|null $prune_outbox (int $before, int $limit): int, deletes one chunk of final outbox rows
+     * @param callable|null $prune_keys   (int $before, int $limit): int, deletes one chunk of status dispatch keys
+     *                                    created before $before (2026-10-21 04:22 +03, ruling R32, task 596)
      */
     public function __construct(
         ConfigInterface $config,
@@ -151,7 +166,8 @@ class CronRunner
         ?callable $held = null,
         ?callable $clock = null,
         ?callable $microclock = null,
-        ?callable $prune_outbox = null
+        ?callable $prune_outbox = null,
+        ?callable $prune_keys = null
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -166,6 +182,7 @@ class CronRunner
         $this->clock = $clock;
         $this->microclock = $microclock;
         $this->prune_outbox = $prune_outbox;
+        $this->prune_keys = $prune_keys;
     }
 
     /**
@@ -397,6 +414,22 @@ class CronRunner
                 } catch (\Throwable $e) {
                     $errors[] = 'outbox: ' . $this->describe($e);
                     $this->noteThrowable('cron.prune_failed', $e, ['table' => 'outbox']);
+                }
+            }
+        }
+        // 2026-10-21 04:22 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6), task 596.
+        if (!$partial && $this->prune_keys !== null) {
+            if ($this->micro() >= $deadline) {
+                $partial = true;
+            } else {
+                try {
+                    $before = $now - self::STATUS_KEY_DAYS * self::DAY;
+                    $deleted['dispatch_keys'] = $this->pruneChunks(function (int $chunk) use ($before): int {
+                        return (int) call_user_func($this->prune_keys, $before, $chunk);
+                    }, $deadline, true, $partial);
+                } catch (\Throwable $e) {
+                    $errors[] = 'dispatch_keys: ' . $this->describe($e);
+                    $this->noteThrowable('cron.prune_failed', $e, ['table' => 'dispatch_keys']);
                 }
             }
         }

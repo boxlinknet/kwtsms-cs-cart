@@ -41,6 +41,9 @@ class AdminAlerts
     public const CONDITIONS = [
         'daily_cap', 'low_balance', 'suspended', 'tls_failure', 'intl_limit',
         'sender_removed', 'sender_banned', 'test_mode', 'balance_zero',
+        // 2026-10-21 04:22 +03: sms_not_attached (notice only, once a day): the store's notification services
+        // were built before the add-on could add its SMS column, Task 1.9 fix round 1 item 5, task 596.
+        'sms_not_attached',
     ];
 
     /** Bookkeeping entries older than this are forgotten. */

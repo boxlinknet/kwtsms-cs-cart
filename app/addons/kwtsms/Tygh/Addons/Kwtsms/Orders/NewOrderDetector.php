@@ -19,6 +19,11 @@
  * USAGE:     $d = new NewOrderDetector(NewOrderDetector::placedStatuses(fn_get_order_paid_statuses(), ['B']),
  *                     $is_edited, $was_placed);           // callables (int $order_id): bool
  *            $d->isNew($order_info, 'N', 'P', false);     // true
+ *            $d->isPlaced('I');                           // false (2026-10-21 04:20 +03, fix round 1 item 3)
+ *            2026-10-21 04:20 +03, Task 1.9 fix round 1 (controller ruling on review Minor 1), task 596: the repay
+ *            clause stays as built: it mirrors core's e-mail at the repay's F -> O (frontend orders.php repay calls
+ *            fn_change_order_status(F, O) with the default notify rules, so the customer gets core's Open e-mail);
+ *            the dispatch key still limits it to one order-placed SMS per order.
  * DEPENDS:   Nothing (pure PHP 7.4); the callables are wired in ServiceProvider.
  */
 
@@ -69,6 +74,15 @@ class NewOrderDetector
     }
 
     /**
+     * True when the status is in the placed set (core paid statuses plus placed_status_extra).
+     * 2026-10-21 04:20 +03: added, Task 1.9 fix round 1 item 3 (an admin-created order re-checked), task 596.
+     */
+    public function isPlaced(string $status): bool
+    {
+        return in_array(strtoupper($status), $this->placed, true);
+    }
+
+    /**
      * @param array<string,mixed> $order_info fn_get_order_info() row (order_id, repaid)
      */
     public function isNew(array $order_info, string $status_from, string $status_to, bool $place_order): bool
@@ -80,6 +94,8 @@ class NewOrderDetector
             return false;
         }
 
+        // 2026-10-21 04:20 +03: the repay clause (from not placed, repaid > 0) mirrors core's e-mail at the repay's
+        // F -> O; kept by controller ruling (fix round 1, review Minor 1), task 596.
         $enters = $place_order
             || $from === 'N'
             || (!in_array($from, $this->placed, true) && (int) ($order_info['repaid'] ?? 0) > 0);

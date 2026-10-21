@@ -71,6 +71,13 @@
  *            MessageCleaner,SendResult}, Templates\TemplateRenderer, Log\{MessageLog,AttemptLog,DebugLog,Redactor},
  *            Queue\Outbox, Alerts\AdminAlerts; a client factory (string $timeout_context): ApiClient whose clients
  *            share ONE ApiGuard per request (ServiceProvider).
+ *            2026-10-21 04:19 +03, Task 1.9 fix round 1 item 1, task 596: queueAfterResponse($phones, $text, $context)
+ *            writes a send that a storefront request makes after its response to the outbox, due now (reason
+ *            after_response, the test flag of this moment, 30 min expiry) and returns its outbox_id (0 = not written:
+ *            the caller sends at once). sendQueued($ids) then sends exactly those rows, each through the same
+ *            conditional claim as drainDue(); a row nobody sent (the worker died after fastcgi_finish_request()) is
+ *            sent by the next drainDue(), once. Such a row is still a first attempt: kwtsms_send_pre runs on it
+ *            (once; a retry keeps the text the hook returned) and its back-off starts at 30 s.
  */
 
 namespace Tygh\Addons\Kwtsms\Sms;
@@ -106,6 +113,9 @@ class SmsService
 
     /** PRD 6.2 step 12: API calls one web request may make. */
     public const REQUEST_BUDGET = 20;
+
+    /** Outbox reason of a send queued for after the response (2026-10-21 04:19 +03, fix round 1 item 1, task 596). */
+    public const AFTER_RESPONSE = 'after_response';
 
     /** PRD 6.1: at most one live balance refresh in this many seconds. */
     public const BALANCE_REFRESH_SECONDS = 600;
@@ -317,6 +327,100 @@ class SmsService
         } finally {
             $this->cron_drain = $was_cron;
         }
+    }
+
+    /**
+     * Writes one send to the outbox, due now, for sendQueued() after the response (reason after_response). Nothing
+     * is checked or sent here: every gate runs when the row is sent. Never throws.
+     * 2026-10-21 04:19 +03: added, Task 1.9 fix round 1 item 1, task 596.
+     *
+     * @param array<int,mixed>|string $phones
+     * @param array<string,mixed>     $context See the file header (outbox_id is ignored)
+     *
+     * @return int The outbox_id, or 0 when the row could not be written (the caller then sends at once)
+     */
+    public function queueAfterResponse($phones, string $message, array $context = []): int
+    {
+        try {
+            unset($context['outbox_id']);
+            $context = $this->normalizeContext($context);
+            $now = $this->now();
+            $flag = $this->config->testMode() ? '1' : '0';
+            $id = $this->outbox->enqueue(
+                $this->phoneList($phones),
+                $message,
+                ['test' => $flag] + $context,
+                self::AFTER_RESPONSE,
+                $now,
+                $now + Outbox::TTL_SECONDS
+            );
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.queue_after_response_failed', $e);
+
+            return 0;
+        }
+        if ($id <= 0) {
+            $this->note('error', 'sms.outbox_unavailable', 'could not queue a send for after the response');
+        }
+
+        return $id;
+    }
+
+    /**
+     * Sends these outbox rows now, each claimed exactly as drainDue() claims it (pending, due, the attempts read):
+     * a row another drain took first, or one already sent, is left alone. Called after the response by the
+     * request that queued the rows. Never throws.
+     * 2026-10-21 04:19 +03: added, Task 1.9 fix round 1 item 1, task 596.
+     *
+     * @param int[] $outbox_ids
+     *
+     * @return array<int,SendResult> outbox_id => result, for the rows this call sent
+     */
+    public function sendQueued(array $outbox_ids): array
+    {
+        $results = [];
+        foreach (array_unique(array_map('intval', $outbox_ids)) as $id) {
+            if ($id <= 0) {
+                continue;
+            }
+            $claimed = false;
+            $attempts = 0;
+            try {
+                $snapshot = $this->outbox->find($id);
+                if ($snapshot === null || $snapshot['status'] !== Outbox::STATUS_PENDING) {
+                    continue;
+                }
+                $attempts = (int) $snapshot['attempts'];
+                $claimed = $this->outbox->claim($id, $attempts);
+                if (!$claimed) {
+                    continue;
+                }
+                $row = $this->outbox->find($id);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('sms.send_queued_claim_failed', $e);
+                if ($claimed) {
+                    $this->repend($id, $attempts);
+                }
+                continue;
+            }
+            if ($row === null || $row['status'] !== Outbox::STATUS_SENDING) {
+                continue;
+            }
+            $results[$id] = $this->sendRow($row);
+        }
+
+        return $results;
+    }
+
+    /**
+     * True for a row queued by queueAfterResponse() that was never tried: it is the first attempt of its send.
+     * 2026-10-21 04:19 +03: added, Task 1.9 fix round 1 item 1, task 596.
+     *
+     * @param array<string,mixed>|null $row
+     */
+    private static function firstAttempt(?array $row): bool
+    {
+        return $row !== null && ($row['reason'] ?? '') === self::AFTER_RESPONSE && (int) ($row['attempts'] ?? 0) === 0;
     }
 
     /**
@@ -628,7 +732,9 @@ class SmsService
         // (ruling R30, Task 1.10 fix round 1 item 2), task 596.
         $skip_switch = $this->test_form && $row === null;
         $this->test_form = false;
-        if ($row === null) {
+        // 2026-10-21 04:19 +03: a row queued for after the response is a first attempt: the hook runs on it once
+        // (fix round 1 item 1), task 596.
+        if ($row === null || self::firstAttempt($row)) {
             try {
                 $this->hookSendPre($phones, $message, $context, $cancel);
             } catch (\Throwable $e) {
@@ -1387,12 +1493,15 @@ class SmsService
                 // 2026-10-21 01:04 +03: quiet hours move the expiry past the window end (fix round 1, item 10),
                 // task 596.
                 $expires = $first['reason'] === 'quiet_hours' ? $first['retry_at'] + Outbox::TTL_SECONDS : null;
+                // 2026-10-21 04:19 +03: a first attempt keeps the text kwtsms_send_pre returned for its retries
+                // (fix round 1 item 1), task 596.
                 $retried = $this->outbox->markRetry(
                     (int) $row['outbox_id'],
                     $first['retry_at'],
                     $first['reason'],
                     $phones,
-                    $expires
+                    $expires,
+                    self::firstAttempt($row) ? $message : null
                 );
                 $id = $retried ? (int) $row['outbox_id'] : 0;
             } else {
@@ -1761,7 +1870,8 @@ class SmsService
         // 2026-10-21 01:04 +03: the claimed row of this send (no second read), task 596.
         unset($context);
 
-        return $this->row === null ? 0 : (int) $this->row['attempts'] + 1;
+        // 2026-10-21 04:19 +03: a row queued for after the response is a first attempt (fix round 1 item 1), task 596.
+        return $this->row === null || self::firstAttempt($this->row) ? 0 : (int) $this->row['attempts'] + 1;
     }
 
     /**

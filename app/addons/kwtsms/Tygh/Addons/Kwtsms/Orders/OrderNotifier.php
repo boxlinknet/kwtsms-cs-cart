@@ -29,6 +29,11 @@
  *            2026-10-21 03:11 +03, Task 1.9 scenario 14, task 596: in a storefront request served by PHP-FPM the
  *            send() itself runs after the response (register_shutdown_function + fastcgi_finish_request, see
  *            flushDeferred()); everything that decides the SMS (key claim, numbers, text) still runs in the request.
+ *            2026-10-21 04:20 +03, Task 1.9 fix round 1 item 1, task 596: the rendered SMS is first written to the
+ *            outbox in the request, due now (SmsService::queueAfterResponse(), logged as order_sms.deferred with its
+ *            outbox_id); flushDeferred() sends exactly those rows through the outbox claim (sendQueued()). A worker
+ *            that dies after the response leaves the row for the next cron drain: never lost, never sent twice.
+ *            When the outbox cannot take it, the SMS is sent in the request.
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -88,7 +93,7 @@ class OrderNotifier
     /** @var callable (array $actor): bool, true = send after the response (2026-10-21 03:11 +03, task 596) */
     private $after_response;
 
-    /** @var callable[] sends waiting for flushDeferred() */
+    /** @var int[] outbox ids waiting for flushDeferred() (2026-10-21 04:20 +03: were closures, task 596) */
     private $deferred = [];
 
     /** @var bool */
@@ -208,7 +213,8 @@ class OrderNotifier
                 $scope_id = 'p' . $parent_id;
                 $parent = $this->orders->order($parent_id);
                 if ($parent !== []) {
-                    $context_order = $parent + ['parent_order_id' => $parent_id];
+                    // 2026-10-21 04:20 +03: the no-op "+ parent_order_id" is gone (fix round 1 item 7), task 596.
+                    $context_order = $parent;
                     $context_order['status'] = $status;
                 }
                 $extra = [
@@ -374,25 +380,30 @@ class OrderNotifier
             'template' => $template['fallback'] ?? '',
             'lang' => $text_lang,
         ];
-        $send = function () use ($phones, $text, $context, $log): void {
-            $result = $this->sms->send($phones, $text, $context);
-            $log['status'] = $result->status();
-            $this->info('order_sms.sent', 'order SMS handed to the send pipeline', $log);
-        };
 
         // 2026-10-21 03:11 +03: a storefront request (checkout, payment callback, repay) sends after the response,
         // so the shopper never waits for the gateway (scenario 14 measured about 0.75 s per kwtSMS call); the
         // dispatch key is already claimed above, so the decision is final. Task 1.9, task 596.
+        // 2026-10-21 04:20 +03: the SMS waits in the outbox, due now, not in PHP memory (fix round 1 item 1), task 596.
         if (call_user_func($this->after_response, $actor)) {
-            $this->deferred[] = $send;
-            if (!$this->shutdown_registered) {
-                $this->shutdown_registered = true;
-                register_shutdown_function([$this, 'flushDeferred']);
-            }
+            $outbox_id = $this->sms->queueAfterResponse($phones, $text, $context);
+            if ($outbox_id > 0) {
+                $this->deferred[] = $outbox_id;
+                if (!$this->shutdown_registered) {
+                    $this->shutdown_registered = true;
+                    register_shutdown_function([$this, 'flushDeferred']);
+                }
+                $this->info('order_sms.deferred', 'order SMS queued to go out after the response', $log + [
+                    'outbox_id' => $outbox_id,
+                ]);
 
-            return true;
+                return true;
+            }
+            $this->info('order_sms.deferred', 'the outbox could not take the SMS: sent in the request', $log);
         }
-        $send();
+        $result = $this->sms->send($phones, $text, $context);
+        $log['status'] = $result->status();
+        $this->info('order_sms.sent', 'order SMS handed to the send pipeline', $log);
 
         return true;
     }
@@ -401,6 +412,8 @@ class OrderNotifier
      * Sends what a storefront request deferred, after the response went to the browser (fastcgi_finish_request()).
      * Runs as a shutdown function; public only for that. Never throws.
      * 2026-10-21 03:11 +03: added, Task 1.9 scenario 14, task 596.
+     * 2026-10-21 04:20 +03: sends the queued outbox rows by id through the outbox claim; a row the cron already
+     * took is left to it (fix round 1 item 1), task 596.
      */
     public function flushDeferred(): void
     {
@@ -410,15 +423,20 @@ class OrderNotifier
         if (function_exists('fastcgi_finish_request')) {
             @fastcgi_finish_request();
         }
-        $sends = $this->deferred;
+        $ids = $this->deferred;
         $this->deferred = [];
-        foreach ($sends as $send) {
-            try {
-                $send();
-            } catch (\Throwable $e) {
-                error_log('kwtsms: a deferred order SMS failed: ' . get_class($e) . ': ' . $e->getMessage()
-                    . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        try {
+            $results = $this->sms->sendQueued($ids);
+            foreach ($ids as $id) {
+                $this->info('order_sms.sent', isset($results[$id])
+                    ? 'deferred order SMS handed to the send pipeline'
+                    : 'deferred order SMS already taken by another drain', [
+                    'outbox_id' => $id,
+                    'status' => isset($results[$id]) ? $results[$id]->status() : '',
+                ]);
             }
+        } catch (\Throwable $e) {
+            FailureLog::report($this->log, 'order_sms.deferred_failed', $e);
         }
     }
 

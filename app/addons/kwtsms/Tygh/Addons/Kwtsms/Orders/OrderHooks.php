@@ -28,6 +28,14 @@
  *            Order-placed dispatches are split by unit (CheckoutRules): a plain order (id p<order>), a suborder
  *            (id o<child>) and a checkout (id p<parent>, the parent's order_info with the child ids); a receiver
  *            that is not due in a dispatch is forced off in its Ruleset, so the transport sees each SMS once.
+ *            2026-10-21 04:20 +03, Task 1.9 fix round 1, task 596:
+ *            - item 3 (controller ruling): an admin-created order that moves to a status outside the placed set
+ *              before place_order_manually_post (the admin picked Canceled, Declined, Failed) is no new order: its
+ *              manual flag is dropped in change_order_status, so the status SMS follows its own switch, and
+ *              place_order_manually_post checks the status again before it dispatches kwtsms.order_placed.
+ *            - item 4: a checkout's order-placed SMS is dispatched once per request (flag checkout_sent.<parent>),
+ *              and the switched_off / not_notified rows of a parent cascade are written once per checkout and
+ *              status (flag diag_<S>.<parent>, rows on the parent id).
  * USAGE:     Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatus($to, $from, $order_info, $rules, $place_order);
  *            (see func.php for the six handlers). The dispatcher is a callable (string $event_id, array $data,
  *            array $rules, IProvider $id) wired in ServiceProvider to core's Factory and EventDispatcher.
@@ -118,6 +126,14 @@ class OrderHooks
         bool $place_order
     ): void {
         $order_id = (int) ($order_info['order_id'] ?? 0);
+        // 2026-10-21 04:20 +03: an admin-created order moved out of the placed set is no new order (fix round 1
+        // item 3), task 596.
+        if ($this->flags->has('manual', $order_id) && !$this->detector->isPlaced($status_to)) {
+            $this->flags->clear('manual', $order_id);
+            $this->info('order_sms.manual_dropped', 'admin-created order left the placed statuses', [
+                'order_id' => $order_id, 'to' => $status_to,
+            ]);
+        }
         if ($this->detector->isNew($order_info, $status_from, $status_to, $place_order)) {
             $this->flags->set('new_order', $order_id, [
                 'from' => $status_from, 'to' => $status_to, 'place_order' => $place_order,
@@ -165,6 +181,16 @@ class OrderHooks
         if ($this->flags->has('manual', $order_id) || ($place_order && $this->flags->has('edit', $order_id))) {
             return;
         }
+        // 2026-10-21 04:20 +03: a parent moving its children writes one set of rows for the checkout (fix round 1
+        // item 4), task 596.
+        $parent_id = (int) ($order_info['parent_order_id'] ?? 0);
+        if ($parent_id > 0 && $this->flags->has('cascade', $order_id)) {
+            if ($this->flags->has('diag_' . $to, $parent_id)) {
+                return;
+            }
+            $this->flags->set('diag_' . $to, $parent_id, true);
+            $order_info['order_id'] = $parent_id;
+        }
         $this->diagnostics->recordSkipped($order_info, EventsSchemaExtender::STATUS_PREFIX . strtolower($to), $rules);
     }
 
@@ -209,7 +235,8 @@ class OrderHooks
         foreach (array_keys($this->flags->all('manual')) as $order_id) {
             $this->flags->clear('manual', (int) $order_id);
             $info = $this->orders->order((int) $order_id);
-            if ($info !== []) {
+            // 2026-10-21 04:20 +03: still placed? (fix round 1 item 3), task 596.
+            if ($info !== [] && $this->detector->isPlaced((string) ($info['status'] ?? ''))) {
                 $this->dispatchPlaced($info, $rules, true);
             }
         }
@@ -281,10 +308,16 @@ class OrderHooks
      */
     private function dispatchCheckout(int $parent_id, array $rules, array $receivers): void
     {
-        $parent = $this->orders->order($parent_id);
-        if ($parent === [] || $receivers === []) {
+        // 2026-10-21 04:20 +03: once per request: the next children of a payment cascade add nothing (fix round 1
+        // item 4), task 596.
+        if ($receivers === [] || $this->flags->has('checkout_sent', $parent_id)) {
             return;
         }
+        $parent = $this->orders->order($parent_id);
+        if ($parent === []) {
+            return;
+        }
+        $this->flags->set('checkout_sent', $parent_id, true);
         $ids = [];
         foreach ($this->orders->children($parent_id) as $child) {
             $ids[] = (int) $child['order_id'];

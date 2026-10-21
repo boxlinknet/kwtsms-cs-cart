@@ -237,15 +237,19 @@ class Outbox
     /**
      * Back to pending for another try, one more attempt counted.
      * 2026-10-21 01:03 +03: $expires_at moves the expiry (a drained row deferred for quiet hours), task 596.
+     * 2026-10-21 04:19 +03: $message replaces the stored text (the text kwtsms_send_pre returned on the first
+     * attempt of a row queued for after the response, Task 1.9 fix round 1 item 1), task 596.
      *
-     * @param array<int,mixed>|null $phones The numbers still to send (null = unchanged)
+     * @param array<int,mixed>|null $phones  The numbers still to send (null = unchanged)
+     * @param string|null           $message The text to send from now on (null = unchanged)
      */
     public function markRetry(
         int $id,
         int $retry_at,
         string $reason,
         ?array $phones = null,
-        ?int $expires_at = null
+        ?int $expires_at = null,
+        ?string $message = null
     ): bool {
         $row = $this->selectRow($id);
         if ($row === null) {
@@ -263,6 +267,12 @@ class Outbox
         }
         if ($expires_at !== null) {
             $changes['expires_at'] = max((int) $row['expires_at'], $expires_at);
+        }
+        if ($message !== null) {
+            $json = json_encode($message, self::JSON_FLAGS);
+            if (is_string($json) && strlen($json) <= self::MAX_JSON_BYTES) {
+                $changes['message'] = $json;
+            }
         }
 
         return $this->updateRow($id, $changes, [self::STATUS_SENDING, self::STATUS_PENDING]) === 1;
