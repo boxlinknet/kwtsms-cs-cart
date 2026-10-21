@@ -1,0 +1,99 @@
+# FILE:      .github/workflows/ci.yml
+# CREATED:   2026-10-21 23:09 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      On every push to main and every pull request: php -l on PHP 7.4 to 8.3, phpcs (PSR-12 plus
+#            PHPCompatibility 7.4 to 8.3), and the package build (tools/build-package.sh with every package gate),
+#            keeping the zip, tgz and SHA256SUMS as a workflow artifact for 14 days.
+# WHY:       A change that breaks syntax, the coding standard or a package gate (private pattern, banned character,
+#            debug call, PHP 7.4 syntax) shows up on the commit or the PR, not on release day.
+# USAGE:     Automatic on push to main and on pull requests; Actions > CI > Run workflow for a manual run.
+# DEPENDS:   Repository secret PRIVATE_PATTERNS (see release.yml) for the package job only. Docker on the runner for
+#            the PHP 7.4 pass of the package build. composer.lock for the phpcs job.
+# CHANGED:   2026-10-21 23:15 +03: renamed from build.yml (git mv) to ci.yml, the name every sibling kwtSMS repo uses;
+#            added the PHP syntax matrix, phpcs and pull_request trigger; the package job runs only when the secret is
+#            available (not on forks, not for dependabot), task 596.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: PHP ${{ matrix.php }} Syntax Check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, json, mbstring
+          coverage: none
+
+      - name: Check PHP syntax (all add-on files)
+        run: find app/ -name "*.php" -print0 | xargs -0 -n1 php -l
+
+  phpcs:
+    name: PHPCS (PSR-12 and PHPCompatibility)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dev dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: PHPCS
+        run: vendor/bin/phpcs
+
+  package:
+    name: Build installable package
+    # Needs the PRIVATE_PATTERNS secret: not available to forks or to dependabot.
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Private patterns for the package gate
+        env:
+          PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
+        run: |
+          [ -n "$PRIVATE_PATTERNS" ] || { echo "secret PRIVATE_PATTERNS is not set"; exit 1; }
+          mkdir -p docs
+          printf '%s\n' "$PRIVATE_PATTERNS" > docs/private-patterns.txt
+
+      - name: Build the package
+        run: bash tools/build-package.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kwtsms-package
+          path: |
+            dist/*.zip
+            dist/*.tgz
+            dist/SHA256SUMS
+          retention-days: 14
