@@ -18,6 +18,13 @@
  *            keeps one token across the rows of that customer. Numbers that are not the customer's (the admin alert
  *            numbers on the admin SMS of the customer's orders) are kept. Core calls collect() when it shows or exports
  *            a user's data and anonymize() from the "Anonymize" action of a customer profile.
+ *            2026-10-21 08:09 +03, Task 1.14 fix round 1 (items 3 and 4): every collected row also carries sms_phone
+ *            (the customer's own numbers on it) and sms_text (its text when it went to one of those numbers),
+ *            HTML-escaped because core's view prints them without escaping; schemas/gdpr/user_data.post.php lists
+ *            them in fields_list (FIELDS), so core's personal-data view and XML export show them, while core's
+ *            anonymizer, which only rewrites fields it knows (email, phone, ...), passes the rows to anonymize()
+ *            unchanged. collectForCore() turns a failed read into the FAILED marker and updateFromCore() refuses it
+ *            (and a failed anonymize), so the caller raises kwtsms.gdpr.failed instead of reporting nothing.
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]
@@ -37,6 +44,18 @@ class GdprUserData
 
     /** Prefix of a number token (never a valid phone, so no phone filter or cap count matches it). */
     public const TOKEN_PREFIX = 'anon-';
+
+    /**
+     * 2026-10-21 08:09 +03: the keys core's extractors show (fields_list); not in core's anonymizer schema, so its
+     * anonymizer leaves them and the raw rows as they are (fix round 1, item 3), task 596.
+     */
+    public const FIELDS = ['sms_phone', 'sms_text'];
+
+    /**
+     * 2026-10-21 08:09 +03: collectForCore() returns [FAILED => 'Y'] when the rows could not be read, so the update
+     * reports it instead of anonymizing nothing (fix round 1, item 4), task 596.
+     */
+    public const FAILED = 'kwtsms_collect_failed';
 
     /** Phone fields of a user profile and of an order. */
     private const PHONE_FIELDS = ['phone', 'b_phone', 's_phone'];
@@ -90,8 +109,105 @@ class GdprUserData
         $out['messages'] = $this->messages($user_id, $order_ids, $phones);
         $out['attempts'] = $this->attempts($user_id, $order_ids, $phones);
         $out['outbox'] = $this->outbox($user_id, $order_ids, $phones);
+        // 2026-10-21 08:09 +03: what core's view and export show of each row (fix round 1, item 3), task 596.
+        $hint = $this->config->defaultCountryCode();
+        $columns_of = [
+            'messages' => ['recipients', 'message'], 'attempts' => ['phone', ''], 'outbox' => ['phones', 'message'],
+        ];
+        foreach ($columns_of as $key => $columns) {
+            foreach ($out[$key] as $i => $row) {
+                $out[$key][$i] = $row + self::shown($row, $columns[0], $columns[1], $phones, $hint);
+            }
+        }
 
         return $out;
+    }
+
+    /**
+     * 2026-10-21 08:09 +03: sms_phone (the customer's numbers among the row's numbers) and sms_text (the row's text
+     * when it went to one of them; a staff alert about their order is not shown), escaped for core's view, which
+     * prints these values without escaping. Fix round 1, item 3, task 596.
+     *
+     * @param array<string,mixed> $row
+     * @param string[]            $phones the customer's numbers
+     *
+     * @return array{sms_phone:string,sms_text:string}
+     */
+    private static function shown(
+        array $row,
+        string $numbers_column,
+        string $text_column,
+        array $phones,
+        string $hint
+    ): array {
+        $mine = [];
+        foreach (explode(',', (string) ($row[$numbers_column] ?? '')) as $number) {
+            $normalized = PhoneNormalizer::normalize(trim($number), $hint);
+            if (in_array($normalized, $phones, true)) {
+                $mine[$normalized] = true;
+            }
+        }
+        $mine = array_map('strval', array_keys($mine));
+        $text = $mine !== [] && $text_column !== '' ? (string) ($row[$text_column] ?? '') : '';
+        $escape = static function (string $value): string {
+            return htmlspecialchars($value, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        return ['sms_phone' => $escape(implode(', ', $mine)), 'sms_text' => $escape($text)];
+    }
+
+    /**
+     * 2026-10-21 08:09 +03: collect() for core's collector: a failed read is logged and returned as the FAILED
+     * marker, never as "no rows" (fix round 1, item 4), task 596.
+     *
+     * @param array<string,mixed> $user
+     *
+     * @return array<string,mixed>
+     */
+    public function collectForCore(array $user): array
+    {
+        try {
+            return $this->collect($user);
+        } catch (\Throwable $e) {
+            $this->failed('collect', $e);
+
+            return [self::FAILED => 'Y'];
+        }
+    }
+
+    /**
+     * 2026-10-21 08:09 +03: anonymize() for core's updater. False when the data is the FAILED marker or the
+     * anonymize failed: the caller tells the administrator (kwtsms.gdpr.failed). Fix round 1, item 4, task 596.
+     *
+     * @param array<string,mixed> $data
+     */
+    public function updateFromCore(array $data): bool
+    {
+        if (($data[self::FAILED] ?? '') === 'Y') {
+            return false;
+        }
+        try {
+            $this->anonymize($data);
+
+            return true;
+        } catch (\Throwable $e) {
+            $this->failed('anonymize', $e);
+
+            return false;
+        }
+    }
+
+    /** The PHP error log always (the debug log may be the thing that failed), the debug log when it can. */
+    private function failed(string $step, \Throwable $e): void
+    {
+        $text = 'gdpr ' . $step . ' failed: ' . get_class($e) . ': ' . $e->getMessage() . ' in '
+            . basename($e->getFile()) . ':' . $e->getLine();
+        error_log('kwtsms: ' . $text);
+        try {
+            $this->log->log('error', 'gdpr.' . $step . '_failed', $text);
+        } catch (\Throwable $ignored) {
+            // Already in the PHP error log.
+        }
     }
 
     /**

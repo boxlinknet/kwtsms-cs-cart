@@ -505,6 +505,11 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
      * 2026-10-21 05:46 +03: PRD 6.8 "full clear uses TRUNCATE". On the debug table the audit rows are read first and
      * written back with their own ids (they are few: one per clear); a write-back that fails puts them in the PHP
      * error log and throws, so the caller reports it. Task 1.14, task 596.
+     * 2026-10-21 08:11 +03, fix round 1: TRUNCATE resets AUTO_INCREMENT, and attempts keep pointing at message ids
+     * (retry_of at attempt ids, outbox contexts at both): a new row with an old id would show or resend another
+     * customer's text. The next id is read before the TRUNCATE and set again after it (item 1). The audit rows go to
+     * the PHP error log before the TRUNCATE, so a fatal error before their write-back cannot lose them silently
+     * (item 6).
      *
      * @throws \RuntimeException
      */
@@ -512,11 +517,16 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
     {
         $name = Schema::table($table);
         $before = $this->countClearable($table, []);
+        $next = $this->nextId($table);
         $audit = [];
         if ($table === Schema::DEBUG) {
             $audit = db_get_array('SELECT * FROM ?:' . $name . ' WHERE `action` = ?s', self::AUDIT_ACTION);
             if (!is_array($audit)) {
                 throw new \RuntimeException('Could not read the audit rows of ' . $name);
+            }
+            if ($audit !== []) {
+                error_log('kwtsms: audit rows kept across TRUNCATE of ' . $name . ' (written back right after): '
+                    . (string) json_encode($audit, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
             }
         }
         db_query('TRUNCATE TABLE ?:' . $name);
@@ -531,8 +541,34 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
                 throw new \RuntimeException('Could not write back the audit rows of ' . $name);
             }
         }
+        // 2026-10-21 08:11 +03: the id counter as it was (fix round 1, item 1), task 596.
+        db_query('ALTER TABLE ?:' . $name . ' AUTO_INCREMENT = ?i', $next);
+        if ($this->nextId($table) < $next) {
+            error_log('kwtsms: AUTO_INCREMENT of ' . $name . ' not restored to ' . $next . ' after TRUNCATE');
+            throw new \RuntimeException('Could not restore the id counter of ' . $name);
+        }
 
         return $before;
+    }
+
+    /**
+     * 2026-10-21 08:11 +03: the id the next insert gets: the AUTO_INCREMENT this connection sees (SHOW CREATE TABLE,
+     * which also answers for a TEMPORARY table of the same name, where information_schema does not), never below
+     * MAX(id) + 1. Fix round 1, item 1, task 596.
+     */
+    private function nextId(string $table): int
+    {
+        $name = Schema::table($table);
+        $max = (int) db_get_field('SELECT MAX(`' . Schema::pk($table) . '`) FROM ?:' . $name);
+        $create = db_get_row('SHOW CREATE TABLE ?:' . $name);
+        $sql = is_array($create) ? (string) (array_values($create)[1] ?? '') : '';
+        $auto = 0;
+        // The table option comes after the column list; a column's own AUTO_INCREMENT attribute has no "=".
+        if (preg_match_all('/\bAUTO_INCREMENT=(\d+)/', $sql, $m) > 0) {
+            $auto = (int) end($m[1]);
+        }
+
+        return max($auto, $max + 1, 1);
     }
 
     /**

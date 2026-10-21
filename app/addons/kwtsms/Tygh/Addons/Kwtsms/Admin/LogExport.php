@@ -12,6 +12,10 @@
  *            (same LogFilters map, same search horizon), read newest first by created_at and message id without an
  *            offset (keyset), and never the raw request or reply. The stored text is exported as stored, so a masked
  *            row (OTP code, reset link) stays ******.
+ *            2026-10-21 08:08 +03, Task 1.14 fix round 1 (item 8): when the search horizon cut the period, the file
+ *            ends with a NOTE line that says so and from when; before each further chunk the time left under
+ *            max_execution_time is checked, and an export that runs out stops after a whole chunk with a NOTE line
+ *            "export truncated at N rows" instead of a file cut mid-row by a fatal error.
  * USAGE:     $rows = $export->stream($_REQUEST, static function (string $line): void { echo $line; });
  *            LogExport::cell('=1+1') -> "'=1+1";  LogExport::line(['a', 'b"c']) -> "a,\"b\"\"c\"\r\n"
  *            LogExport::filename(time()) -> 'kwtsms-messages-20261021-063500.csv'
@@ -44,6 +48,21 @@ class LogExport
     /** First characters a spreadsheet reads as a formula or a control (PRD 6.8). */
     private const FORMULA_START = ['=', '+', '-', '@', "\t", "\r"];
 
+    /**
+     * 2026-10-21 08:08 +03: the last lines of a cut file (English, like the column names), fix round 1 item 8,
+     * task 596.
+     */
+    public const NOTE_HORIZON = 'NOTE: search horizon applied: only the newest %s rows of the period were searched,'
+        . ' from %s (Kuwait time). Narrow the period to export older rows.';
+    public const NOTE_TRUNCATED = 'NOTE: export truncated at %d rows: the time limit of this server was reached.'
+        . ' Narrow the filters and export again.';
+
+    /** Seconds kept free under max_execution_time for the last lines and the response. */
+    private const TIME_MARGIN = 5;
+
+    /** @var float when this export started (when the request start time is unknown) */
+    private $started;
+
     /** @var ConfigInterface */
     private $config;
 
@@ -68,6 +87,7 @@ class LogExport
         $this->store = $store;
         $this->page = $page;
         $this->clock = $clock;
+        $this->started = microtime(true);
     }
 
     /**
@@ -84,7 +104,7 @@ class LogExport
      * @param array<string,mixed>    $request $_REQUEST (the filters of the Messages tab; the tab key is ignored)
      * @param callable(string): void $write
      *
-     * @return array{rows:int,filters:string[],horizon:bool}
+     * @return array{rows:int,filters:string[],horizon:bool,truncated:bool}
      */
     public function stream(array $request, callable $write): array
     {
@@ -97,7 +117,14 @@ class LogExport
         $rows = 0;
         $last_time = null;
         $last_id = 0;
+        $truncated = false;
         while (true) {
+            // 2026-10-21 08:08 +03: the first chunk always goes; before each further one, the time left is checked
+            // (fix round 1, item 8), task 596.
+            if ($last_time !== null && $this->outOfTime()) {
+                $truncated = true;
+                break;
+            }
             $chunk_filters = $filters;
             if ($last_time !== null) {
                 $chunk_filters['created_to'] = $last_time;
@@ -130,7 +157,52 @@ class LogExport
             }
         }
 
-        return ['rows' => $rows, 'filters' => array_keys($parsed['filters']), 'horizon' => $plan['horizon'] !== null];
+        // 2026-10-21 08:08 +03: a cut file says so in its last lines (fix round 1, item 8), task 596.
+        if ($plan['horizon'] !== null) {
+            $write(self::line([sprintf(
+                self::NOTE_HORIZON,
+                number_format(AdminLogStoreInterface::HORIZON_ROWS),
+                LogsPage::kuwaitTime((int) $plan['horizon'])
+            )]));
+        }
+        if ($truncated) {
+            $write(self::line([sprintf(self::NOTE_TRUNCATED, $rows)]));
+        }
+
+        return [
+            'rows' => $rows, 'filters' => array_keys($parsed['filters']), 'horizon' => $plan['horizon'] !== null,
+            'truncated' => $truncated,
+        ];
+    }
+
+    /**
+     * 2026-10-21 08:08 +03: true when the request has used its time budget (wall time since the request started, which
+     * is never less than the CPU time max_execution_time counts on Linux). Fix round 1, item 8, task 596.
+     */
+    protected function outOfTime(): bool
+    {
+        $budget = self::budget((int) ini_get('max_execution_time'));
+        if ($budget <= 0.0) {
+            return false;
+        }
+        $start = isset($_SERVER['REQUEST_TIME_FLOAT']) && is_numeric($_SERVER['REQUEST_TIME_FLOAT'])
+            ? (float) $_SERVER['REQUEST_TIME_FLOAT']
+            : $this->started;
+
+        return microtime(true) - $start >= $budget;
+    }
+
+    /**
+     * 2026-10-21 08:08 +03: seconds an export may run under a max_execution_time (0 = no limit): the limit minus a
+     * margin for the last lines, never under one second. Fix round 1, item 8, task 596.
+     */
+    public static function budget(int $max_execution_time): float
+    {
+        if ($max_execution_time <= 0) {
+            return 0.0;
+        }
+
+        return (float) max(1, $max_execution_time - self::TIME_MARGIN);
     }
 
     /**

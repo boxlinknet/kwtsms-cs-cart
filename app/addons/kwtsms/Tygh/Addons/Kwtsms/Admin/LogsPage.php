@@ -302,9 +302,14 @@ class LogsPage
         if ($tab === 'messages') {
             $data['raw'] = $this->raw($row);
             $attempts = $this->store->select(Schema::ATTEMPTS, ['message_id' => $id], self::DETAIL_ATTEMPTS, 0);
+            // 2026-10-21 08:07 +03: the verdicts of all recipients at once (a fixed number of reads, not three per
+            // recipient), fix round 1 item 7, task 596.
+            $verdicts = $can_gateway && $this->resender !== null && $attempts !== []
+                ? $this->resender->verdicts($attempts)
+                : [];
             foreach ($attempts as $attempt) {
                 $one = $this->decorate('attempts', $attempt, false);
-                $one['resend'] = $can_gateway && $this->resender !== null ? $this->resender->verdict($attempt) : null;
+                $one['resend'] = $verdicts[(int) $attempt['attempt_id']] ?? null;
                 $data['attempts'][] = $one;
             }
             $data['support'] = $this->supportText($row, null);
