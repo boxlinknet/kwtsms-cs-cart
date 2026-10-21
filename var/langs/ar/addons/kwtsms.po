@@ -1206,6 +1206,16 @@ msgctxt "Languages::kwtsms.templates.brand_none"
 msgid "No storefront found."
 msgstr "لا توجد واجهة متجر."
 
+# 2026-10-21 14:06 +03: the fallback of an empty brand name, shown as text under the field (cleanup 2 item 3), task 596.
+msgctxt "Languages::kwtsms.templates.brand_fallback"
+msgid "If left empty, SMS use:"
+msgstr "عند ترك الحقل فارغًا تستخدم الرسائل:"
+
+# 2026-10-21 14:06 +03: the fallback when neither the storefront nor the company has a name (cleanup 2 item 3), task 596.
+msgctxt "Languages::kwtsms.templates.brand_fallback_none"
+msgid "If left empty, no name is added: this storefront and its company have no name."
+msgstr "عند ترك الحقل فارغًا لا يُضاف اسم: ليس لواجهة المتجر ولا للشركة اسم."
+
 msgctxt "Languages::kwtsms.templates.brand_unicode_warn"
 msgid "This name has characters that are not plain text. Every English SMS that carries it is sent as Unicode: 70 characters per SMS instead of 160."
 msgstr "في هذا الاسم أحرف ليست نصًا عاديًا. كل رسالة إنجليزية تحمله تُرسل بترميز يونيكود: 70 حرفًا للرسالة بدل 160."
@@ -1930,17 +1940,19 @@ msgctxt "Languages::kwtsms.dash.sender_type.promotional"
 msgid "Promotional"
 msgstr "ترويجي"
 
+# 2026-10-21 14:08 +03: six forms split by "|"; the number is shown in its own element before the text. Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.balance.available"
-msgid "credits available"
-msgstr "نقطة متاحة"
+msgid "credit available|credits available"
+msgstr "نقطة متاحة|نقطة متاحة|نقطتان متاحتان|نقاط متاحة|نقطة متاحة|نقطة متاحة"
 
 msgctxt "Languages::kwtsms.dash.balance.purchased"
 msgid "[count] purchased"
 msgstr "المشتراة: [count]"
 
+# 2026-10-21 14:08 +03: six forms split by "|". Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.balance.days"
-msgid "About [days] days left at your 30-day rate"
-msgstr "تكفي لحوالي [days] يوما بمعدل آخر 30 يوما"
+msgid "About [n] day left at your 30-day rate|About [n] days left at your 30-day rate"
+msgstr "تكفي لأقل من يوم بمعدل آخر 30 يوما|تكفي لحوالي يوم واحد بمعدل آخر 30 يوما|تكفي لحوالي يومين بمعدل آخر 30 يوما|تكفي لحوالي [n] أيام بمعدل آخر 30 يوما|تكفي لحوالي [n] يوما بمعدل آخر 30 يوما|تكفي لحوالي [n] يوم بمعدل آخر 30 يوما"
 
 msgctxt "Languages::kwtsms.dash.balance.days_less"
 msgid "Less than a day left at your 30-day rate"
@@ -1990,9 +2002,10 @@ msgctxt "Languages::kwtsms.dash.outbox.waiting"
 msgid "[count] waiting"
 msgstr "[count] بالانتظار"
 
+# 2026-10-21 14:08 +03: six forms split by "|" (the English "min" is an abbreviation and has one form). Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.outbox.oldest"
-msgid "Oldest: [minutes] min"
-msgstr "الأقدم: [minutes] دقيقة"
+msgid "Oldest: [n] min"
+msgstr "الأقدم: أقل من دقيقة|الأقدم: دقيقة واحدة|الأقدم: دقيقتان|الأقدم: [n] دقائق|الأقدم: [n] دقيقة|الأقدم: [n] دقيقة"
 
 msgctxt "Languages::kwtsms.dash.outbox.held"
 msgid "[count] held after a TLS failure"
@@ -2154,9 +2167,15 @@ msgctxt "Languages::kwtsms.dash.test.text_disabled"
 msgid "SMS are off, so nothing is sent yet. Once you turn them on, they go to kwtSMS as tests and are never delivered."
 msgstr "الرسائل متوقفة، لذلك لا يُرسل شيء بعد. عند تفعيلها ستُرسل إلى kwtSMS كاختبار ولن تُسلَّم أبدا."
 
+# 2026-10-21 14:08 +03: six forms split by "|" (core's Arabic plural rule: 0, 1, 2, 3 to 10, 11 to 99, other); [credits] is the text of kwtsms.dash.credits_n. Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.test.held"
-msgid "[count] test messages since [date] hold about [credits] credits in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue."
-msgstr "تحجز [count] رسالة اختبار منذ [date] نحو [credits] نقطة في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com."
+msgid "[n] test message since [date] holds about [credits] in your kwtSMS queue. Delete it at kwtsms.com > Account > Queue.|[n] test messages since [date] hold about [credits] in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue."
+msgstr "لا توجد رسائل اختبار تحجز نقاطا في قائمة الانتظار لدى kwtSMS.|تحجز رسالة اختبار واحدة منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز رسالتا اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفهما من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسائل اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com.|تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com."
+
+# 2026-10-21 14:08 +03: a number of credits as text (six Arabic forms, core's plural langvar); used inside kwtsms.dash.test.held. Cleanup 2 item 4, task 596.
+msgctxt "Languages::kwtsms.dash.credits_n"
+msgid "[n] credit|[n] credits"
+msgstr "0 نقطة|نقطة واحدة|نقطتان|[n] نقاط|[n] نقطة|[n] نقطة"
 
 msgctxt "Languages::kwtsms.dash.test.none"
 msgid "No test message holds credits in your kwtSMS queue."
@@ -2402,9 +2421,10 @@ msgctxt "Languages::kwtsms.dash.warn.balance_zero"
 msgid "Customer SMS have stopped. Your kwtSMS balance is zero."
 msgstr "توقفت رسائل العملاء. رصيد kwtSMS لديك صفر."
 
+# 2026-10-21 14:08 +03: six forms split by "|". Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.warn.low_balance"
-msgid "Your kwtSMS balance is under [threshold] credits. Recharge before customer SMS stop."
-msgstr "رصيد kwtSMS لديك أقل من [threshold] نقطة. اشحن الرصيد قبل أن تتوقف رسائل العملاء."
+msgid "Your kwtSMS balance is under [n] credit. Recharge before customer SMS stop.|Your kwtSMS balance is under [n] credits. Recharge before customer SMS stop."
+msgstr "رصيد kwtSMS لديك أقل من [n] نقطة. اشحن الرصيد قبل أن تتوقف رسائل العملاء.|رصيد kwtSMS لديك أقل من نقطة واحدة. اشحن الرصيد قبل أن تتوقف رسائل العملاء.|رصيد kwtSMS لديك أقل من نقطتين. اشحن الرصيد قبل أن تتوقف رسائل العملاء.|رصيد kwtSMS لديك أقل من [n] نقاط. اشحن الرصيد قبل أن تتوقف رسائل العملاء.|رصيد kwtSMS لديك أقل من [n] نقطة. اشحن الرصيد قبل أن تتوقف رسائل العملاء.|رصيد kwtSMS لديك أقل من [n] نقطة. اشحن الرصيد قبل أن تتوقف رسائل العملاء."
 
 msgctxt "Languages::kwtsms.dash.warn.daily_cap"
 msgid "The store reached its daily SMS limit. Customer SMS wait until tomorrow or until you resume sending."
@@ -2418,9 +2438,10 @@ msgctxt "Languages::kwtsms.dash.warn.cron_missing.never"
 msgid "The cron has never run. Queued SMS and the daily sync wait for it. Add the crontab line from the kwtSMS settings."
 msgstr "لم تعمل المهمة المجدولة أبدا. الرسائل المؤجلة والمزامنة اليومية تنتظرها. أضف سطر crontab من إعدادات kwtSMS."
 
+# 2026-10-21 14:08 +03: six forms split by "|". Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.warn.outbox_backlog"
-msgid "[count] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute."
-msgstr "انتظرت [count] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة."
+msgid "[n] SMS has waited in the outbox for more than 10 minutes. Check that the cron runs every minute.|[n] SMS have waited in the outbox for more than 10 minutes. Check that the cron runs every minute."
+msgstr "لا توجد رسائل انتظرت في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة.|انتظرت رسالة واحدة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة.|انتظرت رسالتان في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة.|انتظرت [n] رسائل في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة.|انتظرت [n] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة.|انتظرت [n] رسالة في قائمة الإرسال أكثر من 10 دقائق. تأكد من أن المهمة المجدولة تعمل كل دقيقة."
 
 msgctxt "Languages::kwtsms.dash.warn.sync_failing"
 msgid "The last kwtSMS sync failed. SMS keep going out with the saved balance and Sender IDs, and the add-on tries again by itself."
@@ -3667,6 +3688,31 @@ msgctxt "Languages::kwtsms.logs.reason.cap_unavailable"
 msgid "The sending limits could not be checked; the SMS waits in the queue and is tried again."
 msgstr "تعذر التحقق من حدود الإرسال، والرسالة في قائمة الانتظار وستعاد المحاولة."
 
+# 2026-10-21 14:11 +03: kwtsms.logs.reason.<reason> for the reasons of Admin\LogsPage::LABELLED_REASONS added by cleanup 2 item 5, task 596.
+msgctxt "Languages::kwtsms.logs.reason.gateway_unreachable"
+msgid "kwtSMS could not be reached; the SMS waits in the queue and is tried again."
+msgstr "تعذر الوصول إلى kwtSMS، والرسالة في قائمة الانتظار وستعاد المحاولة."
+
+# 2026-10-21 14:11 +03: see kwtsms.logs.reason.gateway_unreachable.
+msgctxt "Languages::kwtsms.logs.reason.suspended"
+msgid "Sending is paused because of a problem with the kwtSMS account; the SMS waits in the queue."
+msgstr "الإرسال متوقف بسبب مشكلة في حساب kwtSMS، والرسالة في قائمة الانتظار."
+
+# 2026-10-21 14:11 +03: see kwtsms.logs.reason.gateway_unreachable.
+msgctxt "Languages::kwtsms.logs.reason.quiet_hours"
+msgid "Held for quiet hours; the SMS is sent when they end."
+msgstr "محجوزة بسبب ساعات الهدوء، وتُرسل عند انتهائها."
+
+# 2026-10-21 14:11 +03: see kwtsms.logs.reason.gateway_unreachable.
+msgctxt "Languages::kwtsms.logs.reason.request_overflow"
+msgid "This request needed more kwtSMS calls than one request may make; the rest waits in the queue."
+msgstr "احتاج هذا الطلب إلى اتصالات بـ kwtSMS أكثر مما يسمح به طلب واحد، وباقي الرسائل في قائمة الانتظار."
+
+# 2026-10-21 14:11 +03: see kwtsms.logs.reason.gateway_unreachable.
+msgctxt "Languages::kwtsms.logs.reason.outbox_unavailable"
+msgid "The SMS could not be queued (database error). Check the debug log."
+msgstr "تعذر وضع الرسالة في قائمة الانتظار (خطأ في قاعدة البيانات). راجع سجل التصحيح."
+
 msgctxt "Languages::kwtsms.logs.test_badge"
 msgid "TEST"
 msgstr "اختبار"
@@ -4074,6 +4120,41 @@ msgstr "الصفحات"
 msgctxt "Languages::kwtsms.logs.batch"
 msgid "part [no] of [total]"
 msgstr "الجزء [no] من [total]"
+
+# 2026-10-21 14:12 +03: the Pages line of a message in words, "1 page, GSM (English)" (Admin\LogsPage::pagesText), cleanup 2 item 6, task 596. Six forms split by "|" (core's Arabic plural rule).
+msgctxt "Languages::kwtsms.logs.pages_n"
+msgid "[n] page|[n] pages"
+msgstr "0 صفحة|صفحة واحدة|صفحتان|[n] صفحات|[n] صفحة|[n] صفحة"
+
+# 2026-10-21 14:12 +03: [pages] is kwtsms.logs.pages_n, [encoding] one of kwtsms.logs.enc.*.
+msgctxt "Languages::kwtsms.logs.pages_line"
+msgid "[pages], [encoding]"
+msgstr "[pages]، [encoding]"
+
+# 2026-10-21 14:12 +03: as kwtsms.logs.pages_line, with the language of the message ([language], kwtsms.logs.lang.*).
+msgctxt "Languages::kwtsms.logs.pages_line_lang"
+msgid "[pages], [encoding] ([language])"
+msgstr "[pages]، [encoding] ([language])"
+
+# 2026-10-21 14:12 +03: the two SMS encodings, 160 and 70 characters a page.
+msgctxt "Languages::kwtsms.logs.enc.gsm"
+msgid "GSM"
+msgstr "GSM"
+
+# 2026-10-21 14:12 +03: see kwtsms.logs.enc.gsm.
+msgctxt "Languages::kwtsms.logs.enc.unicode"
+msgid "Unicode"
+msgstr "يونيكود"
+
+# 2026-10-21 14:12 +03: the names of the two languages the templates ship in, as the logs name a message language.
+msgctxt "Languages::kwtsms.logs.lang.en"
+msgid "English"
+msgstr "الإنجليزية"
+
+# 2026-10-21 14:12 +03: see kwtsms.logs.lang.en.
+msgctxt "Languages::kwtsms.logs.lang.ar"
+msgid "Arabic"
+msgstr "العربية"
 
 msgctxt "Languages::kwtsms.logs.balance_after"
 msgid "balance after: [balance]"
