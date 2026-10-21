@@ -2777,8 +2777,10 @@ msgctxt "Languages::kwtsms.integrations.check.validation_mode.ok"
 msgid "Customers pick their country, so every number arrives with its country code."
 msgstr "يختار العميل دولته، فيصل كل رقم ومعه رمز الدولة."
 
+# 2026-10-21 08:56 +03: the sentence read "Supported phone numbers is set to ...", which reads badly; it now reads "Supported phone
+# numbers: ..." (cleanup item 14, task 596). The Arabic text is unchanged; its msgid follows the English one.
 msgctxt "Languages::kwtsms.integrations.check.validation_mode.bad"
-msgid "Supported phone numbers is set to \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
+msgid "Supported phone numbers: \"[mode]\". Choose \"Phone number with country selection\" so numbers arrive with a country code."
 msgstr "أرقام الهواتف المدعومة مضبوطة على \"[mode]\". اختر \"رقم الهاتف مع اختيار الدولة\" ليصل كل رقم ومعه رمز الدولة."
 
 msgctxt "Languages::kwtsms.integrations.mode.any_digits"
