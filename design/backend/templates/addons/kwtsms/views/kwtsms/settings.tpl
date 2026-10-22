@@ -13,6 +13,9 @@ WHY:       PRD 6.1, 6.3, 6.14, 7 and 9. Native backend components only, under th
            the core output filter.
            2026-10-21 03:18 +03, Task 1.10 fix round 1 item 7, task 596: every value placed into a __() placeholder is
            escaped here (|escape:"html"), because the core prints __() output as it is.
+           2026-10-22 16:17 +03, Task A3, task 596: the Sender ID per storefront block (one dropdown per storefront, only when the store has two
+           or more storefronts). Its controls sit under the Sender ID section but belong to their own small form through the
+           form attribute (forms never nest), so the page Save button does not touch them.
 USAGE:     Rendered by kwtsms.settings (controllers/backend/kwtsms.php) with $kwtsms = Admin\SettingsPage::viewData()
            plus test_result, order_statuses, cron_command, cron_url; $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, kwtsms.* language variables.
@@ -222,6 +225,46 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             {/if}
         </section>
 
+        {* 2026-10-22 16:17 +03: Task A3, task 596. Sender ID per storefront. The controls use form="kwtsms_sf_senders_form" (the empty form
+           after this one), their own Save button too. KWT-SMS is never preselected; picking it shows the same warning as the
+           main Sender ID, and the acknowledgement while test mode is off. *}
+        {if $kwtsms.connected && $kwtsms.senders && $kwtsms.storefront_senders}
+        <section class="kwtsms-section kwtsms-sf-senders" id="kwtsms_storefront_senders" aria-labelledby="kwtsms_sf_senders_title">
+            <h4 class="subheader" id="kwtsms_sf_senders_title">{__("kwtsms.settings.sf_senders_title")}</h4>
+            <p class="muted description">{__("kwtsms.settings.sf_senders_help")}</p>
+            {if $kwtsms.main_sender}<p class="muted description kwtsms-sf-main" id="kwtsms_sf_main">{__("kwtsms.settings.sf_sender_main", ["[sender]" => $kwtsms.main_sender|escape:"html"])}</p>{/if}
+            {foreach $kwtsms.storefront_senders as $sf}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_sf_sender_{$sf.id}">{$sf.name}:</label>
+                    <div class="controls">
+                        <select name="kwtsms_sf_senders[{$sf.id}]" id="kwtsms_sf_sender_{$sf.id}" form="kwtsms_sf_senders_form"
+                                class="kwtsms-js-sf-sender" data-kwtsms-saved="{$sf.value}"
+                                aria-label="{__("kwtsms.settings.sf_sender_aria", ["[storefront]" => $sf.name|escape:"html"])}">
+                            <option value=""{if $sf.value == ""} selected="selected"{/if}>{__("kwtsms.settings.sf_sender_same")}</option>
+                            {foreach $kwtsms.senders as $sender}
+                                <option value="{$sender}"{if $sender == $sf.value} selected="selected"{/if}>{$sender}</option>
+                            {/foreach}
+                            {if $sf.stale}
+                                <option value="{$sf.value}" selected="selected">{__("kwtsms.settings.sf_sender_stale", ["[sender]" => $sf.value|escape:"html"])}</option>
+                            {/if}
+                        </select>
+                        <div class="alert alert-warning kwtsms-inline-alert kwtsms-js-sf-warning{if $sf.value != $kwtsms.test_sender} hidden{/if}" id="kwtsms_sf_warning_{$sf.id}" role="status">
+                            {__("kwtsms.settings.sender_test_warning")}
+                        </div>
+                    </div>
+                </div>
+            {/foreach}
+            <div class="control-group">
+                <div class="controls">
+                    <div class="kwtsms-ack kwtsms-js-sf-ack hidden" id="kwtsms_sf_ack_row">
+                        <label class="checkbox"><input type="checkbox" id="kwtsms_sf_ack" name="kwtsms_sf_ack" value="Y" form="kwtsms_sf_senders_form"> {__("kwtsms.settings.ack_test_sender")}</label>
+                    </div>
+                    <input type="submit" class="btn" id="kwtsms_sf_senders_save" form="kwtsms_sf_senders_form" name="dispatch[kwtsms.update_storefront_senders]" value="{__("kwtsms.settings.sf_senders_save")}">
+                </div>
+            </div>
+        </section>
+        {/if}
+
         <section class="kwtsms-section" id="kwtsms_general" aria-labelledby="kwtsms_general_title">
             <h4 class="subheader" id="kwtsms_general_title">{__("kwtsms.settings.general")}</h4>
 
@@ -404,6 +447,10 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             </div>
         </section>
     </form>
+    {* 2026-10-22 16:17 +03: Task A3, task 596. The form of the Sender ID per storefront controls above (form attribute). *}
+    {if $kwtsms.connected && $kwtsms.senders && $kwtsms.storefront_senders}
+        <form action="{""|fn_url}" method="post" name="kwtsms_sf_senders_form" id="kwtsms_sf_senders_form" class="kwtsms-inline-form"></form>
+    {/if}
 
     {* Cron key: outside the settings form, so its button is its own form. *}
     <div class="form-horizontal form-edit kwtsms-section kwtsms-section--follow" id="kwtsms_cron_key_block">

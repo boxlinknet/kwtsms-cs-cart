@@ -4485,3 +4485,125 @@ msgstr "معرف المرسل [sender] الخاص بواجهة المتجر [sto
 msgctxt "Languages::kwtsms.logs.reason.storefront_switch"
 msgid "This storefront has turned this SMS off."
 msgstr "أوقفت واجهة المتجر هذه الرسالة."
+
+# 2026-10-22 16:16 +03: Task A3, task 596. The per-storefront selector and switches on the Templates page and the Sender ID per storefront on
+# the Settings page.
+msgctxt "Languages::kwtsms.templates.storefront_label"
+msgid "Storefront"
+msgstr "واجهة المتجر"
+
+msgctxt "Languages::kwtsms.templates.storefront_all"
+msgid "All storefronts"
+msgstr "كل واجهات المتجر"
+
+msgctxt "Languages::kwtsms.templates.storefront_nav"
+msgid "Storefronts"
+msgstr "واجهات المتجر"
+
+msgctxt "Languages::kwtsms.templates.storefront_help"
+msgid "You are editing the texts of [storefront]. A text saved here is used for this storefront only. Rows without one use the All storefronts text."
+msgstr "أنت تعدّل نصوص [storefront]. النص المحفوظ هنا يُستخدم لهذه الواجهة فقط. الصفوف التي بلا نص خاص تستخدم نص كل الواجهات."
+
+msgctxt "Languages::kwtsms.templates.sf_master"
+msgid "All storefronts"
+msgstr "كل الواجهات"
+
+msgctxt "Languages::kwtsms.templates.sf_this"
+msgid "This storefront"
+msgstr "هذه الواجهة"
+
+msgctxt "Languages::kwtsms.templates.sf_state_inherit"
+msgid "Same as all storefronts"
+msgstr "مثل كل الواجهات"
+
+msgctxt "Languages::kwtsms.templates.sf_state_off"
+msgid "Off for this storefront"
+msgstr "متوقف لهذه الواجهة"
+
+msgctxt "Languages::kwtsms.templates.sf_apply"
+msgid "Apply"
+msgstr "تطبيق"
+
+msgctxt "Languages::kwtsms.templates.sf_switch_aria"
+msgid "SMS for this storefront: [row]"
+msgstr "الرسائل لهذه الواجهة: [row]"
+
+msgctxt "Languages::kwtsms.templates.sf_switch_off"
+msgid "SMS turned off for [storefront]: [row]."
+msgstr "تم إيقاف الرسائل لواجهة [storefront]: [row]."
+
+msgctxt "Languages::kwtsms.templates.sf_switch_inherit"
+msgid "[storefront] follows all storefronts again: [row]."
+msgstr "عادت واجهة [storefront] لتتبع كل الواجهات: [row]."
+
+msgctxt "Languages::kwtsms.templates.badge_all_storefronts"
+msgid "Uses the All storefronts text"
+msgstr "يستخدم نص كل الواجهات"
+
+msgctxt "Languages::kwtsms.templates.editor_help_all_storefronts"
+msgid "This storefront has no text of its own for this row. The box starts from the All storefronts text. Saving gives this storefront its own text."
+msgstr "ليس لهذه الواجهة نص خاص بهذا الصف. يبدأ المربع من نص كل الواجهات. الحفظ يمنح هذه الواجهة نصها الخاص."
+
+msgctxt "Languages::kwtsms.templates.reset_storefront_button"
+msgid "Use the All storefronts text"
+msgstr "استخدم نص كل الواجهات"
+
+msgctxt "Languages::kwtsms.templates.reset_storefront_confirm"
+msgid "Remove this storefront's text and use the All storefronts text?"
+msgstr "حذف نص هذه الواجهة واستخدام نص كل الواجهات؟"
+
+msgctxt "Languages::kwtsms.templates.reset_storefront"
+msgid "Back to the All storefronts text: [row] ([language])."
+msgstr "تمت العودة إلى نص كل الواجهات: [row] ([language])."
+
+msgctxt "Languages::kwtsms.templates.not_saved_unknown_storefront"
+msgid "Nothing changed. That storefront is not in this store."
+msgstr "لم يتغير شيء. هذه الواجهة ليست ضمن هذا المتجر."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_title"
+msgid "Sender ID per storefront"
+msgstr "معرف المرسل لكل واجهة متجر"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_help"
+msgid "Each storefront can send under its own Sender ID. Leave a storefront on the main Sender ID to use the one above. If a storefront's Sender ID is removed or blocked, its SMS go out under the main Sender ID."
+msgstr "يمكن لكل واجهة متجر الإرسال بمعرف مرسل خاص بها. اترك الواجهة على معرف المرسل الرئيسي لتستخدم المعرف أعلاه. إذا حُذف معرف مرسل الواجهة أو حُظر تُرسل رسائلها بمعرف المرسل الرئيسي."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_same"
+msgid "Same as the main Sender ID"
+msgstr "مثل معرف المرسل الرئيسي"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_main"
+msgid "Main Sender ID: [sender]"
+msgstr "معرف المرسل الرئيسي: [sender]"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_stale"
+msgid "[sender] (no longer in your Sender ID list)"
+msgstr "[sender] (لم يعد في قائمة معرفات المرسل)"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_aria"
+msgid "Sender ID for [storefront]"
+msgstr "معرف المرسل لواجهة [storefront]"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_save"
+msgid "Save storefront Sender IDs"
+msgstr "حفظ معرفات المرسل للواجهات"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_saved"
+msgid "Storefront Sender IDs saved: [count] changed."
+msgstr "تم حفظ معرفات المرسل للواجهات: تغيّر [count]."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_unchanged"
+msgid "No storefront Sender ID changed."
+msgstr "لم يتغير أي معرف مرسل للواجهات."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_not_in_list"
+msgid "[storefront]: that Sender ID is not in your synced list. Sync, then choose again."
+msgstr "[storefront]: معرف المرسل هذا ليس في قائمتك المزامنة. زامن ثم اختر مجددا."
+
+msgctxt "Languages::kwtsms.settings.sf_ack_required"
+msgid "[storefront]: the Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under the storefront Sender IDs first."
+msgstr "[storefront]: لم يتغير معرف المرسل إلى KWT-SMS. مع إيقاف وضع الاختبار فعّل التأكيد أسفل معرفات المرسل للواجهات أولا."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_bad_storefront"
+msgid "A storefront that is not in this store was ignored."
+msgstr "تم تجاهل واجهة متجر ليست ضمن هذا المتجر."

@@ -584,6 +584,37 @@ class TemplateRepository
     }
 
     /**
+     * Removes the description of one language of one template (a storefront text going back to the all-storefronts text).
+     * Only that one (template_id, lang_code) row; the template row and the other languages stay.
+     * 2026-10-22 16:12 +03: added, Task A3, task 596.
+     *
+     * @return bool True when a description was deleted
+     */
+    public function deleteDescription(int $id, string $lang): bool
+    {
+        $started = microtime(true);
+        if ($this->templateById($id) === null || !self::validLang($lang)) {
+            return false;
+        }
+        $had = (int) db_get_field(
+            'SELECT COUNT(*) FROM ?:kwtsms_template_descriptions WHERE template_id = ?i AND lang_code = ?s',
+            $id,
+            $lang
+        );
+        if ($had > 0) {
+            db_query('DELETE FROM ?:kwtsms_template_descriptions WHERE template_id = ?i AND lang_code = ?s', $id, $lang);
+            db_query('UPDATE ?:kwtsms_templates SET updated_at = ?i WHERE template_id = ?i', time(), $id);
+        }
+        $this->trace('info', 'delete_description', 'Template description deleted', [
+            'template_id' => $id,
+            'lang' => $lang,
+            'deleted' => $had > 0,
+        ], $started);
+
+        return $had > 0;
+    }
+
+    /**
      * "Load default texts for <language>": write the shipped text of the language into every default row that
      * is missing or not edited. A row counts as not edited when its flag is N, or when it is flagged edited but is a
      * copy of the default language text in another language: core copies the descriptions (text and flag) of the

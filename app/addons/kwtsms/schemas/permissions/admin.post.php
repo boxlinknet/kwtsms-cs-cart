@@ -65,6 +65,9 @@ $schema['kwtsms'] = [
         // 2026-10-21 05:16 +03: "Mark as done" of an optional Dashboard checklist step (R36), Task 1.11 fix round 1,
         // task 596.
         'mark_step'              => ['permissions' => 'manage_kwtsms'],
+        // 2026-10-22 16:12 +03: Task A3, task 596 (same privileges as Admin\RequestGate::MODES).
+        'update_storefront_switch'  => ['permissions' => 'manage_kwtsms'],
+        'update_storefront_senders' => ['permissions' => 'manage_kwtsms_gateway'],
     ],
 ];
 

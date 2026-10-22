@@ -4484,3 +4484,125 @@ msgstr "The Sender ID [sender] of storefront [storefront] is no longer on your k
 msgctxt "Languages::kwtsms.logs.reason.storefront_switch"
 msgid "This storefront has turned this SMS off."
 msgstr "This storefront has turned this SMS off."
+
+# 2026-10-22 16:16 +03: Task A3, task 596. The per-storefront selector and switches on the Templates page and the Sender ID per storefront on
+# the Settings page.
+msgctxt "Languages::kwtsms.templates.storefront_label"
+msgid "Storefront"
+msgstr "Storefront"
+
+msgctxt "Languages::kwtsms.templates.storefront_all"
+msgid "All storefronts"
+msgstr "All storefronts"
+
+msgctxt "Languages::kwtsms.templates.storefront_nav"
+msgid "Storefronts"
+msgstr "Storefronts"
+
+msgctxt "Languages::kwtsms.templates.storefront_help"
+msgid "You are editing the texts of [storefront]. A text saved here is used for this storefront only. Rows without one use the All storefronts text."
+msgstr "You are editing the texts of [storefront]. A text saved here is used for this storefront only. Rows without one use the All storefronts text."
+
+msgctxt "Languages::kwtsms.templates.sf_master"
+msgid "All storefronts"
+msgstr "All storefronts"
+
+msgctxt "Languages::kwtsms.templates.sf_this"
+msgid "This storefront"
+msgstr "This storefront"
+
+msgctxt "Languages::kwtsms.templates.sf_state_inherit"
+msgid "Same as all storefronts"
+msgstr "Same as all storefronts"
+
+msgctxt "Languages::kwtsms.templates.sf_state_off"
+msgid "Off for this storefront"
+msgstr "Off for this storefront"
+
+msgctxt "Languages::kwtsms.templates.sf_apply"
+msgid "Apply"
+msgstr "Apply"
+
+msgctxt "Languages::kwtsms.templates.sf_switch_aria"
+msgid "SMS for this storefront: [row]"
+msgstr "SMS for this storefront: [row]"
+
+msgctxt "Languages::kwtsms.templates.sf_switch_off"
+msgid "SMS turned off for [storefront]: [row]."
+msgstr "SMS turned off for [storefront]: [row]."
+
+msgctxt "Languages::kwtsms.templates.sf_switch_inherit"
+msgid "[storefront] follows all storefronts again: [row]."
+msgstr "[storefront] follows all storefronts again: [row]."
+
+msgctxt "Languages::kwtsms.templates.badge_all_storefronts"
+msgid "Uses the All storefronts text"
+msgstr "Uses the All storefronts text"
+
+msgctxt "Languages::kwtsms.templates.editor_help_all_storefronts"
+msgid "This storefront has no text of its own for this row. The box starts from the All storefronts text. Saving gives this storefront its own text."
+msgstr "This storefront has no text of its own for this row. The box starts from the All storefronts text. Saving gives this storefront its own text."
+
+msgctxt "Languages::kwtsms.templates.reset_storefront_button"
+msgid "Use the All storefronts text"
+msgstr "Use the All storefronts text"
+
+msgctxt "Languages::kwtsms.templates.reset_storefront_confirm"
+msgid "Remove this storefront's text and use the All storefronts text?"
+msgstr "Remove this storefront's text and use the All storefronts text?"
+
+msgctxt "Languages::kwtsms.templates.reset_storefront"
+msgid "Back to the All storefronts text: [row] ([language])."
+msgstr "Back to the All storefronts text: [row] ([language])."
+
+msgctxt "Languages::kwtsms.templates.not_saved_unknown_storefront"
+msgid "Nothing changed. That storefront is not in this store."
+msgstr "Nothing changed. That storefront is not in this store."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_title"
+msgid "Sender ID per storefront"
+msgstr "Sender ID per storefront"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_help"
+msgid "Each storefront can send under its own Sender ID. Leave a storefront on the main Sender ID to use the one above. If a storefront's Sender ID is removed or blocked, its SMS go out under the main Sender ID."
+msgstr "Each storefront can send under its own Sender ID. Leave a storefront on the main Sender ID to use the one above. If a storefront's Sender ID is removed or blocked, its SMS go out under the main Sender ID."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_same"
+msgid "Same as the main Sender ID"
+msgstr "Same as the main Sender ID"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_main"
+msgid "Main Sender ID: [sender]"
+msgstr "Main Sender ID: [sender]"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_stale"
+msgid "[sender] (no longer in your Sender ID list)"
+msgstr "[sender] (no longer in your Sender ID list)"
+
+msgctxt "Languages::kwtsms.settings.sf_sender_aria"
+msgid "Sender ID for [storefront]"
+msgstr "Sender ID for [storefront]"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_save"
+msgid "Save storefront Sender IDs"
+msgstr "Save storefront Sender IDs"
+
+msgctxt "Languages::kwtsms.settings.sf_senders_saved"
+msgid "Storefront Sender IDs saved: [count] changed."
+msgstr "Storefront Sender IDs saved: [count] changed."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_unchanged"
+msgid "No storefront Sender ID changed."
+msgstr "No storefront Sender ID changed."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_not_in_list"
+msgid "[storefront]: that Sender ID is not in your synced list. Sync, then choose again."
+msgstr "[storefront]: that Sender ID is not in your synced list. Sync, then choose again."
+
+msgctxt "Languages::kwtsms.settings.sf_ack_required"
+msgid "[storefront]: the Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under the storefront Sender IDs first."
+msgstr "[storefront]: the Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under the storefront Sender IDs first."
+
+msgctxt "Languages::kwtsms.settings.sf_sender_bad_storefront"
+msgid "A storefront that is not in this store was ignored."
+msgstr "A storefront that is not in this store was ignored."

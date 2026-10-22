@@ -293,6 +293,11 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
             margin: 0;
         }
     }
+    /* 2026-10-22 16:58 +03: Task A3, task 596. The core checkbox hangs 20 px outside its label; on the narrow Arabic layout it was cut by the
+       edge of the page, so the storefront acknowledgement keeps that space inside its own padding. */
+    .kwtsms-sf-senders .kwtsms-ack {
+        padding-inline-start: 34px;
+    }
     .kwtsms-balance span {
         display: inline-block;
         margin-inline-end: 16px;

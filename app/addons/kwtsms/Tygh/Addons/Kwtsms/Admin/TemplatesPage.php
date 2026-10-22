@@ -41,6 +41,10 @@
  *            Tygh\Providers\EventDispatcherProvider (all through protected methods a test can replace).
  * CHANGED:   2026-10-21 08:37 +03: lines over 120 columns wrapped so phpcs is clean, no change of behaviour (cleanup
  *            batch, task 596).
+ *            2026-10-22 16:13 +03: Task A3, task 596. A storefront selector: viewData() takes a storefront id (0 = All storefronts, the
+ *            1.0.0 page), save/reset/preview/testTemplate read kwtsms_tpl[storefront_id] (an id that is not a storefront
+ *            of the store is refused, reason unknown_storefront), a reset of a storefront text deletes only that
+ *            storefront's description, and storefrontSwitch() writes the per-storefront OFF override (P2-1).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -49,6 +53,7 @@ use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\MessageCleaner;
+use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Templates\BrandNames;
 use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Addons\Kwtsms\Templates\SampleData;
@@ -72,6 +77,8 @@ class TemplatesPage
      * round 1 item 10).
      */
     public const BADGE_PLACED = 'placed';
+    /** 2026-10-22 16:13 +03: Task A3, task 596. A storefront row that has no text of its own and is sent the All storefronts text. */
+    public const BADGE_ALL_STOREFRONTS = 'all_storefronts';
 
     /** Longest snippet of a text in the matrix, in characters. */
     private const SNIPPET_CHARS = 90;
@@ -91,6 +98,9 @@ class TemplatesPage
     /** @var SettingsPage|null The Settings page, for the send half of a test SMS (2026-10-21 05:16 +03, item 2) */
     private $settings;
 
+    /** @var StorefrontRules|null 2026-10-22 16:13 +03: the per-storefront OFF overrides, Task A3, task 596 */
+    private $rules;
+
     /**
      * @var array<string,string> The store brand by language, read once per request
      *                           (2026-10-21 08:28 +03, cleanup item 3, task 596)
@@ -102,13 +112,15 @@ class TemplatesPage
         DebugLog $log,
         OrderSmsData $orders,
         ConfigInterface $config,
-        ?SettingsPage $settings = null
+        ?SettingsPage $settings = null,
+        ?StorefrontRules $rules = null
     ) {
         $this->templates = $templates;
         $this->log = $log;
         $this->orders = $orders;
         $this->config = $config;
         $this->settings = $settings;
+        $this->rules = $rules;
     }
 
     /**
@@ -121,7 +133,8 @@ class TemplatesPage
             $app['kwtsms.logs.debug'],
             $app['kwtsms.order_sms_data'],
             $app['kwtsms.config'],
-            SettingsPage::fromContainer($app)
+            SettingsPage::fromContainer($app),
+            $app['kwtsms.storefront_rules']
         );
     }
 
@@ -136,6 +149,8 @@ class TemplatesPage
      * @param bool                      $can_toggle Whether the administrator may change the core switches
      * @param bool                      $can_test   Whether the administrator holds manage_kwtsms_gateway (test send)
      * @param array<string,mixed>|null  $test_result The panel of the test just sent (shown once, in its row's editor)
+     * @param int                       $storefront_id 2026-10-22 16:13 +03: Task A3, task 596. The storefront whose texts and switches
+     *                                  are shown; 0 (or an id that is not a storefront of a store with two or more) = All
      *
      * @return array<string,mixed>
      */
@@ -145,14 +160,26 @@ class TemplatesPage
         ?array $draft,
         bool $can_toggle,
         bool $can_test = false,
-        ?array $test_result = null
+        ?array $test_result = null,
+        int $storefront_id = 0
     ): array {
         $started = microtime(true);
         $this->note('debug', 'view.enter', 'viewData()', [
             'lang' => $lang_param,
             'edit' => $edit_key,
             'draft' => $draft !== null,
+            'storefront_id' => $storefront_id,
         ]);
+        // 2026-10-22 16:13 +03: Task A3, task 596. The picker needs two or more storefronts; one storefront is the 1.0.0 page.
+        $known = $this->storefronts();
+        $show_storefronts = count($known) >= 2;
+        $sf = $show_storefronts && isset($known[$storefront_id]) ? $storefront_id : 0;
+        $picker = [];
+        if ($show_storefronts) {
+            foreach ($known as $id => $name) {
+                $picker[] = ['id' => $id, 'name' => $name];
+            }
+        }
         $languages = $this->languages();
         $default_lang = $this->defaultLang();
         $lang = (string) key($languages);
@@ -163,14 +190,14 @@ class TemplatesPage
             $lang = $lang_param;
         }
         $switches = $this->switchStates();
-        $words = $this->placeholderWords($lang);
+        $words = $this->placeholderWords($lang, $sf);
 
         $rows = [];
         $editor = null;
-        foreach ($this->templates->rowsForUi() as $source) {
-            $row = $this->matrixRow($source, $lang, $switches);
+        foreach ($this->templates->rowsForUi(null, $sf) as $source) {
+            $row = $this->matrixRow($source, $lang, $switches, $sf);
             if ($row['key'] === $edit_key) {
-                $editor = $this->editor($source, $row, $lang, $languages[$lang], $draft);
+                $editor = $this->editor($source, $row, $lang, $languages[$lang], $draft, $sf);
                 $row['editing'] = true;
             }
             $rows[] = $row;
@@ -182,6 +209,7 @@ class TemplatesPage
             'lang' => $lang,
             'rows' => count($rows),
             'edit' => $editor === null ? '' : $edit_key,
+            'storefront_id' => $sf,
         ], $started);
         $this->note('debug', 'view.exit', 'viewData()', ['rows' => count($rows)], $started);
 
@@ -194,6 +222,11 @@ class TemplatesPage
             'default_lang_name' => isset($languages[$default_lang]) ? $languages[$default_lang]['name'] : $default_lang,
             'rows' => $rows,
             'editor' => $editor,
+            // 2026-10-22 16:13 +03: Task A3, task 596.
+            'storefront_id' => $sf,
+            'storefront_name' => $sf > 0 ? $known[$sf] : '',
+            'show_storefronts' => $show_storefronts,
+            'storefronts' => $picker,
             'can_toggle' => $can_toggle,
             'sms_enabled' => $this->config->enabled(),
             'test_mode' => $this->config->testMode(),
@@ -226,10 +259,11 @@ class TemplatesPage
      *
      * @param array<string,mixed>                 $source   A row of TemplateRepository::rowsForUi()
      * @param array<string,array<string,bool>>    $switches event => receiver => on
+     * @param int                                 $sf       2026-10-22 16:13 +03: Task A3, task 596. The storefront shown (0 = All)
      *
      * @return array<string,mixed>
      */
-    private function matrixRow(array $source, string $lang, array $switches): array
+    private function matrixRow(array $source, string $lang, array $switches, int $sf = 0): array
     {
         $event_id = (string) $source['event_id'];
         $receiver = (string) $source['receiver'];
@@ -238,25 +272,37 @@ class TemplatesPage
 
         $own = isset($source['bodies'][$lang]) ? (string) $source['bodies'][$lang]['body'] : '';
         $has_own = trim($own) !== '';
-        $resolved = $this->templates->resolve($event_id, $receiver, $lang);
+        $resolved = $this->templates->resolve($event_id, $receiver, $lang, $sf);
         $badge = self::badge(
             $kind,
             $has_own,
             (string) ($source['bodies'][$lang]['is_edited'] ?? 'N'),
             $resolved === null ? null : (string) $resolved['fallback']
         );
+        // 2026-10-22 16:13 +03: Task A3, task 596. A storefront row sent the All storefronts text of this language.
+        if (
+            $sf > 0 && !$has_own && $resolved !== null && (int) $resolved['storefront_id'] === 0
+            && (string) $resolved['fallback'] !== TemplateRepository::FALLBACK_DEFAULT_LANG
+        ) {
+            $badge = self::BADGE_ALL_STOREFRONTS;
+        }
         $effective = $resolved === null ? '' : (string) $resolved['body'];
 
         $status = (string) $source['status'];
         $status_name = $status === '' ? '' : $this->statusNameIn($status, $lang, (string) $source['status_name']);
         // 2026-10-21 08:28 +03: the reference values carry the store's real brand (cleanup item 3, task 596).
-        $sent = MessageCleaner::clean(TemplateRenderer::render($effective, $this->reference($lang, $status_name)));
+        $sent = MessageCleaner::clean(TemplateRenderer::render($effective, $this->reference($lang, $status_name, $sf)));
 
         $switch = null;
+        $sf_switch = null;
         $note = '';
         if ($kind === 'placed' || $kind === 'status') {
             if (isset($switches[$event_id][$receiver])) {
                 $switch = ['on' => $switches[$event_id][$receiver]];
+                // 2026-10-22 16:13 +03: Task A3, task 596. The storefront's own override under the master state shown above.
+                if ($sf > 0) {
+                    $sf_switch = ['off' => $this->rules !== null && $this->rules->isSwitchedOff($sf, $event_id, $receiver)];
+                }
             }
         } elseif ($kind === 'placed_multi') {
             $note = 'follows_placed';
@@ -273,6 +319,7 @@ class TemplatesPage
             'status' => $status,
             'status_name' => (string) $source['status_name'],
             'switch' => $switch,
+            'sf_switch' => $sf_switch,
             'switch_note' => $note,
             'badge' => $badge,
             'has_text' => $effective !== '',
@@ -317,13 +364,14 @@ class TemplatesPage
      * @param array<string,mixed>      $row
      * @param array<string,mixed>      $language name, direction
      * @param array<string,mixed>|null $draft
+     * @param int                      $sf 2026-10-22 16:13 +03: Task A3, task 596. The storefront shown (0 = All)
      *
      * @return array<string,mixed>
      */
-    private function editor(array $source, array $row, string $lang, array $language, ?array $draft): array
+    private function editor(array $source, array $row, string $lang, array $language, ?array $draft, int $sf = 0): array
     {
         $own = isset($source['bodies'][$lang]) ? (string) $source['bodies'][$lang]['body'] : '';
-        $resolved = $this->templates->resolve($row['event_id'], $row['receiver'], $lang);
+        $resolved = $this->templates->resolve($row['event_id'], $row['receiver'], $lang, $sf);
         $has_own = trim($own) !== '';
 
         $unknown = [];
@@ -356,6 +404,7 @@ class TemplatesPage
             'status_name' => $row['status_name'],
             'badge' => $row['badge'],
             'origin' => $origin,
+            'storefront_id' => $sf,
             'lang' => $lang,
             'lang_name' => $language['name'],
             'direction' => $language['direction'],
@@ -366,7 +415,7 @@ class TemplatesPage
             'confirm' => (string) json_encode($unknown),
             'advice' => $this->advice($stored, (string) $row['receiver'], (string) $row['event_id']),
             // 2026-10-21 08:28 +03: the editor sample shows the store's real brand, cleanup item 3, task 596.
-            'reference' => $this->reference($lang, $status_name),
+            'reference' => $this->reference($lang, $status_name, $sf),
             // 2026-10-21 05:03 +03: the row's own status name is part of the worst case (a custom status), item 4,
             // task 596.
             'worst' => $this->worstValues($lang, $status_name),
@@ -414,7 +463,7 @@ class TemplatesPage
      *
      * @param array<string,mixed> $post kwtsms_tpl: event_id, receiver, lang, body, confirm
      *
-     * @return array{saved:bool,reason:string,lang:string,edit:string,draft:array<string,mixed>|null}
+     * @return array{saved:bool,reason:string,lang:string,edit:string,draft:array<string,mixed>|null,storefront_id:int}
      */
     public function save(array $post): array
     {
@@ -426,9 +475,23 @@ class TemplatesPage
             'lang' => $input['lang'],
             'edit' => $input['key'],
             'draft' => null,
+            // 2026-10-22 16:13 +03: Task A3, task 596. The storefront the text belongs to (0 = All storefronts).
+            'storefront_id' => max(0, $input['storefront_id']),
         ];
 
-        $row = $this->rowFor($input['event_id'], $input['receiver']);
+        if (!$this->storefrontKnown($input['storefront_id'])) {
+            $result['reason'] = 'unknown_storefront';
+            $result['edit'] = '';
+            $result['storefront_id'] = 0;
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_storefront');
+            $why = 'unknown_storefront';
+            $this->trace('info', 'save', 'Template not saved: unknown storefront', $input, $started, $why);
+
+            return $result;
+        }
+        $sf = $input['storefront_id'];
+
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $sf);
         if ($row === null || !$this->languageInstalled($input['lang'])) {
             $result['reason'] = 'unknown_row';
             $result['edit'] = '';
@@ -497,7 +560,7 @@ class TemplatesPage
             return $result;
         }
 
-        $id = $this->templates->ensureTemplate($input['event_id'], $input['receiver']);
+        $id = $this->templates->ensureTemplate($input['event_id'], $input['receiver'], $sf);
         $saved = $this->templates->save($id, $input['lang'], $input['body'], $accept_unknown);
 
         if (!$saved['saved']) {
@@ -547,15 +610,24 @@ class TemplatesPage
      *
      * @param array<string,mixed> $post
      *
-     * @return array{lang:string,edit:string}
+     * @return array{lang:string,edit:string,storefront_id:int}
      */
     public function reset(array $post): array
     {
         $started = microtime(true);
         $input = $this->readInput($post);
         $this->trace('debug', 'reset.enter', 'reset()', $input, $started, '');
-        $result = ['lang' => $input['lang'], 'edit' => ''];
-        $row = $this->rowFor($input['event_id'], $input['receiver']);
+        $result = ['lang' => $input['lang'], 'edit' => '', 'storefront_id' => max(0, $input['storefront_id'])];
+        if (!$this->storefrontKnown($input['storefront_id'])) {
+            $result['storefront_id'] = 0;
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_storefront');
+            $why = 'unknown_storefront';
+            $this->trace('info', 'reset', 'Template not reset: unknown storefront', $input, $started, $why);
+
+            return $result;
+        }
+        $sf = $input['storefront_id'];
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $sf);
         if ($row === null || !$this->languageInstalled($input['lang'])) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
             $this->trace(
@@ -570,9 +642,27 @@ class TemplatesPage
             return $result;
         }
 
+        $params = ['[row]' => $this->rowLabel($row), '[language]' => $this->languageName($input['lang'])];
+        if ($sf > 0) {
+            // 2026-10-22 16:13 +03: Task A3, task 596. A storefront text has no shipped text to go back to: deleting
+            // its description for this language lets the All storefronts text answer again. Only that description goes.
+            $deleted = $row['template_id'] > 0
+                && $this->templates->deleteDescription((int) $row['template_id'], $input['lang']);
+            $this->say('N', 'kwtsms.templates.reset_storefront', $params);
+            $this->trace(
+                'info',
+                'reset',
+                $deleted ? 'Storefront text removed' : 'Storefront text reset: there was none',
+                $input,
+                $started,
+                ''
+            );
+            $this->trace('debug', 'reset.exit', 'reset()', $input, $started, '');
+
+            return $result;
+        }
         $id = $this->templates->ensureTemplate($input['event_id'], $input['receiver']);
         $body = $this->templates->resetToDefault($id, $input['lang']);
-        $params = ['[row]' => $this->rowLabel($row), '[language]' => $this->languageName($input['lang'])];
         if ($body === null) {
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
             $this->trace('info', 'reset', 'Template not reset', $input, $started, 'not_found');
@@ -641,7 +731,8 @@ class TemplatesPage
      *
      * @param array<string,mixed> $post event_id, receiver, lang, body, phone, intl (Y)
      *
-     * @return array{sent:bool,result:array<string,mixed>|null,lang:string,edit:string,draft:array<string,mixed>|null}
+     * @return array{sent:bool,result:array<string,mixed>|null,lang:string,edit:string,draft:array<string,mixed>|null,
+     *               storefront_id:int}
      */
     public function testTemplate(array $post, int $admin_id, string $ip): array
     {
@@ -655,10 +746,21 @@ class TemplatesPage
             'lang' => $input['lang'],
             'edit' => $input['key'],
             'draft' => null,
+            'storefront_id' => max(0, $input['storefront_id']),
         ];
         $this->trace('debug', 'test.enter', 'testTemplate()', $input, $started, '');
 
-        $row = $this->rowFor($input['event_id'], $input['receiver']);
+        if (!$this->storefrontKnown($input['storefront_id'])) {
+            // 2026-10-22 16:13 +03: Task A3, task 596.
+            $result['edit'] = '';
+            $result['storefront_id'] = 0;
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_storefront');
+            $this->trace('info', 'test', 'Test not sent: unknown storefront', $input, $started, 'unknown_storefront');
+            $this->trace('debug', 'test.exit', 'testTemplate()', $input, $started, 'unknown_storefront');
+
+            return $result;
+        }
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $input['storefront_id']);
         if ($row === null || !$this->languageInstalled($input['lang'])) {
             $result['edit'] = '';
             $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
@@ -675,7 +777,8 @@ class TemplatesPage
         // preview text, cleanup item 3, task 596.
         $values = $this->reference(
             $input['lang'],
-            $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name'])
+            $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name']),
+            $input['storefront_id']
         );
         $text = TemplateRenderer::render(TemplateRepository::storedForm($input['body']), $values);
         if (MessageCleaner::clean($text) === '' || $this->settings === null) {
@@ -877,6 +980,73 @@ class TemplatesPage
         return $result;
     }
 
+    // ================================================================== POST update_storefront_switch
+
+    /**
+     * 2026-10-22 16:13 +03: Task A3, task 596 (P2-1). The storefront's own switch of one row: state "off" turns the
+     * event and receiver OFF for that storefront only (a row in kwtsms_storefront_switches), "inherit" removes the
+     * row so the storefront follows the master (core's switch, which this never touches). Only rows that have a master switch (the placed
+     * row and the status rows), only a real storefront of a store with two or more, and only with core's
+     * manage_notification_settings, like the master switch.
+     *
+     * @param array<string,mixed> $post event_id, receiver, lang, storefront_id, state (off|inherit)
+     *
+     * @return array{ok:bool,lang:string,storefront_id:int}
+     */
+    public function storefrontSwitch(array $post, bool $may_change): array
+    {
+        $input = $this->readInput($post);
+        $state = isset($post['state']) && is_string($post['state']) ? $post['state'] : '';
+        $sf = $input['storefront_id'];
+        $result = ['ok' => false, 'lang' => $input['lang'], 'storefront_id' => max(0, $sf)];
+
+        if (!$may_change) {
+            $this->say('E', 'kwtsms.templates.switch_denied');
+            $this->log->log('warning', 'templates.sf_switch', 'Switch refused: no manage_notification_settings', [
+                'event_id' => $input['event_id'],
+                'receiver' => $input['receiver'],
+                'storefront_id' => max(0, $sf),
+            ]);
+
+            return $result;
+        }
+        if ($sf < 1 || !$this->storefrontKnown($sf)) {
+            $result['storefront_id'] = 0;
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_storefront');
+
+            return $result;
+        }
+        $switches = $this->switchStates();
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $sf);
+        if (
+            ($state !== 'off' && $state !== 'inherit')
+            || $row === null
+            || !in_array($row['kind'], ['placed', 'status'], true)
+            || !isset($switches[$input['event_id']][$input['receiver']])
+            || $this->rules === null
+        ) {
+            $this->say('E', 'kwtsms.templates.switch_unknown');
+
+            return $result;
+        }
+
+        $this->rules->setSwitch($sf, $input['event_id'], $input['receiver'], $state === 'inherit');
+        $this->log->log('info', 'templates.sf_switch', 'Storefront SMS switch changed from the Templates page', [
+            'event_id' => $input['event_id'],
+            'receiver' => $input['receiver'],
+            'storefront_id' => $sf,
+            'off' => $state === 'off',
+        ]);
+        $known = $this->storefronts();
+        $this->say('N', $state === 'off' ? 'kwtsms.templates.sf_switch_off' : 'kwtsms.templates.sf_switch_inherit', [
+            '[row]' => $this->rowLabel($row),
+            '[storefront]' => $known[$sf] ?? (string) $sf,
+        ]);
+        $result['ok'] = true;
+
+        return $result;
+    }
+
     // ================================================================== POST preview_template
 
     /**
@@ -892,7 +1062,11 @@ class TemplatesPage
         $started = microtime(true);
         $input = $this->readInput($post);
         $source = isset($post['source']) && $post['source'] === 'order' ? 'order' : 'sample';
-        $row = $this->rowFor($input['event_id'], $input['receiver']);
+        // 2026-10-22 16:13 +03: Task A3, task 596. A storefront the store does not have is refused like an unknown row.
+        if (!$this->storefrontKnown($input['storefront_id'])) {
+            return ['ok' => false, 'error' => $this->plain('kwtsms.templates.not_saved_unknown_storefront')];
+        }
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $input['storefront_id']);
         if ($row === null || !$this->languageInstalled($input['lang'])) {
             return ['ok' => false, 'error' => $this->plain('kwtsms.templates.not_saved_unknown_row')];
         }
@@ -918,7 +1092,8 @@ class TemplatesPage
             // 2026-10-21 08:28 +03: the store's real brand, shared with the test SMS (cleanup item 3, task 596).
             $values = $this->reference(
                 $input['lang'],
-                $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name'])
+                $status === '' ? '' : $this->statusNameIn($status, $input['lang'], (string) $row['status_name']),
+                $input['storefront_id']
             );
         }
 
@@ -983,7 +1158,7 @@ class TemplatesPage
     // ================================================================== helpers: rows, input, texts
 
     /**
-     * @return array{key:string,event_id:string,receiver:string,lang:string,body:string,confirm:string}
+     * @return array{key:string,event_id:string,receiver:string,lang:string,body:string,confirm:string,storefront_id:int}
      */
     private function readInput(array $post): array
     {
@@ -993,6 +1168,9 @@ class TemplatesPage
         $event_id = $text('event_id');
         $receiver = $text('receiver');
         $lang = $text('lang');
+        // 2026-10-22 16:13 +03: Task A3, task 596. Digits only; anything else is -1, which storefrontKnown() refuses.
+        $sf_raw = $text('storefront_id');
+        $storefront_id = $sf_raw === '' ? 0 : (ctype_digit($sf_raw) && strlen($sf_raw) <= 10 ? (int) $sf_raw : -1);
 
         return [
             'key' => self::rowKey($event_id, $receiver),
@@ -1001,7 +1179,25 @@ class TemplatesPage
             'lang' => preg_match('/^[a-z]{2}$/', $lang) === 1 ? $lang : '',
             'body' => $text('body'),
             'confirm' => $text('confirm'),
+            'storefront_id' => $storefront_id,
         ];
+    }
+
+    /**
+     * 2026-10-22 16:13 +03: Task A3, task 596. 0 (All storefronts) is always valid; a positive id must be a
+     * storefront of the store and the store must have two or more (with one storefront there is nothing to pick).
+     */
+    private function storefrontKnown(int $storefront_id): bool
+    {
+        if ($storefront_id === 0) {
+            return true;
+        }
+        if ($storefront_id < 0) {
+            return false;
+        }
+        $known = $this->storefronts();
+
+        return count($known) >= 2 && isset($known[$storefront_id]);
     }
 
     /**
@@ -1009,9 +1205,9 @@ class TemplatesPage
      *
      * @return array<string,mixed>|null
      */
-    private function rowFor(string $event_id, string $receiver): ?array
+    private function rowFor(string $event_id, string $receiver, int $storefront_id = 0): ?array
     {
-        foreach ($this->templates->rowsForUi() as $row) {
+        foreach ($this->templates->rowsForUi(null, max(0, $storefront_id)) as $row) {
             if ($row['event_id'] === $event_id && $row['receiver'] === $receiver) {
                 return $row;
             }
@@ -1109,10 +1305,10 @@ class TemplatesPage
      *
      * @return array<string,string> name => reference value in the tab language
      */
-    private function placeholderWords(string $lang): array
+    private function placeholderWords(string $lang, int $sf = 0): array
     {
         // 2026-10-21 08:28 +03: the {store_name} chip shows the store's real brand, cleanup item 3, task 596.
-        return $this->reference($lang, '');
+        return $this->reference($lang, '', $sf);
     }
 
     /**
@@ -1122,9 +1318,34 @@ class TemplatesPage
      *
      * @return array<string,string>
      */
-    private function reference(string $lang, string $status_name): array
+    private function reference(string $lang, string $status_name, int $sf = 0): array
     {
-        return SampleData::reference($lang, $status_name, $this->brandOf($lang));
+        // 2026-10-22 16:13 +03: Task A3, task 596. A storefront view shows that storefront's own brand name.
+        $brand = $sf > 0 ? $this->brandOfStorefront($sf, $lang) : $this->brandOf($lang);
+
+        return SampleData::reference($lang, $status_name, $brand);
+    }
+
+    /**
+     * 2026-10-22 16:13 +03: Task A3, task 596. The SMS brand name of one storefront in a language ('' when none or
+     * unreadable).
+     */
+    private function brandOfStorefront(int $sf, string $lang): string
+    {
+        $key = $lang . '#' . $sf;
+        if (!isset($this->brand_cache[$key])) {
+            try {
+                $this->brand_cache[$key] = BrandNames::get($sf, $lang);
+            } catch (\Throwable $e) {
+                $where = basename($e->getFile()) . ':' . $e->getLine();
+                $this->note('error', 'brand.read_failed', 'The storefront brand could not be read', [
+                    'error' => get_class($e) . ': ' . $e->getMessage() . ' in ' . $where,
+                ]);
+                $this->brand_cache[$key] = '';
+            }
+        }
+
+        return $this->brand_cache[$key];
     }
 
     /**

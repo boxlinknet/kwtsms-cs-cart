@@ -15,11 +15,18 @@ WHY:       PRD 6.4 and 7. Native backend components under the .kwtsms-page root.
            and placeholders are wrapped in <bdi>.
 USAGE:     Rendered by kwtsms.templates (controllers/backend/kwtsms.php) with $kwtsms_templates =
            Admin\TemplatesPage::viewData() and $kwtsms_nav = Admin\Navigation::sections().
+           2026-10-22 16:16 +03, Task A3, task 596: a storefront selector (All storefronts plus every storefront, hidden when the store
+           has one), carried in every link and form as storefront_id; with a storefront selected each row shows the master
+           switch read-only and a "This storefront" control (Same as all storefronts / Off for this storefront), and a row
+           without a text of its own is badged "Uses the All storefronts text".
 DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,templates}.js (loaded by the hooks),
            kwtsms.templates.* and kwtsms.status.* language variables.
 *}
 {$t = $kwtsms_templates}
 {$e = $t.editor}
+{* 2026-10-22 16:16 +03: Task A3, task 596. The query suffix that keeps the selected storefront. *}
+{$sfq = ""}
+{if $t.storefront_id}{$sfq = "&storefront_id=`$t.storefront_id`"}{/if}
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-templates" id="kwtsms_templates_page"
      data-kwtsms-config="{$t.script_config|json_encode}"
@@ -38,25 +45,49 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
         </div>
     {/if}
 
+    {* ---- storefront selector (Task A3): hidden when the store has one storefront ---------------------------------- *}
+    {if $t.show_storefronts}
+        <nav class="kwtsms-storefronts" id="kwtsms_storefronts" aria-label="{__("kwtsms.templates.storefront_nav")}">
+            <span class="kwtsms-storefronts__label" id="kwtsms_storefronts_label">{__("kwtsms.templates.storefront_label")}:</span>
+            <ul class="kwtsms-langs kwtsms-storefront-tabs" aria-labelledby="kwtsms_storefronts_label">
+                <li class="{if !$t.storefront_id}is-active{/if}" id="kwtsms_sf_0">
+                    <a href="{"kwtsms.templates?lang=`$t.lang`"|fn_url}"{if !$t.storefront_id} aria-current="page"{/if}>{__("kwtsms.templates.storefront_all")}</a>
+                </li>
+                {foreach $t.storefronts as $sf}
+                    <li class="{if $t.storefront_id == $sf.id}is-active{/if}" id="kwtsms_sf_{$sf.id}">
+                        <a href="{"kwtsms.templates?lang=`$t.lang`&storefront_id=`$sf.id`"|fn_url}"{if $t.storefront_id == $sf.id} aria-current="page"{/if}>{$sf.name}</a>
+                    </li>
+                {/foreach}
+            </ul>
+        </nav>
+        {if $t.storefront_id}
+            <p class="kwtsms-hint-line muted" id="kwtsms_storefront_help">{__("kwtsms.templates.storefront_help", ["[storefront]" => "<bdi dir=\"auto\">`$t.storefront_name|escape:"html"`</bdi>"])}</p>
+        {/if}
+    {/if}
+
     {* ---- language tabs and "Load default texts" ------------------------------------------------------------------- *}
     <div class="kwtsms-langbar">
         <ul class="kwtsms-langs" aria-label="{__("kwtsms.templates.languages")}">
             {foreach $t.languages as $code => $language}
                 <li class="{if $code == $t.lang}is-active{/if}" id="kwtsms_lang_{$code}">
-                    <a href="{"kwtsms.templates?lang=`$code`"|fn_url}" lang="{$code}" dir="{$language.direction}"{if $code == $t.lang} aria-current="page"{/if}>{$language.name}</a>
+                    <a href="{"kwtsms.templates?lang=`$code``$sfq`"|fn_url}" lang="{$code}" dir="{$language.direction}"{if $code == $t.lang} aria-current="page"{/if}>{$language.name}</a>
                 </li>
             {/foreach}
         </ul>
+        {if !$t.storefront_id}
         <form action="{""|fn_url}" method="post" name="kwtsms_load_defaults_form" class="kwtsms-inline-form">
             <input type="hidden" name="kwtsms_tpl[lang]" value="{$t.lang}">
             <input type="submit" class="btn" id="kwtsms_load_defaults" name="dispatch[kwtsms.load_template_defaults]"
                    value="{__("kwtsms.templates.load_defaults", ["[language]" => $t.lang_name])}"
                    {if !$t.has_shipped}disabled="disabled"{/if}>
         </form>
+        {/if}
     </div>
+    {if !$t.storefront_id}
     <p class="kwtsms-hint-line muted">
         {if $t.has_shipped}{__("kwtsms.templates.load_defaults_help")}{else}{__("kwtsms.templates.no_shipped", ["[language]" => $t.default_lang_name])}{/if}
     </p>
+    {/if}
 
     {* ---- SMS brand name: what the store_name placeholder is, one entry per storefront, for the language of the tab ------------ *}
     <section class="kwtsms-brand" id="kwtsms_brand" aria-labelledby="kwtsms_brand_title">
@@ -110,7 +141,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                 <tr class="kwtsms-group"><th colspan="5" scope="rowgroup">{__("kwtsms.templates.group_`$row_group`")}</th></tr>
                 {$group = $row_group}
             {/if}
-            {$edit_href = "kwtsms.templates?lang=`$t.lang`&edit="|cat:($row.key|escape:"url")}
+            {$edit_href = "kwtsms.templates?lang=`$t.lang``$sfq`&edit="|cat:($row.key|escape:"url")}
             {if $row.kind == "placed"}{$row_label = __("kwtsms.templates.row_placed")}
             {elseif $row.kind == "placed_multi"}{$row_label = __("kwtsms.templates.row_placed_multi")}
             {elseif $row.kind == "generic"}{$row_label = __("kwtsms.templates.row_generic")}
@@ -123,7 +154,28 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                 </td>
                 <td class="kwtsms-row__receiver">{$receiver_label}</td>
                 <td class="kwtsms-row__switch">
-                    {if $row.switch}
+                    {if $row.switch && $t.storefront_id}
+                        {* 2026-10-22 16:16 +03: Task A3, task 596. The master state is read-only here; the storefront has its own control. *}
+                        <p class="kwtsms-sf-master">
+                            <span class="muted">{__("kwtsms.templates.sf_master")}:</span>
+                            <span class="kwtsms-switch__text kwtsms-sf-master__state">{if $row.switch.on}{__("kwtsms.status.on")}{else}{__("kwtsms.status.off")}{/if}</span>
+                        </p>
+                        <form action="{""|fn_url}" method="post" name="kwtsms_sfswitch_{$row.dom_id}" class="kwtsms-sf-switch-form">
+                            <input type="hidden" name="kwtsms_tpl[event_id]" value="{$row.event_id}">
+                            <input type="hidden" name="kwtsms_tpl[receiver]" value="{$row.receiver}">
+                            <input type="hidden" name="kwtsms_tpl[lang]" value="{$t.lang}">
+                            <input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$t.storefront_id}">
+                            <label class="kwtsms-sf-switch__label" for="kwtsms_sfstate_{$row.dom_id}">{__("kwtsms.templates.sf_this")}</label>
+                            <select name="kwtsms_tpl[state]" id="kwtsms_sfstate_{$row.dom_id}" class="kwtsms-sf-switch__select"
+                                    aria-label="{__("kwtsms.templates.sf_switch_aria", ["[row]" => "`$row_label` / `$receiver_label`"])}"
+                                    {if !$t.can_toggle}disabled="disabled" title="{__("kwtsms.templates.switch_locked")}"{/if}>
+                                <option value="inherit"{if !$row.sf_switch.off} selected="selected"{/if}>{__("kwtsms.templates.sf_state_inherit")}</option>
+                                <option value="off"{if $row.sf_switch.off} selected="selected"{/if}>{__("kwtsms.templates.sf_state_off")}</option>
+                            </select>
+                            <button type="submit" class="btn kwtsms-sf-switch__apply" name="dispatch[kwtsms.update_storefront_switch]" value="1"
+                                    {if !$t.can_toggle}disabled="disabled" title="{__("kwtsms.templates.switch_locked")}"{/if}>{__("kwtsms.templates.sf_apply")}</button>
+                        </form>
+                    {elseif $row.switch}
                         <form action="{""|fn_url}" method="post" name="kwtsms_switch_{$row.dom_id}" class="kwtsms-switch-form">
                             <input type="hidden" name="kwtsms_tpl[event_id]" value="{$row.event_id}">
                             <input type="hidden" name="kwtsms_tpl[receiver]" value="{$row.receiver}">
@@ -162,7 +214,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                 </td>
                 <td class="kwtsms-row__actions">
                     {if $row.editing}
-                        <a class="btn" href="{"kwtsms.templates?lang=`$t.lang`"|fn_url}#{$row.dom_id}">{__("kwtsms.templates.close")}</a>
+                        <a class="btn" href="{"kwtsms.templates?lang=`$t.lang``$sfq`"|fn_url}#{$row.dom_id}">{__("kwtsms.templates.close")}</a>
                     {else}
                         <a class="btn kwtsms-edit" href="{$edit_href|fn_url}#kwtsms_editor"
                            aria-label="{__("kwtsms.templates.edit_aria", ["[row]" => "`$row_label` / `$receiver_label`"])}">{__("kwtsms.templates.edit")}</a>

@@ -165,6 +165,16 @@ try {
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
 
+            // 2026-10-22 16:15 +03: the Sender ID per storefront (Task A3, task 596). The page checks the storefront ids against the
+            // storefronts of the store and the Sender IDs against the synced list; KWT-SMS needs its acknowledgement.
+            case 'update_storefront_senders':
+                $kwtsms_page->saveStorefrontSenders(
+                    isset($_REQUEST['kwtsms_sf_senders']) ? $_REQUEST['kwtsms_sf_senders'] : [],
+                    isset($_REQUEST['kwtsms_sf_ack']) ? $_REQUEST['kwtsms_sf_ack'] : ''
+                );
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_storefront_senders'];
+
             case 'test_sms':
                 $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
                 $kwtsms_result = $kwtsms_page->testSms(
@@ -262,6 +272,7 @@ try {
             case 'toggle_event':
             case 'preview_template':
             case 'test_template':
+            case 'update_storefront_switch':
                 // PRD 10: a template body is raw text ("<", "&" must reach the cleaner as typed), and so is every other
                 // field (the confirmation of an unknown name such as {a<b} holds a "<" too). Core strips tags from the
                 // merged request array, so every field is read from the raw POST array, after the gate: the POST body
@@ -271,9 +282,21 @@ try {
                 // Task 1.12 fix round 1 item 5, task 596.
                 $kwtsms_tpl = isset($_POST['kwtsms_tpl']) && is_array($_POST['kwtsms_tpl']) ? $_POST['kwtsms_tpl'] : [];
                 $kwtsms_templates_page = TemplatesPage::fromContainer(Tygh::$app);
-                $kwtsms_templates_url = static function ($lang, $edit = '', $anchor = '') {
-                    return 'kwtsms.templates' . (is_string($lang) && $lang !== '' ? '?lang=' . rawurlencode($lang) : '')
-                        . ($edit !== '' ? '&edit=' . rawurlencode($edit) : '') . $anchor;
+                // 2026-10-22 16:15 +03: the storefront stays selected after an action (Task A3, task 596). The page returns the
+                // storefront id it accepted (0 for All storefronts or one it refused), never the posted text.
+                $kwtsms_templates_url = static function ($lang, $edit = '', $anchor = '', $sf = 0) {
+                    $query = [];
+                    if (is_string($lang) && $lang !== '') {
+                        $query[] = 'lang=' . rawurlencode($lang);
+                    }
+                    if (is_int($sf) && $sf > 0) {
+                        $query[] = 'storefront_id=' . $sf;
+                    }
+                    if ($edit !== '') {
+                        $query[] = 'edit=' . rawurlencode($edit);
+                    }
+
+                    return 'kwtsms.templates' . ($query !== [] ? '?' . implode('&', $query) : '') . $anchor;
                 };
 
                 if ($mode === 'update_template') {
@@ -284,13 +307,40 @@ try {
 
                     return [
                         CONTROLLER_STATUS_REDIRECT,
-                        $kwtsms_templates_url($kwtsms_result['lang'], $kwtsms_result['edit'], '#kwtsms_editor'),
+                        $kwtsms_templates_url(
+                            $kwtsms_result['lang'],
+                            $kwtsms_result['edit'],
+                            '#kwtsms_editor',
+                            $kwtsms_result['storefront_id']
+                        ),
                     ];
                 }
                 if ($mode === 'reset_template') {
                     $kwtsms_result = $kwtsms_templates_page->reset($kwtsms_tpl);
 
-                    return [CONTROLLER_STATUS_REDIRECT, $kwtsms_templates_url($kwtsms_result['lang'])];
+                    return [
+                        CONTROLLER_STATUS_REDIRECT,
+                        $kwtsms_templates_url($kwtsms_result['lang'], '', '', $kwtsms_result['storefront_id']),
+                    ];
+                }
+                if ($mode === 'update_storefront_switch') {
+                    // 2026-10-22 16:15 +03: the storefront's own override; like toggle_event it also needs core's
+                    // manage_notification_settings (Task A3, task 596, P2-1).
+                    $kwtsms_result = $kwtsms_templates_page->storefrontSwitch(
+                        $kwtsms_tpl,
+                        fn_check_current_user_access('manage_notification_settings') === true
+                    );
+                    $kwtsms_anchor = '';
+                    $kwtsms_event = isset($kwtsms_tpl['event_id']) ? $kwtsms_tpl['event_id'] : null;
+                    $kwtsms_receiver = isset($kwtsms_tpl['receiver']) ? $kwtsms_tpl['receiver'] : null;
+                    if (is_string($kwtsms_event) && is_string($kwtsms_receiver)) {
+                        $kwtsms_anchor = '#' . TemplatesPage::domId(TemplatesPage::rowKey($kwtsms_event, $kwtsms_receiver));
+                    }
+
+                    return [
+                        CONTROLLER_STATUS_REDIRECT,
+                        $kwtsms_templates_url($kwtsms_result['lang'], '', $kwtsms_anchor, $kwtsms_result['storefront_id']),
+                    ];
                 }
                 if ($mode === 'load_template_defaults') {
                     $kwtsms_result = $kwtsms_templates_page->loadDefaults(
@@ -336,7 +386,12 @@ try {
 
                     return [
                         CONTROLLER_STATUS_REDIRECT,
-                        $kwtsms_templates_url($kwtsms_result['lang'], $kwtsms_result['edit'], '#kwtsms_template_test'),
+                        $kwtsms_templates_url(
+                            $kwtsms_result['lang'],
+                            $kwtsms_result['edit'],
+                            '#kwtsms_template_test',
+                            $kwtsms_result['storefront_id']
+                        ),
                     ];
                 }
 
@@ -459,7 +514,11 @@ try {
             $kwtsms_draft,
             fn_check_current_user_access('manage_notification_settings') === true,
             fn_check_current_user_access('manage_kwtsms_gateway') === true,
-            $kwtsms_test_result
+            $kwtsms_test_result,
+            // 2026-10-22 16:15 +03: the storefront picked on the page (Task A3, task 596); the page ignores an id it does not know.
+            isset($_REQUEST['storefront_id']) && is_string($_REQUEST['storefront_id'])
+                && ctype_digit($_REQUEST['storefront_id']) && strlen($_REQUEST['storefront_id']) <= 10
+                ? (int) $_REQUEST['storefront_id'] : 0
         );
         $kwtsms_data['can_open_settings'] = fn_check_current_user_access('manage_kwtsms_gateway') === true;
 
@@ -621,7 +680,7 @@ try {
     // 2026-10-21 05:20 +03: test_template and update_brand_names too (Task 1.12 fix round 1, task 596).
     $kwtsms_templates_modes = [
         'update_template', 'reset_template', 'load_template_defaults', 'toggle_event', 'preview_template',
-        'test_template', 'update_brand_names',
+        'test_template', 'update_brand_names', 'update_storefront_switch',
     ];
     $kwtsms_failed_url = $kwtsms_settings_url;
     if (in_array((string) $mode, $kwtsms_templates_modes, true)) {

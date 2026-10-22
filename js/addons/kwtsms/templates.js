@@ -251,6 +251,10 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
             data.append('kwtsms_tpl[event_id]', root.getAttribute('data-kwtsms-event') || '');
             data.append('kwtsms_tpl[receiver]', receiver);
             data.append('kwtsms_tpl[lang]', root.getAttribute('data-kwtsms-lang') || '');
+            // 2026-10-22 16:16 +03, Task A3, task 596: the storefront whose text is edited (its brand name shows in the preview).
+            if ((root.getAttribute('data-kwtsms-storefront') || '0') !== '0') {
+                data.append('kwtsms_tpl[storefront_id]', root.getAttribute('data-kwtsms-storefront'));
+            }
             data.append('kwtsms_tpl[body]', body.value);
             data.append('kwtsms_tpl[source]', useOrder ? 'order' : 'sample');
             data.append('kwtsms_tpl[order_id]', useOrder ? orderInput.value : '');

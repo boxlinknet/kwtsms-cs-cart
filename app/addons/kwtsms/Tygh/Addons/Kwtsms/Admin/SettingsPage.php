@@ -35,6 +35,8 @@ use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
+use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
+use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Templates\BrandNames;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
 
@@ -87,13 +89,21 @@ class SettingsPage
     /** @var array<int,string>|null Country dropdown in the admin language (2026-10-21 03:16 +03, fix round 1 item 8) */
     private $country_options = null;
 
+    /** @var SenderResolver|null 2026-10-22 16:14 +03: the Sender ID per storefront, Task A3, task 596 */
+    private $senders;
+
+    /** @var StorefrontRules|null 2026-10-22 16:14 +03: the storefront list, Task A3, task 596 */
+    private $rules;
+
     public function __construct(
         ConfigInterface $config,
         GatewayState $state,
         SyncService $sync,
         SmsService $sms,
         AttemptLog $attempts,
-        DebugLog $log
+        DebugLog $log,
+        ?SenderResolver $senders = null,
+        ?StorefrontRules $rules = null
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -101,6 +111,8 @@ class SettingsPage
         $this->sms = $sms;
         $this->attempts = $attempts;
         $this->log = $log;
+        $this->senders = $senders;
+        $this->rules = $rules;
     }
 
     /**
@@ -114,7 +126,9 @@ class SettingsPage
             $app['kwtsms.sync'],
             $app['kwtsms.sms'],
             $app['kwtsms.logs.attempts'],
-            $app['kwtsms.logs.debug']
+            $app['kwtsms.logs.debug'],
+            $app['kwtsms.sender_resolver'],
+            $app['kwtsms.storefront_rules']
         );
     }
 
@@ -158,6 +172,9 @@ class SettingsPage
             'senders' => $senders,
             'sender_in_list' => in_array($this->config->senderId(), $senders, true),
             'test_sender' => self::TEST_SENDER,
+            // 2026-10-22 16:14 +03: Task A3, task 596. One entry per storefront when the store has two or more.
+            'main_sender' => $this->config->senderId(),
+            'storefront_senders' => $this->storefrontSenders($senders),
             'settings' => $settings,
             // 2026-10-21 03:16 +03: names in the admin language (fix round 1 item 8), task 596.
             'countries' => $this->countryOptions(),
@@ -170,6 +187,117 @@ class SettingsPage
             'test_sms_suffix_max' => self::TEST_SMS_SUFFIX_MAX,
             'default_country_label' => $this->countryLabel($this->config->defaultCountryCode()),
         ];
+    }
+
+    // ================================================================== Sender ID per storefront (Task A3)
+
+    /**
+     * 2026-10-22 16:14 +03: Task A3, task 596. The entries of the Sender ID per storefront block: one per
+     * storefront, only when the store has two or more storefronts (one storefront is the 1.0.0 page). value '' =
+     * "Same as the main Sender ID"; stale = a stored Sender ID that is no longer in the synced list (shown as it
+     * is, never hidden). KWT-SMS is never a default.
+     *
+     * @param array<int,string> $storefronts storefront id => name
+     * @param callable          $stored      (int $storefront_id): string, the stored Sender ID ('' = none)
+     * @param array<int,string> $listed      The synced Sender ID list
+     *
+     * @return array<int,array{id:int,name:string,value:string,stale:bool}>
+     */
+    public static function storefrontSenderEntries(array $storefronts, callable $stored, array $listed): array
+    {
+        if (count($storefronts) < 2) {
+            return [];
+        }
+        $out = [];
+        foreach ($storefronts as $id => $name) {
+            $value = (string) call_user_func($stored, (int) $id);
+            $out[] = [
+                'id' => (int) $id,
+                'name' => (string) $name,
+                'value' => $value,
+                'stale' => $value !== '' && !in_array($value, $listed, true),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<int,string> $listed
+     *
+     * @return array<int,array{id:int,name:string,value:string,stale:bool}>
+     */
+    private function storefrontSenders(array $listed): array
+    {
+        if ($this->senders === null || $this->rules === null) {
+            return [];
+        }
+        $senders = $this->senders;
+
+        $stored = static function (int $id) use ($senders): string {
+            return $senders->storedSender($id);
+        };
+
+        return self::storefrontSenderEntries($this->rules->storefronts(), $stored, $listed);
+    }
+
+    /**
+     * 2026-10-22 16:14 +03: Task A3, task 596. POST update_storefront_senders: saves the Sender ID of each posted
+     * storefront through SenderResolver::setSender() (listed Sender IDs only; KWT-SMS while test mode is off needs
+     * the same acknowledgement as the global Sender ID; an empty value means "Same as the main Sender ID"). A
+     * storefront id that is not a storefront of the store is refused; an unchanged value is skipped.
+     *
+     * @param mixed $posted kwtsms_sf_senders: storefront id => Sender ID
+     * @param mixed $ack    The acknowledgement checkbox (Y when ticked)
+     *
+     * @return array{saved:array<int,string>,refused:array<int,string>} storefront id => Sender ID / reason
+     */
+    public function saveStorefrontSenders($posted, $ack): array
+    {
+        $started = microtime(true);
+        $out = ['saved' => [], 'refused' => []];
+        if ($this->senders === null || $this->rules === null || !is_array($posted)) {
+            return $out;
+        }
+        $known = $this->rules->storefronts();
+        foreach ($posted as $key => $value) {
+            $id = ctype_digit((string) $key) ? (int) $key : 0;
+            if ($id < 1 || count($known) < 2 || !isset($known[$id]) || !is_string($value)) {
+                $out['refused'][$id] = 'bad_storefront';
+                continue;
+            }
+            $value = trim($value);
+            if ($value === $this->senders->storedSender($id)) {
+                continue;
+            }
+            $r = $this->senders->setSender($id, $value, $ack === 'Y');
+            if ($r['ok']) {
+                $out['saved'][$id] = $value;
+            } else {
+                $out['refused'][$id] = $r['reason'];
+            }
+        }
+        foreach ($out['refused'] as $id => $reason) {
+            $keys = [
+                'not_in_list' => 'kwtsms.settings.sf_sender_not_in_list',
+                'kwtsms_ack' => 'kwtsms.settings.sf_ack_required',
+            ];
+            $this->say('E', $keys[$reason] ?? 'kwtsms.settings.sf_sender_bad_storefront', [
+                '[storefront]' => $known[$id] ?? (string) $id,
+            ]);
+        }
+        if ($out['saved'] !== []) {
+            $this->say('N', 'kwtsms.settings.sf_senders_saved', ['[count]' => (string) count($out['saved'])]);
+        } elseif ($out['refused'] === []) {
+            $this->say('N', 'kwtsms.settings.sf_senders_unchanged');
+        }
+        // Names and ids only, never a credential.
+        $this->log->log('info', 'settings.page.sf_senders', 'Sender ID per storefront saved from the page', [
+            'saved' => $out['saved'],
+            'refused' => $out['refused'],
+        ], (int) round((microtime(true) - $started) * 1000));
+
+        return $out;
     }
 
     // ================================================================== POST actions

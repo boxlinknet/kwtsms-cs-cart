@@ -20,6 +20,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
          data-kwtsms-editor="1"
          data-kwtsms-receiver="{$e.receiver}"
          data-kwtsms-lang="{$e.lang}"
+         data-kwtsms-storefront="{$e.storefront_id}"
          data-kwtsms-event="{$e.event_id}"
          data-kwtsms-reference="{$e.reference|json_encode}"
          data-kwtsms-worst="{$e.worst|json_encode}"
@@ -42,6 +43,8 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 <input type="hidden" name="kwtsms_tpl[event_id]" value="{$e.event_id}">
                 <input type="hidden" name="kwtsms_tpl[receiver]" value="{$e.receiver}">
                 <input type="hidden" name="kwtsms_tpl[lang]" value="{$e.lang}">
+                {* 2026-10-22 16:16 +03: Task A3, task 596 *}
+                {if $e.storefront_id}<input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$e.storefront_id}">{/if}
                 {if $e.unknown}<input type="hidden" name="kwtsms_tpl[confirm]" value="{$e.confirm}">{/if}
 
                 <label class="kwtsms-editor__label" for="kwtsms_body">{__("kwtsms.templates.editor_label", ["[language]" => $e.lang_name])}</label>
@@ -49,6 +52,8 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_generic")}</p>
                 {elseif $e.origin == "placed"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_placed")}</p>
+                {elseif $e.origin == "all_storefronts"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_all_storefronts")}</p>
                 {elseif $e.origin == "default_lang"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_default_lang", ["[language]" => $t.default_lang_name])}</p>
                 {elseif $e.origin == "none"}
@@ -77,9 +82,14 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 <div class="kwtsms-actions kwtsms-editor__actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_save" name="dispatch[kwtsms.update_template]"
                            value="{if $e.unknown}{__("kwtsms.templates.save_anyway")}{else}{__("kwtsms.templates.save")}{/if}">
+                    {if $e.storefront_id}
+                        <input type="submit" class="btn cm-confirm" id="kwtsms_reset" name="dispatch[kwtsms.reset_template]"
+                               value="{__("kwtsms.templates.reset_storefront_button")}" data-ca-confirm-text="{__("kwtsms.templates.reset_storefront_confirm")}">
+                    {else}
                     <input type="submit" class="btn cm-confirm" id="kwtsms_reset" name="dispatch[kwtsms.reset_template]"
                            value="{__("kwtsms.templates.reset")}" data-ca-confirm-text="{__("kwtsms.templates.reset_confirm")}">
-                    <a class="btn" id="kwtsms_close" href="{"kwtsms.templates?lang=`$e.lang`"|fn_url}#{$e.dom_id}">{__("kwtsms.templates.close")}</a>
+                    {/if}
+                    <a class="btn" id="kwtsms_close" href="{"kwtsms.templates?lang=`$e.lang`"|fn_url}{if $e.storefront_id}&storefront_id={$e.storefront_id}{/if}#{$e.dom_id}">{__("kwtsms.templates.close")}</a>
                 </div>
             </form>
         </div>
@@ -150,6 +160,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                         <input type="hidden" name="kwtsms_tpl[event_id]" value="{$e.event_id}">
                         <input type="hidden" name="kwtsms_tpl[receiver]" value="{$e.receiver}">
                         <input type="hidden" name="kwtsms_tpl[lang]" value="{$e.lang}">
+                        {if $e.storefront_id}<input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$e.storefront_id}">{/if}
                         <input type="hidden" name="kwtsms_tpl[body]" id="kwtsms_test_body" value="{$e.body}">
                         <label class="control-label" for="kwtsms_test_phone">{__("kwtsms.test_sms.phone")}</label>
                         <input type="text" id="kwtsms_test_phone" name="kwtsms_tpl[phone]" value="" class="input-medium" dir="ltr"

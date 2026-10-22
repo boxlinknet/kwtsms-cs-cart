@@ -61,6 +61,30 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
             }
         });
         refresh();
+
+        // 2026-10-22 16:17 +03, Task A3, task 596: the Sender ID per storefront. Same UX as the main Sender ID: the KWT-SMS warning
+        // under the dropdown that holds it, and the acknowledgement while test mode is off and a storefront is being
+        // changed to KWT-SMS. Display only: the server checks the acknowledgement again.
+        var sfSelects = page.querySelectorAll('.kwtsms-js-sf-sender');
+        var sfAck = page.querySelector('.kwtsms-js-sf-ack');
+
+        function refreshStorefronts() {
+            var needAck = false;
+            Array.prototype.forEach.call(sfSelects, function (select) {
+                var isTest = testSender !== '' && select.value === testSender;
+                var warning = select.parentNode.querySelector('.kwtsms-js-sf-warning');
+                toggle(warning, isTest);
+                if (isTest && !testModeSaved && (select.getAttribute('data-kwtsms-saved') || '') !== testSender) {
+                    needAck = true;
+                }
+            });
+            toggle(sfAck, needAck);
+        }
+
+        Array.prototype.forEach.call(sfSelects, function (select) {
+            select.addEventListener('change', refreshStorefronts);
+        });
+        refreshStorefronts();
     }
 
     function init(context) {
