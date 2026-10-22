@@ -32,6 +32,7 @@ use Tygh\Addons\Kwtsms\Sms\SendResult;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
 use Tygh\Languages\Languages;
+use Tygh\Registry; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Settings;
 use Tygh\Tygh;
 
@@ -367,6 +368,60 @@ function fn_kwtsms_update_profile($action, $user_data, $current_user_data)
         );
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('update_profile', $e);
+    }
+}
+
+/**
+ * 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10), task 596. Hook update_product_amount
+ * (app/functions/fn.cart.php:1196 in 4.21.2, fn_update_product_amount(), after core mailed its own low-stock e-mail
+ * and before the products row is written). The ten arguments are those of the fn_set_hook() call there. A product
+ * that crosses the low-stock threshold downwards is handed to the collector; the SMS goes out once per receiver
+ * after the order status change (OrderHooks) or at shutdown. Costs two integer comparisons for a product that does
+ * not cross. Never throws.
+ *
+ * @param int    $new_amount      New product quantity
+ * @param int    $product_id      Product ID
+ * @param int    $cart_id         Product cart ID
+ * @param string $tracking        Inventory tracking mode
+ * @param bool   $notify          Whether stock notifications are sent
+ * @param array  $order_info      Order information
+ * @param int    $amount_delta    Quantity change
+ * @param int    $current_amount  Quantity before the change
+ * @param int    $original_amount Original quantity
+ * @param string $sign            - or +
+ */
+function fn_kwtsms_update_product_amount(
+    $new_amount,
+    $product_id,
+    $cart_id,
+    $tracking,
+    $notify,
+    $order_info,
+    $amount_delta,
+    $current_amount,
+    $original_amount,
+    $sign
+) {
+    try {
+        if ((string) $sign !== '-') {
+            return;
+        }
+        $threshold = (int) Registry::get('settings.General.low_stock_threshold');
+        // The cheap test first (no service is built for the common case): fn.cart.php:1146-1148 mirrored.
+        if ((int) $current_amount <= $threshold || (int) $new_amount > $threshold || defined('ORDER_MANAGEMENT')) {
+            return;
+        }
+        $collector = Tygh::$app['kwtsms.low_stock'];
+        $collector->record(
+            (int) $product_id,
+            (int) fn_get_company_id('products', 'product_id', (int) $product_id),
+            (int) $current_amount,
+            (int) $new_amount,
+            (string) $sign,
+            $threshold
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_product_amount', $e);
     }
 }
 

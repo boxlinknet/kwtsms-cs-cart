@@ -4737,3 +4737,45 @@ msgstr "مدة الصلاحية بالدقائق"
 msgctxt "Languages::kwtsms.help.switches.p3"
 msgid "The welcome SMS and the administrator registration alert are sent only while CAPTCHA for registration is turned on (Settings > Security), so bots cannot spend your credits."
 msgstr "تُرسل رسالة الترحيب وتنبيه المدير عند التسجيل فقط عند تفعيل الكابتشا للتسجيل (الإعدادات > الأمان)، حتى لا تستهلك البوتات رصيدك."
+
+# 2026-10-22 21:29 +03: low-stock SMS (kwtsms.low_stock): default texts, event name, Templates heading, placeholder names and the window reason, Task A7 (SafatMall F5 part), task 596.
+msgctxt "Languages::kwtsms.tpl.kwtsms.low_stock.A"
+msgid "{store_name}: Low stock {product_code}: {stock_amount} left. {more_count}"
+msgstr "مخزون منخفض: {product_code} المتبقي {stock_amount} {more_count}"
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.low_stock.V"
+msgid "{store_name}: Low stock {product_code}: {stock_amount} left. {more_count}"
+msgstr "مخزون منخفض: {product_code} المتبقي {stock_amount} {more_count}"
+
+msgctxt "Languages::kwtsms.event.low_stock"
+msgid "Low stock"
+msgstr "انخفاض المخزون"
+
+msgctxt "Languages::kwtsms.templates.event.kwtsms.low_stock"
+msgid "Low stock"
+msgstr "انخفاض المخزون"
+
+msgctxt "Languages::kwtsms.templates.group_products"
+msgid "Products"
+msgstr "المنتجات"
+
+msgctxt "Languages::kwtsms.templates.ph_product_name"
+msgid "Product name"
+msgstr "اسم المنتج"
+
+msgctxt "Languages::kwtsms.templates.ph_product_code"
+msgid "Product code"
+msgstr "رمز المنتج"
+
+msgctxt "Languages::kwtsms.templates.ph_stock_amount"
+msgid "Stock left"
+msgstr "الكمية المتبقية"
+
+msgctxt "Languages::kwtsms.templates.ph_more_count"
+msgid "Other products (+N)"
+msgstr "منتجات أخرى (+N)"
+
+msgctxt "Languages::kwtsms.logs.reason.low_stock_window"
+msgid "This product already triggered a low-stock SMS in the last 24 hours."
+msgstr "تم إرسال رسالة انخفاض مخزون لهذا المنتج خلال آخر 24 ساعة."
+

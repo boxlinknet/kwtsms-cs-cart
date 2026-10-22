@@ -32,6 +32,8 @@
  *            the response (item 5); prune_logs also prunes expired status dispatch keys (ruling R32, item 6).
  *            2026-10-22 19:09 +03, Task A6, task 596: kwtsms.profile_hooks (Profiles\ProfileHooks, the registration
  * alert).
+ *            2026-10-22 21:27 +03, Task A7, task 596: kwtsms.low_stock (Orders\LowStockCollector); the order hooks
+ *            take it as their last constructor argument.
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -51,6 +53,7 @@ use Tygh\Addons\Kwtsms\Log\DbLogStore;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
+use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend;
@@ -417,7 +420,72 @@ class ServiceProvider implements ServiceProviderInterface
                         $provider
                     );
                 },
-                $app['kwtsms.logs.debug']
+                $app['kwtsms.logs.debug'],
+                // 2026-10-22 21:27 +03: Task A7, task 596. The low-stock collector, flushed after a status change.
+                $app['kwtsms.low_stock']
+            );
+        };
+        // 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10, R20), task 596. One collector per request: the
+        // update_product_amount hook records the products that crossed the threshold; the first record() registers
+        // a shutdown flush, change_order_status_post flushes earlier. The switch is read from the stored kwtsms rows
+        // (fail-closed: an unreadable row is OFF) and SMS must be on and set up before any key is claimed.
+        $app['kwtsms.low_stock'] = function (Container $app): LowStockCollector {
+            $dispatch = static function (string $event_id, array $data, array $rules) use ($app): void {
+                $first = $data['products'][0]['product_id'] ?? 0;
+                $provider = new class ($event_id . '.' . (int) ($data['company_id'] ?? 0) . '.' . (int) $first
+                    . '.' . substr(md5(uniqid('', true)), 0, 8)) implements IProvider {
+                    /** @var string */
+                    private $id;
+
+                    public function __construct(string $id)
+                    {
+                        $this->id = $id;
+                    }
+
+                    public function getId()
+                    {
+                        return $this->id;
+                    }
+                };
+                $storefront = $app['storefront'] ?? null;
+                $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
+                    ? (int) $storefront->storefront_id : 0;
+                $app['event.dispatcher']->dispatch(
+                    $event_id,
+                    $data,
+                    $app['event.notification_settings.factory']->create($rules),
+                    $provider
+                );
+            };
+
+            return new LowStockCollector(
+                $app['kwtsms.dispatch_keys'],
+                static function (string $receiver) use ($app): bool {
+                    try {
+                        if (!$app['kwtsms.order_diagnostics']->active()) {
+                            return false;
+                        }
+                        $rows = NotificationSettingsExtender::storedRows();
+
+                        return !empty($rows[LowStockCollector::EVENT_ID][$receiver]);
+                    } catch (\Throwable $e) {
+                        return false;
+                    }
+                },
+                static function (string $reason, array $product, string $receiver) use ($app): void {
+                    $app['kwtsms.order_diagnostics']->recordOutcome(
+                        OrderNotifier::DUPLICATE,
+                        $reason,
+                        ['company_id' => (int) ($product['company_id'] ?? 0)],
+                        LowStockCollector::EVENT_ID,
+                        $receiver,
+                        $receiver === 'V' ? [] : null
+                    );
+                },
+                $app['kwtsms.checkout_rules']->isMultiVendor(),
+                null,
+                null,
+                $dispatch
             );
         };
         // 2026-10-22 19:09 +03: Task A6 (registration alert, P2-7), task 596. The update_profile handler: dispatches

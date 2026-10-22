@@ -131,4 +131,16 @@ return [
         'group' => 'kwtsms.templates.group_profile',
         'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
     ],
+    // 2026-10-22 21:28 +03: Task A7 (SafatMall F5 part, P2-10), task 596. The add-on's own event (also in
+    // schemas/notifications/events.post.php): a product's stock crossed the low-stock threshold. A is the
+    // administrator (marketplace products and every Ultimate product), V the vendor (Multi-Vendor only, its approved
+    // number). One SMS per receiver and request: the first product plus {more_count}. No dedupe here: the 24 h key
+    // per product is claimed by Orders\LowStockCollector before the dispatch (R20). Default OFF.
+    'kwtsms.low_stock' => [
+        'receivers' => ['A', 'V'],
+        'storefront' => 'storefront_id',
+        'company_id' => 'company_id',
+        'group' => 'kwtsms.templates.group_products',
+        'data_class' => \Tygh\Addons\Kwtsms\Orders\LowStockSmsData::class,
+    ],
 ];

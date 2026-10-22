@@ -38,6 +38,8 @@ class Defaults
 {
     public const RECEIVER_CUSTOMER = 'C';
     public const RECEIVER_ADMIN = 'A';
+    /** 2026-10-22 21:29 +03: Task A7, task 596. The vendor receiver (Multi-Vendor, declared events only). */
+    public const RECEIVER_VENDOR = 'V';
 
     /** Our own new-order event (PRD 4.1) and its Multi-Vendor "one SMS for the whole checkout" variant. */
     public const EVENT_PLACED = 'kwtsms.order_placed';
@@ -58,6 +60,9 @@ class Defaults
     public const EVENT_WELCOME = 'profile.created.c';
     public const EVENT_RECOVER = 'profile.password_recover.c';
     public const EVENT_REGISTERED = 'kwtsms.customer_registered';
+
+    /** 2026-10-22 21:29 +03: Task A7 (SafatMall F5 part), task 596. The add-on's own low-stock event (A and V). */
+    public const EVENT_LOW_STOCK = 'kwtsms.low_stock';
 
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
@@ -84,6 +89,8 @@ class Defaults
         self::EVENT_REGISTERED => ['user_id', 'customer_phone'],
         // 2026-10-22 20:28 +03: valid_minutes, Task A6 fix round 1
         self::EVENT_RECOVER => ['user_id', 'customer_phone', 'reset_url', 'valid_minutes'],
+        // 2026-10-22 21:29 +03: Task A7, task 596. The low-stock values (Orders\LowStockSmsData).
+        self::EVENT_LOW_STOCK => ['product_name', 'product_code', 'stock_amount', 'more_count'],
     ];
 
     /**
@@ -146,6 +153,9 @@ class Defaults
         $rows[] = self::row(self::EVENT_WELCOME, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_REGISTERED, self::RECEIVER_ADMIN);
         $rows[] = self::row(self::EVENT_RECOVER, self::RECEIVER_CUSTOMER);
+        // 2026-10-22 21:29 +03: Task A7 (SafatMall F5 part), task 596. Low-stock SMS: admin, vendor.
+        $rows[] = self::row(self::EVENT_LOW_STOCK, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_LOW_STOCK, self::RECEIVER_VENDOR, '', '', true);
 
         return $rows;
     }

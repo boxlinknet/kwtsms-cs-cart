@@ -47,4 +47,21 @@ $schema['kwtsms.customer_registered'] = [
     ],
 ];
 
+// 2026-10-22 21:28 +03: Task A7 (SafatMall F5 part, P2-10), task 596. The low-stock SMS: a product crossed the
+// low-stock threshold. Group products, receiver A, and V in Multi-Vendor; no transport here (EventsSchemaExtender
+// attaches the SMS one from schemas/kwtsms/events.php). Dispatched by Orders\LowStockCollector.
+$schema['kwtsms.low_stock'] = [
+    'group' => 'products',
+    'name' => [
+        'template' => 'kwtsms.event.low_stock',
+        'params' => [],
+    ],
+    'receivers' => [
+        'A' => [],
+    ],
+];
+if (fn_allowed_for('MULTIVENDOR')) {
+    $schema['kwtsms.low_stock']['receivers']['V'] = [];
+}
+
 return $schema;

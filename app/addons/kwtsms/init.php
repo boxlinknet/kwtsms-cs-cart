@@ -40,6 +40,9 @@ fn_register_hooks(
     // 2026-10-22 19:09 +03: Task A6 (SafatMall F5 part, P2-7), task 596. A customer registered on the storefront or
     // at checkout: the
     // admin registration alert.
-    'update_profile'
+    'update_profile',
+    // 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10), task 596. A product's stock fell across the
+    // low-stock threshold: collected, one SMS per receiver after the order status change.
+    'update_product_amount'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

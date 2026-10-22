@@ -74,6 +74,8 @@ class LogsPage
         // 2026-10-22 19:10 +03: a password-recovery SMS inside the 10-minute window of the account (R5), Task A6,
         // task 596.
         'recover_throttled',
+        // 2026-10-22 21:29 +03: a product that already alerted in the last 24 h (Task A7), task 596.
+        'low_stock_window',
         // 2026-10-22 20:27 +03: a registration SMS skipped because the core CAPTCHA for registration is off
         // (P2-R12), Task A6 fix round 1.
         'antibot_required',

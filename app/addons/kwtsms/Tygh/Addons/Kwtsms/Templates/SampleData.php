@@ -171,6 +171,31 @@ final class SampleData
     }
 
     /**
+     * 2026-10-22 21:29 +03: Task A7 (low-stock SMS), task 596. The values of the low-stock placeholders: a reference
+     * product, or the worst case (32-character product code, 30-character name, 5-digit amount, "+99").
+     *
+     * @return array<string,string>
+     */
+    public static function lowStock(bool $worst = false): array
+    {
+        if ($worst) {
+            return [
+                'product_name' => 'Wireless Noise Cancelling Headphones',
+                'product_code' => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ012345',
+                'stock_amount' => '12345',
+                'more_count' => '+99',
+            ];
+        }
+
+        return [
+            'product_name' => 'Ceramic Mug',
+            'product_code' => 'MUG-0042',
+            'stock_amount' => '3',
+            'more_count' => '+2',
+        ];
+    }
+
+    /**
      * @param array<int,string> $names
      */
     private static function longest(array $names, string $fallback): string
