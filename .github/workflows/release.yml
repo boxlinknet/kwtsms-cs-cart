@@ -54,7 +54,7 @@ jobs:
           printf '\nInstall: Administration > Add-ons > Manage add-ons > gear icon > Manual installation > upload kwtsms-%s.zip.\n' "$VERSION" >> notes.md
 
       - name: Publish the GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: kwtSMS for CS-Cart v${{ steps.version.outputs.version }}
           body_path: notes.md
