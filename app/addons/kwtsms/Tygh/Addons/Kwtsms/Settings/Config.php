@@ -82,6 +82,9 @@ class Config implements ConfigInterface
         'retention_debug_days' => '30',
         'cron_url_enabled' => 'N',
         'cron_key' => '',
+        // 2026-10-22 13:15 +03: recipients one vendor may SMS per calendar month (P2-6); equals addon.xml,
+        // Task A1, task 596.
+        'vendor_monthly_quota' => '100',
     ];
 
     /**
@@ -146,6 +149,9 @@ class Config implements ConfigInterface
         'retention_messages_days' => ['int', 0, 3650],
         'retention_attempts_days' => ['int', 0, 3650],
         'retention_debug_days' => ['int', 0, 3650],
+        // 2026-10-22 13:15 +03: 0 = vendor SMS off; no save mode names it until the Vendor SMS page (Task A8),
+        // Task A1, task 596.
+        'vendor_monthly_quota' => ['int', 0, 100000],
         'cron_url_enabled' => ['flag'],
     ];
 
@@ -366,6 +372,16 @@ class Config implements ConfigInterface
     public function mveVendorTriggeredSms(): bool
     {
         return $this->flag('mve_vendor_triggered_sms');
+    }
+
+    /**
+     * 2026-10-22 13:15 +03: monthly recipient quota per vendor (P2-6). 100 when the setting object is absent (an
+     * upgrade that has not created it yet) or holds anything but a whole number from 0 to 100000; 0 is a real value
+     * (vendor SMS off). Task A1, task 596.
+     */
+    public function vendorMonthlyQuota(): int
+    {
+        return $this->number('vendor_monthly_quota');
     }
 
     public function logLevel(): string

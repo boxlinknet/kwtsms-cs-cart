@@ -12,12 +12,15 @@ WHY:       CS-Cart installs, upgrades and removes the add-on from this file. Ins
 USAGE:     Read by CS-Cart (Admin > Add-ons > Manage add-ons, or fn_install_addon('kwtsms')).
            Settings are hidden items (written by the add-on's own pages); the only visible ones are the
            info link to the add-on's Settings page and marketplace_license_number.
+2026-10-22 13:13 +03: 1.1.0 adds four Milestone A tables (13 in all), two columns and the setting vendor_monthly_quota
+           (Task A1, task 596); the upgrade path from 1.0.0 is upgrades/1.1.0 (tools/build-upgrade-package.sh).
 DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_info),
            var/langs/{en,ar}/addons/kwtsms.po, design/backend/media/images/addons/kwtsms/icon.png.
 -->
 <addon scheme="3.0">
     <id>kwtsms</id>
-    <version>1.0.0</version>
+    <!-- 2026-10-22 13:13 +03: 1.1.0 (Phase 2: schema of Milestone A, setting vendor_monthly_quota, four tables), Task A1, task 596 -->
+    <version>1.1.0</version>
     <priority>4000</priority>
     <status>active</status>
     <default_language>en</default_language>
@@ -195,6 +198,12 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                         <default_value/>
                     </item>
 
+                    <!-- 2026-10-22 13:13 +03: recipients one vendor may SMS per calendar month, 0 = vendor SMS off (P2-6), Task A1, task 596. -->
+                    <item id="vendor_monthly_quota">
+                        <type>hidden</type>
+                        <default_value>100</default_value>
+                    </item>
+
                     <!-- Kept for marketplace documentation compliance (PRD 4.5). -->
                     <item id="marketplace_license_number">
                         <type>input</type>
@@ -319,8 +328,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `event_id` varchar(128) NOT NULL DEFAULT '',
             `receiver` varchar(15) NOT NULL DEFAULT '',
             `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY (`template_id`),
-            UNIQUE KEY `uniq_event_receiver` (`event_id`, `receiver`)
+            UNIQUE KEY `uniq_event_receiver_sf` (`event_id`, `receiver`, `storefront_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
         <item>
@@ -336,6 +346,7 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             CREATE TABLE IF NOT EXISTS `?:kwtsms_brand_names` (
             `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
             `enabled` char(1) NOT NULL DEFAULT 'Y',
+            `sender_id` varchar(11) NOT NULL DEFAULT '',
             PRIMARY KEY (`storefront_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
@@ -371,6 +382,47 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
 
+        <!-- 2026-10-22 13:13 +03: Milestone A (1.1.0) columns and tables, Task A1, task 596 (PRD 8 amended):
+             kwtsms_templates.storefront_id (0 = all storefronts) with uniq_event_receiver_sf replacing uniq_event_receiver,
+             kwtsms_brand_names.sender_id ('' = the global Sender ID), and the four tables below. The upgrade migration
+             (upgrades/1.1.0/migrations) builds exactly these definitions on an existing 1.0.0 store; a test compares
+             SHOW CREATE TABLE of both paths. -->
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_storefront_switches` (
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `event_id` varchar(128) NOT NULL DEFAULT '',
+            `receiver` varchar(15) NOT NULL DEFAULT '',
+            `enabled` char(1) NOT NULL DEFAULT 'N',
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`storefront_id`, `event_id`, `receiver`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_vendor_phones` (
+            `company_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `phone` varchar(32) NOT NULL DEFAULT '',
+            `approved_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `approved_by` int(11) unsigned NOT NULL DEFAULT 0,
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`company_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_vendor_quotas` (
+            `plan_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `monthly_limit` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`plan_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_customer_prefs` (
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `order_sms` char(1) NOT NULL DEFAULT 'Y',
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+
         <!-- Privileges (PRD 7): section addons, group kwtsms. -->
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms', 'Y', 'addons', 'kwtsms', 'Y');</item>
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms_logs', 'Y', 'addons', 'kwtsms', 'Y');</item>
@@ -378,7 +430,7 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms_gateway', 'Y', 'addons', 'kwtsms', 'N');</item>
 
         <!-- 2026-10-20 20:46 +03: this comment was rewritten when the table sweep left fn_kwtsms_uninstall() (review
-             finding: broader than our own tables); the nine DROPs below are now the only table cleanup, task 596. -->
+             finding: broader than our own tables); the nine DROPs below are now the only table cleanup, task 596.2026-10-22 13:13 +03: thirteen with the Milestone A tables, Task A1. -->
         <!-- Uninstall (PRD 13): nothing of ours stays behind, a reinstall starts clean, and nothing that is not
              ours is touched: every statement names its target exactly. A version that adds a table adds its
              DROP here. -->
@@ -391,6 +443,11 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_brand_name_descriptions`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_outbox`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_dispatch_keys`;</item>
+        <!-- 2026-10-22 13:13 +03: the four Milestone A tables (PRD 13), Task A1, task 596. -->
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_storefront_switches`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_vendor_phones`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_vendor_quotas`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_customer_prefs`;</item>
         <item for="uninstall">DELETE FROM ?:usergroup_privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>

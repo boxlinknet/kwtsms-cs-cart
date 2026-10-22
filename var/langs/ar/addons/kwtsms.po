@@ -157,6 +157,11 @@ msgctxt "SettingsOptions::kwtsms::cron_key"
 msgid "Cron key"
 msgstr "مفتاح المهام المجدولة"
 
+# 2026-10-22 13:16 +03: vendor_monthly_quota, Task A1, task 596
+msgctxt "SettingsOptions::kwtsms::vendor_monthly_quota"
+msgid "Vendor SMS per month"
+msgstr "عدد رسائل المورد في الشهر"
+
 msgctxt "SettingsOptions::kwtsms::marketplace_license_number"
 msgid "Marketplace license number"
 msgstr "رقم ترخيص Marketplace"

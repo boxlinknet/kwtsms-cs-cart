@@ -126,6 +126,12 @@ interface ConfigInterface
 
     public function mveVendorTriggeredSms(): bool;
 
+    /**
+     * Recipients one vendor may SMS per calendar month; 0 = vendor SMS off, 100 when unset or invalid.
+     * 2026-10-22 13:15 +03: added (P2-6), Task A1, task 596.
+     */
+    public function vendorMonthlyQuota(): int;
+
     // Logs and cron
 
     /** 'info' or 'debug' */
