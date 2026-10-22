@@ -7,6 +7,9 @@
 #            kwtSMS repos. The add-on itself ships without Composer dependencies.
 # USAGE:     Read by GitHub automatically.
 # DEPENDS:   composer.json, composer.lock, .github/workflows/.
+# CHANGED:   2026-10-22 13:09 +03: open-pull-requests-limit 0 for both ecosystems: Boss rule, no pull requests on
+#            this repository, direct edits only. Dependabot still checks and raises security alerts; updates are
+#            applied by a direct commit (automated security-fix PRs are switched off in the repo settings), task 596.
 
 version: 2
 updates:
@@ -15,7 +18,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
 
@@ -24,7 +27,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
       - github-actions
