@@ -13,7 +13,7 @@
  *            administrator, and a vendor who changes its phone (or leaves status A) loses the approval until it is
  *            approved again. SMS code verification by the vendor arrives with the Phase 3 OTP suite.
  * USAGE:     $phones = Tygh::$app['kwtsms.vendor_phones'];                   // also the VendorPhoneSourceInterface
- *            $phones->approvedPhone(7)                                       // '96550123407' or ''
+ *            $phones->approvedPhone(7)                                       // '96550123401' or ''
  *            $phones->approve(7, $admin_user_id)   // ['ok'=>bool,'reason'=>'','phone'=>'']; reasons: no_company, then
  *                                                                          // PhoneNormalizer's (empty, too_short, ...)
  *            $phones->revoke(7);
