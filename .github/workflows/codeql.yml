@@ -8,6 +8,7 @@
 #            phpcs in ci.yml and by the security greps in tools/build-package.sh.
 # USAGE:     Automatic. Results appear on the repository Security tab > Code scanning.
 # DEPENDS:   GitHub code scanning (free on public repositories).
+# CHANGED:   2026-10-22 12:36 +03: actions/checkout v4 -> v7 (Node 24 runtime), as in ci.yml, task 596.
 
 name: CodeQL
 
@@ -32,7 +33,7 @@ jobs:
       matrix:
         language: [javascript-typescript, actions]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: github/codeql-action/init@v4
         with:

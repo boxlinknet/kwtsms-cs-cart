@@ -13,6 +13,11 @@
 # CHANGED:   2026-10-21 23:15 +03: renamed from build.yml (git mv) to ci.yml, the name every sibling kwtSMS repo uses;
 #            added the PHP syntax matrix, phpcs and pull_request trigger; the package job runs only when the secret is
 #            available (not on forks, not for dependabot), task 596.
+#            2026-10-22 12:36 +03: actions/checkout v4 -> v7 and actions/upload-artifact v4 -> v7 (Node 24 runtime;
+#            Dependabot PRs #3 and #4), task 596.
+#            2026-10-22 12:37 +03: the package job checks out the full history (fetch-depth 0); the build stamps the
+#            archive with the time of the last commit touching a shipped path, and a shallow clone only has HEAD, so
+#            the CI zip hash differed from a local build, task 596.
 
 name: CI
 
@@ -35,7 +40,7 @@ jobs:
       matrix:
         php: ['7.4', '8.0', '8.1', '8.2', '8.3']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
@@ -51,7 +56,7 @@ jobs:
     name: PHPCS (PSR-12 and PHPCompatibility)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -76,7 +81,9 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Private patterns for the package gate
         env:
@@ -89,7 +96,7 @@ jobs:
       - name: Build the package
         run: bash tools/build-package.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: kwtsms-package
           path: |

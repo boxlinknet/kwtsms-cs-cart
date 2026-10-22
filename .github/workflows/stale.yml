@@ -7,6 +7,7 @@
 # WHY:       Keeps the tracker current; same settings as the kwtSMS WHMCS repo.
 # USAGE:     Automatic (daily 00:00 UTC).
 # DEPENDS:   actions/stale.
+# CHANGED:   2026-10-22 12:36 +03: actions/stale v9 -> v11 (Node 24 runtime; Dependabot PR #2), task 596.
 
 name: Stale
 
@@ -22,7 +23,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v11
         with:
           stale-issue-message: >
             This issue has been inactive for 60 days.

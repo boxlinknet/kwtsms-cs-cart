@@ -9,6 +9,11 @@
 # USAGE:     git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z (the tag must equal <version> in addon.xml).
 # DEPENDS:   Repository secret PRIVATE_PATTERNS (the lines of the local, gitignored docs/private-patterns.txt): the
 #            build's private-pattern gate fails closed without it. Docker on the runner for the PHP 7.4 pass.
+# CHANGED:   2026-10-22 12:38 +03: a pre-release tag vX.Y.Z-rc.N is accepted (the part before "-" must equal the
+#            addon.xml version; notes come from that CHANGELOG section) so a tester gets the zip as a GitHub
+#            pre-release before the final tag; actions/checkout v4 -> v7, softprops/action-gh-release v2 -> v3
+#            (Node 24 runtime; Dependabot PRs #1 and #3); full history checkout (fetch-depth 0) so the release zip
+#            carries the same entry times, and hash, as a local build, task 596.
 
 name: Release
 
@@ -24,16 +29,20 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Tag must equal the addon.xml version
         id: version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          VERSION="${TAG#v}"
+          RELEASE="${TAG#v}"
+          VERSION="${RELEASE%%-*}"
           XML="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' app/addons/kwtsms/addon.xml | head -1)"
           [ "$VERSION" = "$XML" ] || { echo "tag $TAG does not match addon.xml version $XML"; exit 1; }
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Private patterns for the package gate
         env:
@@ -54,9 +63,9 @@ jobs:
           printf '\nInstall: Administration > Add-ons > Manage add-ons > gear icon > Manual installation > upload kwtsms-%s.zip.\n' "$VERSION" >> notes.md
 
       - name: Publish the GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          name: kwtSMS for CS-Cart v${{ steps.version.outputs.version }}
+          name: kwtSMS for CS-Cart v${{ steps.version.outputs.release }}
           body_path: notes.md
           files: |
             dist/kwtsms-${{ steps.version.outputs.version }}.zip
