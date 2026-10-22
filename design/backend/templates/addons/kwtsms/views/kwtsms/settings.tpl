@@ -226,7 +226,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </section>
 
         {* 2026-10-22 16:17 +03: Task A3, task 596. Sender ID per storefront. The controls use form="kwtsms_sf_senders_form" (the empty form
-           after this one), their own Save button too. KWT-SMS is never preselected; picking it shows the same warning as the
+           after this one), their own Save button too. The test sender is never preselected; picking it shows the same warning as the
            main Sender ID, and the acknowledgement while test mode is off. *}
         {if $kwtsms.connected && $kwtsms.senders && $kwtsms.storefront_senders}
         <section class="kwtsms-section kwtsms-sf-senders" id="kwtsms_storefront_senders" aria-labelledby="kwtsms_sf_senders_title">
