@@ -64,7 +64,8 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                 <p class="muted description">{__("kwtsms.vendors.plans.help")}</p>
                 {foreach $v.plans as $plan}
                     <div class="control-group">
-                        <label class="control-label" for="kwtsms_quota_plan_{$plan.plan_id}">{$plan.name}:</label>
+                        {* 2026-10-22 23:56 +03: Task A8 fix round 1 (I1), task 596. The plan name is isolated (bdi) so the colon stays on the label side in RTL. *}
+                        <label class="control-label" for="kwtsms_quota_plan_{$plan.plan_id}"><bdi>{$plan.name}</bdi>:</label>
                         <div class="controls">
                             <input type="text" id="kwtsms_quota_plan_{$plan.plan_id}" name="kwtsms_quota[plans][{$plan.plan_id}]" value="{if $plan.limit !== null}{$plan.limit}{/if}"
                                    class="input-small kwtsms-number" dir="ltr" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"

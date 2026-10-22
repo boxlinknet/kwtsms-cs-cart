@@ -4993,3 +4993,8 @@ msgctxt "Languages::kwtsms.integrations.mve.vendor_sms_open"
 msgid "Open Vendor SMS"
 msgstr "Open Vendor SMS"
 
+
+# 2026-10-22 23:56 +03: Task A8 fix round 1 (M8), task 596. Vendor approval and status.
+msgctxt "Languages::kwtsms.help.overview.p3"
+msgid "A vendor that leaves the Active status (suspended or awaiting premoderation) loses its phone approval and must be approved again once it is active."
+msgstr "A vendor that leaves the Active status (suspended or awaiting premoderation) loses its phone approval and must be approved again once it is active."

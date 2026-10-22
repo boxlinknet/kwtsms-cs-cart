@@ -62,6 +62,9 @@ class LowStockCollector
     /** @var bool */
     private $shutdown_registered = false;
 
+    /** @var callable|null 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596 */
+    private $vendor_ready;
+
     /**
      * @param callable      $enabled             (string $receiver): bool, the kwtsms switch of kwtsms.low_stock
      * @param callable      $dropped             (string $reason, array $product, string $receiver): void
@@ -76,8 +79,13 @@ class LowStockCollector
         bool $is_multivendor,
         ?callable $in_order_management = null,
         ?callable $register_shutdown = null,
-        ?callable $dispatch = null
+        ?callable $dispatch = null,
+        // 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596. (int $company_id): bool, true when the vendor has
+        // an approved
+        // number and is within its quota; null = always ready (unit rigs).
+        ?callable $vendor_ready = null
     ) {
+        $this->vendor_ready = $vendor_ready;
         $this->keys = $keys;
         $this->enabled = $enabled;
         $this->dropped = $dropped;
@@ -179,6 +187,17 @@ class LowStockCollector
                 continue;
             }
             $kept = [];
+            // 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596. A vendor that cannot be texted now (no
+            // approved number, or over its
+            // quota) claims NO key: the dispatch still goes out so OrderNotifier writes the no_phone / rate_limited
+            // attempt, and a crossing after the approval (or in the next month) is not suppressed for 24 h.
+            $unclaimed = $receiver === 'V' && $this->vendor_ready !== null
+                && !(bool) call_user_func($this->vendor_ready, (int) $company);
+            if ($unclaimed) {
+                $members = array_values($members);
+                $kept = $members;
+                $members = [];
+            }
             foreach ($members as $product) {
                 $key = self::KEY_PREFIX . ':' . $product['product_id'] . ':' . $receiver;
                 if ($this->keys->claim($key, self::WINDOW)) {

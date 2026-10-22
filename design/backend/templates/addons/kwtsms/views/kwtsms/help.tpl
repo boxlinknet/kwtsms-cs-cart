@@ -50,6 +50,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                     <li>{__("kwtsms.help.overview.li4")}</li>
                 </ul>
                 <p>{__("kwtsms.help.overview.p2")}</p>
+                {* 2026-10-22 23:56 +03: Task A8 fix round 1 (M8), task 596 *}
+                <p>{__("kwtsms.help.overview.p3")}</p>
             </section>
 
             {* ---- the kwtSMS account ---------------------------------------------------------------------------- *}

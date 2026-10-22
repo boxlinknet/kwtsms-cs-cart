@@ -489,7 +489,12 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.checkout_rules']->isMultiVendor(),
                 null,
                 null,
-                $dispatch
+                $dispatch,
+                // 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596. Approved number and quota room, checked before a key is claimed.
+                static function (int $company_id) use ($app): bool {
+                    return $app['kwtsms.vendor_phones']->approvedPhone($company_id) !== ''
+                        && $app['kwtsms.vendor_quota']->allows($company_id, 1);
+                }
             );
         };
         // 2026-10-22 19:09 +03: Task A6 (registration alert, P2-7), task 596. The update_profile handler: dispatches
