@@ -50,6 +50,8 @@
 namespace Tygh\Addons\Kwtsms\Templates;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
+use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Sms\MessageCleaner;
 use Tygh\Languages\Po;
 use Tygh\Registry;
@@ -84,12 +86,35 @@ class TemplateRepository
     private $default_lang;
 
     /**
+     * @var array<string,EventDeclaration> Declared events, for their Templates rows (2026-10-22 17:12 +03, Task A4,
+     *                                     task 596)
+     */
+    private $declared = [];
+
+    /**
      * @param string $default_lang Store default language; '' = the backend default language of the store
      */
     public function __construct(?DebugLog $log = null, string $default_lang = '')
     {
         $this->log = $log;
         $this->default_lang = $default_lang;
+    }
+
+    /**
+     * 2026-10-22 17:12 +03: Task A4, task 596. The declared events (EventsSchemaExtender::declarations()): their
+     * placeholders
+     * become known to Defaults (no "unknown placeholder" for {tracking}) and rowsForUi() lists their rows.
+     *
+     * @param array<string,EventDeclaration> $declared
+     */
+    public function setDeclarations(array $declared): void
+    {
+        $this->declared = $declared;
+        $names = [];
+        foreach ($declared as $event_id => $decl) {
+            $names[$event_id] = ['placeholders' => array_keys($decl->placeholders()), 'secret' => $decl->secretNames()];
+        }
+        Defaults::registerDeclared($names);
     }
 
     // ------------------------------------------------------------------------------------------ resolve
@@ -369,9 +394,73 @@ class TemplateRepository
                 );
             }
         }
+        // 2026-10-22 17:12 +03: Task A4, task 596. The rows of the declared events (kind declared), in declaration
+        // order and
+        // receiver order; only the receivers that have an SMS column (V therefore only in Multi-Vendor). `group` is
+        // the language variable of the heading ('' = the shared "Other events" one).
+        $sms = $this->smsReceivers();
+        foreach ($this->declared as $event_id => $decl) {
+            if (
+                strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_PLACED
+                || !isset($sms[$event_id])
+            ) {
+                continue;
+            }
+            $label = $this->eventLabel($event_id, $lang);
+            foreach ($decl->receivers() as $receiver) {
+                if (!in_array($receiver, $sms[$event_id], true)) {
+                    continue;
+                }
+                $declared_row = $row($event_id, $receiver, 'declared', '', $label);
+                $declared_row['group'] = $decl->group();
+                $rows[] = $declared_row;
+            }
+        }
         $this->trace('debug', 'rows', 'rowsForUi()', ['rows' => count($rows)], $started);
 
         return $rows;
+    }
+
+    /**
+     * Event id => receivers that carry the SMS transport in the merged events schema (a test replaces this).
+     * 2026-10-22 17:12 +03: Task A4, task 596.
+     *
+     * @return array<string,string[]>
+     */
+    protected function smsReceivers(): array
+    {
+        $out = [];
+        try {
+            foreach ((array) \Tygh\Tygh::$app['event.events_schema'] as $event_id => $event) {
+                foreach ((array) ($event['receivers'] ?? []) as $receiver => $transports) {
+                    if (is_array($transports) && isset($transports[EventsSchemaExtender::TRANSPORT_ID])) {
+                        $out[(string) $event_id][] = (string) $receiver;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return $out;
+    }
+
+    /**
+     * The name of an event for the row label: its notification name when the language variable exists, else the event
+     * id (a test replaces this). 2026-10-22 17:12 +03: Task A4, task 596.
+     */
+    protected function eventLabel(string $event_id, string $lang): string
+    {
+        $name = \Tygh\Tygh::$app['event.events_schema'][$event_id]['name'] ?? null;
+        $template = is_array($name) ? (string) ($name['template'] ?? '') : '';
+        if ($template !== '') {
+            $value = empty($name['params']) ? (string) __($template, [], $lang) : '';
+            if ($value !== '' && $value !== '_' . $template && $value !== '_' . strtolower($template)) {
+                return $value;
+            }
+        }
+
+        return $event_id;
     }
 
     /**

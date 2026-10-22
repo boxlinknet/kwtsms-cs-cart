@@ -46,6 +46,11 @@
  *            with neither, the outbox row is left for the cron when the cron ran within 2 intervals (log
  *            order_sms.queued_for_cron), else the SMS is sent in the request (ApiClient caps a web call's slot wait
  *            at 1 s; past it the send is deferred to the outbox).
+ *            2026-10-22 17:20 +03, Task A4, task 596: declared events use format v2 (Notifications\EventDeclaration):
+ *            receiver V (the vendor's approved number from kwtsms.vendor_phones, else no_phone / vendor_not_approved),
+ *            paths for phone, language, country, user, vendor and storefront, the data_class hook, secret
+ *            placeholders (masked in every log copy) and a dedupe key claimed after the numbers and the text are
+ *            known (duplicate_event, or the declared reason).
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog.
@@ -54,8 +59,11 @@
 namespace Tygh\Addons\Kwtsms\Orders;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Notifications\DeclaredSmsData;
+use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
+use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
@@ -100,8 +108,14 @@ class OrderNotifier
     /** @var DebugLog|null */
     private $log;
 
-    /** @var array<string,array<string,mixed>> declared third-party events */
+    /** @var array<string,EventDeclaration> declared events (format v2, 2026-10-22 17:11 +03: Task A4, task 596) */
     private $declared;
+
+    /** @var VendorPhoneSourceInterface|null Approved vendor numbers for receiver V (null = nobody approved) */
+    private $vendor_phones;
+
+    /** @var array<string,DeclaredSmsData> data_class instances, by class name */
+    private $data_classes = [];
 
     /**
      * @var callable (array $actor): string|bool, an AfterResponse mode; true = fpm, false = inline (2026-10-21 03:11
@@ -144,9 +158,11 @@ class OrderNotifier
         ?DebugLog $log = null,
         array $declared = [],
         ?callable $after_response = null,
-        ?StorefrontRules $storefront_rules = null
+        ?StorefrontRules $storefront_rules = null,
+        ?VendorPhoneSourceInterface $vendor_phones = null
     ) {
         $this->storefront_rules = $storefront_rules;
+        $this->vendor_phones = $vendor_phones;
         $this->after_response = $after_response ?? [self::class, 'sendsAfterResponse'];
         $this->sms = $sms;
         $this->config = $config;
@@ -158,7 +174,8 @@ class OrderNotifier
         $this->diagnostics = $diagnostics;
         $this->orders = $orders;
         $this->log = $log;
-        $this->declared = EventsSchemaExtender::validDeclarations($declared);
+        // 2026-10-22 17:11 +03: Task A4, task 596. Validated objects; V survives only in Multi-Vendor.
+        $this->declared = EventsSchemaExtender::declarations($declared, $this->rules->isMultiVendor());
     }
 
     /**
@@ -167,10 +184,18 @@ class OrderNotifier
     public function notify(string $event_id, string $receiver, array $payload): bool
     {
         $started = microtime(true);
-        if ($receiver !== 'C' && $receiver !== 'A') {
+        if ($receiver !== 'C' && $receiver !== 'A' && $receiver !== 'V') {
             return false;
         }
-        $order = isset($payload['order_info']) && is_array($payload['order_info']) ? $payload['order_info'] : [];
+        // 2026-10-22 17:11 +03: Task A4, task 596. The vendor receiver belongs to declared events only (A8 opens it for
+        // kwtsms.order_placed by declaring it).
+        if (
+            $receiver === 'V'
+            && !(isset($this->declared[$event_id]) && in_array('V', $this->declared[$event_id]->receivers(), true))
+        ) {
+            return false;
+        }
+        $order = $this->orderOf($event_id, $payload);
         // 2026-10-21 07:53 +03: SMS off or not set up: nothing claimed, queued or written (Task 1.14 review
         // follow-up), task 596.
         if (!$this->diagnostics->active()) {
@@ -210,7 +235,7 @@ class OrderNotifier
             $meta = isset($payload['kwtsms']) && is_array($payload['kwtsms']) ? $payload['kwtsms'] : [];
             $sent = $this->placedSms($receiver, $order, $meta);
         } elseif (isset($this->declared[$event_id])) {
-            $sent = $this->declaredSms($event_id, $receiver, $payload);
+            $sent = $this->declaredSms($event_id, $receiver, $payload, $order);
         } else {
             $sent = false;
         }
@@ -231,9 +256,9 @@ class OrderNotifier
     private function storefrontOf(string $event_id, array $order, array $payload): int
     {
         $id = (int) ($order['storefront_id'] ?? 0);
-        $declared_path = $this->declared[$event_id]['storefront'] ?? null;
-        if ($id <= 0 && is_string($declared_path)) {
-            $value = self::path($payload, $declared_path);
+        $declared_path = isset($this->declared[$event_id]) ? $this->declared[$event_id]->path('storefront') : '';
+        if ($id <= 0 && $declared_path !== '') {
+            $value = EventDeclaration::value($payload, $declared_path);
             $id = is_scalar($value) ? (int) $value : 0;
         }
         if ($id <= 0) {
@@ -241,6 +266,25 @@ class OrderNotifier
         }
 
         return max(0, $id);
+    }
+
+    /**
+     * 2026-10-22 17:11 +03: Task A4, task 596. The order array of an event: a declared event names its path (default
+     * order_info), every other event hands order_info.
+     *
+     * @param array<string,mixed> $payload
+     *
+     * @return array<string,mixed>
+     */
+    private function orderOf(string $event_id, array $payload): array
+    {
+        $path = EventDeclaration::DEFAULT_ORDER_PATH;
+        if (isset($this->declared[$event_id]) && $this->declared[$event_id]->path('order') !== '') {
+            $path = $this->declared[$event_id]->path('order');
+        }
+        $order = EventDeclaration::value($payload, $path);
+
+        return is_array($order) ? $order : [];
     }
 
     // ------------------------------------------------------------------------------------------ status
@@ -359,33 +403,122 @@ class OrderNotifier
     // ------------------------------------------------------------------------------------------ third party
 
     /**
+     * A declared event (format v2). 2026-10-22 17:11 +03: Task A4, task 596: paths for phone, country, language,
+     * user, vendor and
+     * storefront, the data_class hook (R4), secret placeholders, and the dedupe key claimed just before the send.
+     *
      * @param array<string,mixed> $payload
+     * @param array<string,mixed> $order   The order array at the declaration's `order` path
      */
-    private function declaredSms(string $event_id, string $receiver, array $payload): bool
+    private function declaredSms(string $event_id, string $receiver, array $payload, array $order): bool
     {
         $decl = $this->declared[$event_id];
-        if (!in_array($receiver, $decl['receivers'], true)) {
+        if (!in_array($receiver, $decl->receivers(), true)) {
             return false;
         }
-        $order = isset($payload['order_info']) && is_array($payload['order_info']) ? $payload['order_info'] : [];
         $extra = ['custom' => []];
-        foreach ($decl['placeholders'] as $name => $path) {
-            if (is_string($name) && preg_match('/^[a-z0-9_]{1,40}$/D', $name) === 1 && is_string($path)) {
-                $value = self::path($payload, $path);
-                $extra['custom'][$name] = is_scalar($value) ? (string) $value : '';
+        foreach ($decl->placeholders() as $name => $path) {
+            $value = EventDeclaration::value($payload, $path);
+            $extra['custom'][$name] = is_scalar($value) ? (string) $value : '';
+        }
+        $computed = [];
+        if ($decl->dataClass() !== '') {
+            try {
+                $computed = $this->dataClass($decl->dataClass())->values($payload, $receiver);
+            } catch (\Throwable $e) {
+                FailureLog::report($this->log, 'order_sms.data_class_failed', $e);
+                $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
+
+                return false;
             }
         }
-        if ($receiver === 'C' && isset($decl['phone']) && is_string($decl['phone'])) {
-            $phone = self::path($payload, $decl['phone']);
-            if (is_scalar($phone) && trim((string) $phone) !== '') {
-                $order['phone'] = trim((string) $phone);
+        if (isset($computed['placeholders']) && is_array($computed['placeholders'])) {
+            foreach ($computed['placeholders'] as $name => $value) {
+                if (is_string($name) && preg_match('/^[a-z0-9_]{1,40}$/D', $name) === 1 && is_scalar($value)) {
+                    $extra['custom'][$name] = (string) $value;
+                }
             }
+        }
+        $secrets = [];
+        foreach ($decl->secretNames() as $name) {
+            if (($extra['custom'][$name] ?? '') !== '') {
+                $secrets[] = $extra['custom'][$name];
+            }
+        }
+        if (isset($computed['secret_values']) && is_array($computed['secret_values'])) {
+            foreach ($computed['secret_values'] as $value) {
+                if (is_scalar($value) && (string) $value !== '') {
+                    $secrets[] = (string) $value;
+                }
+            }
+        }
+        $extra['secret_values'] = $secrets;
+        $extra['ttl'] = isset($computed['ttl']) ? max(0, (int) $computed['ttl']) : 0;
+
+        // The order array carries what OrderSmsData reads: phone, language, country, user, vendor, storefront.
+        $scalar = static function (string $path) use ($payload): string {
+            $value = $path === '' ? null : EventDeclaration::value($payload, $path);
+
+            return is_scalar($value) && !is_bool($value) ? trim((string) $value) : '';
+        };
+        if ($receiver === 'C') {
+            $phone = $scalar($decl->path('phone'));
+            if ($phone === '' && isset($computed['phone']) && is_string($computed['phone'])) {
+                $phone = trim($computed['phone']);
+            }
+            if ($phone !== '') {
+                $order['phone'] = $phone;
+            }
+        }
+        $lang = strtolower($scalar($decl->path('lang')));
+        if (preg_match('/^[a-z]{2}$/D', $lang) === 1) {
+            $order['lang_code'] = $lang;
+        }
+        $country = strtoupper($scalar($decl->path('country')));
+        if (preg_match('/^[A-Z]{2}$/D', $country) === 1) {
+            $order['s_country'] = $country;
+        }
+        foreach (['user_id', 'company_id'] as $key) {
+            $id = (int) $scalar($decl->path($key));
+            if ($id > 0) {
+                $order[$key] = $id;
+            }
+        }
+        if ($this->storefront > 0 && (int) ($order['storefront_id'] ?? 0) <= 0) {
+            $order['storefront_id'] = $this->storefront;
+        }
+
+        $dedupe = null;
+        $key = $decl->dedupeKey($payload, $receiver);
+        if ($key !== '') {
+            $dedupe = ['key' => $key, 'window' => $decl->dedupeWindow(), 'reason' => $decl->dedupeReason()];
+        } elseif ($decl->dedupeKeyError() !== '' && $this->log !== null) {
+            // The send goes out without dedupe (the spec of format v2); the error row says why.
+            $this->log->log('error', 'order_sms.dedupe_key', 'dedupe key not resolved: no dedupe for this SMS', [
+                'event_id' => $event_id, 'receiver' => $receiver, 'token' => $decl->dedupeKeyError(),
+            ]);
         }
 
         return $this->deliver($event_id, $receiver, $order, $extra, $this->orders->actor(), [
             'order_id' => (int) ($order['order_id'] ?? 0),
             'parent_order_id' => (int) ($order['parent_order_id'] ?? 0),
-        ]);
+        ], $dedupe);
+    }
+
+    /**
+     * The instance of a data_class; throws when the class is missing or does not implement DeclaredSmsData.
+     */
+    private function dataClass(string $class): DeclaredSmsData
+    {
+        if (!isset($this->data_classes[$class])) {
+            $instance = class_exists($class) ? new $class() : null;
+            if (!$instance instanceof DeclaredSmsData) {
+                throw new \RuntimeException('data_class ' . $class . ' is not a DeclaredSmsData');
+            }
+            $this->data_classes[$class] = $instance;
+        }
+
+        return $this->data_classes[$class];
     }
 
     // ------------------------------------------------------------------------------------------ delivery
@@ -397,6 +530,10 @@ class OrderNotifier
      * @param array<string,mixed> $extra placeholders extras (order_ids, vendor_name) and custom => [name => value]
      * @param array<string,mixed> $actor OrderSource::actor()
      * @param array<string,int>   $ids   order_id, parent_order_id of the log rows
+     * @param array<string,mixed>|null $dedupe 2026-10-22 17:12 +03: Task A4, task 596. key, window, reason of a
+     * declared event's
+     *                                         dedupe; claimed once the numbers and the text are known, just before
+     * the send
      */
     private function deliver(
         string $event_id,
@@ -404,11 +541,23 @@ class OrderNotifier
         array $order,
         array $extra,
         array $actor,
-        array $ids
+        array $ids,
+        ?array $dedupe = null
     ): bool {
         if ($receiver === 'A') {
             $phones = $this->config->adminPhones();
             $lang = $this->data->adminLang($this->config->adminAlertLang());
+        } elseif ($receiver === 'V') {
+            // 2026-10-22 17:12 +03: Task A4, task 596. The vendor's approved number (P2-5) and the vendor's language,
+            // else the
+            // backend default language.
+            $company_id = (int) ($order['company_id'] ?? 0);
+            $phone = $company_id > 0 && $this->vendor_phones !== null
+                ? $this->vendor_phones->approvedPhone($company_id) : '';
+            $phones = $phone === '' ? [] : [$phone];
+            $vendor_lang = $company_id > 0 && function_exists('fn_get_company_language')
+                ? strtolower((string) fn_get_company_language($company_id)) : '';
+            $lang = $this->data->adminLang($vendor_lang);
         } else {
             $phone = OrderSmsData::customerPhone($order, $this->orders->profilePhone((int) ($order['user_id'] ?? 0)));
             $phones = $phone === '' ? [] : [$phone];
@@ -417,7 +566,10 @@ class OrderNotifier
         $log_order = array_merge($order, $ids);
         if ($phones === []) {
             $reason = $receiver === 'A' ? 'admin_phones_empty' : 'order_has_no_phone';
-            $this->skip(self::NO_PHONE, $reason, $log_order, $event_id, $receiver);
+            if ($receiver === 'V') {
+                $reason = 'vendor_not_approved';
+            }
+            $this->skip(self::NO_PHONE, $reason, $log_order, $event_id, $receiver, $receiver === 'V' ? [] : null);
 
             return false;
         }
@@ -431,7 +583,13 @@ class OrderNotifier
         }
         $text_lang = (string) $template['lang'];
         $custom = isset($extra['custom']) && is_array($extra['custom']) ? $extra['custom'] : [];
-        unset($extra['custom']);
+        // 2026-10-22 17:12 +03: Task A4, task 596. Secret values (masked in every log copy) and the outbox TTL come
+        // from the
+        // declaration; neither is a placeholder of the order data.
+        $secret_values = isset($extra['secret_values']) && is_array($extra['secret_values'])
+            ? $extra['secret_values'] : [];
+        $ttl = (int) ($extra['ttl'] ?? 0);
+        unset($extra['custom'], $extra['secret_values'], $extra['ttl']);
         $vars = $this->data->placeholders($order, $text_lang, $extra);
         foreach ($custom as $name => $value) {
             $vars[$name] = $value;
@@ -453,6 +611,12 @@ class OrderNotifier
             'interactive' => false,
             'country_iso' => $receiver === 'C' ? OrderSmsData::countryIso($order) : '',
         ];
+        if ($secret_values !== []) {
+            $context['secret_values'] = $secret_values;
+        }
+        if ($ttl > 0) {
+            $context['ttl'] = $ttl;
+        }
         $log = [
             'event_id' => $event_id,
             'receiver' => $receiver,
@@ -467,6 +631,15 @@ class OrderNotifier
         // 2026-10-21 04:20 +03: the SMS waits in the outbox, due now, not in PHP memory (fix round 1 item 1), task 596.
         // 2026-10-21 16:52 +03: the mode decides: fpm/litespeed send after the response, cron leaves the row for the
         // cron, inline sends now (final review I2, ruling R52), task 596.
+        // 2026-10-22 17:12 +03: Task A4, task 596. The declared dedupe key is claimed here, after the numbers and the
+        // text are
+        // known: an SMS that cannot go out burns no key.
+        if ($dedupe !== null && !$this->keys->claim((string) $dedupe['key'], (int) $dedupe['window'])) {
+            $why = (string) ($dedupe['reason'] !== '' ? $dedupe['reason'] : $dedupe['key']);
+            $this->skip(self::DUPLICATE, $why, $log_order, $event_id, $receiver, $phones);
+
+            return false;
+        }
         $mode = $this->sendMode($actor);
         if (AfterResponse::afterResponse($mode) || $mode === AfterResponse::CRON) {
             $outbox_id = $this->sms->queueAfterResponse($phones, $text, $context);
@@ -591,25 +764,7 @@ class OrderNotifier
         ]);
     }
 
-    /**
-     * A dotted path in the event data ("shipment.tracking_number"), null when missing.
-     *
-     * @param array<string,mixed> $data
-     *
-     * @return mixed|null
-     */
-    private static function path(array $data, string $path)
-    {
-        $value = $data;
-        foreach (explode('.', $path) as $segment) {
-            if (!is_array($value) || !array_key_exists($segment, $value)) {
-                return null;
-            }
-            $value = $value[$segment];
-        }
-
-        return $value;
-    }
+    // 2026-10-22 17:20 +03, Task A4, task 596: the dotted-path reader moved to EventDeclaration::value().
 
     /**
      * @param array<string,mixed> $context

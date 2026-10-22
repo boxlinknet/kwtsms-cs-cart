@@ -4607,3 +4607,17 @@ msgstr "[storefront]: لم يتغير معرف المرسل إلى KWT-SMS. مع
 msgctxt "Languages::kwtsms.settings.sf_sender_bad_storefront"
 msgid "A storefront that is not in this store was ignored."
 msgstr "تم تجاهل واجهة متجر ليست ضمن هذا المتجر."
+
+# 2026-10-22 17:13 +03: Task A4, task 596. Attempt reasons of the vendor receiver and of a missing declared data class (Admin\LogsPage::LABELLED_REASONS) and the
+# shared Templates heading of declared events.
+msgctxt "Languages::kwtsms.logs.reason.vendor_not_approved"
+msgid "The vendor has no approved SMS number."
+msgstr "لا يوجد للبائع رقم رسائل معتمد."
+
+msgctxt "Languages::kwtsms.logs.reason.platform_missing"
+msgid "The add-on that declared this SMS is not working: its data class is missing."
+msgstr "الإضافة التي أعلنت هذه الرسالة لا تعمل: فئة بياناتها مفقودة."
+
+msgctxt "Languages::kwtsms.templates.group_events"
+msgid "Other events"
+msgstr "أحداث أخرى"

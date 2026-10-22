@@ -61,6 +61,9 @@ class Defaults
      */
     public const STATUS_CODES = ['A', 'B', 'C', 'D', 'F', 'I', 'O', 'P', 'Y'];
 
+    /** @var array<string,array{placeholders:array<int,string>,secret:array<int,string>}> Declared events (Task A4) */
+    private static $declared = [];
+
     /** Currencies with a shipped name (kwtsms.currency.<ISO>). */
     public const CURRENCIES = ['KWD', 'SAR', 'AED', 'QAR', 'BHD', 'OMR', 'USD', 'EUR', 'EGP'];
 
@@ -130,7 +133,26 @@ class Defaults
      */
     public static function allowedPlaceholders(string $event_id, string $receiver): array
     {
-        return self::PLACEHOLDERS;
+        // 2026-10-22 17:12 +03: Task A4, task 596. A declared event adds the placeholder names of its declaration.
+        $declared = self::$declared[$event_id]['placeholders'] ?? [];
+
+        if ($declared === []) {
+            return self::PLACEHOLDERS;
+        }
+
+        return array_values(array_unique(array_merge(self::PLACEHOLDERS, $declared)));
+    }
+
+    /**
+     * 2026-10-22 17:12 +03: Task A4, task 596. The placeholder names (and the secret ones) of the declared events, so
+     * the Templates
+     * page and the unknown-placeholder check know {tracking} of a declaration. Set once per request by the container.
+     *
+     * @param array<string,array{placeholders:array<int,string>,secret:array<int,string>}> $declared event id => names
+     */
+    public static function registerDeclared(array $declared): void
+    {
+        self::$declared = $declared;
     }
 
     /**
@@ -139,9 +161,10 @@ class Defaults
      *
      * @return array<int,string>
      */
-    public static function secretPlaceholders(): array
+    public static function secretPlaceholders(string $event_id = ''): array
     {
-        return [];
+        // 2026-10-22 17:12 +03: Task A4, task 596. The secret names of a declared event (`secret` of format v2).
+        return $event_id === '' ? [] : (self::$declared[$event_id]['secret'] ?? []);
     }
 
     public static function statusLangvar(string $code): string
@@ -171,7 +194,7 @@ class Defaults
             'parent' => $parent,
             'status' => $status,
             'placeholders' => self::allowedPlaceholders($event_id, $receiver),
-            'secret' => self::secretPlaceholders(),
+            'secret' => self::secretPlaceholders($event_id),
             'mve_only' => $mve_only,
         ];
     }

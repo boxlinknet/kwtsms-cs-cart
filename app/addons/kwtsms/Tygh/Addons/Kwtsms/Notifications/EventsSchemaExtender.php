@@ -18,7 +18,10 @@
  *              $schema['acme.shipped'] = ['receivers' => ['C', 'A'],
  *                  'placeholders' => ['tracking' => 'shipment.tracking_number'],  // {tracking}: dotted data path
  *                  'phone' => 'user_data.phone'];                                  // optional customer phone path
- * USAGE:     $schema = (new EventsSchemaExtender(fn_get_schema('kwtsms', 'events')))->extend($schema);
+ *            2026-10-22 17:11 +03, Task A4, task 596: format v2 (see EventDeclaration and schemas/kwtsms/events.php):
+ *            receivers C, A and, in Multi-Vendor only, V; a core event gets the transport only for receivers the merged
+ *            schema already has; our own kwtsms.* events get every declared receiver.
+ * USAGE:     $schema = (new EventsSchemaExtender(fn_get_schema('kwtsms', 'events'), $is_mve))->extend($schema);
  * DEPENDS:   Notifications\SmsMessageSchema.
  */
 
@@ -30,18 +33,34 @@ class EventsSchemaExtender
 
     public const STATUS_PREFIX = 'order.status_changed.';
 
-    /** Phase 1 receivers. */
-    public const RECEIVERS = ['C', 'A'];
+    /** Receivers of the order status events (the vendor receiver of a status event is not in Phase 2). */
+    public const STATUS_RECEIVERS = ['C', 'A'];
 
-    /** @var array<string,array<string,mixed>> */
+    /** Prefix of the add-on's own events: their declared receivers are attached even where the schema lacks them. */
+    public const OWN_PREFIX = 'kwtsms.';
+
+    /** @var array<string,EventDeclaration> */
     private $declared;
 
     /**
      * @param array<mixed,mixed> $declared The kwtsms events schema: event id => ['receivers' => [...], ...]
+     * @param bool               $is_mve   2026-10-22 17:11 +03: Task A4, task 596. Multi-Vendor keeps receiver V
      */
-    public function __construct(array $declared = [])
+    public function __construct(array $declared = [], bool $is_mve = false)
     {
-        $this->declared = self::validDeclarations($declared);
+        $this->declared = self::declarations($declared, $is_mve);
+    }
+
+    /**
+     * 2026-10-22 17:11 +03: Task A4, task 596. Replaces the 1.0.0 constant RECEIVERS: the receivers an SMS can have;
+     * V only in
+     * Multi-Vendor.
+     *
+     * @return string[]
+     */
+    public static function receivers(bool $is_mve): array
+    {
+        return $is_mve ? ['C', 'A', 'V'] : ['C', 'A'];
     }
 
     /**
@@ -59,7 +78,7 @@ class EventsSchemaExtender
                 if (!isset($event['receivers']) || !is_array($event['receivers'])) {
                     continue;
                 }
-                foreach (self::RECEIVERS as $receiver) {
+                foreach (self::STATUS_RECEIVERS as $receiver) {
                     if (isset($event['receivers'][$receiver]) && is_array($event['receivers'][$receiver])) {
                         $sms = self::schemaFor($event_id, $receiver);
                         $schema[$event_id]['receivers'][$receiver][self::TRANSPORT_ID] = $sms;
@@ -73,7 +92,15 @@ class EventsSchemaExtender
             if (!isset($event['receivers']) || !is_array($event['receivers'])) {
                 $schema[$event_id]['receivers'] = [];
             }
-            foreach ($this->declared[$event_id]['receivers'] as $receiver) {
+            $own = strpos($event_id, self::OWN_PREFIX) === 0;
+            foreach ($this->declared[$event_id]->receivers() as $receiver) {
+                // 2026-10-22 17:11 +03: Task A4, task 596. A core event gets the SMS transport only for the receivers
+                // the merged
+                // schema already has (it never adds A to order.shipment_updated); our own kwtsms.* events get every
+                // declared receiver.
+                if (!$own && !isset($schema[$event_id]['receivers'][$receiver])) {
+                    continue;
+                }
                 $current = $schema[$event_id]['receivers'][$receiver] ?? [];
                 if (!is_array($current)) {
                     continue;
@@ -87,29 +114,44 @@ class EventsSchemaExtender
     }
 
     /**
-     * The usable declarations: string event id, receivers a list holding C and/or A.
+     * The usable declarations as validated objects (2026-10-22 17:11 +03: Task A4, task 596).
+     *
+     * @param array<mixed,mixed> $declared
+     *
+     * @return array<string,EventDeclaration>
+     */
+    public static function declarations(array $declared, bool $is_mve = false): array
+    {
+        $out = [];
+        foreach ($declared as $event_id => $decl) {
+            if (!is_string($event_id) || !is_array($decl)) {
+                continue;
+            }
+            $parsed = EventDeclaration::fromArray($event_id, $decl, $is_mve);
+            if ($parsed !== null) {
+                $out[$event_id] = $parsed;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * The usable declarations as arrays: string event id, receivers a list holding C, A and (Multi-Vendor) V,
+     * placeholders an array; every other key as declared. 2026-10-22 17:11 +03: V and the format v2 (Task A4, task
+     * 596).
      *
      * @param array<mixed,mixed> $declared
      *
      * @return array<string,array<string,mixed>>
      */
-    public static function validDeclarations(array $declared): array
+    public static function validDeclarations(array $declared, bool $is_mve = false): array
     {
         $out = [];
-        foreach ($declared as $event_id => $decl) {
-            $usable = is_string($event_id) && $event_id !== '' && is_array($decl)
-                && isset($decl['receivers']) && is_array($decl['receivers']);
-            if (!$usable) {
-                continue;
-            }
-            $receivers = array_values(array_intersect(self::RECEIVERS, $decl['receivers']));
-            if ($receivers === []) {
-                continue;
-            }
-            $decl['receivers'] = $receivers;
-            if (!isset($decl['placeholders']) || !is_array($decl['placeholders'])) {
-                $decl['placeholders'] = [];
-            }
+        foreach (self::declarations($declared, $is_mve) as $event_id => $parsed) {
+            $decl = $declared[$event_id];
+            $decl['receivers'] = $parsed->receivers();
+            $decl['placeholders'] = $parsed->placeholders();
             $out[$event_id] = $decl;
         }
 

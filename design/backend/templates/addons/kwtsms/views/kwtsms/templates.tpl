@@ -134,11 +134,11 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
         </thead>
         {$group = ""}
         {foreach $t.rows as $row}
-            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{else}{$row_group = "generic"}{/if}
+            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{elseif $row.kind == "declared"}{$row_group = "declared:`$row.group_key`"}{else}{$row_group = "generic"}{/if}
             {if $row_group != $group}
                 {if $group != ""}</tbody>{/if}
                 <tbody>
-                <tr class="kwtsms-group"><th colspan="5" scope="rowgroup">{__("kwtsms.templates.group_`$row_group`")}</th></tr>
+                <tr class="kwtsms-group"><th colspan="5" scope="rowgroup">{if $row.kind == "declared"}{$row.group_label}{else}{__("kwtsms.templates.group_`$row_group`")}{/if}</th></tr>
                 {$group = $row_group}
             {/if}
             {$edit_href = "kwtsms.templates?lang=`$t.lang``$sfq`&edit="|cat:($row.key|escape:"url")}

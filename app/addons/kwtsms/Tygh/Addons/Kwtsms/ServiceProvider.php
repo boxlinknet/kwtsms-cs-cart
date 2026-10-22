@@ -61,6 +61,7 @@ use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Notifications\SmsTransport;
+use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
 // 2026-10-21 16:53 +03: AfterResponse decides the order SMS send mode (final review I2), task 596.
 use Tygh\Addons\Kwtsms\Orders\AfterResponse;
 use Tygh\Addons\Kwtsms\Orders\CheckoutRules;
@@ -273,7 +274,26 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         $app['kwtsms.templates'] = function (Container $app): TemplateRepository {
-            return new TemplateRepository($app['kwtsms.logs.debug']);
+            $repository = new TemplateRepository($app['kwtsms.logs.debug']);
+            // 2026-10-22 17:12 +03: Task A4, task 596. The declared events' rows and placeholders on the Templates
+            // page.
+            $repository->setDeclarations(
+                EventsSchemaExtender::declarations($app['kwtsms.declared_events'], self::isMultiVendor())
+            );
+
+            return $repository;
+        };
+
+        // 2026-10-22 17:12 +03: Task A4, task 596. Approved vendor numbers (receiver V): nobody is approved until
+        // Task A8 binds
+        // Vendors\VendorPhones here.
+        $app['kwtsms.vendor_phones'] = function (): VendorPhoneSourceInterface {
+            return new class implements VendorPhoneSourceInterface {
+                public function approvedPhone(int $company_id): string
+                {
+                    return '';
+                }
+            };
         };
 
         $app['kwtsms.order_sms_data'] = function (Container $app): OrderSmsData {
@@ -353,7 +373,8 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-10-21 16:53 +03: fpm, litespeed, cron (heartbeat within 2 intervals) or inline (final
                 // review I2, ruling R52), task 596.
                 [new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']), 'mode'],
-                $app['kwtsms.storefront_rules']
+                $app['kwtsms.storefront_rules'],
+                $app['kwtsms.vendor_phones']
             );
         };
 
@@ -393,6 +414,15 @@ class ServiceProvider implements ServiceProviderInterface
     }
 
     /**
+     * True in a Multi-Vendor store (false outside CS-Cart, as in the unit suites). 2026-10-22 17:14 +03: Task A4,
+     * task 596.
+     */
+    private static function isMultiVendor(): bool
+    {
+        return function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR');
+    }
+
+    /**
      * Attaches the SMS transport to the merged events schema and makes its switches fail-closed (PRD 4.1), by
      * extending core's event.events_schema and event.notification_settings. Guarded: when a service was already
      * built in this request (another add-on read it during its own init) or Pimple refuses the extension, the
@@ -410,7 +440,9 @@ class ServiceProvider implements ServiceProviderInterface
         $extensions = [
             'event.events_schema' => static function ($schema, Container $app) {
                 try {
-                    return (new EventsSchemaExtender($app['kwtsms.declared_events']))->extend((array) $schema);
+                    $extender = new EventsSchemaExtender($app['kwtsms.declared_events'], self::isMultiVendor());
+
+                    return $extender->extend((array) $schema);
                 } catch (\Throwable $e) {
                     self::logError('events schema extension failed', $e);
 

@@ -296,7 +296,9 @@ class TemplatesPage
         $switch = null;
         $sf_switch = null;
         $note = '';
-        if ($kind === 'placed' || $kind === 'status') {
+        // 2026-10-22 17:13 +03: Task A4, task 596. A declared event has a switch of its own (V rows too, OFF until
+        // stored).
+        if ($kind === 'placed' || $kind === 'status' || $kind === 'declared') {
             if (isset($switches[$event_id][$receiver])) {
                 $switch = ['on' => $switches[$event_id][$receiver]];
                 // 2026-10-22 16:13 +03: Task A3, task 596. The storefront's own override under the master state shown above.
@@ -320,6 +322,10 @@ class TemplatesPage
             'status_name' => (string) $source['status_name'],
             'switch' => $switch,
             'sf_switch' => $sf_switch,
+            // 2026-10-22 17:13 +03: Task A4, task 596. The heading of a declared event's rows: its group langvar,
+            // else "Other events".
+            'group_key' => $kind === 'declared' ? (string) ($source['group'] ?? '') : '',
+            'group_label' => $kind === 'declared' ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
             'switch_note' => $note,
             'badge' => $badge,
             'has_text' => $effective !== '',
@@ -329,6 +335,23 @@ class TemplatesPage
             'unicode' => MessageCleaner::isUnicode($sent),
             'editing' => false,
         ];
+    }
+
+    /**
+     * 2026-10-22 17:13 +03: Task A4, task 596. The heading text of a declared group: the language variable when it
+     * exists, else
+     * the shared "Other events" heading (never a raw key on the page).
+     */
+    private function groupLabel(string $langvar): string
+    {
+        if ($langvar !== '') {
+            $text = (string) __($langvar);
+            if ($text !== '' && $text !== '_' . $langvar && $text !== '_' . strtolower($langvar)) {
+                return $text;
+            }
+        }
+
+        return (string) __('kwtsms.templates.group_events');
     }
 
     /**
@@ -958,7 +981,8 @@ class TemplatesPage
         if (
             ($enable !== 'Y' && $enable !== 'N')
             || $row === null
-            || !in_array($row['kind'], ['placed', 'status'], true)
+            // 2026-10-22 17:13 +03: declared rows have a switch too, Task A4, task 596
+            || !in_array($row['kind'], ['placed', 'status', 'declared'], true)
             || !isset($switches[$input['event_id']][$input['receiver']])
         ) {
             $this->say('E', 'kwtsms.templates.switch_unknown');
@@ -1021,7 +1045,8 @@ class TemplatesPage
         if (
             ($state !== 'off' && $state !== 'inherit')
             || $row === null
-            || !in_array($row['kind'], ['placed', 'status'], true)
+            // 2026-10-22 17:13 +03: declared rows have a switch too, Task A4, task 596
+            || !in_array($row['kind'], ['placed', 'status', 'declared'], true)
             || !isset($switches[$input['event_id']][$input['receiver']])
             || $this->rules === null
         ) {

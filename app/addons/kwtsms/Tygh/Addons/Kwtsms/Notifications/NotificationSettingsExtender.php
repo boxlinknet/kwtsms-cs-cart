@@ -46,7 +46,10 @@ class NotificationSettingsExtender
                 if (isset($stored_kwtsms_rows[$event_id][$receiver])) {
                     $value = (bool) $stored_kwtsms_rows[$event_id][$receiver];
                 } else {
-                    $value = self::DEFAULT_ON[$event_id][$receiver] ?? false;
+                    // 2026-10-22 17:12 +03, Task A4, task 596: the vendor receiver V is never ON without a stored row,
+                    // whatever DEFAULT_ON says (fail-closed; a vendor SMS needs an approved number and a merchant
+                    // choice).
+                    $value = $receiver !== 'V' && (self::DEFAULT_ON[$event_id][$receiver] ?? false);
                 }
                 $settings[$event_id]['receivers'][$receiver][EventsSchemaExtender::TRANSPORT_ID] = $value;
             }
