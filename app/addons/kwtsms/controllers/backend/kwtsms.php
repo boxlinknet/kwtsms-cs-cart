@@ -28,6 +28,9 @@
  *            (ServiceProvider), the page templates in design/backend/templates/addons/kwtsms/views/kwtsms/.
  * CHANGED:   2026-10-21 07:03 +03: USAGE and DEPENDS list every page (Tasks 1.13 and 1.15 fix round 1, task 596).
  *            2026-10-21 08:39 +03: WHAT describes the finished seven pages (cleanup item 13, task 596).
+ *            2026-10-22 22:26 +03: Task A8, task 596: the Vendor SMS page (GET vendors, Multi-Vendor only) and its
+ *            POST modes update_vendor_phone (.approve | .revoke) and update_vendor_quotas, handled by
+ *            Admin\VendorsPage.
  */
 
 // 2026-10-21 07:03 +03: the shared cron line helper, Tasks 1.13 and 1.15 fix round 1, task 596.
@@ -45,6 +48,8 @@ use Tygh\Addons\Kwtsms\Admin\Navigation;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
 use Tygh\Addons\Kwtsms\Admin\TemplatesPage;
+// 2026-10-22 22:26 +03: the Vendor SMS page, Task A8, task 596.
+use Tygh\Addons\Kwtsms\Admin\VendorsPage;
 use Tygh\Registry;
 use Tygh\Tygh;
 
@@ -240,6 +245,31 @@ try {
                 $kwtsms_session['kwtsms_alerts_result'] = $kwtsms_flash;
 
                 return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.admin_alerts#kwtsms_alerts_result'];
+
+            // 2026-10-22 22:26 +03: the Vendor SMS page (Task A8, SafatMall F4, task 596). The gate has asked for a
+            // root administrator on
+            // All storefronts, manage_kwtsms and the security hash, so a vendor administrator never gets here.
+            // update_vendor_phone.approve | .revoke act on one vendor; update_vendor_quotas saves the quota fields.
+            case 'update_vendor_phone':
+            case 'update_vendor_quotas':
+                $kwtsms_vendors = VendorsPage::fromContainer(Tygh::$app);
+                if ($mode === 'update_vendor_phone') {
+                    $kwtsms_vendors->updatePhone(
+                        isset($_POST['kwtsms_vendor']) ? $_POST['kwtsms_vendor'] : [],
+                        isset($action) && is_string($action) ? $action : '',
+                        isset($auth['user_id']) ? (int) $auth['user_id'] : 0
+                    );
+                } else {
+                    $kwtsms_vendors->updateQuotas(isset($_POST['kwtsms_quota']) ? $_POST['kwtsms_quota'] : []);
+                }
+                $kwtsms_vendor_page = isset($_POST['kwtsms_page']) && is_string($_POST['kwtsms_page'])
+                    && ctype_digit($_POST['kwtsms_page']) && strlen($_POST['kwtsms_page']) <= 6
+                    ? (int) $_POST['kwtsms_page'] : 1;
+
+                return [
+                    CONTROLLER_STATUS_REDIRECT,
+                    'kwtsms.vendors' . ($kwtsms_vendor_page > 1 ? '?page=' . $kwtsms_vendor_page : ''),
+                ];
 
             // 2026-10-21 04:24 +03: the Integrations page, Multi-Vendor settings (Task 1.13, task 596).
             case 'update_integrations':
@@ -579,6 +609,32 @@ try {
         return [CONTROLLER_STATUS_OK];
     }
 
+    // 2026-10-22 22:26 +03: the Vendor SMS page (Task A8, task 596). Multi-Vendor only: elsewhere a notice and the
+    // 404 page. A GET
+    // handler never writes.
+    if ($mode === 'vendors') {
+        if (!fn_allowed_for('MULTIVENDOR')) {
+            fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.vendors.mve_only')));
+
+            return [CONTROLLER_STATUS_NO_PAGE];
+        }
+        $kwtsms_has = static function (string $privilege): bool {
+            return fn_check_current_user_access($privilege) === true;
+        };
+        $kwtsms_nav = Navigation::sections('vendors', $kwtsms_has);
+        Registry::set('navigation.dynamic.sections', $kwtsms_nav);
+        Registry::set('navigation.dynamic.active_section', 'vendors');
+
+        Tygh::$app['view']->assign('kwtsms_vendors', VendorsPage::fromContainer(Tygh::$app)->viewData(
+            $kwtsms_has,
+            isset($_REQUEST['page']) && is_string($_REQUEST['page']) && ctype_digit($_REQUEST['page'])
+                && strlen($_REQUEST['page']) <= 6 ? (int) $_REQUEST['page'] : 1
+        ));
+        Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
+
+        return [CONTROLLER_STATUS_OK];
+    }
+
     if ($mode === 'integrations') {
         $kwtsms_has = static function (string $privilege): bool {
             return fn_check_current_user_access($privilege) === true;
@@ -692,6 +748,9 @@ try {
         $kwtsms_failed_url = 'kwtsms.admin_alerts';
     } elseif ((string) $mode === 'update_integrations') {
         $kwtsms_failed_url = 'kwtsms.integrations';
+    } elseif ((string) $mode === 'update_vendor_phone' || (string) $mode === 'update_vendor_quotas') {
+        // 2026-10-22 22:26 +03: Task A8, task 596.
+        $kwtsms_failed_url = 'kwtsms.vendors';
     }
     // 2026-10-21 05:55 +03: a failed Clear or Resend goes back to the Logs page (Task 1.14, task 596).
     if ((string) $mode === 'clear_logs' || (string) $mode === 'resend') {

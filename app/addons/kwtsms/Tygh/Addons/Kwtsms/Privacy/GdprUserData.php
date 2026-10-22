@@ -29,6 +29,10 @@
  *            its OTP or reset link is still in clear) is masked with the row's secret_values, which never enter the
  *            collected data (rule D7); the FAILED marker carries an sms_text line (failedMarker()), so core's view
  *            and export say the SMS data could not be read.
+ *            2026-10-22 22:23 +03, Task A8, task 596: NOT APPLICABLE to vendors. A vendor is a company, not a user
+ *            account: the approved vendor number (kwtsms_vendor_phones), the vendor V messages and attempts belong to
+ *            the company (company_id) and are removed with it (delete_company hook), never through this personal data
+ *            path, which finds rows by user id, the customer's orders and the customer's own numbers.
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]

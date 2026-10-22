@@ -156,6 +156,10 @@ class Defaults
         // 2026-10-22 21:29 +03: Task A7 (SafatMall F5 part), task 596. Low-stock SMS: admin, vendor.
         $rows[] = self::row(self::EVENT_LOW_STOCK, self::RECEIVER_ADMIN);
         $rows[] = self::row(self::EVENT_LOW_STOCK, self::RECEIVER_VENDOR, '', '', true);
+        // 2026-10-22 22:24 +03: Task A8 (SafatMall F4, R9), task 596. The vendor's new-order SMS (one per child order
+        // of a Multi-Vendor
+        // checkout; child id, child total, marketplace brand, no {vendor_name}).
+        $rows[] = self::row(self::EVENT_PLACED, self::RECEIVER_VENDOR, '', '', true);
 
         return $rows;
     }

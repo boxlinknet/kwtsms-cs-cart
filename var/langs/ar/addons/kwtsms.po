@@ -3029,9 +3029,10 @@ msgctxt "Languages::kwtsms.integrations.mve.vendor_triggered.help"
 msgid "A status already texted in the last 24 hours is never texted twice."
 msgstr "الحالة التي أُرسلت رسالتها خلال آخر 24 ساعة لا تُرسل مرتين."
 
+# 2026-10-22 22:28 +03: Task A8, task 596. Vendor SMS exists in 1.1: the Integrations note says where it is set up.
 msgctxt "Languages::kwtsms.integrations.mve.vendor_sms"
-msgid "Vendor SMS: not included in 1.0, planned for 1.1"
-msgstr "رسائل البائعين: غير مضمنة في الإصدار 1.0، ومخطط لها في 1.1"
+msgid "Vendor SMS: new orders and low stock go to a number you approve on the Vendor SMS page."
+msgstr "رسائل البائعين: تصل الطلبات الجديدة وتنبيهات انخفاض المخزون إلى رقم توافق عليه في صفحة رسائل البائعين."
 
 msgctxt "Languages::kwtsms.integrations.field.mve_customer_new_order"
 msgid "Customer new-order SMS"
@@ -3176,9 +3177,10 @@ msgctxt "Languages::kwtsms.help.overview.li4"
 msgid "A dashboard, a log of every message, and a list of administrator numbers for order alerts."
 msgstr "لوحة معلومات، وسجل لكل رسالة، وقائمة بأرقام المدراء لتنبيهات الطلبات."
 
+# 2026-10-22 22:46 +03: Task A8, task 596. Vendor SMS exists in 1.1 (Multi-Vendor), on a number the administrator approves.
 msgctxt "Languages::kwtsms.help.overview.p2"
-msgid "kwtSMS sends one-way messages, so customers can't reply. Vendor SMS is not included in version 1.0 and is planned for 1.1."
-msgstr "يرسل kwtSMS رسائل باتجاه واحد، فلا يستطيع العملاء الرد. رسائل البائعين غير مضمنة في الإصدار 1.0 ومخطط لها في 1.1."
+msgid "kwtSMS sends one-way messages, so customers can't reply. In Multi-Vendor, vendors get SMS too, on a number you approve on the Vendor SMS page."
+msgstr "يرسل kwtSMS رسائل باتجاه واحد، فلا يستطيع العملاء الرد. في Multi-Vendor يتلقى البائعون رسائل أيضا، على رقم توافق عليه في صفحة رسائل البائعين."
 
 msgctxt "Languages::kwtsms.help.account.title"
 msgid "Your kwtSMS account"
@@ -4778,4 +4780,219 @@ msgstr "منتجات أخرى (+N)"
 msgctxt "Languages::kwtsms.logs.reason.low_stock_window"
 msgid "This product already triggered a low-stock SMS in the last 24 hours."
 msgstr "تم إرسال رسالة انخفاض مخزون لهذا المنتج خلال آخر 24 ساعة."
+
+
+# 2026-10-22 22:28 +03: Task A8, task 596. Vendor SMS (SafatMall F4): the Vendor SMS page, the vendor new-order default text, the
+# Vendor label of the Templates page, the vendor_quota reason.
+msgctxt "Languages::kwtsms.tpl.kwtsms.order_placed.V"
+msgid "{store_name}: New order {order_id}, {order_total} {currency}."
+msgstr "طلب جديد رقم {order_id} في {store_name}، {order_total} {currency}"
+
+msgctxt "Languages::kwtsms.nav.vendors"
+msgid "Vendor SMS"
+msgstr "رسائل البائعين"
+
+msgctxt "Languages::kwtsms.templates.vendor"
+msgid "Vendor"
+msgstr "البائع"
+
+msgctxt "Languages::kwtsms.logs.reason.vendor_quota"
+msgid "The vendor reached its monthly SMS quota."
+msgstr "بلغ البائع حصته الشهرية من الرسائل."
+
+msgctxt "Languages::kwtsms.vendors.title"
+msgid "Vendor SMS"
+msgstr "رسائل البائعين"
+
+msgctxt "Languages::kwtsms.vendors.intro"
+msgid "Vendors get an SMS for each new order and when stock runs low. It goes to one number that you approve. If a vendor changes its phone number or is no longer active, the approval ends until you approve it again."
+msgstr "يتلقى البائعون رسالة نصية عن كل طلب جديد وعند انخفاض المخزون. تصل الرسالة إلى رقم واحد توافق عليه. إذا غيّر البائع رقم هاتفه أو لم يعد نشطا، تنتهي الموافقة إلى أن توافق عليه من جديد."
+
+msgctxt "Languages::kwtsms.vendors.sms_off"
+msgid "SMS is off or not set up, so nothing is sent yet. Turn it on in Settings."
+msgstr "الرسائل متوقفة أو غير مهيأة، لذلك لا يُرسل شيء الآن. فعّلها من صفحة الإعدادات."
+
+msgctxt "Languages::kwtsms.vendors.switches.title"
+msgid "Vendor SMS switches"
+msgstr "مفاتيح رسائل البائعين"
+
+msgctxt "Languages::kwtsms.vendors.switches.placed"
+msgid "New order SMS to vendors"
+msgstr "رسالة الطلب الجديد إلى البائعين"
+
+msgctxt "Languages::kwtsms.vendors.switches.low_stock"
+msgid "Low stock SMS to vendors"
+msgstr "رسالة انخفاض المخزون إلى البائعين"
+
+msgctxt "Languages::kwtsms.vendors.switches.help"
+msgid "Both are off until you turn them on in the Templates page, where you can also edit the texts."
+msgstr "كلاهما متوقف حتى تفعّله من صفحة القوالب، وفيها يمكنك أيضا تعديل النصوص."
+
+msgctxt "Languages::kwtsms.vendors.switches.open"
+msgid "Open Templates"
+msgstr "فتح القوالب"
+
+msgctxt "Languages::kwtsms.vendors.quota.title"
+msgid "Monthly quota"
+msgstr "الحصة الشهرية"
+
+msgctxt "Languages::kwtsms.vendors.quota.help"
+msgid "How many recipients one vendor can text in a calendar month. 0 turns vendor SMS off. Sends already on their way when the limit is reached can still go through."
+msgstr "عدد المستلمين الذين يستطيع بائع واحد مراسلتهم في الشهر الميلادي. القيمة 0 توقف رسائل البائعين. قد تمر الرسائل التي كانت في الطريق عند بلوغ الحد."
+
+msgctxt "Languages::kwtsms.vendors.quota.default"
+msgid "Default quota per vendor"
+msgstr "الحصة الافتراضية لكل بائع"
+
+msgctxt "Languages::kwtsms.vendors.quota.default_help"
+msgid "A whole number from 0 to [max]. The count restarts on the 1st of each month."
+msgstr "رقم صحيح من 0 إلى [max]. يبدأ العد من جديد في أول كل شهر."
+
+msgctxt "Languages::kwtsms.vendors.quota.save"
+msgid "Save quota"
+msgstr "حفظ الحصة"
+
+msgctxt "Languages::kwtsms.vendors.quota.saved"
+msgid "The monthly quota was saved."
+msgstr "تم حفظ الحصة الشهرية."
+
+msgctxt "Languages::kwtsms.vendors.quota.not_saved"
+msgid "Some values were not saved. Use whole numbers from 0 to [max]; leave a plan empty to use the default."
+msgstr "لم تُحفظ بعض القيم. استخدم أرقاما صحيحة من 0 إلى [max]، واترك الخطة فارغة لاستخدام القيمة الافتراضية."
+
+msgctxt "Languages::kwtsms.vendors.plans.title"
+msgid "Quota by vendor plan"
+msgstr "الحصة حسب خطة البائع"
+
+msgctxt "Languages::kwtsms.vendors.plans.help"
+msgid "A plan with a number uses it instead of the default. Leave it empty to use the default."
+msgstr "الخطة التي لها رقم تستخدمه بدل القيمة الافتراضية. اتركها فارغة لاستخدام القيمة الافتراضية."
+
+msgctxt "Languages::kwtsms.vendors.list.title"
+msgid "Vendors"
+msgstr "البائعون"
+
+msgctxt "Languages::kwtsms.vendors.list.help"
+msgid "The number comes from the Phone field of the vendor profile. Approve it after you have checked it with the vendor."
+msgstr "يؤخذ الرقم من حقل الهاتف في ملف البائع. وافق عليه بعد أن تتأكد منه مع البائع."
+
+msgctxt "Languages::kwtsms.vendors.col.vendor"
+msgid "Vendor"
+msgstr "البائع"
+
+msgctxt "Languages::kwtsms.vendors.col.phone"
+msgid "Phone in the profile"
+msgstr "الهاتف في الملف"
+
+msgctxt "Languages::kwtsms.vendors.col.number"
+msgid "Number used"
+msgstr "الرقم المستخدم"
+
+msgctxt "Languages::kwtsms.vendors.col.status"
+msgid "Approval"
+msgstr "الموافقة"
+
+msgctxt "Languages::kwtsms.vendors.col.used"
+msgid "This month"
+msgstr "هذا الشهر"
+
+msgctxt "Languages::kwtsms.vendors.col.action"
+msgid "Action"
+msgstr "الإجراء"
+
+msgctxt "Languages::kwtsms.vendors.not_active"
+msgid "Not active"
+msgstr "غير نشط"
+
+msgctxt "Languages::kwtsms.vendors.status.approved"
+msgid "Approved"
+msgstr "موافق عليه"
+
+msgctxt "Languages::kwtsms.vendors.status.changed"
+msgid "Phone changed, approve again"
+msgstr "تغير الهاتف، وافق من جديد"
+
+msgctxt "Languages::kwtsms.vendors.status.no_phone"
+msgid "No phone"
+msgstr "لا يوجد هاتف"
+
+msgctxt "Languages::kwtsms.vendors.status.invalid"
+msgid "Not a valid number"
+msgstr "رقم غير صالح"
+
+msgctxt "Languages::kwtsms.vendors.status.none"
+msgid "Not approved"
+msgstr "غير موافق عليه"
+
+msgctxt "Languages::kwtsms.vendors.used_of"
+msgid "[used] of [limit]"
+msgstr "[used] من [limit]"
+
+msgctxt "Languages::kwtsms.vendors.quota_off"
+msgid "SMS off"
+msgstr "الرسائل متوقفة"
+
+msgctxt "Languages::kwtsms.vendors.approve"
+msgid "Approve"
+msgstr "موافقة"
+
+msgctxt "Languages::kwtsms.vendors.approve_again"
+msgid "Approve again"
+msgstr "موافقة من جديد"
+
+msgctxt "Languages::kwtsms.vendors.revoke"
+msgid "Revoke"
+msgstr "إلغاء الموافقة"
+
+msgctxt "Languages::kwtsms.vendors.approve_aria"
+msgid "Approve the number of [vendor]"
+msgstr "الموافقة على رقم [vendor]"
+
+msgctxt "Languages::kwtsms.vendors.revoke_aria"
+msgid "Revoke the approval of [vendor]"
+msgstr "إلغاء الموافقة على رقم [vendor]"
+
+msgctxt "Languages::kwtsms.vendors.empty"
+msgid "There are no vendors yet."
+msgstr "لا يوجد بائعون بعد."
+
+msgctxt "Languages::kwtsms.vendors.mve_only"
+msgid "Vendor SMS is available in Multi-Vendor only."
+msgstr "رسائل البائعين متاحة في Multi-Vendor فقط."
+
+msgctxt "Languages::kwtsms.vendors.unknown"
+msgid "That vendor was not found."
+msgstr "لم يتم العثور على هذا البائع."
+
+msgctxt "Languages::kwtsms.vendors.revoked"
+msgid "The approval of [vendor] was revoked."
+msgstr "تم إلغاء الموافقة على رقم [vendor]."
+
+msgctxt "Languages::kwtsms.vendors.approved"
+msgid "The number of [vendor] was approved."
+msgstr "تمت الموافقة على رقم [vendor]."
+
+msgctxt "Languages::kwtsms.vendors.not_approved"
+msgid "The number of [vendor] was not approved: [reason]"
+msgstr "لم تتم الموافقة على رقم [vendor]: [reason]"
+
+msgctxt "Languages::kwtsms.vendors.reason.no_company"
+msgid "The vendor was not found."
+msgstr "لم يتم العثور على البائع."
+
+msgctxt "Languages::kwtsms.vendors.reason.not_active"
+msgid "The vendor is not active."
+msgstr "البائع غير نشط."
+
+msgctxt "Languages::kwtsms.vendors.warn.cannot_route"
+msgid "kwtSMS cannot route this number. It is approved, but check it with the vendor."
+msgstr "لا يستطيع kwtSMS توجيه هذا الرقم. تمت الموافقة عليه، لكن تأكد منه مع البائع."
+
+msgctxt "Languages::kwtsms.vendors.warn.unchecked"
+msgid "The number was approved, but kwtSMS could not check it now."
+msgstr "تمت الموافقة على الرقم، لكن تعذر فحصه مع kwtSMS الآن."
+
+msgctxt "Languages::kwtsms.integrations.mve.vendor_sms_open"
+msgid "Open Vendor SMS"
+msgstr "فتح رسائل البائعين"
 

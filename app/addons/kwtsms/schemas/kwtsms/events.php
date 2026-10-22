@@ -44,8 +44,12 @@
 defined('BOOTSTRAP') or die('Access denied');
 
 return [
+    // 2026-10-22 22:23 +03: Task A8 (SafatMall F4, R9), task 596. V is the vendor of a child order of a Multi-Vendor
+    // checkout (kept only
+    // in Multi-Vendor): its approved number, its monthly quota, one SMS per child order (key order_placed:<child>:V),
+    // default OFF.
     'kwtsms.order_placed' => [
-        'receivers' => ['C', 'A'],
+        'receivers' => ['C', 'A', 'V'],
     ],
     // 2026-10-22 17:59 +03: Task A5 (SafatMall F2), task 596. Core's order.updated: the admin edited or saved an order
     // (Orders > details, or Order management). C and A (V comes with B6). Sent once per order and receiver in 10

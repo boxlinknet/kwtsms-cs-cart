@@ -51,9 +51,12 @@
  *            paths for phone, language, country, user, vendor and storefront, the data_class hook, secret
  *            placeholders (masked in every log copy) and a dedupe key claimed after the numbers and the text are
  *            known (duplicate_event, or the declared reason).
+ *            2026-10-22 22:18 +03, Task A8, task 596 (R11): every V SMS (the new-order SMS of a child order and the
+ *            low-stock SMS alike) passes the vendor's monthly quota in deliver() after its approved number is found:
+ *            over the quota is rate_limited / vendor_quota, written with the number, no key claimed by deliver().
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
- *            Log\DebugLog.
+ *            Log\DebugLog, Vendors\VendorQuota.
  */
 
 namespace Tygh\Addons\Kwtsms\Orders;
@@ -70,10 +73,13 @@ use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
+use Tygh\Addons\Kwtsms\Vendors\VendorQuota;
 
 class OrderNotifier
 {
     public const SUPERSEDED = 'superseded';
+    /** 2026-10-22 22:18 +03: Task A8, task 596. A V SMS over the vendor's monthly quota (reason vendor_quota). */
+    public const RATE_LIMITED = 'rate_limited';
     public const DUPLICATE = 'duplicate_event';
     public const NO_PHONE = 'no_phone';
     public const NO_TEMPLATE = 'no_template';
@@ -116,6 +122,9 @@ class OrderNotifier
 
     /** @var callable|null 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Antibot scenario gate. */
     private $antibot_gate;
+
+    /** @var VendorQuota|null 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. Null = no quota (unit rigs). */
+    private $vendor_quota;
 
     /** @var array<string,DeclaredSmsData> data_class instances, by class name */
     private $data_classes = [];
@@ -166,8 +175,11 @@ class OrderNotifier
         // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12, R8), task 596. fn(string $scenario): bool, true when
         // the core antibot
         // scenario is active (provider set up and scenario on). Null = not active (fail closed).
-        ?callable $antibot_gate = null
+        ?callable $antibot_gate = null,
+        // 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. The vendor's monthly quota; nullable, appended last.
+        ?VendorQuota $vendor_quota = null
     ) {
+        $this->vendor_quota = $vendor_quota;
         $this->antibot_gate = $antibot_gate;
         $this->storefront_rules = $storefront_rules;
         $this->vendor_phones = $vendor_phones;
@@ -617,6 +629,17 @@ class OrderNotifier
                 $reason = 'vendor_not_approved';
             }
             $this->skip(self::NO_PHONE, $reason, $log_order, $event_id, $receiver, $receiver === 'V' ? [] : null);
+
+            return false;
+        }
+        // 2026-10-22 22:18 +03: Task A8 (ruling R11, P2-6), task 596. The vendor's monthly quota applies to every V SMS
+        // (the new-order SMS of a child and the low-stock SMS): over it, nothing goes out and the attempt says why.
+        if (
+            $receiver === 'V'
+            && $this->vendor_quota !== null
+            && !$this->vendor_quota->allows((int) ($order['company_id'] ?? 0), count($phones))
+        ) {
+            $this->skip(self::RATE_LIMITED, 'vendor_quota', $log_order, $event_id, $receiver, $phones);
 
             return false;
         }

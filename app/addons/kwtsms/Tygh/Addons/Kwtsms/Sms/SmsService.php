@@ -1456,7 +1456,10 @@ class SmsService
         // admin bucket only for numbers in admin_phones; any other number of an admin send gets the customer caps
         // (fix round 1, items 6 and 12), task 596.
         $admin_receiver = $context['receiver'] === 'A';
-        $capped = $admin_receiver || $context['receiver'] === 'C'
+        // 2026-10-22 22:17 +03: Task A8 (P2-6, carry from A4 review P2-R10), task 596. Receiver V is capped too: a
+        // vendor number is never in admin_phones, yet it uses the admin per-number day cap (cap_admin_day).
+        $vendor_receiver = $context['receiver'] === 'V';
+        $capped = $admin_receiver || $vendor_receiver || $context['receiver'] === 'C'
             || in_array($context['source'], ['manual', 'api'], true);
         $sources = $context['source'] === 'api' ? ['api'] : self::NON_API_SOURCES;
         $admins = $admin_receiver ? $this->config->adminPhones() : [];
@@ -1475,7 +1478,8 @@ class SmsService
                 continue;
             }
             $c = $counts[$rcpt[$i]['phone']] ?? ['hour' => 0, 'day' => 0, 'day_all' => 0];
-            if (in_array($rcpt[$i]['phone'], $admins, true)) {
+            // 2026-10-22 22:17 +03: or any number of a V send (Task A8, task 596).
+            if ($vendor_receiver || in_array($rcpt[$i]['phone'], $admins, true)) {
                 if ($c['day_all'] >= $this->config->capAdminDay()) {
                     $rcpt[$i] = $this->decided($rcpt[$i], 'rate_limited', 'cap_admin_day');
                 }

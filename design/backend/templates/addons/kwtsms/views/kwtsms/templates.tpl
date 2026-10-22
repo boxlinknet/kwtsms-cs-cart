@@ -146,7 +146,8 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
             {elseif $row.kind == "placed_multi"}{$row_label = __("kwtsms.templates.row_placed_multi")}
             {elseif $row.kind == "generic"}{$row_label = __("kwtsms.templates.row_generic")}
             {else}{$row_label = $row.status_name}{/if}
-            {if $row.receiver == "A"}{$receiver_label = __("kwtsms.templates.admin")}{else}{$receiver_label = __("kwtsms.templates.customer")}{/if}
+            {* 2026-10-22 22:24 +03: Task A8 (carry P2-R10b), task 596. A vendor row has its own label, not "Customer". *}
+            {if $row.receiver == "A"}{$receiver_label = __("kwtsms.templates.admin")}{elseif $row.receiver == "V"}{$receiver_label = __("kwtsms.templates.vendor")}{else}{$receiver_label = __("kwtsms.templates.customer")}{/if}
             <tr class="kwtsms-row{if $row.editing} is-editing{/if}" id="{$row.dom_id}" data-kwtsms-key="{$row.key}">
                 <td class="kwtsms-row__label">
                     <span class="kwtsms-row__name">{$row_label}</span>

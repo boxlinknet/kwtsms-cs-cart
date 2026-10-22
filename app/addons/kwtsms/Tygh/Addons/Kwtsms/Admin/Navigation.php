@@ -31,18 +31,35 @@ final class Navigation
     // 2026-10-21 04:20 +03: Integrations and Admin SMS Alerts added after Templates (PRD 7 order), Task 1.13, task 596.
     // 2026-10-21 05:55 +03: Logs added after Admin SMS Alerts (PRD 7 order), Task 1.14, task 596.
     // 2026-10-21 06:07 +03: Help added last (PRD 7 order), Task 1.15, task 596.
-    public const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'logs', 'help'];
+    // 2026-10-22 22:22 +03: vendors added after Admin SMS Alerts (Multi-Vendor only, see sections()), Task A8, task
+    // 596.
+    public const PAGES = [
+        'dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'vendors', 'logs', 'help',
+    ];
+
+    /**
+     * Pages that exist in Multi-Vendor only (2026-10-22 22:22 +03: Task A8, task 596).
+     *
+     * @var string[]
+     */
+    public const MULTIVENDOR_ONLY = ['vendors'];
 
     /**
      * @param callable $has_privilege (string $privilege): bool
      *
      * @return array<string, array{title: string, href: string, active: bool}>
      */
-    public static function sections(string $active, callable $has_privilege): array
+    public static function sections(string $active, callable $has_privilege, ?bool $multivendor = null): array
     {
+        // 2026-10-22 22:22 +03: Task A8, task 596. The Vendor SMS tab exists in Multi-Vendor only (null = ask the
+        // store).
+        $multivendor = $multivendor ?? (function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'));
         $sections = [];
         foreach (self::PAGES as $mode) {
             if (!isset(RequestGate::MODES[$mode])) {
+                continue;
+            }
+            if (!$multivendor && in_array($mode, self::MULTIVENDOR_ONLY, true)) {
                 continue;
             }
             if (call_user_func($has_privilege, RequestGate::MODES[$mode][1]) !== true) {

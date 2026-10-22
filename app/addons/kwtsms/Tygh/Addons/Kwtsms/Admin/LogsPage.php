@@ -79,6 +79,8 @@ class LogsPage
         // 2026-10-22 20:27 +03: a registration SMS skipped because the core CAPTCHA for registration is off
         // (P2-R12), Task A6 fix round 1.
         'antibot_required',
+        // 2026-10-22 22:47 +03: a vendor SMS over the vendor's monthly quota (P2-6), Task A8, task 596.
+        'vendor_quota',
     ];
 
     /**

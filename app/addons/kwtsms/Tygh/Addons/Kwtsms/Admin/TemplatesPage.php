@@ -1248,8 +1248,14 @@ class TemplatesPage
      */
     private function rowLabel(array $row): string
     {
-        $is_admin = $row['receiver'] === Defaults::RECEIVER_ADMIN;
-        $receiver = (string) __($is_admin ? 'kwtsms.templates.admin' : 'kwtsms.templates.customer');
+        // 2026-10-22 22:24 +03: Task A8 (carry P2-R10b), task 596. A vendor row is "Vendor", not "Customer".
+        $receiver_key = 'kwtsms.templates.customer';
+        if ($row['receiver'] === Defaults::RECEIVER_ADMIN) {
+            $receiver_key = 'kwtsms.templates.admin';
+        } elseif ($row['receiver'] === Defaults::RECEIVER_VENDOR) {
+            $receiver_key = 'kwtsms.templates.vendor';
+        }
+        $receiver = (string) __($receiver_key);
         switch ($row['kind']) {
             case 'placed':
                 $what = (string) __('kwtsms.templates.row_placed');

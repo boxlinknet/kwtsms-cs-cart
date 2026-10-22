@@ -39,6 +39,9 @@
  *            2026-10-21 07:53 +03, Task 1.9 follow-up of the Task 1.14 review, task 596: no info row
  *            (order_sms.new_order, order_sms.order_placed, order_sms.manual_dropped) while SMS is off or not set
  *            up (Diagnostics::active()).
+ *            2026-10-22 22:19 +03, Task A8, task 596: a child order of a Multi-Vendor checkout also dispatches
+ *            kwtsms.order_placed to its vendor (receiver V, id o<child id>, the V Notify rule of the change), only
+ *            while the V switch is ON.
  * USAGE:     Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatus($to, $from, $order_info, $rules, $place_order);
  *            (see func.php for the six handlers). The dispatcher is a callable (string $event_id, array $data,
  *            array $rules, IProvider $id) wired in ServiceProvider to core's Factory and EventDispatcher.
@@ -332,6 +335,28 @@ class OrderHooks
                 $provider = new OrderPlacedIdProvider($order_id, $kind);
                 $this->dispatch($order_info, $rules, $by_unit[$unit], $unit, [], $provider);
             }
+        }
+        // 2026-10-22 22:19 +03: Task A8 (SafatMall F4, R9, R11), task 596. The vendor of a child order gets its own
+        // new-order SMS (receiver V, kwtsms.order_placed.o<child id>) with the V Notify rule of $force_notification,
+        // whatever the customer and admin units are. Only while the V switch is ON: a marketplace that never turned
+        // vendor SMS on gets no new row per child (default OFF, PRD 6.5).
+        // 2026-10-22 22:43 +03: Task A8 (found by the store test), task 596. A checkout of ONE vendor is not split: the order itself
+        // belongs to the vendor (company_id > 0, no parent), so the test is the vendor, not the parent id. The parent of
+        // a split checkout has company 0 and never gets a vendor SMS.
+        if (
+            (int) ($order_info['company_id'] ?? 0) > 0
+            && (string) ($order_info['is_parent_order'] ?? 'N') !== 'Y'
+            && $this->rules->isMultiVendor()
+            && $this->diagnostics->switchOn(Defaults::EVENT_PLACED, 'V')
+        ) {
+            $this->dispatch(
+                $order_info,
+                $rules,
+                ['V'],
+                CheckoutRules::UNIT_SUBORDER,
+                [],
+                new OrderPlacedIdProvider($order_id, OrderPlacedIdProvider::KIND_SUBORDER)
+            );
         }
         $checkout = $by_unit[CheckoutRules::UNIT_CHECKOUT] ?? [];
         if ($checkout !== [] && $parent_id > 0) {

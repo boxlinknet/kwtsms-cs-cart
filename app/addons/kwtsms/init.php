@@ -43,6 +43,12 @@ fn_register_hooks(
     'update_profile',
     // 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10), task 596. A product's stock fell across the
     // low-stock threshold: collected, one SMS per receiver after the order status change.
-    'update_product_amount'
+    'update_product_amount',
+    // 2026-10-22 22:23 +03: Task A8 (SafatMall F4, PRD 5.1), task 596. The approved number of a vendor follows its
+    // phone, its status and
+    // its existence (Multi-Vendor only; the handlers return at once elsewhere).
+    'update_company',
+    'delete_company',
+    'change_company_status_pre'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

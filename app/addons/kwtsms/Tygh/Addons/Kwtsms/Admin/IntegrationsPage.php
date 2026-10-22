@@ -197,6 +197,10 @@ class IntegrationsPage
             'placed_statuses' => $this->placedStatuses(),
             'is_multivendor' => $is_mve,
             'mve' => $is_mve ? $this->mveView() : null,
+            // 2026-10-22 22:28 +03: Task A8, task 596. The Vendor SMS page (Multi-Vendor only) is linked for an
+            // administrator who may open it.
+            'vendor_sms_link' => $is_mve && call_user_func($has_privilege, 'manage_kwtsms') === true
+                ? 'kwtsms.vendors' : '',
             'clickatell' => [
                 'active' => $this->addonActive('sms_notifications'),
                 'link' => $may_addons ? 'addons.manage' : '',

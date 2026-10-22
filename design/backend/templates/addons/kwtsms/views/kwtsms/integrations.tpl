@@ -5,7 +5,8 @@ TASK:      596
 AUTHOR:    kwtSMS
 WHAT:      The kwtSMS Integrations page: the phone readiness checks of the store (each with a link to the core setting that
            fixes it), the default country (read-only), the placed status set behind the new-order rule, the Multi-Vendor
-           settings (Multi-Vendor only) with the "Vendor SMS: not included in 1.0, planned for 1.1" note, the CAPTCHA
+           settings (Multi-Vendor only) with the Vendor SMS note and its link to the Vendor SMS page (2026-10-22 22:29 +03,
+           Task A8, task 596: was the "not included in 1.0, planned for 1.1" note), the CAPTCHA
            recommendation, the core SMS notifications (Clickatell) warning, and the add-ons that come in a later version.
 WHY:       PRD 6.3 and 6.7. Native backend components under the .kwtsms-page root. A check is a word and a badge, never only
            a color. Every value is auto-escaped (no nofilter); every value placed into a __() placeholder is escaped here.
@@ -163,7 +164,9 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
                     </div>
                 </div>
 
-                <p class="kwtsms-later" id="kwtsms_vendor_sms_note">{__("kwtsms.integrations.mve.vendor_sms")}</p>
+                {* 2026-10-22 22:28 +03: Task A8, task 596. Vendor SMS exists in 1.1: the note says where it is set up, with a link. *}
+                <p class="kwtsms-later" id="kwtsms_vendor_sms_note">{__("kwtsms.integrations.mve.vendor_sms")}
+                    {if $i.vendor_sms_link}<a class="btn" id="kwtsms_vendor_sms_link" href="{$i.vendor_sms_link|fn_url}">{__("kwtsms.integrations.mve.vendor_sms_open")}</a>{/if}</p>
             </section>
         </form>
     {/if}

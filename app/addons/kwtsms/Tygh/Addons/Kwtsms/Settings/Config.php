@@ -112,6 +112,8 @@ class Config implements ConfigInterface
         'update_integrations' => [
             'mve_customer_new_order', 'mve_admin_new_order', 'mve_customer_status_scope', 'mve_vendor_triggered_sms',
         ],
+        // 2026-10-22 22:22 +03: Task A8 (SafatMall F4, P2-6), task 596. The Vendor SMS page writes the monthly quota.
+        'update_vendor_quotas' => ['vendor_monthly_quota'],
     ];
 
     /**

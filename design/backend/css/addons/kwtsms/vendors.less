@@ -1,0 +1,114 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/vendors.less
+CREATED:   2026-10-22 22:27 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the kwtSMS Vendor SMS page: the intro and facts, the quota fields, the vendor table with its approval
+           badges and the used-of-limit figure, the stacked table on narrow screens.
+WHY:       Phase 2 Task A8 (SafatMall F4). Every selector sits under the .kwtsms-page.kwtsms-vendors root, brand primary
+           #FFA200 with text #434345; logical properties only (the core flips left/right for RTL with cssjanus, and
+           direction comes from the dir attribute only). Native components (tables, buttons, form controls).
+USAGE:     Loaded by hooks/index/styles.post.tpl. Shares .kwtsms-badge and .kwtsms-actions with styles.less.
+DEPENDS:   Nothing at build time.
+*/
+@kwt-text: #434345;
+// Muted text is #666669: 5.7:1 on white (AA needs 4.5:1), as on the other kwtSMS pages.
+@kwt-muted: #666669;
+@kwt-line: #E3E3E6;
+@kwt-wash: #F7F7F8;
+@kwt-danger: #B42318;
+
+.kwtsms-page.kwtsms-vendors {
+    max-width: 1040px;
+
+    .muted {
+        color: @kwt-muted;
+    }
+    .kwtsms-intro {
+        max-width: 720px;
+        margin-block: 0 12px;
+    }
+    .kwtsms-subtitle {
+        margin-block: 18px 6px;
+        font-size: 14px;
+    }
+    .kwtsms-facts {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 8px 20px;
+        align-items: start;
+        margin: 0 0 12px;
+        dt {
+            padding-block-start: 4px;
+            font-weight: normal;
+            color: @kwt-muted;
+        }
+        dd {
+            margin: 0;
+            min-width: 0;
+        }
+    }
+    .kwtsms-number {
+        width: 90px;
+        box-sizing: border-box;
+        text-align: end;
+    }
+    .controls label.checkbox {
+        margin-inline-start: 24px;
+    }
+    .kwtsms-table-wrap {
+        overflow-x: auto;
+    }
+    .kwtsms-table {
+        width: 100%;
+        th {
+            white-space: nowrap;
+        }
+        td {
+            vertical-align: top;
+        }
+    }
+    .kwtsms-row__name {
+        display: inline-block;
+        margin-inline-end: 6px;
+        font-weight: 600;
+    }
+    .kwtsms-reason {
+        display: block;
+        margin-block-start: 4px;
+        max-width: 260px;
+        overflow-wrap: anywhere;
+    }
+    .kwtsms-quota {
+        white-space: nowrap;
+        &.is-full {
+            color: @kwt-danger;
+            font-weight: 600;
+        }
+    }
+    .kwtsms-inline-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0;
+    }
+    .kwtsms-pager {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-block: 12px 0;
+    }
+}
+
+/* Narrow screens (768 px with the admin menu open): the table stacks, nothing leaves the page. */
+@media (max-width: 979px) {
+    .kwtsms-page.kwtsms-vendors {
+        .kwtsms-facts {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 2px;
+            dt {
+                padding-block-start: 8px;
+            }
+        }
+    }
+}

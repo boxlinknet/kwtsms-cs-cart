@@ -118,6 +118,22 @@ class Diagnostics
     }
 
     /**
+     * 2026-10-22 22:19 +03: Task A8, task 596. True when the SMS switch of the event and receiver is ON (the
+     * fail-closed
+     * switch the dispatcher reads). A failing read counts as OFF. OrderHooks asks it before it dispatches the vendor
+     * receiver of kwtsms.order_placed, so a marketplace that never turned vendor SMS on gets no new row per child
+     * order.
+     */
+    public function switchOn(string $event_id, string $receiver): bool
+    {
+        try {
+            return (bool) call_user_func($this->switch, $event_id, $receiver);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * One row per receiver core did not hand to the SMS transport.
      *
      * @param array<string,mixed> $order_info

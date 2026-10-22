@@ -374,6 +374,9 @@ class TemplateRepository
             $rows[] = $row(Defaults::EVENT_PLACED, $receiver, 'placed', '', '');
         }
         if (fn_allowed_for('MULTIVENDOR')) {
+            // 2026-10-22 22:24 +03: Task A8, task 596. The vendor's new-order SMS (receiver V of
+            // kwtsms.order_placed), a placed row.
+            $rows[] = $row(Defaults::EVENT_PLACED, Defaults::RECEIVER_VENDOR, 'placed', '', '');
             $rows[] = $row(Defaults::EVENT_PLACED_MULTI, Defaults::RECEIVER_CUSTOMER, 'placed_multi', '', '');
             // 2026-10-21 03:14 +03: the administrator's one SMS per checkout is sent from this template
             // (OrderNotifier, receiver A), so the Templates page lists it too. Task 1.12, task 596.

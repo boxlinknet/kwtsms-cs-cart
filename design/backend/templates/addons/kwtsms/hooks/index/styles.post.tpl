@@ -20,3 +20,5 @@ DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 {style src="addons/kwtsms/help.less"}
 {* 2026-10-21 06:01 +03: the Logs page, log detail and order SMS tab styles, Task 1.14, task 596 *}
 {style src="addons/kwtsms/logs.less"}
+{* 2026-10-22 22:27 +03: the Vendor SMS page styles, Task A8, task 596 *}
+{style src="addons/kwtsms/vendors.less"}

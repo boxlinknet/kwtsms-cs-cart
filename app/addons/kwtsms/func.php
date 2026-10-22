@@ -425,6 +425,85 @@ function fn_kwtsms_update_product_amount(
     }
 }
 
+/*
+ * Vendor hooks (Task A8, SafatMall F4). Multi-Vendor only: in CS-Cart and Ultimate a company is a storefront and
+ * nothing here runs. Each handler never throws.
+ * 2026-10-22 22:23 +03: added, Task A8, task 596.
+ */
+
+/**
+ * 2026-10-22 22:23 +03: Task A8, task 596. Hook update_company (fn.companies.php:1052 in 4.21.2): a vendor was
+ * created or saved. A
+ * vendor whose phone no longer matches its approved number loses the approval (the vendor changed it in its panel,
+ * or an administrator did).
+ *
+ * @param array<string,mixed> $company_data
+ * @param int                 $company_id
+ * @param string              $lang_code
+ * @param string              $action        add or update
+ */
+function fn_kwtsms_update_company($company_data, $company_id, $lang_code, $action)
+{
+    try {
+        if ((string) $action !== 'update' || !fn_allowed_for('MULTIVENDOR')) {
+            return;
+        }
+        Tygh::$app['kwtsms.vendor_phones']->onCompanyUpdated((int) $company_id);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_company', $e);
+    }
+}
+
+/**
+ * 2026-10-22 22:23 +03: Task A8, task 596. Hook delete_company (fn.companies.php:1234): the approved number goes with
+ * the vendor.
+ *
+ * @param int   $company_id
+ * @param mixed $result      The deletion result
+ * @param mixed $storefronts Unused
+ */
+function fn_kwtsms_delete_company($company_id, $result, $storefronts = [])
+{
+    try {
+        if (!$result || !fn_allowed_for('MULTIVENDOR')) {
+            return;
+        }
+        Tygh::$app['kwtsms.vendor_phones']->onCompanyDeleted((int) $company_id);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('delete_company', $e);
+    }
+}
+
+/**
+ * 2026-10-22 22:23 +03: Task A8 (PRD 5.1, ruling R21), task 596. Hook change_company_status_pre
+ * (fn.companies.php:1440): a vendor that
+ * moves to a status other than A (disabled, suspended, pending, declined) loses its approved number.
+ *
+ * @param int    $company_id
+ * @param string $status_to
+ * @param string $reason      Unused
+ * @param string $status_from  Unused
+ * @param bool   $skip_query   Unused
+ * @param bool   $notify       Unused
+ */
+function fn_kwtsms_change_company_status_pre(
+    $company_id,
+    $status_to,
+    $reason = '',
+    $status_from = '',
+    $skip_query = false,
+    $notify = true
+) {
+    try {
+        if (!fn_allowed_for('MULTIVENDOR')) {
+            return;
+        }
+        Tygh::$app['kwtsms.vendor_phones']->onCompanyStatusChange((int) $company_id, (string) $status_to);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('change_company_status_pre', $e);
+    }
+}
+
 /**
  * One line in the PHP error log for a failed order hook: class, message, file:line, no trace.
  * 2026-10-21 01:58 +03: added, Task 1.9, task 596.

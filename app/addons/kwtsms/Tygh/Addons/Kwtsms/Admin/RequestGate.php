@@ -85,6 +85,13 @@ final class RequestGate
         // manage_notification_settings before it writes, like toggle_event) and the Sender ID per storefront on Settings.
         'update_storefront_switch'  => [self::POST, 'manage_kwtsms'],
         'update_storefront_senders' => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-10-22 22:22 +03: Task A8 (SafatMall F4), task 596. The Vendor SMS page (Multi-Vendor only; the
+        // controller answers 404 elsewhere) and its two POST modes. Approving a number and setting quotas spend the
+        // marketplace's credits, so they stay behind the root-administrator scope of every mode here (a vendor
+        // administrator is refused by the 'scope' check) and the manage_kwtsms privilege.
+        'vendors'                   => [self::GET, 'manage_kwtsms'],
+        'update_vendor_phone'       => [self::POST, 'manage_kwtsms'],
+        'update_vendor_quotas'      => [self::POST, 'manage_kwtsms'],
     ];
 
     /**

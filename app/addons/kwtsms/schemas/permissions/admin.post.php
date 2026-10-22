@@ -68,6 +68,10 @@ $schema['kwtsms'] = [
         // 2026-10-22 16:12 +03: Task A3, task 596 (same privileges as Admin\RequestGate::MODES).
         'update_storefront_switch'  => ['permissions' => 'manage_kwtsms'],
         'update_storefront_senders' => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-10-22 22:22 +03: Task A8 (SafatMall F4), task 596 (same privileges as Admin\RequestGate::MODES).
+        'vendors'                   => ['permissions' => 'manage_kwtsms'],
+        'update_vendor_phone'       => ['permissions' => 'manage_kwtsms'],
+        'update_vendor_quotas'      => ['permissions' => 'manage_kwtsms'],
     ],
 ];
 

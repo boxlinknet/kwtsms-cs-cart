@@ -79,6 +79,8 @@ use Tygh\Addons\Kwtsms\Orders\OrderNotifier;
 use Tygh\Addons\Kwtsms\Orders\OrderSource;
 use Tygh\Addons\Kwtsms\Orders\RuntimeFlags;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
+use Tygh\Addons\Kwtsms\Vendors\VendorPhones; // 2026-10-22 22:22 +03: Task A8, task 596
+use Tygh\Addons\Kwtsms\Vendors\VendorQuota; // 2026-10-22 22:22 +03: Task A8, task 596
 use Tygh\Notifications\EventIdProviders\IProvider;
 
 class ServiceProvider implements ServiceProviderInterface
@@ -290,16 +292,16 @@ class ServiceProvider implements ServiceProviderInterface
             return $repository;
         };
 
-        // 2026-10-22 17:12 +03: Task A4, task 596. Approved vendor numbers (receiver V): nobody is approved until
-        // Task A8 binds
-        // Vendors\VendorPhones here.
-        $app['kwtsms.vendor_phones'] = function (): VendorPhoneSourceInterface {
-            return new class implements VendorPhoneSourceInterface {
-                public function approvedPhone(int $company_id): string
-                {
-                    return '';
-                }
-            };
+        // 2026-10-22 17:12 +03: Task A4, task 596. Approved vendor numbers (receiver V).
+        // 2026-10-22 22:22 +03: Task A8 (P2-R10, R8), task 596. The A4 source that approved nobody is replaced by
+        // Vendors\VendorPhones (the approvals of the Vendor SMS page); still a VendorPhoneSourceInterface.
+        $app['kwtsms.vendor_phones'] = function (Container $app): VendorPhoneSourceInterface {
+            return new VendorPhones($app['kwtsms.config'], $app['kwtsms.logs.debug']);
+        };
+
+        // 2026-10-22 22:22 +03: Task A8 (R8), task 596. The monthly quota of a vendor's SMS.
+        $app['kwtsms.vendor_quota'] = function (Container $app): VendorQuota {
+            return new VendorQuota($app['kwtsms.config']);
         };
 
         $app['kwtsms.order_sms_data'] = function (Container $app): OrderSmsData {
@@ -386,7 +388,9 @@ class ServiceProvider implements ServiceProviderInterface
                 // (Tygh\Web\Antibot::isValidationRequiredForScenario, app/Tygh/Web/Antibot.php:121-129).
                 static function (string $scenario) use ($app): bool {
                     return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
-                }
+                },
+                // 2026-10-22 22:22 +03: Task A8 (R8, R11), task 596. The vendor's monthly quota.
+                $app['kwtsms.vendor_quota']
             );
         };
 

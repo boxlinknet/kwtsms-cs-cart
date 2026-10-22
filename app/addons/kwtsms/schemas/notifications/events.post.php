@@ -30,6 +30,11 @@ $schema['kwtsms.order_placed'] = [
         'A' => [],
     ],
 ];
+// 2026-10-22 22:23 +03: Task A8 (SafatMall F4, R9), task 596. The vendor of a child order (Multi-Vendor only) is a
+// receiver too.
+if (fn_allowed_for('MULTIVENDOR')) {
+    $schema['kwtsms.order_placed']['receivers']['V'] = [];
+}
 
 // 2026-10-22 19:08 +03: Task A6 (SafatMall F5 part, P2-7), task 596. The administrator's registration alert: a
 // customer registered on
