@@ -643,7 +643,9 @@ gate "php -l on the package (host)" phpl_host "$pkg"
 if [ "$lint74" = 1 ]; then
   phpl_74() {
     command -v docker >/dev/null 2>&1 || { echo "docker not found for the PHP 7.4 pass (use --no-lint74)"; echo "CHECKED 1"; return 0; }
-    docker run --rm -v "$pkg:/pkg:ro" php:7.4-cli sh -c 'n=0; for f in $(find /pkg -name "*.php"); do php -l "$f" >/dev/null 2>&1 || php -l "$f"; n=$((n + 1)); done; echo "CHECKED $n"'
+    # 2026-10-22 12:26 +03: --quiet, because on a runner without the cached image the pull progress was read as
+    # lint findings and failed the gate (first GitHub CI run 39754991503); a failed pull still fails it, task 596.
+    docker run --rm --quiet -v "$pkg:/pkg:ro" php:7.4-cli sh -c 'n=0; for f in $(find /pkg -name "*.php"); do php -l "$f" >/dev/null 2>&1 || php -l "$f"; n=$((n + 1)); done; echo "CHECKED $n"'
   }
   gate "php -l on the package (PHP 7.4)" phpl_74
 fi
