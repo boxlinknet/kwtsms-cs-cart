@@ -9,11 +9,14 @@ USAGE:     Rendered by GitHub.
 DEPENDS:   SECURITY.md, CHANGELOG.md, CONTRIBUTING.md.
 CHANGED:   2026-10-21 23:15 +03: restructured to the layout of the kwtSMS WHMCS README (badge row, About kwtSMS, Features,
            Requirements, Installation, Configuration, Support, License); every fact kept, task 596.
+           2026-10-22 12:39 +03: release badge (as the Joomla README has, pre-releases included), status line names the
+           v1.0.0-rc.1 pre-release, Installation no longer mentions a Marketplace listing, task 596.
 -->
 
 # kwtSMS for CS-Cart and Multi-Vendor
 
 [![CI](https://github.com/boxlinknet/kwtsms-cs-cart/actions/workflows/ci.yml/badge.svg)](https://github.com/boxlinknet/kwtsms-cs-cart/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/boxlinknet/kwtsms-cs-cart?include_prereleases)](https://github.com/boxlinknet/kwtsms-cs-cart/releases)
 [![PHP 7.4 to 8.3](https://img.shields.io/badge/PHP-7.4%20to%208.3-777BB4?logo=php&logoColor=white)](https://php.net)
 [![CS-Cart 4.20.1 to 4.21.2](https://img.shields.io/badge/CS--Cart-4.20.1%20to%204.21.2-4a9ed6)](https://www.cs-cart.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -31,8 +34,8 @@ Send automated SMS notifications to your CS-Cart and Multi-Vendor customers and 
 <!-- 2026-10-21 16:36 +03: status for 1.0.0, Task 1.17, task 596 -->
 <!-- 2026-10-21 23:17 +03: status line no longer promises a Marketplace listing (not decided); GitHub Releases is
      the download channel from the first tag, task 596. -->
-> **Status:** version 1.0.0 (release candidate), the first release. The installable zip is published under
-> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) from the first tagged release.
+> **Status:** version 1.0.0 release candidate, the first release. The installable zip is on
+> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) as the v1.0.0-rc.1 pre-release.
 
 ## Features
 
@@ -62,7 +65,7 @@ shipment updates, abandoned cart reminders and vendor notifications. None of the
 
 ## Installation
 
-1. Download `kwtsms-1.0.0.zip` from [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) (or from the Marketplace).
+1. Download `kwtsms-1.0.0.zip` from [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases).
 2. Manual installation: Administration > Add-ons > Manage add-ons > the gear icon > Manual installation > Local > pick the zip > Upload & install.
 
 Uninstalling (Add-ons > kwtSMS > Uninstall) removes the add-on's tables, settings, language variables, privileges and
