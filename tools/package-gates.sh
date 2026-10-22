@@ -71,7 +71,7 @@ A="$src/app/addons/kwtsms"
 T="$src/design/backend/templates/addons/kwtsms"
 J="$src/js/addons/kwtsms"
 # 2026-10-23 00:55 +03: Task A10, task 596. design/themes/responsive/templates/addons/kwtsms is the storefront hook template of the opt-out.
-SHIP="app/addons/kwtsms design/backend/templates/addons/kwtsms design/themes/responsive/templates/addons/kwtsms design/backend/css/addons/kwtsms design/backend/media/images/addons/kwtsms js/addons/kwtsms var/langs/en/addons/kwtsms.po var/langs/ar/addons/kwtsms.po"
+SHIP="app/addons/kwtsms design/backend/templates/addons/kwtsms design/themes/responsive/templates/addons/kwtsms var/themes_repository/responsive/templates/addons/kwtsms design/backend/css/addons/kwtsms design/backend/media/images/addons/kwtsms js/addons/kwtsms var/langs/en/addons/kwtsms.po var/langs/ar/addons/kwtsms.po"
 cd "$src" || exit 2
 
 [ -s "$patterns" ] || { echo "FAIL  private patterns file missing: $patterns"; exit 1; }
@@ -448,7 +448,7 @@ ev = os.path.join(root, 'app/addons/kwtsms/schemas/kwtsms/events.php')
 nonlang |= set(re.findall(r"^\s*'(kwtsms\.[\w.]+)'\s*=>", open(ev, encoding='utf-8').read(), re.M))
 nonlang |= set(re.findall(r"\$schema\['(kwtsms\.[\w.]+)'\]", open(os.path.join(root, 'app/addons/kwtsms/schemas/notifications/events.post.php'), encoding='utf-8').read()))
 n = 0
-for base in ('app/addons/kwtsms', 'design/backend/templates/addons/kwtsms', 'design/themes/responsive/templates/addons/kwtsms', 'js/addons/kwtsms'):
+for base in ('app/addons/kwtsms', 'design/backend/templates/addons/kwtsms', 'design/themes/responsive/templates/addons/kwtsms', 'var/themes_repository/responsive/templates/addons/kwtsms', 'js/addons/kwtsms'):
     for d, _, fs in os.walk(os.path.join(root, base)):
         for f in fs:
             if not f.endswith(('.php', '.tpl', '.js', '.xml')): continue
@@ -571,7 +571,14 @@ listed() { # listed <PCRE to report> [-v]: prints the staged paths that match (o
 }
 stage_links() { local res; res="$(find "$pkg" -type l)" || return 3; [ -z "$res" ] || printf '%s\n' "$res"; echo "CHECKED $(find "$pkg" | wc -l)"; }
 gate "no symlinks in the stage" stage_links
-gate "only the allowed top-level paths" listed '^(app/addons/kwtsms/|design/backend/templates/addons/kwtsms/|design/themes/responsive/templates/addons/kwtsms/|design/backend/css/addons/kwtsms/|design/backend/media/images/addons/kwtsms/|js/addons/kwtsms/|var/langs/(en|ar)/addons/kwtsms\.po$)' -v
+# 2026-10-23 01:36 +03: Task A10 fix round 1, task 596. Core installs storefront templates from var/themes_repository into design/themes, so the
+# package carries both trees and they must be byte-identical.
+theme_trees_identical() {
+  diff -r "$pkg/design/themes/responsive/templates/addons/kwtsms" "$pkg/var/themes_repository/responsive/templates/addons/kwtsms" || return 1
+  echo "CHECKED $(find "$pkg/var/themes_repository" -type f | wc -l)"
+}
+gate "design/themes and var/themes_repository templates are byte-identical" theme_trees_identical
+gate "only the allowed top-level paths" listed '^(app/addons/kwtsms/|design/backend/templates/addons/kwtsms/|design/themes/responsive/templates/addons/kwtsms/|var/themes_repository/responsive/templates/addons/kwtsms/|design/backend/css/addons/kwtsms/|design/backend/media/images/addons/kwtsms/|js/addons/kwtsms/|var/langs/(en|ar)/addons/kwtsms\.po$)' -v
 gate "no test, doc, dev or vendor paths or files" listed '(^|/)(tests|docs|docker|\.git|\.cl[a]ude|vendor|node_modules|devguard)/|\.env|composer\.(json|lock)|phpunit|\.log$|\.sent-msgids|kwtsms_devguard|\.(orig|rej|bak|swp|zip|tgz)$|~$'
 private_check() {
   local res rc
