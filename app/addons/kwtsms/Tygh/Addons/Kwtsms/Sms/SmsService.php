@@ -187,11 +187,14 @@ class SmsService
         'company_id' => 0, 'storefront_id' => 0, 'user_id' => 0, 'actor_user_id' => 0, 'actor_company_id' => 0,
         'lang_code' => '', 'audience' => 'storefront', 'interactive' => false, 'ip' => '', 'secret_values' => [],
         'country_iso' => '', 'caller' => '', 'retry_of' => 0, 'outbox_id' => 0,
+        // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. Seconds an outbox row stays valid (0 = the default
+        // 1800).
+        'ttl' => 0,
     ];
 
     private const INT_KEYS = [
         'order_id', 'parent_order_id', 'company_id', 'storefront_id', 'user_id', 'actor_user_id', 'actor_company_id',
-        'retry_of', 'outbox_id',
+        'retry_of', 'outbox_id', 'ttl',
     ];
 
     /** @var ConfigInterface */
@@ -399,7 +402,10 @@ class SmsService
                 ['test' => $flag, 'hook_ran' => '0'] + $context,
                 self::AFTER_RESPONSE,
                 $now,
-                $now + Outbox::TTL_SECONDS
+                // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. The context ttl: absent or 0 = 1800, else
+                // between 60 and 1800
+                // (a password-reset SMS must not outlive its link).
+                $now + self::rowTtl((int) $context['ttl'])
             );
         } catch (\Throwable $e) {
             $this->noteThrowable('sms.queue_after_response_failed', $e);
@@ -411,6 +417,16 @@ class SmsService
         }
 
         return $id;
+    }
+
+    /**
+     * 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. Seconds an after-response row stays valid: ttl 0 or
+     * absent is
+     * Outbox::TTL_SECONDS, else min(TTL_SECONDS, max(60, ttl)).
+     */
+    private static function rowTtl(int $ttl): int
+    {
+        return $ttl <= 0 ? Outbox::TTL_SECONDS : min(Outbox::TTL_SECONDS, max(60, $ttl));
     }
 
     /**

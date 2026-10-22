@@ -144,6 +144,31 @@ final class SampleData
     }
 
     /**
+     * 2026-10-22 19:08 +03: Task A6 (registration SMS, recovery SMS), task 596. The values of the profile
+     * placeholders, kept apart from
+     * reference() and worst() like shipment(): the reference ones, or the worst case (6-digit user id, 15-character
+     * phone, the 80-character reset URL of P2-8).
+     *
+     * @return array<string,string>
+     */
+    public static function profile(bool $worst = false): array
+    {
+        if ($worst) {
+            return [
+                'user_id' => '102345',
+                'customer_phone' => '+9655012340299',
+                'reset_url' => 'https://shop.example.com/index.php?dispatch=auth.recover_password&ekey=012345678',
+            ];
+        }
+
+        return [
+            'user_id' => '10234',
+            'customer_phone' => '+965 5012 3402',
+            'reset_url' => 'https://example.com/index.php?dispatch=auth.recover_password&ekey=0f3a9c',
+        ];
+    }
+
+    /**
      * @param array<int,string> $names
      */
     private static function longest(array $names, string $fallback): string

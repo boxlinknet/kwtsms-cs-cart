@@ -50,6 +50,15 @@ class Defaults
     public const EVENT_UPDATED = 'order.updated';
     public const EVENT_SHIPMENT = 'order.shipment_updated';
 
+    /**
+     * 2026-10-22 19:08 +03: Task A6 (SafatMall F5 part), task 596. The welcome SMS (core's profile.created.c), the
+     * masked password
+     * recovery SMS (core's profile.password_recover.c) and the add-on's own admin registration alert.
+     */
+    public const EVENT_WELCOME = 'profile.created.c';
+    public const EVENT_RECOVER = 'profile.password_recover.c';
+    public const EVENT_REGISTERED = 'kwtsms.customer_registered';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -70,6 +79,19 @@ class Defaults
     // shipment text.
     public const EVENT_PLACEHOLDERS = [
         self::EVENT_SHIPMENT => ['tracking_number', 'carrier', 'tracking_url', 'shipment_info'],
+        // 2026-10-22 19:08 +03: Task A6, task 596. The profile events (values from Profiles\ProfileSmsData).
+        self::EVENT_WELCOME => ['user_id', 'customer_phone'],
+        self::EVENT_REGISTERED => ['user_id', 'customer_phone'],
+        self::EVENT_RECOVER => ['user_id', 'customer_phone', 'reset_url'],
+    ];
+
+    /**
+     * 2026-10-22 19:08 +03: Task A6, task 596. Placeholders whose value is a secret even before the declarations are
+     * registered
+     * (seeding, unit tests): the password-reset link, masked in every log copy (D7).
+     */
+    public const EVENT_SECRETS = [
+        self::EVENT_RECOVER => ['reset_url'],
     ];
 
     /**
@@ -118,6 +140,11 @@ class Defaults
         $rows[] = self::row(self::EVENT_UPDATED, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_UPDATED, self::RECEIVER_ADMIN);
         $rows[] = self::row(self::EVENT_SHIPMENT, self::RECEIVER_CUSTOMER);
+        // 2026-10-22 19:08 +03: Task A6 (SafatMall F5 part), task 596. Welcome SMS, admin registration alert,
+        // recovery SMS.
+        $rows[] = self::row(self::EVENT_WELCOME, self::RECEIVER_CUSTOMER);
+        $rows[] = self::row(self::EVENT_REGISTERED, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_RECOVER, self::RECEIVER_CUSTOMER);
 
         return $rows;
     }
@@ -192,7 +219,12 @@ class Defaults
     public static function secretPlaceholders(string $event_id = ''): array
     {
         // 2026-10-22 17:12 +03: Task A4, task 596. The secret names of a declared event (`secret` of format v2).
-        return $event_id === '' ? [] : (self::$declared[$event_id]['secret'] ?? []);
+        // 2026-10-22 19:08 +03: Task A6, task 596. Plus the secret names every build knows (the recovery SMS reset
+        // link).
+        return $event_id === '' ? [] : array_values(array_unique(array_merge(
+            self::EVENT_SECRETS[$event_id] ?? [],
+            self::$declared[$event_id]['secret'] ?? []
+        )));
     }
 
     public static function statusLangvar(string $code): string

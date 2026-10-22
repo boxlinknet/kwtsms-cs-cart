@@ -31,4 +31,20 @@ $schema['kwtsms.order_placed'] = [
     ],
 ];
 
+// 2026-10-22 19:08 +03: Task A6 (SafatMall F5 part, P2-7), task 596. The administrator's registration alert: a
+// customer registered on
+// the storefront or at checkout. Group profile, receiver A, no transport here (EventsSchemaExtender attaches the SMS
+// one
+// from schemas/kwtsms/events.php). Dispatched by Profiles\ProfileHooks.
+$schema['kwtsms.customer_registered'] = [
+    'group' => 'profile',
+    'name' => [
+        'template' => 'kwtsms.event.customer_registered',
+        'params' => [],
+    ],
+    'receivers' => [
+        'A' => [],
+    ],
+];
+
 return $schema;

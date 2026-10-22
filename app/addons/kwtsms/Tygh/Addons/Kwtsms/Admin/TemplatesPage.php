@@ -1352,7 +1352,9 @@ class TemplatesPage
 
         // 2026-10-22 18:00 +03: Task A5, task 596. The shipment placeholders have sample values too (the preview of
         // the shipment text).
-        return SampleData::reference($lang, $status_name, $brand) + SampleData::shipment(false, $lang);
+        // 2026-10-22 19:08 +03: Task A6, task 596. And the profile ones (user id, phone, reset link).
+        return SampleData::reference($lang, $status_name, $brand) + SampleData::shipment(false, $lang)
+            + SampleData::profile(false);
     }
 
     /**
@@ -1435,7 +1437,7 @@ class TemplatesPage
 
         // 2026-10-22 18:00 +03: Task A5, task 596. Plus the worst case of the shipment placeholders.
         return SampleData::worst($lang, array_values(array_filter($status, 'strlen')), $currency, $own_status_name)
-            + SampleData::shipment(true, $lang);
+            + SampleData::shipment(true, $lang) + SampleData::profile(true); // 2026-10-22 19:08 +03: Task A6, task 596
     }
 
     /**

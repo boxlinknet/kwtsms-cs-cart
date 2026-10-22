@@ -73,4 +73,56 @@ return [
         'group' => 'kwtsms.templates.group_order_updates',
         'data_class' => \Tygh\Addons\Kwtsms\Orders\ShipmentSmsData::class,
     ],
+    // 2026-10-22 19:08 +03: Task A6 (SafatMall F5 part), task 596. Core's profile.created.c (a customer account was
+    // created and
+    // the Notify box was on): the welcome SMS, C only, once per account. The password of the event data is never
+    // mapped. Default OFF.
+    'profile.created.c' => [
+        'receivers' => ['C'],
+        'phone' => 'user_data.phone',
+        'country' => 'user_data.b_country',
+        'lang' => 'user_data.lang_code',
+        'storefront' => 'storefront_id',
+        'user_id' => 'user_data.user_id',
+        'dedupe' => ['key' => 'created:{user_data.user_id}:{receiver}', 'window' => 0],
+        'group' => 'kwtsms.templates.group_profile',
+        'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
+    ],
+    // 2026-10-22 19:08 +03: Task A6, task 596. Core's profile.password_recover.c (a customer asked for a password
+    // reset): the SMS
+    // carries the reset link (placeholder reset_url, built by ProfileSmsData from the ekey). The link and the ekey
+    // are secrets: masked in every log copy (secret_values), the outbox row expires with the ekey (ttl 900). One SMS
+    // per
+    // account in 10 minutes (a repeat is skipped with the reason recover_throttled). The F6 opt-out never covers it
+    // (P2-4). profile.password_recover.a and .v are never declared (PRD 10). Default OFF.
+    'profile.password_recover.c' => [
+        'receivers' => ['C'],
+        'phone' => 'user_data.phone',
+        'lang' => 'user_data.lang_code',
+        'storefront' => 'storefront_id',
+        'user_id' => 'user_data.user_id',
+        // reset_url is computed by ProfileSmsData (the placeholder path is only the declaration of the name; the data
+        // class value wins) and is secret.
+        'placeholders' => ['reset_url' => 'ekey'],
+        'secret' => ['reset_url'],
+        'dedupe' => [
+            'key' => 'recover:{user_data.user_id}:{receiver}', 'window' => 600, 'reason' => 'recover_throttled',
+        ],
+        'group' => 'kwtsms.templates.group_profile',
+        'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
+    ],
+    // 2026-10-22 19:08 +03: Task A6, task 596. The add-on's own event (schemas/notifications/events.post.php): the
+    // administrator is told
+    // when a customer registers on the storefront or at checkout (P2-7). A only. Default OFF.
+    'kwtsms.customer_registered' => [
+        'receivers' => ['A'],
+        'phone' => 'user_data.phone',
+        'country' => 'user_data.b_country',
+        'lang' => 'user_data.lang_code',
+        'storefront' => 'storefront_id',
+        'user_id' => 'user_data.user_id',
+        'dedupe' => ['key' => 'registered:{user_data.user_id}:A', 'window' => 0],
+        'group' => 'kwtsms.templates.group_profile',
+        'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
+    ],
 ];

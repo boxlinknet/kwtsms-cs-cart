@@ -99,6 +99,8 @@ class Outbox
         // 2026-10-21 05:08 +03: a row queued for after the response: "0" until kwtsms_send_pre ran on it, then "1"
         // (Task 1.9 fix round 2 item 1), task 596.
         'hook_ran' => 's',
+        // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. The ttl of the original send, seconds.
+        'ttl' => 'i',
     ];
 
     /** @var callable|null returns the current Unix time */

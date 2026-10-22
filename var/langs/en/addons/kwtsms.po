@@ -175,6 +175,11 @@ msgctxt "Languages::kwtsms.event.order_placed"
 msgid "New order placed"
 msgstr "New order placed"
 
+# 2026-10-22 19:09 +03: name of the kwtsms.customer_registered event on Administration > Notifications, Task A6, task 596.
+msgctxt "Languages::kwtsms.event.customer_registered"
+msgid "Customer registered"
+msgstr "Customer registered"
+
 msgctxt "Languages::privilege_groups.kwtsms"
 msgid "kwtSMS"
 msgstr "kwtSMS"
@@ -432,6 +437,19 @@ msgstr "{store_name}: Order {order_id} was updated."
 msgctxt "Languages::kwtsms.tpl.order.shipment_updated.C"
 msgid "{store_name}: Order {order_id} has shipped. {shipment_info}"
 msgstr "{store_name}: Order {order_id} has shipped. {shipment_info}"
+
+# 2026-10-22 19:09 +03: default texts of the welcome SMS, the admin registration alert and the password recovery SMS, Task A6 (SafatMall F5 part), task 596.
+msgctxt "Languages::kwtsms.tpl.profile.created.c.C"
+msgid "{store_name}: Welcome! Your account is ready."
+msgstr "{store_name}: Welcome! Your account is ready."
+
+msgctxt "Languages::kwtsms.tpl.kwtsms.customer_registered.A"
+msgid "{store_name}: New customer registered, ID {user_id}, phone {customer_phone}"
+msgstr "{store_name}: New customer registered, ID {user_id}, phone {customer_phone}"
+
+msgctxt "Languages::kwtsms.tpl.profile.password_recover.c.C"
+msgid "{store_name}: Reset password: {reset_url} Valid 15 min. Not you? Ignore."
+msgstr "{store_name}: Reset password: {reset_url} Valid 15 min. Not you? Ignore."
 
 # 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
 msgctxt "Languages::kwtsms.status.A"
@@ -1041,6 +1059,19 @@ msgstr "Tracking link"
 msgctxt "Languages::kwtsms.templates.ph_shipment_info"
 msgid "Shipment details"
 msgstr "Shipment details"
+
+# 2026-10-22 19:09 +03: placeholder names of the profile texts, Task A6, task 596.
+msgctxt "Languages::kwtsms.templates.ph_user_id"
+msgid "Customer ID"
+msgstr "Customer ID"
+
+msgctxt "Languages::kwtsms.templates.ph_customer_phone"
+msgid "Customer phone"
+msgstr "Customer phone"
+
+msgctxt "Languages::kwtsms.templates.ph_reset_url"
+msgid "Reset link"
+msgstr "Reset link"
 
 msgctxt "Languages::kwtsms.templates.warn_store_name_missing"
 msgid "Customer texts need {store_name}, so customers know who sent the SMS. This text can't be saved without it."
@@ -4665,3 +4696,24 @@ msgstr "Shipment created"
 msgctxt "Languages::kwtsms.templates.group_order_updates"
 msgid "Order updates"
 msgstr "Order updates"
+
+# 2026-10-22 19:09 +03: Templates page names and heading of the profile events, and the attempt reason of a throttled recovery SMS, Task A6, task 596.
+msgctxt "Languages::kwtsms.templates.group_profile"
+msgid "Accounts"
+msgstr "Accounts"
+
+msgctxt "Languages::kwtsms.templates.event.profile.created.c"
+msgid "Welcome (new account)"
+msgstr "Welcome (new account)"
+
+msgctxt "Languages::kwtsms.templates.event.kwtsms.customer_registered"
+msgid "Customer registered"
+msgstr "Customer registered"
+
+msgctxt "Languages::kwtsms.templates.event.profile.password_recover.c"
+msgid "Password recovery"
+msgstr "Password recovery"
+
+msgctxt "Languages::kwtsms.logs.reason.recover_throttled"
+msgid "A reset link SMS was already sent to this account in the last 10 minutes."
+msgstr "A reset link SMS was already sent to this account in the last 10 minutes."

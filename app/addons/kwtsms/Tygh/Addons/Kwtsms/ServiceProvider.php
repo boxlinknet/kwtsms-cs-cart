@@ -30,6 +30,8 @@
  *            their errors to kwtsms.logs.debug (item 2); the diagnostics write only while SMS is on and set up
  *            (item 4); a tripped extendNotifications() guard also raises the admin notice sms_not_attached after
  *            the response (item 5); prune_logs also prunes expired status dispatch keys (ruling R32, item 6).
+ *            2026-10-22 19:09 +03, Task A6, task 596: kwtsms.profile_hooks (Profiles\ProfileHooks, the registration
+ * alert).
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -48,6 +50,7 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DbLogStore;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
+use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend;
@@ -409,6 +412,39 @@ class ServiceProvider implements ServiceProviderInterface
                     );
                 },
                 $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-10-22 19:09 +03: Task A6 (registration alert, P2-7), task 596. The update_profile handler: dispatches
+        // kwtsms.customer_registered through event.dispatcher with the stored switches (default rules) and its own
+        // event id kwtsms.customer_registered.<user_id>.
+        $app['kwtsms.profile_hooks'] = function (Container $app): ProfileHooks {
+            return new ProfileHooks(
+                static function (string $event_id, array $data, string $provider_id) use ($app): void {
+                    $provider = new class ($provider_id) implements IProvider {
+                        /** @var string */
+                        private $id;
+
+                        public function __construct(string $id)
+                        {
+                            $this->id = $id;
+                        }
+
+                        public function getId()
+                        {
+                            return $this->id;
+                        }
+                    };
+                    $app['event.dispatcher']->dispatch($event_id, $data, null, $provider);
+                },
+                static function () use ($app): int {
+                    $storefront = $app['storefront'] ?? null;
+
+                    return is_object($storefront) && isset($storefront->storefront_id)
+                        ? (int) $storefront->storefront_id : 0;
+                },
+                static function (): string {
+                    return defined('AREA') ? (string) AREA : '';
+                }
             );
         };
     }

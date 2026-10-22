@@ -36,6 +36,10 @@ fn_register_hooks(
     'change_order_status_child_order',
     // 2026-10-22 18:02 +03: Task A5 (R18), task 596. The shipment created in the admin: diagnostics when the Notify
     // box is off.
-    'update_shipment_before_send_notification'
+    'update_shipment_before_send_notification',
+    // 2026-10-22 19:09 +03: Task A6 (SafatMall F5 part, P2-7), task 596. A customer registered on the storefront or
+    // at checkout: the
+    // admin registration alert.
+    'update_profile'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

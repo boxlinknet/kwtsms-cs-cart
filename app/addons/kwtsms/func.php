@@ -347,6 +347,30 @@ function fn_kwtsms_update_shipment_before_send_notification(
 }
 
 /**
+ * 2026-10-22 19:09 +03: Task A6 (SafatMall F5 part, P2-7), task 596. Hook update_profile (fn.users.php, end of
+ * fn_update_user): a
+ * customer account was added or updated. A storefront or checkout registration dispatches the admin registration
+ * alert (kwtsms.customer_registered); the welcome SMS itself is core's profile.created.c with the SMS transport.
+ * Never throws.
+ *
+ * @param string              $action            add or update
+ * @param array<string,mixed> $user_data
+ * @param array<string,mixed> $current_user_data
+ */
+function fn_kwtsms_update_profile($action, $user_data, $current_user_data)
+{
+    try {
+        Tygh::$app['kwtsms.profile_hooks']->onUpdateProfile(
+            (string) $action,
+            is_array($user_data) ? $user_data : [],
+            is_array($current_user_data) ? $current_user_data : []
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_profile', $e);
+    }
+}
+
+/**
  * One line in the PHP error log for a failed order hook: class, message, file:line, no trace.
  * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
  */

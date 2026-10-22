@@ -71,6 +71,9 @@ class LogsPage
         // 2026-10-22 17:13 +03: the vendor receiver has no approved number; a declared data_class is missing (R16),
         // Task A4, task 596.
         'vendor_not_approved', 'platform_missing',
+        // 2026-10-22 19:10 +03: a password-recovery SMS inside the 10-minute window of the account (R5), Task A6,
+        // task 596.
+        'recover_throttled',
     ];
 
     /**
