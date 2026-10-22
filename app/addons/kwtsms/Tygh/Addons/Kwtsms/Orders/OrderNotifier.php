@@ -229,6 +229,16 @@ class OrderNotifier
             return false;
         }
 
+        // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
+        // for its Notify boxes) in this request is superseded: it already gets kwtsms.order_placed. Core dispatches
+        // order.updated twice in Order management (order_management.php:736 and :762); both are superseded and burn
+        // no dedupe key.
+        if ($event_id === Defaults::EVENT_UPDATED && $this->isNewInThisRequest($order)) {
+            $this->skip(self::SUPERSEDED, 'new_order', $order, $event_id, $receiver);
+
+            return false;
+        }
+
         if (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0) {
             $sent = $this->statusSms($event_id, $receiver, $order);
         } elseif ($event_id === Defaults::EVENT_PLACED) {
@@ -245,6 +255,19 @@ class OrderNotifier
         ], $started);
 
         return $sent;
+    }
+
+    /**
+     * 2026-10-22 17:59 +03: Task A5, task 596. True while the order carries the new_order or manual flag of this
+     * request.
+     *
+     * @param array<string,mixed> $order
+     */
+    private function isNewInThisRequest(array $order): bool
+    {
+        $order_id = (int) ($order['order_id'] ?? 0);
+
+        return $order_id > 0 && ($this->flags->has('new_order', $order_id) || $this->flags->has('manual', $order_id));
     }
 
     /**

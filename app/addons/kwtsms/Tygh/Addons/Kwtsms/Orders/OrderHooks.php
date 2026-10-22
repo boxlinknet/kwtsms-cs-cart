@@ -264,6 +264,26 @@ class OrderHooks
     }
 
     /**
+     * 2026-10-22 18:02 +03: Task A5 (R18), task 596. Hook update_shipment_before_send_notification (fn.cart.php:9091,
+     * the create
+     * branch of fn_update_shipment(), right before core dispatches order.shipment_updated with these rules): records
+     * why no shipment SMS will be handed over (the Notify customer box is off: not_notified; the SMS switch is
+     * off: switched_off), like the status events do.
+     *
+     * @param array<string,mixed> $order_info
+     * @param mixed               $force_notification
+     */
+    public function onShipmentBeforeSend(array $order_info, $force_notification): void
+    {
+        $this->diagnostics->recordSkipped(
+            $order_info,
+            Defaults::EVENT_SHIPMENT,
+            self::rules($force_notification),
+            ['C']
+        );
+    }
+
+    /**
      * kwtsms.order_placed for a new order, split by unit.
      *
      * @param array<string,mixed> $order_info

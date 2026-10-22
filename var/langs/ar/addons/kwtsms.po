@@ -419,6 +419,19 @@ msgctxt "Languages::kwtsms.tpl.order.status_changed.o.C"
 msgid "{store_name}: Order {order_id} is open. We will keep you updated."
 msgstr "طلبك رقم {order_id} من {store_name} مفتوح، سنوافيك بالتحديثات"
 
+# 2026-10-22 18:00 +03: default texts of order.updated and order.shipment_updated, Task A5 (SafatMall F2), task 596.
+msgctxt "Languages::kwtsms.tpl.order.updated.C"
+msgid "{store_name}: Your order {order_id} was updated. We will keep you informed."
+msgstr "تم تحديث طلبك رقم {order_id} من {store_name}"
+
+msgctxt "Languages::kwtsms.tpl.order.updated.A"
+msgid "{store_name}: Order {order_id} was updated."
+msgstr "تم تحديث الطلب رقم {order_id} في {store_name}"
+
+msgctxt "Languages::kwtsms.tpl.order.shipment_updated.C"
+msgid "{store_name}: Order {order_id} shipped via {carrier}. Tracking: {tracking_number}."
+msgstr "شحن طلب رقم {order_id} من {store_name} تتبع {tracking_number}"
+
 # 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
 msgctxt "Languages::kwtsms.status.A"
 msgid "Awaiting call"
@@ -1010,6 +1023,19 @@ msgstr "طريقة الدفع"
 msgctxt "Languages::kwtsms.templates.ph_shipping_method"
 msgid "Shipping method"
 msgstr "طريقة الشحن"
+
+# 2026-10-22 18:12 +03: placeholder names of the shipment text, Task A5, task 596.
+msgctxt "Languages::kwtsms.templates.ph_tracking_number"
+msgid "Tracking number"
+msgstr "رقم التتبع"
+
+msgctxt "Languages::kwtsms.templates.ph_carrier"
+msgid "Carrier"
+msgstr "شركة الشحن"
+
+msgctxt "Languages::kwtsms.templates.ph_tracking_url"
+msgid "Tracking link"
+msgstr "رابط التتبع"
 
 msgctxt "Languages::kwtsms.templates.warn_store_name_missing"
 msgid "Customer texts need {store_name}, so customers know who sent the SMS. This text can't be saved without it."
@@ -4621,3 +4647,17 @@ msgstr "الإضافة التي أعلنت هذه الرسالة لا تعمل: 
 msgctxt "Languages::kwtsms.templates.group_events"
 msgid "Other events"
 msgstr "أحداث أخرى"
+
+# 2026-10-22 18:00 +03: Templates page names of the two shipped core events, Task A5, task 596.
+msgctxt "Languages::kwtsms.templates.event.order.updated"
+msgid "Order updated"
+msgstr "تحديث الطلب"
+
+msgctxt "Languages::kwtsms.templates.event.order.shipment_updated"
+msgid "Shipment created"
+msgstr "إنشاء شحنة"
+
+# 2026-10-22 18:08 +03: heading of the Templates rows of order.updated and order.shipment_updated, Task A5, task 596.
+msgctxt "Languages::kwtsms.templates.group_order_updates"
+msgid "Order updates"
+msgstr "تحديثات الطلب"

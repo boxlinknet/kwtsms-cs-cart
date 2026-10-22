@@ -47,4 +47,30 @@ return [
     'kwtsms.order_placed' => [
         'receivers' => ['C', 'A'],
     ],
+    // 2026-10-22 17:59 +03: Task A5 (SafatMall F2), task 596. Core's order.updated: the admin edited or saved an order
+    // (Orders > details, or Order management). C and A (V comes with B6). Sent once per order and receiver in 10
+    // minutes (saving again is a duplicate_event). An order flagged new or admin-created in this request is
+    // superseded by the order-placed SMS (OrderNotifier). Default OFF.
+    'order.updated' => [
+        'receivers' => ['C', 'A'],
+        'order' => 'order_info',
+        'group' => 'kwtsms.templates.group_order_updates',
+        'dedupe' => ['key' => 'updated:{order_info.order_id}:{receiver}', 'window' => 600],
+        'opt_out' => true,
+    ],
+    // 2026-10-22 17:59 +03: Task A5, task 596. Core's order.shipment_updated (a shipment was created, with or
+    // without a tracking number): C only. One SMS per shipment, ever. tracking_number is cleaned by ShipmentSmsData.
+    // Default OFF.
+    'order.shipment_updated' => [
+        'receivers' => ['C'],
+        'placeholders' => [
+            'tracking_number' => 'shipment.tracking_number',
+            'carrier' => 'shipment.carrier_info.name',
+            'tracking_url' => 'shipment.carrier_info.tracking_url',
+        ],
+        'dedupe' => ['key' => 'shipment:{shipment.shipment_id}:{receiver}', 'window' => 0],
+        'opt_out' => true,
+        'group' => 'kwtsms.templates.group_order_updates',
+        'data_class' => \Tygh\Addons\Kwtsms\Orders\ShipmentSmsData::class,
+    ],
 ];

@@ -43,6 +43,13 @@ class Defaults
     public const EVENT_PLACED = 'kwtsms.order_placed';
     public const EVENT_PLACED_MULTI = 'kwtsms.order_placed.multi';
 
+    /**
+     * 2026-10-22 17:59 +03: Task A5 (SafatMall F2), task 596. Core's order.updated and order.shipment_updated, shipped
+     * with default texts (declared in schemas/kwtsms/events.php).
+     */
+    public const EVENT_UPDATED = 'order.updated';
+    public const EVENT_SHIPMENT = 'order.shipment_updated';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -53,6 +60,14 @@ class Defaults
     public const PLACEHOLDERS = [
         'store_name', 'order_id', 'order_ids', 'vendor_name', 'order_total', 'currency', 'order_status',
         'customer_first_name', 'customer_last_name', 'order_date', 'payment_method', 'shipping_method',
+    ];
+
+    /**
+     * 2026-10-22 17:59 +03: Task A5, task 596. Placeholders a shipped event has on top of PLACEHOLDERS (their values
+     * come from the event's declaration and data class).
+     */
+    public const EVENT_PLACEHOLDERS = [
+        self::EVENT_SHIPMENT => ['tracking_number', 'carrier', 'tracking_url'],
     ];
 
     /**
@@ -95,6 +110,12 @@ class Defaults
                 $status
             );
         }
+        // 2026-10-22 18:01 +03: Task A5 (SafatMall F2), task 596. Core's order.updated and order.shipment_updated,
+        // shipped with default
+        // texts (after the status rows, the order of the .po files).
+        $rows[] = self::row(self::EVENT_UPDATED, self::RECEIVER_CUSTOMER);
+        $rows[] = self::row(self::EVENT_UPDATED, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_SHIPMENT, self::RECEIVER_CUSTOMER);
 
         return $rows;
     }
@@ -134,7 +155,12 @@ class Defaults
     public static function allowedPlaceholders(string $event_id, string $receiver): array
     {
         // 2026-10-22 17:12 +03: Task A4, task 596. A declared event adds the placeholder names of its declaration.
-        $declared = self::$declared[$event_id]['placeholders'] ?? [];
+        // 2026-10-22 17:59 +03: Task A5, task 596. A shipped event (order.shipment_updated) knows its own names even
+        // before the declarations are registered (seeding, unit tests).
+        $declared = array_merge(
+            self::EVENT_PLACEHOLDERS[$event_id] ?? [],
+            self::$declared[$event_id]['placeholders'] ?? []
+        );
 
         if ($declared === []) {
             return self::PLACEHOLDERS;

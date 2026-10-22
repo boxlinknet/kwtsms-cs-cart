@@ -1333,7 +1333,9 @@ class TemplatesPage
     private function placeholderWords(string $lang, int $sf = 0): array
     {
         // 2026-10-21 08:28 +03: the {store_name} chip shows the store's real brand, cleanup item 3, task 596.
-        return $this->reference($lang, '', $sf);
+        // 2026-10-22 18:00 +03: Task A5, task 596. The chips are the shared placeholders; the shipment ones are not
+        // offered on every row.
+        return array_intersect_key($this->reference($lang, '', $sf), array_flip(Defaults::PLACEHOLDERS));
     }
 
     /**
@@ -1348,7 +1350,9 @@ class TemplatesPage
         // 2026-10-22 16:13 +03: Task A3, task 596. A storefront view shows that storefront's own brand name.
         $brand = $sf > 0 ? $this->brandOfStorefront($sf, $lang) : $this->brandOf($lang);
 
-        return SampleData::reference($lang, $status_name, $brand);
+        // 2026-10-22 18:00 +03: Task A5, task 596. The shipment placeholders have sample values too (the preview of
+        // the shipment text).
+        return SampleData::reference($lang, $status_name, $brand) + SampleData::shipment(false);
     }
 
     /**
@@ -1429,7 +1433,9 @@ class TemplatesPage
             }
         }
 
-        return SampleData::worst($lang, array_values(array_filter($status, 'strlen')), $currency, $own_status_name);
+        // 2026-10-22 18:00 +03: Task A5, task 596. Plus the worst case of the shipment placeholders.
+        return SampleData::worst($lang, array_values(array_filter($status, 'strlen')), $currency, $own_status_name)
+            + SampleData::shipment(true);
     }
 
     /**

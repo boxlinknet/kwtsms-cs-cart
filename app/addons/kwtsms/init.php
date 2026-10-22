@@ -33,6 +33,9 @@ fn_register_hooks(
     'edit_place_order',
     'place_order_manually_post',
     'place_order_post',
-    'change_order_status_child_order'
+    'change_order_status_child_order',
+    // 2026-10-22 18:02 +03: Task A5 (R18), task 596. The shipment created in the admin: diagnostics when the Notify
+    // box is off.
+    'update_shipment_before_send_notification'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

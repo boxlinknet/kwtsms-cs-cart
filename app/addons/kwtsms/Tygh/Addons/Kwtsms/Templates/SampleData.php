@@ -112,6 +112,31 @@ final class SampleData
     }
 
     /**
+     * 2026-10-22 18:00 +03: Task A5 (order.shipment_updated), task 596. The values of the shipment placeholders, kept
+     * apart from
+     * reference() and worst() (their keys are exactly Defaults::PLACEHOLDERS): the reference ones, or the worst case of
+     * the brief (15-character carrier name, 22-character tracking number).
+     *
+     * @return array<string,string>
+     */
+    public static function shipment(bool $worst = false): array
+    {
+        if ($worst) {
+            return [
+                'tracking_number' => '1234567890123456789012',
+                'carrier' => 'ABCDEFGHIJKLMNO',
+                'tracking_url' => 'https://example.test/track/1234567890123456789012',
+            ];
+        }
+
+        return [
+            'tracking_number' => 'TRK123456789',
+            'carrier' => 'USPS',
+            'tracking_url' => 'https://example.test/t/TRK123456789',
+        ];
+    }
+
+    /**
      * @param array<int,string> $names
      */
     private static function longest(array $names, string $fallback): string

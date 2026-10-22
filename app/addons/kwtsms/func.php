@@ -313,6 +313,40 @@ function fn_kwtsms_change_order_status_child_order(
 }
 
 /**
+ * 2026-10-22 18:02 +03: Task A5 (R18), task 596. Hook update_shipment_before_send_notification (fn.cart.php:9091):
+ * the shipment was
+ * created and core is about to dispatch order.shipment_updated with $force_notification. The hook create_shipment
+ * (fn.cart.php:9013) runs before the shipment exists and carries no notification rules, so it cannot tell whether
+ * the customer will be notified; this one can.
+ *
+ * @param array<string,mixed> $shipment_data
+ * @param int                 $shipment_id
+ * @param int                 $group_no
+ * @param bool                $all_products
+ * @param mixed               $force_notification
+ * @param array<string,mixed> $order_info
+ * @param array<string,mixed> $shipment
+ */
+function fn_kwtsms_update_shipment_before_send_notification(
+    $shipment_data,
+    $shipment_id,
+    $group_no,
+    $all_products,
+    $force_notification,
+    $order_info,
+    $shipment = []
+) {
+    try {
+        Tygh::$app['kwtsms.order_hooks']->onShipmentBeforeSend(
+            is_array($order_info) ? $order_info : [],
+            $force_notification
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_shipment_before_send_notification', $e);
+    }
+}
+
+/**
  * One line in the PHP error log for a failed order hook: class, message, file:line, no trace.
  * 2026-10-21 01:58 +03: added, Task 1.9, task 596.
  */

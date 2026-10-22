@@ -451,6 +451,14 @@ class TemplateRepository
      */
     protected function eventLabel(string $event_id, string $lang): string
     {
+        // 2026-10-22 18:00 +03: Task A5, task 596. The add-on's own name for a core event it ships (Order updated,
+        // Shipment
+        // created) comes first: core's names ("Order was updated", "Products were shipped") describe the mail.
+        $own_name = 'kwtsms.templates.event.' . $event_id;
+        $own = (string) __($own_name, [], $lang);
+        if ($own !== '' && $own !== '_' . $own_name && $own !== $own_name) {
+            return $own;
+        }
         $name = \Tygh\Tygh::$app['event.events_schema'][$event_id]['name'] ?? null;
         $template = is_array($name) ? (string) ($name['template'] ?? '') : '';
         if ($template !== '') {
