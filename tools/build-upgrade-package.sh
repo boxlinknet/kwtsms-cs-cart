@@ -8,6 +8,7 @@
 #            tools/build-package.sh (tools/package-gates.sh) on the new tree, gates upgrades/<to> the same way, then
 #            lays the package out like a CS-Cart add-on upgrade:
 #              schema.json                       id, type "addon", from_version, to_version, name, description, timestamp, size, file
+#              kwtsms-upgrade-<from>-<to>.txt    the file named by schema.json "file" (without it the Upgrade Center shows no Install button)
 #              content/package.json              files {path: {status new|changed|deleted, hash md5 of the OLD file}},
 #                                                migrations [...], scripts {"post": "post.php"}
 #              content/package/<store paths>     only the new and changed shipped files (app/addons/kwtsms/..,
@@ -159,9 +160,13 @@ up_epoch="$(git -C "$src" log -1 --format=%ct -- $SHIP "upgrades/$to" 2>/dev/nul
 [ -n "$up_epoch" ] || up_epoch="$(date +%s)"
 up="$stage/up"; mkdir -p "$up/content/package" "$up/content/migrations" "$up/content/scripts" || exit 2
 zipname="kwtsms-upgrade-$from-$to.zip"
-build_layout() { py "$pkg" "$oldtree" "$updir" "$up" "$from" "$to" "$zipname" "$up_epoch" <<'PY'
+# 2026-10-22 14:07 +03: Upgrade::getPackages() lists an uploaded package as installable only when the file named by schema.json "file"
+# exists next to schema.json (App.php: is_file($pack_path . $package_id . '/' . $schema['file'])); the Upgrade Center
+# unpacks nothing from it for an uploaded package (the files are in content/), so it is a one-line marker, Task A1, task 596.
+markername="kwtsms-upgrade-$from-$to.txt"
+build_layout() { py "$pkg" "$oldtree" "$updir" "$up" "$from" "$to" "$markername" "$up_epoch" <<'PY'
 import hashlib, json, os, shutil, sys
-new, old, updir, up, frm, to, zipname, epoch = sys.argv[1:9]
+new, old, updir, up, frm, to, markername, epoch = sys.argv[1:9]
 def tree(root):
     out = {}
     for d, _, fs in os.walk(root):
@@ -206,11 +211,12 @@ for sub in ('migrations', 'scripts'):          # empty directories are not part 
         os.rmdir(p)
 json.dump(package, open(os.path.join(up, 'content', 'package.json'), 'w'), indent=1, sort_keys=True)
 schema = {
-    'id': 'kwtsms', 'type': 'addon', 'file': zipname, 'name': 'kwtSMS ' + to, 'addon_name': 'kwtSMS',
+    'id': 'kwtsms', 'type': 'addon', 'file': markername, 'name': 'kwtSMS ' + to, 'addon_name': 'kwtSMS',
     'description': 'Upgrade of the kwtSMS add-on from ' + frm + ' to ' + to + '. Edited SMS templates, notification switches, settings and the saved login are kept.',
     'from_version': frm, 'to_version': to, 'timestamp': int(epoch), 'size': size,
 }
 json.dump(schema, open(os.path.join(up, 'schema.json'), 'w'), indent=1, sort_keys=True)
+open(os.path.join(up, markername), 'w').write('kwtSMS upgrade package ' + frm + ' to ' + to + '. The files are in content/.\n')
 print('CHECKED', len(files) + len(mig))
 PY
 }
@@ -236,6 +242,8 @@ schema = json.load(open(os.path.join(z, 'schema.json')))
 for k in ('file', 'name', 'description', 'from_version', 'to_version', 'timestamp', 'size', 'type'):
     if not schema.get(k):
         bad.append('schema.json: %s is empty' % k)
+if schema.get('file') and not os.path.isfile(os.path.join(z, schema['file'])):
+    bad.append('schema.json: the file named in "file" is not in the package root (the Upgrade Center then shows no Install button)')
 if schema.get('type') != 'addon' or schema.get('id') != 'kwtsms':
     bad.append('schema.json: type/id must be addon/kwtsms')
 if schema.get('from_version') != frm or schema.get('to_version') != to:
