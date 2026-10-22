@@ -17,6 +17,8 @@
  *            it passes the rows on unchanged. A failed collect returns GdprUserData::FAILED and a failed or refused
  *            update raises kwtsms.gdpr.failed (item 4): the administrator never sees "anonymized" for rows that were
  *            not.
+ *            2026-10-23 00:56 +03, Task A10 (SafatMall F6), task 596: collect_data_callback also returns the account's row of
+ *            kwtsms_customer_prefs under 'prefs' and update_data_callback removes it (GdprUserData::collect / anonymize).
  * USAGE:     Loaded by core (Tygh\Gdpr\SchemaManager: fn_get_schema('gdpr', 'user_data')) while the add-on is active:
  *            collect_data_callback($user_info), update_data_callback($collected).
  * DEPENDS:   Privacy\GdprUserData, Tygh::$app['kwtsms.config'] and ['kwtsms.logs.debug'] (ServiceProvider).

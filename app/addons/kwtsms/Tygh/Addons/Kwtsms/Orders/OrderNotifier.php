@@ -54,6 +54,12 @@
  *            2026-10-22 22:18 +03, Task A8, task 596 (R11): every V SMS (the new-order SMS of a child order and the
  *            low-stock SMS alike) passes the vendor's monthly quota in deliver() after its approved number is found:
  *            over the quota is rate_limited / vendor_quota, written with the number, no key claimed by deliver().
+ *            2026-10-23 00:54 +03, Task A10 (SafatMall F6, P2-4, R10), task 596: the fixed check order is active,
+ *            storefront switch,
+ *            customer opt-out, dispatch-key claim. A customer (receiver C, user_id > 0) who unticked "SMS about my
+ *            order status" gets no order.status_changed.*, no order.updated and no order.shipment_updated (every event
+ *            whose declaration says opt_out): switched_off / customer_opt_out, no key claimed. The receipt
+ *            (kwtsms.order_placed) and security SMS never pass this check; a guest order (user_id 0) is never gated.
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog, Vendors\VendorQuota.
@@ -67,6 +73,7 @@ use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
+use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
@@ -126,6 +133,9 @@ class OrderNotifier
     /** @var VendorQuota|null 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. Null = no quota (unit rigs). */
     private $vendor_quota;
 
+    /** @var CustomerPrefs|null 2026-10-23 00:54 +03: Task A10 (R8), task 596. */
+    private $prefs;
+
     /** @var array<string,DeclaredSmsData> data_class instances, by class name */
     private $data_classes = [];
 
@@ -177,8 +187,12 @@ class OrderNotifier
         // scenario is active (provider set up and scenario on). Null = not active (fail closed).
         ?callable $antibot_gate = null,
         // 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. The vendor's monthly quota; nullable, appended last.
-        ?VendorQuota $vendor_quota = null
+        ?VendorQuota $vendor_quota = null,
+        // 2026-10-23 00:54 +03: Task A10 (R8, R10), task 596. The customer opt-out; nullable, appended last (null =
+        // nobody opted out).
+        ?CustomerPrefs $prefs = null
     ) {
+        $this->prefs = $prefs;
         $this->vendor_quota = $vendor_quota;
         $this->antibot_gate = $antibot_gate;
         $this->storefront_rules = $storefront_rules;
@@ -249,6 +263,15 @@ class OrderNotifier
             return false;
         }
 
+        // 2026-10-23 00:54 +03: Task A10 (SafatMall F6, P2-4, ruling R10), task 596. The customer opt-out comes right
+        // after the storefront
+        // switch and before any dispatch-key claim: the first failing check sets the reason.
+        if ($this->optedOut($event_id, $receiver, $order)) {
+            $this->skip(Diagnostics::SWITCHED_OFF, 'customer_opt_out', $order, $event_id, $receiver);
+
+            return false;
+        }
+
         // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
         // for its Notify boxes) in this request is superseded: it already gets kwtsms.order_placed. Core dispatches
         // order.updated twice in Order management (order_management.php:736 and :762); both are superseded and burn
@@ -275,6 +298,30 @@ class OrderNotifier
         ], $started);
 
         return $sent;
+    }
+
+    /**
+     * 2026-10-23 00:54 +03: Task A10 (SafatMall F6, P2-4), task 596. True when this SMS goes to a customer account
+     * that opted out of
+     * order-status SMS: receiver C, an order of a registered user, and an event of the opt-out scope (the status
+     * events and every declaration with opt_out). A guest order (user_id 0) is never gated: the choice belongs to the
+     * account, not the phone.
+     *
+     * @param array<string,mixed> $order
+     */
+    private function optedOut(string $event_id, string $receiver, array $order): bool
+    {
+        if ($this->prefs === null || $receiver !== 'C') {
+            return false;
+        }
+        $user_id = (int) ($order['user_id'] ?? 0);
+        if ($user_id <= 0) {
+            return false;
+        }
+        $in_scope = strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0
+            || (isset($this->declared[$event_id]) && $this->declared[$event_id]->optOut());
+
+        return $in_scope && !$this->prefs->orderSmsAllowed($user_id);
     }
 
     /**

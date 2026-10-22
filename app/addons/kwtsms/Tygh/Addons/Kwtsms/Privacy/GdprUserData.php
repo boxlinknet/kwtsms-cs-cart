@@ -112,11 +112,13 @@ class GdprUserData
         $phones = self::phonesOf($user, $orders, $this->config->defaultCountryCode());
         $out = [
             'user_id' => $user_id, 'phones' => $phones, 'order_ids' => $order_ids,
-            'messages' => [], 'attempts' => [], 'outbox' => [],
+            'messages' => [], 'attempts' => [], 'outbox' => [], 'prefs' => [],
         ];
         if ($user_id < 1) {
             return $out;
         }
+        // 2026-10-23 00:56 +03: Task A10 (SafatMall F6), task 596. The customer's SMS preference row (empty when none).
+        $out['prefs'] = $this->prefs($user_id);
         $out['messages'] = $this->messages($user_id, $order_ids, $phones);
         $out['attempts'] = $this->attempts($user_id, $order_ids, $phones);
         $out['outbox'] = $this->outbox($user_id, $order_ids, $phones);
@@ -328,6 +330,9 @@ class GdprUserData
             $changed = (int) db_query('UPDATE ?:kwtsms_outbox SET ?u WHERE outbox_id = ?i', $set, $id);
             $done['outbox'] += $changed > 0 ? 1 : 0;
         }
+        // 2026-10-23 00:56 +03: Task A10 (SafatMall F6), task 596. The opt-out row of the account goes with the rest
+        // of its SMS data.
+        $this->deletePrefs((int) ($data['user_id'] ?? 0));
         $this->log->log('info', 'gdpr.anonymized', 'SMS rows of a customer anonymized', [
             'user_id' => (int) ($data['user_id'] ?? 0), 'numbers' => count($tokens),
         ] + $done);
@@ -400,6 +405,30 @@ class GdprUserData
     }
 
     // ================================================================== database (protected: tests replace them)
+
+    /**
+     * 2026-10-23 00:56 +03: Task A10, task 596. The customer's row of kwtsms_customer_prefs (user_id, order_sms,
+     * updated_at), or [].
+     *
+     * @return array<string,mixed>
+     */
+    protected function prefs(int $user_id): array
+    {
+        $row = db_get_row(
+            'SELECT user_id, order_sms, updated_at FROM ?:kwtsms_customer_prefs WHERE user_id = ?i',
+            $user_id
+        );
+
+        return is_array($row) ? $row : [];
+    }
+
+    /** 2026-10-23 00:56 +03: Task A10, task 596. Removes the account's opt-out row (exact user id). */
+    protected function deletePrefs(int $user_id): void
+    {
+        if ($user_id > 0) {
+            db_query('DELETE FROM ?:kwtsms_customer_prefs WHERE user_id = ?i', $user_id);
+        }
+    }
 
     /**
      * The customer's orders (by user id, or by e-mail as core's own orders_data does), with their child orders.

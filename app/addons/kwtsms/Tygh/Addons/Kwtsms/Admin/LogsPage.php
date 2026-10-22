@@ -81,6 +81,8 @@ class LogsPage
         'antibot_required',
         // 2026-10-22 22:47 +03: a vendor SMS over the vendor's monthly quota (P2-6), Task A8, task 596.
         'vendor_quota',
+        // 2026-10-23 00:56 +03: a customer who turned off order status SMS in their profile (P2-4), Task A10, task 596.
+        'customer_opt_out',
     ];
 
     /**

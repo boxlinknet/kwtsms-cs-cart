@@ -53,6 +53,7 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DbLogStore;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
+use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
@@ -178,6 +179,10 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-10-22 14:53 +03: the per-storefront switches and Sender IDs, Task A2 (P2-1, P2-2), task 596.
         $app['kwtsms.storefront_rules'] = function (): StorefrontRules {
             return new StorefrontRules();
+        };
+        // 2026-10-23 00:54 +03: Task A10 (SafatMall F6), task 596. The customer's opt-out of order-status SMS.
+        $app['kwtsms.customer_prefs'] = function (): CustomerPrefs {
+            return new CustomerPrefs();
         };
         $app['kwtsms.sender_resolver'] = function (Container $app): SenderResolver {
             return new SenderResolver($app['kwtsms.config'], $app['kwtsms.state'], $app['kwtsms.alerts']);
@@ -422,7 +427,10 @@ class ServiceProvider implements ServiceProviderInterface
                     return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
                 },
                 // 2026-10-22 22:22 +03: Task A8 (R8, R11), task 596. The vendor's monthly quota.
-                $app['kwtsms.vendor_quota']
+                $app['kwtsms.vendor_quota'],
+                // 2026-10-23 00:54 +03: Task A10 (R8, R10), task 596. The customer opt-out, checked after the
+                // storefront switch.
+                $app['kwtsms.customer_prefs']
             );
         };
 
@@ -559,6 +567,14 @@ class ServiceProvider implements ServiceProviderInterface
                 },
                 static function (): string {
                     return defined('AREA') ? (string) AREA : '';
+                },
+                // 2026-10-23 00:54 +03: Task A10 (SafatMall F6), task 596. The opt-out storage and the logged-in user
+                // of the request.
+                $app['kwtsms.customer_prefs'],
+                static function () use ($app): int {
+                    $session = $app['session'] ?? null;
+
+                    return is_object($session) || is_array($session) ? (int) ($session['auth']['user_id'] ?? 0) : 0;
                 }
             );
         };

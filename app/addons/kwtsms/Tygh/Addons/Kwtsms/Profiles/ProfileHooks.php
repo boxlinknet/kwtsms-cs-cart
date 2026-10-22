@@ -16,7 +16,12 @@
  * USAGE:     new ProfileHooks($dispatch, $storefront_id, $area); onUpdateProfile($action, $user_data, $current).
  *            $dispatch(string $event_id, array $data, string $provider_id): void goes through event.dispatcher with
  *            default rules (the stored switches decide); $storefront_id(): int; $area(): string (AREA).
- * DEPENDS:   Container wiring in ServiceProvider ('kwtsms.profile_hooks'), func.php fn_kwtsms_update_profile().
+ *            2026-10-23 00:52 +03, Task A10, task 596 (SafatMall F6): the same hook saves the customer's choice of
+ *            order-status SMS (form field user_data[kwtsms_order_sms], Y or N) into Profiles\CustomerPrefs. Only a
+ *            storefront request (AREA C) of the customer themself writes it: an administrator editing the profile
+ *            in the backend, or a request whose logged-in user is another account, never flips it.
+ * DEPENDS:   Container wiring in ServiceProvider ('kwtsms.profile_hooks'), func.php fn_kwtsms_update_profile(),
+ *            Profiles\CustomerPrefs.
  */
 
 namespace Tygh\Addons\Kwtsms\Profiles;
@@ -37,8 +42,21 @@ final class ProfileHooks
     /** @var callable */
     private $area;
 
-    public function __construct(callable $dispatch, callable $storefront_id, callable $area)
-    {
+    /** @var CustomerPrefs|null 2026-10-23 00:52 +03: Task A10 (R8), task 596. Null = no opt-out storage (unit rigs). */
+    private $prefs;
+
+    /** @var callable|null 2026-10-23 00:52 +03: Task A10, task 596. fn(): int, the logged-in user id of the request. */
+    private $actor;
+
+    public function __construct(
+        callable $dispatch,
+        callable $storefront_id,
+        callable $area,
+        ?CustomerPrefs $prefs = null,
+        ?callable $actor = null
+    ) {
+        $this->prefs = $prefs;
+        $this->actor = $actor;
         $this->dispatch = $dispatch;
         $this->storefront_id = $storefront_id;
         $this->area = $area;
@@ -51,6 +69,7 @@ final class ProfileHooks
      */
     public function onUpdateProfile(string $action, array $user_data, array $current_user_data): void
     {
+        $this->saveOrderSmsChoice($action, $user_data);
         if ($action !== 'add' || (string) call_user_func($this->area) !== 'C') {
             return;
         }
@@ -74,6 +93,44 @@ final class ProfileHooks
             );
         } catch (\Throwable $e) {
             error_log('kwtsms: registration alert failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
+    }
+
+    /**
+     * 2026-10-23 00:52 +03: Task A10 (SafatMall F6), task 596. Saves user_data[kwtsms_order_sms] (Y / N) for a
+     * customer account. Only a storefront request counts (AREA C), for the account that is logged in (a new account
+     * is not yet: action add); the backend profile form does not carry the field and a posted one is ignored there.
+     * Any other value, or no field, changes nothing. Never throws.
+     *
+     * @param array<string,mixed> $user_data
+     */
+    private function saveOrderSmsChoice(string $action, array $user_data): void
+    {
+        if (
+            $this->prefs === null
+            || !isset($user_data['kwtsms_order_sms'])
+            || !is_string($user_data['kwtsms_order_sms'])
+        ) {
+            return;
+        }
+        $choice = $user_data['kwtsms_order_sms'];
+        $user_id = (int) ($user_data['user_id'] ?? 0);
+        if (
+            ($choice !== CustomerPrefs::ALLOWED && $choice !== CustomerPrefs::OPTED_OUT)
+            || $user_id <= 0
+            || (string) ($user_data['user_type'] ?? '') !== 'C'
+            || (string) call_user_func($this->area) !== 'C'
+        ) {
+            return;
+        }
+        if ($action !== 'add' && ($this->actor === null || (int) call_user_func($this->actor) !== $user_id)) {
+            return;
+        }
+        try {
+            $this->prefs->save($user_id, $choice === CustomerPrefs::ALLOWED);
+        } catch (\Throwable $e) {
+            error_log('kwtsms: opt-out save failed: ' . get_class($e) . ': ' . $e->getMessage()
                 . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
         }
     }

@@ -5023,3 +5023,16 @@ msgstr "Credits left"
 msgctxt "Languages::kwtsms.templates.ph_threshold"
 msgid "Alert level"
 msgstr "Alert level"
+
+# 2026-10-23 00:56 +03: Task A10 (SafatMall F6), task 596. The storefront opt-out box (registration and profile) and its Logs reason.
+msgctxt "Languages::kwtsms.profile.order_sms_label"
+msgid "Send me SMS about my order status"
+msgstr "Send me SMS about my order status"
+
+msgctxt "Languages::kwtsms.profile.order_sms_help"
+msgid "Order confirmations and security codes are always sent."
+msgstr "Order confirmations and security codes are always sent."
+
+msgctxt "Languages::kwtsms.logs.reason.customer_opt_out"
+msgid "The customer turned off order status SMS in their profile."
+msgstr "The customer turned off order status SMS in their profile."

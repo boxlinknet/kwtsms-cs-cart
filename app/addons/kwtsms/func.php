@@ -372,6 +372,32 @@ function fn_kwtsms_update_profile($action, $user_data, $current_user_data)
 }
 
 /**
+ * 2026-10-23 00:54 +03: Task A10 (SafatMall F6, P2-4), task 596. For the storefront profile and registration form
+ * (hook template
+ * hooks/profiles/account_update.post.tpl, modifier |fn_kwtsms_order_sms_choice): whether to show the "SMS about my
+ * order status" box and whether it is ticked. Shown only while SMS sending is switched on; ticked unless the account
+ * opted out (a new account, user 0, is ticked). Never throws.
+ *
+ * @param int|string $user_id the logged-in user, 0 on the registration form
+ *
+ * @return array{show:bool,allowed:bool}
+ */
+function fn_kwtsms_order_sms_choice($user_id)
+{
+    try {
+        if (!Tygh::$app['kwtsms.config']->enabled()) {
+            return ['show' => false, 'allowed' => true];
+        }
+
+        return ['show' => true, 'allowed' => Tygh::$app['kwtsms.customer_prefs']->orderSmsAllowed((int) $user_id)];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('order_sms_choice', $e);
+
+        return ['show' => false, 'allowed' => true];
+    }
+}
+
+/**
  * 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10), task 596. Hook update_product_amount
  * (app/functions/fn.cart.php:1196 in 4.21.2, fn_update_product_amount(), after core mailed its own low-stock e-mail
  * and before the products row is written). The ten arguments are those of the fn_set_hook() call there. A product
