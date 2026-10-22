@@ -74,7 +74,11 @@ final class ProfileSmsData implements DeclaredSmsData
      * the one that dispatched the event.
      */
     // 2026-10-22 20:17 +03: the ekey is a one-time secret (package gate: SensitiveParameter), task 596.
-    public static function resetUrl(#[\SensitiveParameter] string $ekey, int $storefront_id): string
+    public static function resetUrl(
+        #[\SensitiveParameter]
+        string $ekey,
+        int $storefront_id
+    ): string
     {
         $path = 'auth.recover_password?ekey=' . $ekey;
         if (function_exists('fn_url')) {
