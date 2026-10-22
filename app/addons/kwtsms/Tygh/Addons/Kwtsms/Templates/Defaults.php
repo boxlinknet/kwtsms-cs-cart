@@ -82,7 +82,8 @@ class Defaults
         // 2026-10-22 19:08 +03: Task A6, task 596. The profile events (values from Profiles\ProfileSmsData).
         self::EVENT_WELCOME => ['user_id', 'customer_phone'],
         self::EVENT_REGISTERED => ['user_id', 'customer_phone'],
-        self::EVENT_RECOVER => ['user_id', 'customer_phone', 'reset_url'],
+        // 2026-10-22 20:28 +03: valid_minutes, Task A6 fix round 1
+        self::EVENT_RECOVER => ['user_id', 'customer_phone', 'reset_url', 'valid_minutes'],
     ];
 
     /**

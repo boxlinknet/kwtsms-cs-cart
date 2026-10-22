@@ -53,6 +53,10 @@ final class ProfileSmsData implements DeclaredSmsData
             $out['placeholders']['reset_url'] = $url;
             $out['secret_values'] = [$url, $ekey];
             $out['ttl'] = defined('RECOVERY_PASSWORD_TTL') ? (int) RECOVERY_PASSWORD_TTL : self::DEFAULT_RECOVERY_TTL;
+            // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R13, M2), task 596. The validity the text states comes
+            // from the same constant as
+            // the ttl (a store may override RECOVERY_PASSWORD_TTL), rounded up to whole minutes.
+            $out['placeholders']['valid_minutes'] = (string) max(1, (int) ceil($out['ttl'] / 60));
         }
 
         return $out;
@@ -78,8 +82,7 @@ final class ProfileSmsData implements DeclaredSmsData
         #[\SensitiveParameter]
         string $ekey,
         int $storefront_id
-    ): string
-    {
+    ): string {
         $path = 'auth.recover_password?ekey=' . $ekey;
         if (function_exists('fn_url')) {
             return (string) fn_url($path, 'C');

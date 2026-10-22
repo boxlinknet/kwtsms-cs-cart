@@ -326,6 +326,8 @@ class TemplatesPage
             // else "Other events".
             'group_key' => $kind === 'declared' ? (string) ($source['group'] ?? '') : '',
             'group_label' => $kind === 'declared' ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
+            // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. A public-form row shows the CAPTCHA notice.
+            'public_form' => $kind === 'declared' ? (string) ($source['public_form'] ?? '') : '',
             'switch_note' => $note,
             'badge' => $badge,
             'has_text' => $effective !== '',

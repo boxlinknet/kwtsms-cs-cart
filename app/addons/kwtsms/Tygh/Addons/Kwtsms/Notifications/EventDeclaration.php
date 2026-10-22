@@ -63,6 +63,9 @@ final class EventDeclaration
     /** @var string */
     private $data_class;
 
+    /** @var string 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Antibot scenario a storefront send needs ('' = none). */
+    private $public_form;
+
     /** @var string What the last dedupeKey() call could not resolve ('' = nothing) */
     private $key_error = '';
 
@@ -83,7 +86,8 @@ final class EventDeclaration
         array $masked_names,
         bool $opt_out,
         string $group,
-        string $data_class
+        string $data_class,
+        string $public_form = ''
     ) {
         $this->event_id = $event_id;
         $this->receivers = $receivers;
@@ -96,6 +100,7 @@ final class EventDeclaration
         $this->opt_out = $opt_out;
         $this->group = $group;
         $this->data_class = $data_class;
+        $this->public_form = $public_form;
     }
 
     /**
@@ -171,7 +176,11 @@ final class EventDeclaration
             array_values($secret),
             !empty($decl['opt_out']),
             $group,
-            $data_class
+            $data_class,
+            // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. `public_form` => antibot scenario (e.g.
+            // register).
+            isset($decl['public_form']) && is_string($decl['public_form'])
+            && preg_match('/^[a-z_]{1,40}$/D', $decl['public_form']) === 1 ? $decl['public_form'] : ''
         );
     }
 
@@ -292,6 +301,16 @@ final class EventDeclaration
     public function group(): string
     {
         return $this->group;
+    }
+
+    /**
+     * 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. The core antibot scenario ("register") a send
+     * that comes from a
+     * storefront request needs; '' = the event is not a public-form event. Sends from the admin area are never gated.
+     */
+    public function publicForm(): string
+    {
+        return $this->public_form;
     }
 
     /**

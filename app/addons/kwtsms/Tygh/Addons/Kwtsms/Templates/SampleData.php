@@ -158,6 +158,7 @@ final class SampleData
                 'user_id' => '102345',
                 'customer_phone' => '+9655012340299',
                 'reset_url' => 'https://shop.example.com/index.php?dispatch=auth.recover_password&ekey=012345678',
+                'valid_minutes' => '15', // 2026-10-22 20:28 +03: Task A6 fix round 1
             ];
         }
 
@@ -165,6 +166,7 @@ final class SampleData
             'user_id' => '10234',
             'customer_phone' => '+965 5012 3402',
             'reset_url' => 'https://example.com/index.php?dispatch=auth.recover_password&ekey=0f3a9c',
+            'valid_minutes' => '15',
         ];
     }
 

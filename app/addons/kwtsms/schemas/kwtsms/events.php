@@ -85,6 +85,10 @@ return [
         'storefront' => 'storefront_id',
         'user_id' => 'user_data.user_id',
         'dedupe' => ['key' => 'created:{user_data.user_id}:{receiver}', 'window' => 0],
+        // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. A storefront registration sends only while
+        // the core antibot
+        // scenario "register" is active (public form, PRD 6.5 / R25); admin-created customers are not gated.
+        'public_form' => 'register',
         'group' => 'kwtsms.templates.group_profile',
         'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
     ],
@@ -122,6 +126,8 @@ return [
         'storefront' => 'storefront_id',
         'user_id' => 'user_data.user_id',
         'dedupe' => ['key' => 'registered:{user_data.user_id}:A', 'window' => 0],
+        // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Same antibot rule as the welcome SMS.
+        'public_form' => 'register',
         'group' => 'kwtsms.templates.group_profile',
         'data_class' => \Tygh\Addons\Kwtsms\Profiles\ProfileSmsData::class,
     ],

@@ -450,8 +450,8 @@ msgid "{store_name}: New customer registered, ID {user_id}, phone {customer_phon
 msgstr "عميل جديد رقم {user_id} في {store_name}، الهاتف {customer_phone}"
 
 msgctxt "Languages::kwtsms.tpl.profile.password_recover.c.C"
-msgid "{store_name}: Reset password: {reset_url} Valid 15 min. Not you? Ignore."
-msgstr "كلمة مرور جديدة لحسابك في {store_name}: {reset_url} صالح 15 دقيقة. لم تطلبها؟ تجاهل الرسالة"
+msgid "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min. Not you? Ignore."
+msgstr "كلمة مرور جديدة لحسابك في {store_name}: {reset_url} صالح {valid_minutes} دقيقة. لم تطلبها؟ تجاهل الرسالة"
 
 # 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
 msgctxt "Languages::kwtsms.status.A"
@@ -4720,3 +4720,20 @@ msgstr "استعادة كلمة المرور"
 msgctxt "Languages::kwtsms.logs.reason.recover_throttled"
 msgid "A reset link SMS was already sent to this account in the last 10 minutes."
 msgstr "تم إرسال رسالة رابط إعادة التعيين إلى هذا الحساب خلال آخر 10 دقائق."
+
+# 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12, P2-R13), task 596.
+msgctxt "Languages::kwtsms.logs.reason.antibot_required"
+msgid "Skipped: CAPTCHA for registration is off."
+msgstr "تم التخطي: الكابتشا للتسجيل غير مفعلة."
+
+msgctxt "Languages::kwtsms.templates.notice_captcha"
+msgid "Turn on CAPTCHA for registration to send this SMS."
+msgstr "فعّل الكابتشا للتسجيل لإرسال هذه الرسالة."
+
+msgctxt "Languages::kwtsms.templates.ph_valid_minutes"
+msgid "Valid minutes"
+msgstr "مدة الصلاحية بالدقائق"
+
+msgctxt "Languages::kwtsms.help.switches.p3"
+msgid "The welcome SMS and the administrator registration alert are sent only while CAPTCHA for registration is turned on (Settings > Security), so bots cannot spend your credits."
+msgstr "تُرسل رسالة الترحيب وتنبيه المدير عند التسجيل فقط عند تفعيل الكابتشا للتسجيل (الإعدادات > الأمان)، حتى لا تستهلك البوتات رصيدك."

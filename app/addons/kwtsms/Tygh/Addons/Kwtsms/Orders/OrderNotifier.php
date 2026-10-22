@@ -114,6 +114,9 @@ class OrderNotifier
     /** @var VendorPhoneSourceInterface|null Approved vendor numbers for receiver V (null = nobody approved) */
     private $vendor_phones;
 
+    /** @var callable|null 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Antibot scenario gate. */
+    private $antibot_gate;
+
     /** @var array<string,DeclaredSmsData> data_class instances, by class name */
     private $data_classes = [];
 
@@ -159,8 +162,13 @@ class OrderNotifier
         array $declared = [],
         ?callable $after_response = null,
         ?StorefrontRules $storefront_rules = null,
-        ?VendorPhoneSourceInterface $vendor_phones = null
+        ?VendorPhoneSourceInterface $vendor_phones = null,
+        // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12, R8), task 596. fn(string $scenario): bool, true when
+        // the core antibot
+        // scenario is active (provider set up and scenario on). Null = not active (fail closed).
+        ?callable $antibot_gate = null
     ) {
+        $this->antibot_gate = $antibot_gate;
         $this->storefront_rules = $storefront_rules;
         $this->vendor_phones = $vendor_phones;
         $this->after_response = $after_response ?? [self::class, 'sendsAfterResponse'];
@@ -437,6 +445,22 @@ class OrderNotifier
     {
         $decl = $this->declared[$event_id];
         if (!in_array($receiver, $decl->receivers(), true)) {
+            return false;
+        }
+        // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12, PRD 6.5 / R25), task 596. A public-form event
+        // (registration) that comes from a
+        // storefront request sends only while the core antibot scenario is active: Tygh\Web\Antibot::
+        // isValidationRequiredForScenario() (app/Tygh/Web/Antibot.php:121-129: enabled, driver set up,
+        // use_for[scenario]
+        // = Y), the scenario the core rules assign to profiles.update and checkout.add_profile
+        // (app/schemas/security/antibot_rules.php:19 and :54). Sends from the admin area are not gated.
+        if (
+            $decl->publicForm() !== ''
+            && ($this->orders->actor()['area'] ?? '') === 'C'
+            && !($this->antibot_gate !== null && (bool) call_user_func($this->antibot_gate, $decl->publicForm()))
+        ) {
+            $this->skip(Diagnostics::SWITCHED_OFF, 'antibot_required', $order, $event_id, $receiver);
+
             return false;
         }
         $extra = ['custom' => []];

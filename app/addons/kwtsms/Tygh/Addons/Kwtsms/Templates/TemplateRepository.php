@@ -413,6 +413,9 @@ class TemplateRepository
                 }
                 $declared_row = $row($event_id, $receiver, 'declared', '', $label);
                 $declared_row['group'] = $decl->group();
+                // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. The antibot scenario a public-form
+                // row needs.
+                $declared_row['public_form'] = $decl->publicForm();
                 $rows[] = $declared_row;
             }
         }

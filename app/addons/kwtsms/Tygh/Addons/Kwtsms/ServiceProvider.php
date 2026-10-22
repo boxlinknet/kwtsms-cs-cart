@@ -377,7 +377,13 @@ class ServiceProvider implements ServiceProviderInterface
                 // review I2, ruling R52), task 596.
                 [new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']), 'mode'],
                 $app['kwtsms.storefront_rules'],
-                $app['kwtsms.vendor_phones']
+                $app['kwtsms.vendor_phones'],
+                // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. The core antibot scenario of a
+                // public form
+                // (Tygh\Web\Antibot::isValidationRequiredForScenario, app/Tygh/Web/Antibot.php:121-129).
+                static function (string $scenario) use ($app): bool {
+                    return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
+                }
             );
         };
 

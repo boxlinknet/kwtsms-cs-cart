@@ -113,6 +113,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 </ol>
                 <p>{__("kwtsms.help.switches.p1")}</p>
                 <p>{__("kwtsms.help.switches.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
+                {* 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. *}
+                <p>{__("kwtsms.help.switches.p3")}</p>
             </section>
 
             {* ---- placeholders ----------------------------------------------------------------------------------- *}

@@ -1677,6 +1677,12 @@ class SmsService
         if (!$this->config->quietHoursEnabled() || $context['receiver'] !== 'C' || $context['source'] === 'otp') {
             return null;
         }
+        // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R13, M1), task 596. A send that carries a ttl (a password-
+        // reset link) is exempt, like
+        // OTP: held until the end of the window it would arrive after its link expired.
+        if ((int) ($context['ttl'] ?? 0) > 0) {
+            return null;
+        }
         if (strncmp($context['event_id'], 'kwtsms.order_placed', 19) === 0) {
             return null;
         }
@@ -1729,7 +1735,9 @@ class SmsService
                 $reused = true;
                 // 2026-10-21 01:04 +03: quiet hours move the expiry past the window end (fix round 1, item 10),
                 // task 596.
-                $expires = $first['reason'] === 'quiet_hours' ? $first['retry_at'] + Outbox::TTL_SECONDS : null;
+                // 2026-10-22 20:27 +03: Task A6 fix round 1 (M1), task 596: the row's own ttl, not the fixed 1800.
+                $expires = $first['reason'] === 'quiet_hours'
+                    ? $first['retry_at'] + self::rowTtl((int) ($context['ttl'] ?? 0)) : null;
                 // 2026-10-21 05:08 +03: the text kwtsms_send_pre returned is already in the row (markHookRan,
                 // fix round 2 item 1), task 596.
                 $retried = $this->outbox->markRetry(
@@ -1741,9 +1749,12 @@ class SmsService
                 );
                 $id = $retried ? (int) $row['outbox_id'] : 0;
             } else {
+                // 2026-10-22 20:27 +03: Task A6 fix round 1 (M1), task 596: a new row expires with the send's ttl.
                 $expires = $first['reason'] === 'quiet_hours'
-                    ? $first['retry_at'] + Outbox::TTL_SECONDS
-                    : ($row !== null ? (int) $row['expires_at'] : $this->now() + Outbox::TTL_SECONDS);
+                    ? $first['retry_at'] + self::rowTtl((int) ($context['ttl'] ?? 0))
+                    : ($row !== null
+                        ? (int) $row['expires_at']
+                        : $this->now() + self::rowTtl((int) ($context['ttl'] ?? 0)));
                 // 2026-10-21 01:04 +03: the row keeps the test flag of this send (ruling R26), task 596.
                 // 2026-10-21 01:43 +03: a row split off a drained row keeps the drained row's STORED flag, not the
                 // effective one, so a live row drained during test mode leaves live splits (fix round 2, item B).
