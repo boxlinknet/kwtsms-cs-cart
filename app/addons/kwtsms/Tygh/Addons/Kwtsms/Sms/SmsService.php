@@ -103,6 +103,7 @@ use Tygh\Addons\Kwtsms\Log\MessageLog;
 use Tygh\Addons\Kwtsms\Log\Redactor;
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
+use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
 
 class SmsService
@@ -271,12 +272,17 @@ class SmsService
     /** @var float */
     private $stage_started = 0.0;
 
+    /** @var SenderResolver|null The Sender ID per storefront (2026-10-22 14:53 +03, Task A2, task 596) */
+    private $senders;
+
     /**
      * @param callable $client_factory (string $timeout_context web|admin|cli): ApiClient; every client of one
      *                                 request must share one ApiGuard
      * @param callable|null $clock     Returns the current Unix time (tests); null = time()
      * @param CapLock|null  $cap_lock  The cap lock; null = new CapLock() (the store's GET_LOCK). 2026-10-21 12:04 +03:
      *                                 added, ruling R41, task 596
+     * @param SenderResolver|null $senders The Sender ID per storefront; null = the global Sender ID for every send.
+     *                                 2026-10-22 14:53 +03: added, Task A2, task 596
      */
     public function __construct(
         ConfigInterface $config,
@@ -288,8 +294,10 @@ class SmsService
         Outbox $outbox,
         ?AdminAlerts $alerts = null,
         ?callable $clock = null,
-        ?CapLock $cap_lock = null
+        ?CapLock $cap_lock = null,
+        ?SenderResolver $senders = null
     ) {
+        $this->senders = $senders;
         $this->config = $config;
         $this->state = $state;
         $this->client_factory = $client_factory;
@@ -759,6 +767,25 @@ class SmsService
     }
 
     /**
+     * 2026-10-22 14:53 +03: the Sender ID of one send. Never throws: any failure answers the global Sender ID.
+     * Task A2, task 596.
+     *
+     * @param array<string,mixed> $context
+     */
+    private function senderFor(array $context): string
+    {
+        if ($this->senders !== null) {
+            try {
+                return $this->senders->forStorefront((int) $context['storefront_id']);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('sms.sender_resolve_failed', $e);
+            }
+        }
+
+        return $this->config->senderId();
+    }
+
+    /**
      * Whether the web request budget and the web timeouts apply now: a web request, except while drainDue() works
      * for the cron (Task 1.7 fix round 1 item 7). 2026-10-21 01:54 +03: added, task 596.
      */
@@ -1019,7 +1046,11 @@ class SmsService
             $numbers[] = $rcpt[$i]['phone'];
         }
         $balance_before = $available;
-        $bulk = $this->bulkSend($numbers, $body, $context + ['_body' => $body, '_pages' => $pages]);
+        // 2026-10-22 14:53 +03: the Sender ID of this send, asked once: the storefront's own when it has a usable
+        // one, else the global one; a drained row asks at drain time. Task A2, task 596.
+        $bulk = $this->bulkSend($numbers, $body, $context + [
+            '_body' => $body, '_pages' => $pages, '_sender' => $this->senderFor($context),
+        ]);
         foreach ($open as $i) {
             $chunk = $bulk['by_number'][$rcpt[$i]['phone']] ?? null;
             if ($chunk === null) {
@@ -1074,7 +1105,8 @@ class SmsService
         }
         $stopped = null;
         if ($send !== []) {
-            $result = $this->client($context)->send($this->config->senderId(), $send, $message, $test);
+            // 2026-10-22 14:53 +03: the sender of this send (storefront or global), Task A2, task 596.
+            $result = $this->client($context)->send((string) $context['_sender'], $send, $message, $test);
             foreach ($result['calls'] ?? [] as $call) {
                 if (!empty($call['sent'])) {
                     $this->send_calls++;
@@ -1199,7 +1231,9 @@ class SmsService
         // (PRD 6.1, Appendix A); the account stays usable. The outcome stays "failed" with the server text. Task 1.7,
         // task 596.
         if ($code === 'ERR008') {
-            $sender = $this->config->senderId();
+            // 2026-10-22 14:53 +03: bans the Sender ID that was used (a storefront's or the global one), Task A2,
+            // task 596.
+            $sender = (string) $context['_sender'];
             $this->state->banSender($sender);
             $this->note('error', 'sms.sender_banned', $code, ['sender' => $sender]);
             $this->alert('sender_banned', ['[sender]' => $sender], true, 86400, $sender);
@@ -1851,7 +1885,7 @@ class SmsService
             'user_id' => $context['user_id'],
             'actor_user_id' => $context['actor_user_id'],
             'actor_company_id' => $context['actor_company_id'],
-            'sender' => $this->config->senderId(),
+            'sender' => (string) $context['_sender'],
             'recipients' => implode(',', (array) $call['recipients']),
             'recipient_count' => (int) $call['recipient_count'],
             'numbers_accepted' => $ok ? (int) $call['numbers'] : 0,

@@ -47,6 +47,9 @@ class AdminAlerts
         // 2026-10-21 04:22 +03: sms_not_attached (notice only, once a day): the store's notification services
         // were built before the add-on could add its SMS column, Task 1.9 fix round 1 item 5, task 596.
         'sms_not_attached',
+        // 2026-10-22 14:53 +03: a storefront Sender ID that left the synced list or was banned; the storefront
+        // sends under the global Sender ID (P2-2). Bell and e-mail, once per storefront per 24 h. Task A2, task 596.
+        'storefront_sender_invalid',
     ];
 
     /**

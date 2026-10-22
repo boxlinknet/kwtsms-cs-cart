@@ -58,6 +58,7 @@ use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
+use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
@@ -117,6 +118,12 @@ class OrderNotifier
     /** @var bool */
     private $shutdown_registered = false;
 
+    /** @var StorefrontRules|null The per-storefront switches (2026-10-22 14:53 +03, Task A2, task 596) */
+    private $storefront_rules;
+
+    /** @var int The storefront id of the notification being handled: one resolution per send (ruling R3) */
+    private $storefront = 0;
+
     /**
      * @param array<mixed,mixed> $declared       The kwtsms events schema (fn_get_schema('kwtsms', 'events'))
      * @param callable|null      $after_response (array $actor): string|bool; null = sendsAfterResponse() (2026-10-21
@@ -136,8 +143,10 @@ class OrderNotifier
         OrderSource $orders,
         ?DebugLog $log = null,
         array $declared = [],
-        ?callable $after_response = null
+        ?callable $after_response = null,
+        ?StorefrontRules $storefront_rules = null
     ) {
+        $this->storefront_rules = $storefront_rules;
         $this->after_response = $after_response ?? [self::class, 'sendsAfterResponse'];
         $this->sms = $sms;
         $this->config = $config;
@@ -180,6 +189,21 @@ class OrderNotifier
             'event_id' => $event_id, 'receiver' => $receiver, 'order_id' => (int) ($order['order_id'] ?? 0),
         ]);
 
+        // 2026-10-22 14:53 +03: ONE storefront id per send (ruling R3): the order's, else the event declaration's
+        // `storefront` path, else the payload's, else 0. It is used by the storefront switch below, the template
+        // lookup and the send context. Then the storefront gate (ruling R10: active, storefront switch, opt-out,
+        // key claim): a storefront that turned this event OFF for itself writes one switched_off attempt and claims
+        // no key. Task A2 (P2-1), task 596.
+        $this->storefront = $this->storefrontOf($event_id, $order, $payload);
+        if (
+            $this->storefront_rules !== null
+            && $this->storefront_rules->isSwitchedOff($this->storefront, $event_id, $receiver)
+        ) {
+            $this->skip(Diagnostics::SWITCHED_OFF, 'storefront_switch', $order, $event_id, $receiver);
+
+            return false;
+        }
+
         if (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0) {
             $sent = $this->statusSms($event_id, $receiver, $order);
         } elseif ($event_id === Defaults::EVENT_PLACED) {
@@ -196,6 +220,27 @@ class OrderNotifier
         ], $started);
 
         return $sent;
+    }
+
+    /**
+     * 2026-10-22 14:53 +03: the storefront id of one notification (ruling R3), Task A2, task 596.
+     *
+     * @param array<string,mixed> $order
+     * @param array<string,mixed> $payload
+     */
+    private function storefrontOf(string $event_id, array $order, array $payload): int
+    {
+        $id = (int) ($order['storefront_id'] ?? 0);
+        $declared_path = $this->declared[$event_id]['storefront'] ?? null;
+        if ($id <= 0 && is_string($declared_path)) {
+            $value = self::path($payload, $declared_path);
+            $id = is_scalar($value) ? (int) $value : 0;
+        }
+        if ($id <= 0) {
+            $id = (int) ($payload['storefront_id'] ?? 0);
+        }
+
+        return max(0, $id);
     }
 
     // ------------------------------------------------------------------------------------------ status
@@ -377,7 +422,8 @@ class OrderNotifier
             return false;
         }
 
-        $template = $this->templates->resolve($event_id, $receiver, $lang);
+        // 2026-10-22 14:53 +03: the storefront's own text first (P2-3), Task A2, task 596.
+        $template = $this->templates->resolve($event_id, $receiver, $lang, $this->storefront);
         if ($template === null) {
             $this->skip(self::NO_TEMPLATE, $event_id . ' ' . $lang, $log_order, $event_id, $receiver, $phones);
 
@@ -398,7 +444,7 @@ class OrderNotifier
             'order_id' => (int) ($ids['order_id'] ?? 0),
             'parent_order_id' => (int) ($ids['parent_order_id'] ?? 0),
             'company_id' => (int) ($order['company_id'] ?? 0),
-            'storefront_id' => (int) ($order['storefront_id'] ?? 0),
+            'storefront_id' => $this->storefront,
             'user_id' => (int) ($order['user_id'] ?? 0),
             'actor_user_id' => (int) ($actor['user_id'] ?? 0),
             'actor_company_id' => (int) ($actor['company_id'] ?? 0),

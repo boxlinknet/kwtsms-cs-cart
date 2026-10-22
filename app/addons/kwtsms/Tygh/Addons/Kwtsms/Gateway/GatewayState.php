@@ -298,7 +298,8 @@ class GatewayState
         }
         // 2026-10-21 00:52 +03: ERR008 banned this Sender ID; selecting another one lifts it (PRD 6.1), Task 1.7,
         // task 596.
-        if ($this->bannedSender() === $config->senderId()) {
+        // 2026-10-22 14:53 +03: isSenderBanned() reads the per-sender map, task A2, task 596.
+        if ($this->isSenderBanned($config->senderId())) {
             return [false, 'sender_banned'];
         }
 
@@ -360,10 +361,59 @@ class GatewayState
      */
     public function bannedSender(): ?string
     {
-        $data = $this->decode($this->store->getFresh(self::KEY_SENDER_BAN)) ?? [];
-        $sender = $data['sender'] ?? null;
+        // 2026-10-22 14:53 +03: the ban is now a map (storefront Sender IDs, task A2); this keeps the 1.0.0 answer:
+        // the oldest ban, which on a store without storefront senders is the only one. Task 596.
+        $banned = array_keys($this->bannedSenders());
 
-        return (is_string($sender) && preg_match(self::SENDER_PATTERN, $sender) === 1) ? $sender : null;
+        return $banned === [] ? null : (string) $banned[0];
+    }
+
+    /**
+     * 2026-10-22 14:53 +03: true when ERR008 banned this Sender ID (global or a storefront's). Task A2, task 596.
+     */
+    public function isSenderBanned(string $sender): bool
+    {
+        return $sender !== '' && array_key_exists($sender, $this->bannedSenders());
+    }
+
+    /**
+     * 2026-10-22 14:53 +03: the ban map sender => time, oldest first. Reads the 1.0.0 value
+     * {"sender":"ABC","at":1} as one entry and the 1.1.0 value {"senders":{"ABC":1}}. Task A2, task 596.
+     *
+     * @return array<string,int>
+     */
+    private function bannedSenders(): array
+    {
+        $data = $this->decode($this->store->getFresh(self::KEY_SENDER_BAN)) ?? [];
+        $map = [];
+        $old = $data['sender'] ?? null;
+        if (is_string($old) && preg_match(self::SENDER_PATTERN, $old) === 1) {
+            $map[$old] = (int) ($data['at'] ?? 0);
+        }
+        if (isset($data['senders']) && is_array($data['senders'])) {
+            foreach ($data['senders'] as $id => $at) {
+                $id = (string) $id;
+                if (preg_match(self::SENDER_PATTERN, $id) === 1 && !isset($map[$id])) {
+                    $map[$id] = (int) $at;
+                }
+            }
+        }
+        asort($map);
+
+        return $map;
+    }
+
+    /**
+     * @param array<string,int> $map
+     */
+    private function storeBans(array $map): void
+    {
+        if ($map === []) {
+            $this->store->delete(self::KEY_SENDER_BAN);
+
+            return;
+        }
+        $this->store->set(self::KEY_SENDER_BAN, (string) json_encode(['senders' => $map]));
     }
 
     /**
@@ -375,16 +425,28 @@ class GatewayState
         if (preg_match(self::SENDER_PATTERN, $sender) !== 1) {
             return;
         }
-        $this->store->set(self::KEY_SENDER_BAN, (string) json_encode(['sender' => $sender, 'at' => $this->now()]));
+        // 2026-10-22 14:53 +03: adds to the map and keeps the other bans, task A2, task 596.
+        $map = $this->bannedSenders();
+        $map[$sender] = $this->now();
+        $this->storeBans($map);
     }
 
     /**
      * Forgets the ban. Called when another Sender ID (or none) is saved: the ban lasts only until another one is
      * selected (PRD 6.1). 2026-10-21 01:53 +03: added, Task 1.7 fix round 1 item 3, task 596.
      */
-    public function clearSenderBan(): void
+    public function clearSenderBan(?string $sender = null): void
     {
-        $this->store->delete(self::KEY_SENDER_BAN);
+        // 2026-10-22 14:53 +03: with a sender, forgets only that ban (the global Sender ID was changed; storefront
+        // bans stay); without, forgets all as in 1.0.0. Task A2, task 596.
+        if ($sender === null) {
+            $this->store->delete(self::KEY_SENDER_BAN);
+
+            return;
+        }
+        $map = $this->bannedSenders();
+        unset($map[$sender]);
+        $this->storeBans($map);
     }
 
     // ------------------------------------------------------------------ sync schedule, resync request, probe

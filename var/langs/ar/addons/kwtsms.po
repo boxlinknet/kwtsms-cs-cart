@@ -4471,3 +4471,17 @@ msgstr "مسح سجل المحاولات يعيد ضبط حدود الإرسال
 msgctxt "Languages::kwtsms.logs.reason_id"
 msgid "Reason id for support"
 msgstr "معرف السبب للدعم"
+
+# 2026-10-22 14:53 +03: Task A2, task 596. kwtsms.alert.storefront_sender_invalid.*, the admin notice when a storefront Sender ID is not usable.
+msgctxt "Languages::kwtsms.alert.storefront_sender_invalid.title"
+msgid "A storefront Sender ID is not usable"
+msgstr "معرف المرسل الخاص بواجهة متجر غير صالح"
+
+msgctxt "Languages::kwtsms.alert.storefront_sender_invalid.text"
+msgid "The Sender ID [sender] of storefront [storefront] is no longer on your kwtSMS account or was banned, so that storefront sends under the main Sender ID. Pick another Sender ID for it in the kwtSMS settings."
+msgstr "معرف المرسل [sender] الخاص بواجهة المتجر [storefront] لم يعد في حساب kwtSMS أو تم حظره، لذلك ترسل هذه الواجهة باستخدام معرف المرسل الرئيسي. اختر معرف مرسل آخر لها من إعدادات kwtSMS."
+
+# 2026-10-22 14:53 +03: Task A2, task 596. kwtsms.logs.reason.storefront_switch, the plain-language attempt reason (Admin\LogsPage::LABELLED_REASONS).
+msgctxt "Languages::kwtsms.logs.reason.storefront_switch"
+msgid "This storefront has turned this SMS off."
+msgstr "أوقفت واجهة المتجر هذه الرسالة."

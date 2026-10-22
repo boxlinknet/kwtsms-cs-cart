@@ -36,6 +36,10 @@
  *            $repo->rowsForUi()                 -> rows for the Templates page (see rowsForUi())
  *            $repo->ensureTemplate($event_id, $receiver) -> template_id, created when missing
  *            TemplateRepository::removedCharacters($input, $stored) -> what cleaning took out, as a list of runs
+ *            2026-10-22 14:53 +03, Task A2, task 596: resolve(), ensureTemplate(), rowsForUi() and resolveSql() take a
+ *            trailing $storefront_id = 0; the answer of resolve() also
+ *            carries storefront_id. Order P2-3: per language, the storefront's text (exact, family) then the
+ *            all-storefronts text (exact, family); the default language only after both.
  *            Logging (when a DebugLog is given): info templates.save|reset|seed|load_defaults, debug
  *            templates.resolve; never the body.
  * DEPENDS:   CS-Cart db_* functions, Tygh\Languages\Po, Tygh\Registry (config.dir.lang_packs, backend default
@@ -64,11 +68,14 @@ class TemplateRepository
 
     /**
      * The hot query (one per SMS): the candidate templates of a receiver in the candidate languages.
-     * Uses the unique key (event_id, receiver) and the primary key (template_id, lang_code).
+     * Uses the unique key (event_id, receiver, storefront_id) and the primary key (template_id, lang_code).
+     * 2026-10-22 14:53 +03: storefront_id selected and filtered (IN the storefront and 0 = all storefronts), the
+     * key is uniq_event_receiver_sf; Task A2 (P2-3), task 596.
      */
-    private const RESOLVE_SQL = 'SELECT t.template_id, t.event_id, d.lang_code, d.body FROM ?:kwtsms_templates AS t'
+    private const RESOLVE_SQL = 'SELECT t.template_id, t.event_id, t.storefront_id, d.lang_code, d.body'
+        . ' FROM ?:kwtsms_templates AS t'
         . ' INNER JOIN ?:kwtsms_template_descriptions AS d ON d.template_id = t.template_id'
-        . ' WHERE t.receiver = ?s AND t.event_id IN (?a) AND d.lang_code IN (?a)';
+        . ' WHERE t.receiver = ?s AND t.event_id IN (?a) AND t.storefront_id IN (?a) AND d.lang_code IN (?a)';
 
     /** @var DebugLog|null */
     private $log;
@@ -90,17 +97,22 @@ class TemplateRepository
     /**
      * The text to send for an event, receiver and language, or null when no template has one.
      *
-     * @return array{body:string,fallback:string,template_id:int,event_id:string,lang:string}|null
+     * 2026-10-22 14:53 +03: $storefront_id added; the answer carries storefront_id, the row that answered (0 = the
+     * all-storefronts text). Order P2-3: for each language (the message language, then the store default), the
+     * storefront's own text (exact event, then family) before the all-storefronts text. Task A2, task 596.
+     *
+     * @return array{body:string,fallback:string,template_id:int,event_id:string,lang:string,storefront_id:int}|null
      */
-    public function resolve(string $event_id, string $receiver, string $lang): ?array
+    public function resolve(string $event_id, string $receiver, string $lang, int $storefront_id = 0): ?array
     {
         $started = microtime(true);
-        $found = $this->pick($event_id, $receiver, $lang);
+        $found = $this->pick($event_id, $receiver, $lang, $storefront_id);
         if ($this->log !== null && $this->log->isEnabled('debug')) {
             $this->trace('debug', 'resolve', 'resolve()', [
                 'event_id' => $event_id,
                 'receiver' => $receiver,
                 'lang' => $lang,
+                'storefront_id' => $storefront_id,
                 'fallback' => $found === null ? 'none' : $found['fallback'],
             ], $started);
         }
@@ -112,11 +124,47 @@ class TemplateRepository
      * The query resolve() runs, with its values filled in. For EXPLAIN and ANALYZE only (tests, the index check):
      * resolve() itself runs RESOLVE_SQL with placeholders.
      */
-    public function resolveSql(string $event_id, string $receiver, string $lang): string
+    public function resolveSql(string $event_id, string $receiver, string $lang, int $storefront_id = 0): string
     {
         list($events, $langs) = $this->candidates($event_id, $lang);
 
-        return db_quote(self::RESOLVE_SQL, $receiver, $events, $langs);
+        // 2026-10-22 14:53 +03: $storefront_id added (ruling R2), task A2, task 596.
+        return $this->quote(self::RESOLVE_SQL, $receiver, $events, self::storefrontIds($storefront_id), $langs);
+    }
+
+    /**
+     * 2026-10-22 14:53 +03: the storefront ids a lookup may answer from, most specific first: the storefront, then 0
+     * (all storefronts). Task A2, task 596.
+     *
+     * @return array<int,int>
+     */
+    private static function storefrontIds(int $storefront_id): array
+    {
+        return $storefront_id > 0 ? [$storefront_id, 0] : [0];
+    }
+
+    /**
+     * Seam for the unit test: db_quote().
+     *
+     * @param mixed ...$args
+     */
+    protected function quote(string $sql, ...$args): string
+    {
+        return db_quote($sql, ...$args);
+    }
+
+    /**
+     * Seam for the unit test: the hot query.
+     *
+     * @param array<int,string> $events
+     * @param array<int,int>    $storefronts
+     * @param array<int,string> $langs
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function fetchRows(string $receiver, array $events, array $storefronts, array $langs): array
+    {
+        return (array) db_get_array(self::RESOLVE_SQL, $receiver, $events, $storefronts, $langs);
     }
 
     /**
@@ -142,40 +190,44 @@ class TemplateRepository
     }
 
     /**
-     * @return array{body:string,fallback:string,template_id:int,event_id:string,lang:string}|null
+     * @return array{body:string,fallback:string,template_id:int,event_id:string,lang:string,storefront_id:int}|null
      */
-    private function pick(string $event_id, string $receiver, string $lang): ?array
+    private function pick(string $event_id, string $receiver, string $lang, int $storefront_id): ?array
     {
         if ($event_id === '' || $receiver === '') {
             return null;
         }
         list($events, $langs) = $this->candidates($event_id, $lang);
 
-        $rows = db_get_array(self::RESOLVE_SQL, $receiver, $events, $langs);
+        $storefronts = self::storefrontIds($storefront_id);
+        $rows = $this->fetchRows($receiver, $events, $storefronts, $langs);
         $index = [];
-        foreach ((array) $rows as $row) {
-            $index[$row['lang_code']][$row['event_id']] = $row;
+        foreach ($rows as $row) {
+            $index[$row['lang_code']][(int) ($row['storefront_id'] ?? 0)][$row['event_id']] = $row;
         }
 
         foreach ($langs as $i => $code) {
-            foreach ($events as $j => $event) {
-                $row = $index[$code][$event] ?? null;
-                if ($row === null || trim((string) $row['body']) === '') {
-                    continue;
-                }
-                if ($i > 0) {
-                    $fallback = self::FALLBACK_DEFAULT_LANG;
-                } else {
-                    $fallback = $j === 0 ? self::FALLBACK_EXACT : self::FALLBACK_FAMILY;
-                }
+            foreach ($storefronts as $sf) {
+                foreach ($events as $j => $event) {
+                    $row = $index[$code][$sf][$event] ?? null;
+                    if ($row === null || trim((string) $row['body']) === '') {
+                        continue;
+                    }
+                    if ($i > 0) {
+                        $fallback = self::FALLBACK_DEFAULT_LANG;
+                    } else {
+                        $fallback = $j === 0 ? self::FALLBACK_EXACT : self::FALLBACK_FAMILY;
+                    }
 
-                return [
-                    'body' => (string) $row['body'],
-                    'fallback' => $fallback,
-                    'template_id' => (int) $row['template_id'],
-                    'event_id' => (string) $row['event_id'],
-                    'lang' => (string) $row['lang_code'],
-                ];
+                    return [
+                        'body' => (string) $row['body'],
+                        'fallback' => $fallback,
+                        'template_id' => (int) $row['template_id'],
+                        'event_id' => (string) $row['event_id'],
+                        'lang' => (string) $row['lang_code'],
+                        'storefront_id' => (int) ($row['storefront_id'] ?? 0),
+                    ];
+                }
             }
         }
 
@@ -202,18 +254,22 @@ class TemplateRepository
     /**
      * The id of the template for an event and receiver, created (empty) when it does not exist yet.
      */
-    public function ensureTemplate(string $event_id, string $receiver): int
+    public function ensureTemplate(string $event_id, string $receiver, int $storefront_id = 0): int
     {
+        // 2026-10-22 14:53 +03: per storefront (0 = all storefronts), Task A2, task 596.
+        $storefront_id = max(0, $storefront_id);
         db_query('INSERT IGNORE INTO ?:kwtsms_templates ?e', [
             'event_id' => $event_id,
             'receiver' => $receiver,
+            'storefront_id' => $storefront_id,
             'updated_at' => time(),
         ]);
 
         return (int) db_get_field(
-            'SELECT template_id FROM ?:kwtsms_templates WHERE event_id = ?s AND receiver = ?s',
+            'SELECT template_id FROM ?:kwtsms_templates WHERE event_id = ?s AND receiver = ?s AND storefront_id = ?i',
             $event_id,
-            $receiver
+            $receiver,
+            $storefront_id
         );
     }
 
@@ -226,15 +282,22 @@ class TemplateRepository
      * template_id (0 = no template row yet; call ensureTemplate() before save()), uses_generic, updated_at, and
      * bodies: lang => ['body' => ..., 'is_edited' => 'Y'|'N'] for every language that has a row.
      *
-     * @param string|null $status_lang Language of the status names; null = the admin language
+     * @param string|null $status_lang   Language of the status names; null = the admin language
+     * @param int         $storefront_id 0 = the all-storefronts texts; else the texts of that storefront (template_id 0
+     *                                   = the storefront has no row yet; ensureTemplate() with the same id makes one)
      *
      * @return array<int,array<string,mixed>>
      */
-    public function rowsForUi(?string $status_lang = null): array
+    public function rowsForUi(?string $status_lang = null, int $storefront_id = 0): array
     {
         $started = microtime(true);
         $templates = [];
-        $found = (array) db_get_array('SELECT template_id, event_id, receiver, updated_at FROM ?:kwtsms_templates');
+        // 2026-10-22 14:53 +03: only the rows of the asked storefront (0 = the all-storefronts texts, as in 1.0.0),
+        // Task A2, task 596.
+        $found = (array) db_get_array(
+            'SELECT template_id, event_id, receiver, updated_at FROM ?:kwtsms_templates WHERE storefront_id = ?i',
+            max(0, $storefront_id)
+        );
         foreach ($found as $t) {
             $templates[$t['event_id'] . '|' . $t['receiver']] = $t;
         }

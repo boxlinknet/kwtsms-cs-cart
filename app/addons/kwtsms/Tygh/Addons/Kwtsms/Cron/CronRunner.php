@@ -535,7 +535,8 @@ class CronRunner
         $selected = $this->config->senderId();
         if ($selected !== '' && $this->config->credentialsState() === ConfigInterface::CREDENTIALS_OK) {
             $senders = $this->state->senderIds();
-            if ($this->state->bannedSender() === $selected) {
+            // 2026-10-22 14:53 +03: per-sender ban map (storefront senders can be banned too), task A2, task 596.
+            if ($this->state->isSenderBanned($selected)) {
                 if ($this->raise('sender_banned', ['[sender]' => $selected], true, $selected)) {
                     $raised[] = 'sender_banned';
                 }

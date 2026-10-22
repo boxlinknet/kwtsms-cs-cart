@@ -456,6 +456,8 @@ class Config implements ConfigInterface
                     $failed[$key] = true;
                     continue;
                 }
+                // 2026-10-22 14:53 +03: the global Sender ID before this write, for the ban below. Task A2, task 596.
+                $previous_sender = $key === 'sender_id' ? $this->senderId() : '';
                 // 2026-10-20 22:16 +03: a write the backend refuses is a rejected key, not a saved one, task 596.
                 if (!$this->tryWrite($key, $stored)) {
                     $failed[$key] = true;
@@ -463,8 +465,10 @@ class Config implements ConfigInterface
                 }
                 // 2026-10-21 01:58 +03: the ERR008 ban lasts only until another Sender ID (or none) is saved
                 // (PRD 6.1), so saving a different value forgets it, Task 1.7 fix round 1 item 3, task 596.
-                if ($key === 'sender_id' && $stored !== (string) $this->state->bannedSender()) {
-                    $this->state->clearSenderBan();
+                // 2026-10-22 14:53 +03: clears only the ban of the Sender ID that was replaced; a storefront
+                // Sender ID's ban stays (per-sender map), task A2, task 596.
+                if ($key === 'sender_id' && $stored !== $previous_sender) {
+                    $this->state->clearSenderBan($previous_sender);
                 }
             }
         }

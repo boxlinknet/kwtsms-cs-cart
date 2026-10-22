@@ -38,6 +38,8 @@ namespace Tygh\Addons\Kwtsms;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
+use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
@@ -163,6 +165,14 @@ class ServiceProvider implements ServiceProviderInterface
             return new AdminAlerts($app['kwtsms.storage'], $app['kwtsms.config'], $app['kwtsms.logs.debug']);
         };
 
+        // 2026-10-22 14:53 +03: the per-storefront switches and Sender IDs, Task A2 (P2-1, P2-2), task 596.
+        $app['kwtsms.storefront_rules'] = function (): StorefrontRules {
+            return new StorefrontRules();
+        };
+        $app['kwtsms.sender_resolver'] = function (Container $app): SenderResolver {
+            return new SenderResolver($app['kwtsms.config'], $app['kwtsms.state'], $app['kwtsms.alerts']);
+        };
+
         $app['kwtsms.sms'] = function (Container $app): SmsService {
             return new SmsService(
                 $app['kwtsms.config'],
@@ -172,7 +182,10 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.logs.attempts'],
                 $app['kwtsms.logs.debug'],
                 $app['kwtsms.outbox'],
-                $app['kwtsms.alerts']
+                $app['kwtsms.alerts'],
+                null,
+                null,
+                $app['kwtsms.sender_resolver']
             );
         };
 
@@ -339,7 +352,8 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.declared_events'],
                 // 2026-10-21 16:53 +03: fpm, litespeed, cron (heartbeat within 2 intervals) or inline (final
                 // review I2, ruling R52), task 596.
-                [new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']), 'mode']
+                [new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']), 'mode'],
+                $app['kwtsms.storefront_rules']
             );
         };
 

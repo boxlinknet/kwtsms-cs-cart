@@ -66,6 +66,8 @@ class LogsPage
     public const LABELLED_REASONS = [
         SmsService::CAP_RESERVED, 'cap_unavailable', 'gateway_unreachable', 'suspended', 'quiet_hours',
         'request_overflow', 'outbox_unavailable',
+        // 2026-10-22 14:53 +03: a storefront turned the SMS off for itself (P2-1), Task A2, task 596.
+        'storefront_switch',
     ];
 
     /**
