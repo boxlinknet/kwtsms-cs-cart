@@ -25,19 +25,75 @@ final class ShipmentSmsData implements DeclaredSmsData
     /** Longest tracking number put into an SMS, in characters. */
     public const MAX_LENGTH = 40;
 
+    /** Longest tracking URL put into an SMS, in characters (2026-10-22 task A5 fix round 1, task 596). */
+    public const MAX_URL = 200;
+
     /**
-     * @param array<string,mixed> $data     The event data: shipment.tracking_number is read
+     * 2026-10-22 18:37 +03: Task A5 fix round 1 (I1, M1), task 596. Besides the cleaned tracking number: carrier
+     * and tracking_url
+     * cleaned the same way (printable ASCII or empty, so no value turns a GSM-7 SMS into UCS-2), and shipment_info,
+     * the sentence part the default texts use: carrier and tracking number are optional in core, so any
+     * combination of them gives a natural sentence (English "Carrier: X. Tracking: Y.", Arabic "tracking Y"; the
+     * Arabic default has no carrier, the 70-unit page has no room for it). The language is the order's.
+     *
+     * @param array<string,mixed> $data     The event data: shipment.tracking_number, shipment.carrier_info
      * @param string              $receiver C (the only receiver of the shipment SMS)
      *
      * @return array{placeholders:array<string,string>}
      */
     public function values(array $data, string $receiver): array
     {
-        $raw = $data['shipment']['tracking_number'] ?? '';
+        $shipment = isset($data['shipment']) && is_array($data['shipment']) ? $data['shipment'] : [];
+        $info = isset($shipment['carrier_info']) && is_array($shipment['carrier_info'])
+            ? $shipment['carrier_info'] : [];
+        $tracking = self::trackingNumber(self::scalar($shipment['tracking_number'] ?? ''));
+        $carrier = self::asciiText(self::scalar($info['name'] ?? ''), self::MAX_LENGTH);
+        $url = self::asciiText(self::scalar($info['tracking_url'] ?? ''), self::MAX_URL);
+        $lang = strtolower(self::scalar($data['order_info']['lang_code'] ?? ''));
+
+        if ($lang === 'ar') {
+            $details = $tracking !== '' ? "\u{062A}\u{062A}\u{0628}\u{0639} " . $tracking : '';
+        } else {
+            $parts = [];
+            if ($carrier !== '') {
+                $parts[] = 'Carrier: ' . $carrier . '.';
+            }
+            if ($tracking !== '') {
+                $parts[] = 'Tracking: ' . $tracking . '.';
+            }
+            $details = implode(' ', $parts);
+        }
 
         return ['placeholders' => [
-            'tracking_number' => self::trackingNumber(is_scalar($raw) && !is_bool($raw) ? (string) $raw : ''),
+            'tracking_number' => $tracking,
+            'carrier' => $carrier,
+            'tracking_url' => $url,
+            'shipment_info' => $details,
         ]];
+    }
+
+    /**
+     * 2026-10-22 18:37 +03: Task A5 fix round 1 (M1), task 596. Printable ASCII only (control characters removed,
+     * white space
+     * collapsed, cut to $max); a value with any non-ASCII character becomes '' (it would force UCS-2).
+     */
+    public static function asciiText(string $raw, int $max): string
+    {
+        if (preg_match('/[^\x00-\x7F]/', $raw) === 1) {
+            return '';
+        }
+        $text = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $raw);
+        $text = trim((string) preg_replace('/\s+/', ' ', $text));
+
+        return strlen($text) > $max ? rtrim(substr($text, 0, $max)) : $text;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private static function scalar($value): string
+    {
+        return is_scalar($value) && !is_bool($value) ? (string) $value : '';
     }
 
     /**
@@ -47,15 +103,6 @@ final class ShipmentSmsData implements DeclaredSmsData
      */
     public static function trackingNumber(string $raw): string
     {
-        if (preg_match('/[^\x00-\x7F]/', $raw) === 1) {
-            return '';
-        }
-        $text = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $raw);
-        $text = trim((string) preg_replace('/\s+/', ' ', $text));
-        if (strlen($text) > self::MAX_LENGTH) {
-            $text = rtrim(substr($text, 0, self::MAX_LENGTH));
-        }
-
-        return $text;
+        return self::asciiText($raw, self::MAX_LENGTH);
     }
 }

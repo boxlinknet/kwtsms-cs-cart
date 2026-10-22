@@ -66,8 +66,10 @@ class Defaults
      * 2026-10-22 17:59 +03: Task A5, task 596. Placeholders a shipped event has on top of PLACEHOLDERS (their values
      * come from the event's declaration and data class).
      */
+    // 2026-10-22 18:38 +03: Task A5 fix round 1 (I1), task 596: shipment_info, the sentence part of the default
+    // shipment text.
     public const EVENT_PLACEHOLDERS = [
-        self::EVENT_SHIPMENT => ['tracking_number', 'carrier', 'tracking_url'],
+        self::EVENT_SHIPMENT => ['tracking_number', 'carrier', 'tracking_url', 'shipment_info'],
     ];
 
     /**

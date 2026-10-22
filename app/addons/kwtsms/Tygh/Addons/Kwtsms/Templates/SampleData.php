@@ -119,13 +119,17 @@ final class SampleData
      *
      * @return array<string,string>
      */
-    public static function shipment(bool $worst = false): array
+    public static function shipment(bool $worst = false, string $lang = 'en'): array
     {
         if ($worst) {
             return [
                 'tracking_number' => '1234567890123456789012',
                 'carrier' => 'ABCDEFGHIJKLMNO',
                 'tracking_url' => 'https://example.test/track/1234567890123456789012',
+                // 2026-10-22 18:38 +03: Task A5 fix round 1, task 596.
+                'shipment_info' => $lang === 'ar'
+                    ? "\u{062A}\u{062A}\u{0628}\u{0639} 1234567890123456789012"
+                    : 'Carrier: ABCDEFGHIJKLMNO. Tracking: 1234567890123456789012.',
             ];
         }
 
@@ -133,6 +137,9 @@ final class SampleData
             'tracking_number' => 'TRK123456789',
             'carrier' => 'USPS',
             'tracking_url' => 'https://example.test/t/TRK123456789',
+            // 2026-10-22 18:38 +03: Task A5 fix round 1, task 596.
+            'shipment_info' => $lang === 'ar'
+                ? "\u{062A}\u{062A}\u{0628}\u{0639} TRK123456789" : 'Carrier: USPS. Tracking: TRK123456789.',
         ];
     }
 

@@ -428,9 +428,12 @@ msgctxt "Languages::kwtsms.tpl.order.updated.A"
 msgid "{store_name}: Order {order_id} was updated."
 msgstr "تم تحديث الطلب رقم {order_id} في {store_name}"
 
+# 2026-10-22 18:38 +03: the Arabic text has no carrier on purpose. With the worst case (20-character brand, 6-digit id, 15-character carrier,
+# 22-character tracking number) every word added to this text pushes the SMS over the 70-unit Unicode page, so do not restore {carrier}.
+# {shipment_info} is "تتبع <number>" when a tracking number exists, else empty (fix round 1, task 596).
 msgctxt "Languages::kwtsms.tpl.order.shipment_updated.C"
-msgid "{store_name}: Order {order_id} shipped via {carrier}. Tracking: {tracking_number}."
-msgstr "شحن طلب رقم {order_id} من {store_name} تتبع {tracking_number}"
+msgid "{store_name}: Order {order_id} has shipped. {shipment_info}"
+msgstr "شحن طلب رقم {order_id} من {store_name} {shipment_info}"
 
 # 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
 msgctxt "Languages::kwtsms.status.A"
@@ -1036,6 +1039,10 @@ msgstr "شركة الشحن"
 msgctxt "Languages::kwtsms.templates.ph_tracking_url"
 msgid "Tracking link"
 msgstr "رابط التتبع"
+
+msgctxt "Languages::kwtsms.templates.ph_shipment_info"
+msgid "Shipment details"
+msgstr "تفاصيل الشحن"
 
 msgctxt "Languages::kwtsms.templates.warn_store_name_missing"
 msgid "Customer texts need {store_name}, so customers know who sent the SMS. This text can't be saved without it."
