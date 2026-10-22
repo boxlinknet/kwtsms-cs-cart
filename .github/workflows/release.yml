@@ -3,7 +3,7 @@
 # TASK:      596
 # AUTHOR:    kwtSMS
 # WHAT:      On a pushed tag vX.Y.Z, builds the add-on with tools/build-package.sh (every package gate) and publishes a
-#            GitHub Release with kwtsms-X.Y.Z.zip, kwtsms-X.Y.Z.tgz and SHA256SUMS, notes taken from CHANGELOG.md.
+#            GitHub Release with kwtsms-X.Y.Z.zip, kwtsms-X.Y.Z.tgz and SHA256SUMS, notes from tools/release-notes.sh.
 # WHY:       Anyone can download the zip and install it through Add-ons > Manage add-ons > Manual installation,
 #            without the Marketplace; same release flow as the other kwtSMS integrations.
 # USAGE:     git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z (the tag must equal <version> in addon.xml).
@@ -55,12 +55,12 @@ jobs:
       - name: Build the package
         run: bash tools/build-package.sh
 
-      - name: Release notes from CHANGELOG.md
+      # 2026-10-22 12:43 +03: short notes from the README (features, requirements, install, configuration) plus a
+      # CHANGELOG link, the format of the other kwtSMS releases, instead of the whole CHANGELOG section, task 596.
+      - name: Release notes
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} on && /^## \[/ {exit} on {print}' CHANGELOG.md > notes.md
-          printf '\nInstall: Administration > Add-ons > Manage add-ons > gear icon > Manual installation > upload kwtsms-%s.zip.\n' "$VERSION" >> notes.md
+          RELEASE: ${{ steps.version.outputs.release }}
+        run: bash tools/release-notes.sh "$RELEASE" > notes.md
 
       - name: Publish the GitHub Release
         uses: softprops/action-gh-release@v3

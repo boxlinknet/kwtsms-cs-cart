@@ -7,6 +7,8 @@ WHAT:      How to set up, check, package and submit changes to the kwtSMS CS-Car
 WHY:       Public repository: contributors need the checks a pull request must pass before review.
 USAGE:     Linked by GitHub from the new issue and new pull request pages.
 DEPENDS:   composer.json, .phpcs.xml.dist, tools/build-package.sh. Layout follows the kwtSMS WordPress CONTRIBUTING.md.
+CHANGED:   2026-10-22 12:45 +03: Releasing names the release-candidate tag and the notes from tools/release-notes.sh,
+           task 596.
 -->
 
 # Contributing to kwtSMS for CS-Cart
@@ -87,5 +89,7 @@ screenshot that shows the API password, the cron key or a customer phone number.
 2. Move the `[Unreleased]` entries in CHANGELOG.md to a new `[X.Y.Z] - date` section.
 3. Run `bash tools/build-package.sh` and the phpcs check.
 4. Tag and push: `git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z` (the tag must equal the `addon.xml` version).
+   For a release candidate, tag `vX.Y.Z-rc.N`: it is published as a GitHub pre-release.
 5. GitHub Actions builds the package and publishes the release with `kwtsms-X.Y.Z.zip`, `kwtsms-X.Y.Z.tgz` and
-   `SHA256SUMS`, using the CHANGELOG section as the notes. No manual step.
+   `SHA256SUMS`. The notes come from `tools/release-notes.sh` (the README's Features, Requirements, Installation and
+   Configuration sections plus a CHANGELOG link). No manual step.
