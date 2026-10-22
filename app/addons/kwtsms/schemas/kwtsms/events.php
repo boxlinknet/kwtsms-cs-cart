@@ -147,4 +147,15 @@ return [
         'group' => 'kwtsms.templates.group_products',
         'data_class' => \Tygh\Addons\Kwtsms\Orders\LowStockSmsData::class,
     ],
+    // 2026-10-23 00:14 +03: Task A9 (SafatMall F5 part, R6, R7), task 596. The add-on's own event (also in
+    // schemas/notifications/events.post.php): the balance crossed the low-balance threshold. A only (the staff phone
+    // list, cap_admin_day). One SMS per crossing: the key carries the crossing time (Alerts\LowBalanceSms).
+    // Default OFF.
+    'kwtsms.low_balance' => [
+        'receivers' => ['A'],
+        'placeholders' => ['balance' => 'balance', 'threshold' => 'threshold'],
+        'storefront' => 'storefront_id',
+        'dedupe' => ['key' => 'low_balance:{crossing_at}:{receiver}', 'window' => 0],
+        'group' => 'kwtsms.events_group',
+    ],
 ];

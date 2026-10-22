@@ -42,6 +42,7 @@ namespace Tygh\Addons\Kwtsms;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
@@ -237,7 +238,38 @@ class ServiceProvider implements ServiceProviderInterface
                 [$app['kwtsms.outbox'], 'pruneFinal'],
                 // 2026-10-21 04:21 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6),
                 // task 596.
-                [$app['kwtsms.dispatch_keys'], 'pruneStatus']
+                [$app['kwtsms.dispatch_keys'], 'pruneStatus'],
+                // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596. The low-balance SMS, dispatched by the drain step.
+                [$app['kwtsms.low_balance_sms'], 'dispatchPending']
+            );
+        };
+        // 2026-10-23 00:13 +03: Task A9 (R8), task 596. One crossing of the low-balance threshold, one
+        // kwtsms.low_balance event through event.dispatcher with the stored switches (default rules); the admin
+        // phone list and cap_admin_day apply.
+        $app['kwtsms.low_balance_sms'] = function (Container $app): LowBalanceSms {
+            return new LowBalanceSms(
+                $app['kwtsms.storage'],
+                $app['kwtsms.state'],
+                static function (string $event_id, array $data) use ($app): void {
+                    $provider = new class ($event_id . '.' . (int) $data['crossing_at']) implements IProvider {
+                        /** @var string */
+                        private $id;
+
+                        public function __construct(string $id)
+                        {
+                            $this->id = $id;
+                        }
+
+                        public function getId()
+                        {
+                            return $this->id;
+                        }
+                    };
+                    $storefront = $app['storefront'] ?? null;
+                    $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
+                        ? (int) $storefront->storefront_id : 0;
+                    $app['event.dispatcher']->dispatch($event_id, $data, null, $provider);
+                }
             );
         };
     }

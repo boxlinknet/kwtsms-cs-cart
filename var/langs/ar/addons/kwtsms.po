@@ -5001,3 +5001,28 @@ msgstr "فتح رسائل البائعين"
 msgctxt "Languages::kwtsms.help.overview.p3"
 msgid "A vendor that leaves the Active status (suspended or awaiting premoderation) loses its phone approval and must be approved again once it is active."
 msgstr "البائع الذي يغادر حالة النشط (معلّق أو بانتظار المراجعة المسبقة) يفقد موافقة رقم هاتفه ولا بد من الموافقة عليه من جديد عند عودته إلى النشاط."
+
+# 2026-10-23 00:14 +03: low kwtSMS balance SMS to staff (kwtsms.low_balance): default text, event name, group heading, placeholder names, Task A9, task 596.
+msgctxt "Languages::kwtsms.tpl.kwtsms.low_balance.A"
+msgid "{store_name}: kwtSMS balance is low, {balance} credits left (alert level {threshold}). Please top up."
+msgstr "رصيد الرسائل منخفض: المتبقي {balance} والحد {threshold}. يرجى الشحن."
+
+msgctxt "Languages::kwtsms.event.low_balance"
+msgid "Low kwtSMS balance"
+msgstr "انخفاض رصيد kwtSMS"
+
+msgctxt "Languages::kwtsms.templates.event.kwtsms.low_balance"
+msgid "Low kwtSMS balance"
+msgstr "انخفاض رصيد kwtSMS"
+
+msgctxt "Languages::kwtsms.events_group"
+msgid "kwtSMS"
+msgstr "kwtSMS"
+
+msgctxt "Languages::kwtsms.templates.ph_balance"
+msgid "Credits left"
+msgstr "الرصيد المتبقي"
+
+msgctxt "Languages::kwtsms.templates.ph_threshold"
+msgid "Alert level"
+msgstr "حد التنبيه"

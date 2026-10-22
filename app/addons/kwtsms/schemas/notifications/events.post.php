@@ -69,4 +69,18 @@ if (fn_allowed_for('MULTIVENDOR')) {
     $schema['kwtsms.low_stock']['receivers']['V'] = [];
 }
 
+// 2026-10-23 00:14 +03: Task A9 (SafatMall F5 part), task 596. The low kwtSMS balance SMS: the balance crossed the
+// low-balance threshold. Group kwtsms.events_group (heading "kwtSMS"), receiver A, no transport here
+// (EventsSchemaExtender attaches the SMS one from schemas/kwtsms/events.php). Dispatched by Alerts\LowBalanceSms.
+$schema['kwtsms.low_balance'] = [
+    'group' => 'kwtsms.events_group',
+    'name' => [
+        'template' => 'kwtsms.event.low_balance',
+        'params' => [],
+    ],
+    'receivers' => [
+        'A' => [],
+    ],
+];
+
 return $schema;

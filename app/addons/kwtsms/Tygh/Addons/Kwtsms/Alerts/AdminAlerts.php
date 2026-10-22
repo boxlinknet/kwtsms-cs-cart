@@ -136,6 +136,16 @@ class AdminAlerts
             }
             $seen[$key] = $now;
             $this->store->set(self::KEY, (string) json_encode($seen));
+            // 2026-10-23 00:13 +03: Task A9, task 596. The crossing is recorded for the low-balance SMS
+            // (LowBalanceSms::dispatchPending(), run by the cron); the SMS is never sent from here.
+            if ($condition === 'low_balance') {
+                LowBalanceSms::recordCrossing(
+                    $this->store,
+                    $now,
+                    (float) ($params['[balance]'] ?? 0),
+                    (int) ($params['[threshold]'] ?? 0)
+                );
+            }
 
             $lang = $this->language();
             // 2026-10-21 18:54 +03: a numeric [credits] becomes the text of kwtsms.dash.credits_n in the alert's

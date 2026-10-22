@@ -158,6 +158,9 @@ class CronRunner
     /** @var callable|null (int $before, int $limit): int, expired status dispatch keys (2026-10-21 04:22 +03, R32, task 596) */
     private $prune_keys;
 
+    /** @var callable|null 2026-10-23 00:13 +03: Task A9, task 596. (): bool, LowBalanceSms::dispatchPending() */
+    private $low_balance_sms;
+
     /**
      * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
@@ -185,7 +188,8 @@ class CronRunner
         ?callable $clock = null,
         ?callable $microclock = null,
         ?callable $prune_outbox = null,
-        ?callable $prune_keys = null
+        ?callable $prune_keys = null,
+        ?callable $low_balance_sms = null // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596
     ) {
         $this->config = $config;
         $this->state = $state;
@@ -201,6 +205,7 @@ class CronRunner
         $this->microclock = $microclock;
         $this->prune_outbox = $prune_outbox;
         $this->prune_keys = $prune_keys;
+        $this->low_balance_sms = $low_balance_sms;
     }
 
     /**
@@ -290,6 +295,16 @@ class CronRunner
     private function drainOutbox(float $run_started): array
     {
         $out = ['ok' => true, 'suspension' => null, 'drain' => []];
+        // 2026-10-23 00:13 +03: Task A9 (R22), task 596. The low-balance SMS of a crossing recorded since the last
+        // run is dispatched here, every run, before the drain so its row goes out in the same run. It consumes the
+        // crossing first (at most once), so a refused or deferred send is never dispatched again.
+        if ($this->low_balance_sms !== null) {
+            try {
+                $out['low_balance_sms'] = (bool) call_user_func($this->low_balance_sms);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('cron.low_balance_sms_failed', $e);
+            }
+        }
         if ($this->state->suspendedCode() !== null) {
             $out['suspension'] = $this->sync->retrySuspension(false, 'cli');
         }

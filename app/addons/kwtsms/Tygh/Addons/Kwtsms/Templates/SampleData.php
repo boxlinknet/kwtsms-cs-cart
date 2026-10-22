@@ -196,6 +196,17 @@ final class SampleData
     }
 
     /**
+     * 2026-10-23 00:14 +03: Task A9 (low-balance SMS), task 596. The values of the low-balance placeholders: a reference
+     * balance, or the worst case (7-digit credits left and alert level).
+     *
+     * @return array<string,string>
+     */
+    public static function lowBalance(bool $worst = false): array
+    {
+        return $worst ? ['balance' => '9999999', 'threshold' => '9999999'] : ['balance' => '95', 'threshold' => '100'];
+    }
+
+    /**
      * @param array<int,string> $names
      */
     private static function longest(array $names, string $fallback): string

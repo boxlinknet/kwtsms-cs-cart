@@ -64,6 +64,9 @@ class Defaults
     /** 2026-10-22 21:29 +03: Task A7 (SafatMall F5 part), task 596. The add-on's own low-stock event (A and V). */
     public const EVENT_LOW_STOCK = 'kwtsms.low_stock';
 
+    /** 2026-10-23 00:14 +03: Task A9, task 596. The add-on's own low-balance event (A only). */
+    public const EVENT_LOW_BALANCE = 'kwtsms.low_balance';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -91,6 +94,8 @@ class Defaults
         self::EVENT_RECOVER => ['user_id', 'customer_phone', 'reset_url', 'valid_minutes'],
         // 2026-10-22 21:29 +03: Task A7, task 596. The low-stock values (Orders\LowStockSmsData).
         self::EVENT_LOW_STOCK => ['product_name', 'product_code', 'stock_amount', 'more_count'],
+        // 2026-10-23 00:14 +03: Task A9, task 596. Credits left and the alert level (Alerts\LowBalanceSms).
+        self::EVENT_LOW_BALANCE => ['balance', 'threshold'],
     ];
 
     /**
@@ -160,6 +165,8 @@ class Defaults
         // of a Multi-Vendor
         // checkout; child id, child total, marketplace brand, no {vendor_name}).
         $rows[] = self::row(self::EVENT_PLACED, self::RECEIVER_VENDOR, '', '', true);
+        // 2026-10-23 00:16 +03: Task A9, task 596. Low kwtSMS balance: admin.
+        $rows[] = self::row(self::EVENT_LOW_BALANCE, self::RECEIVER_ADMIN);
 
         return $rows;
     }
