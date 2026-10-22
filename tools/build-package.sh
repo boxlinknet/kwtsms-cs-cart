@@ -657,7 +657,9 @@ echo "-- archives"
 zipf="$out/kwtsms-$version.zip"; tgzf="$out/kwtsms-$version.tgz"
 must "clear the old dist files" rm -rf "$out/kwtsms" "$zipf" "$tgzf" "$out/SHA256SUMS"
 must "copy the stage to dist/kwtsms" cp -r "$pkg" "$out/kwtsms"
-( cd "$pkg" && printf '%s\n' "$list" | zip -X -q "$zipf" -@ ) || { echo "FAIL  zip (exit $?)"; fail=1; }
+# 2026-10-22 12:37 +03: zip writes each entry time as zone-less local time, so a UTC runner gave the same files with
+# other times and another hash; pinned to Asia/Kuwait (no DST), the zone the 1.0.0 RC zip was built in, task 596.
+( cd "$pkg" && printf '%s\n' "$list" | TZ=Asia/Kuwait zip -X -q "$zipf" -@ ) || { echo "FAIL  zip (exit $?)"; fail=1; }
 ( cd "$pkg" && tar --sort=name --mtime="@$epoch" --owner=0 --group=0 --numeric-owner --mode='u=rwX,go=rX' -czf "$tgzf" $(printf '%s\n' "$list") ) || { echo "FAIL  tar (exit $?)"; fail=1; }
 # the archives must unpack to exactly the staged tree, with no group/world-writable entry
 check="$(mktemp -d "${TMPDIR:-/tmp}/kwtsms-check.XXXXXX")" || exit 2
