@@ -44,6 +44,9 @@
 # 2026-10-23 03:39 +03: Task A12 item 2 (R53), task 596. The two scripted audits read tools/audit-allowlist.txt, lines
 #            <path>:<function>:<$variable>; a variable allowed in one function is not allowed under the same name
 #            elsewhere (they were allowed by bare name before).
+# 2026-10-23 03:39 +03: Task A12 item 3 (R53), task 596. A second modes gate: the shipped files are staged by
+#            tools/stage-modes.sh inside the php container (/tmp/kwtsms-stage.XXXX, native ext4 modes) with the modes
+#            measured on this tree, and a group/world-writable entry fails; the git-index gate stays as the other one.
 # Why "set -uo pipefail" and not "-e": every gate must run and report even after an earlier one failed, so one run
 #            shows every failure; instead of -e, gate() and must() read every exit status and set fail=1, and no
 #            archive is written unless fail is still 0.
