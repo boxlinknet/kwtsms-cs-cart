@@ -105,7 +105,21 @@ if [ -d "$updir" ]; then
   }
   gate "upgrades/$uv: no private patterns" up_private_check
   gate "upgrades/$uv: no debug calls" scan "$updir" ':\d+:\s*(\*|//|/\*|\{\*)' -nE '(^|[^A-Za-z_>:$])(var_dump|print_r|dd)\('
-  gate "upgrades/$uv: error_log( only as a whole 'kwtsms last-resort statement" error_log_check "$updir"
+  # 2026-10-23 17:42 +03: Task M1.1b, task 596. error_log_check counts the error_log( calls it checks and fails on zero
+  # ("nothing to check"); upgrades/1.2.0 has none (the reporting lives in PostUpgrade, checked by the source gates), so
+  # zero calls is a pass here, reported as the number of PHP files scanned.
+  up_error_log_check() {
+    local out last
+    out="$(error_log_check "$updir")" || { printf '%s\n' "$out"; return 1; }
+    last="${out##*$'\n'}"
+    if [ "$last" = "CHECKED 0" ]; then
+      [ "$out" = "$last" ] || printf '%s\n' "${out%$'\n'*}"
+      echo "CHECKED $(find "$updir" -name '*.php' | wc -l)"
+    else
+      printf '%s\n' "$out"
+    fi
+  }
+  gate "upgrades/$uv: error_log( only as a whole 'kwtsms last-resort statement" up_error_log_check
   gate "upgrades/$uv: no banned characters" scan "$updir" '' -nIP '[\x{2013}\x{2014}\x{2018}\x{2019}\x{201C}\x{201D}\x{2026}]'
   up_ascii_check() {
     local res rc
