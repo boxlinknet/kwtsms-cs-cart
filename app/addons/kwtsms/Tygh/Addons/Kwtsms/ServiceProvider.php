@@ -244,7 +244,8 @@ class ServiceProvider implements ServiceProviderInterface
                 [$app['kwtsms.outbox'], 'pruneFinal'],
                 // 2026-10-21 04:21 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6),
                 // task 596.
-                [$app['kwtsms.dispatch_keys'], 'pruneStatus'],
+                // 2026-10-23 03:41 +03: pruneWindowed (was pruneStatus), Task A12 item 4, task 596.
+                [$app['kwtsms.dispatch_keys'], 'pruneWindowed'],
                 // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596. The low-balance SMS, dispatched by the drain step.
                 [$app['kwtsms.low_balance_sms'], 'dispatchPending']
             );
@@ -316,7 +317,8 @@ class ServiceProvider implements ServiceProviderInterface
 
         // 2026-10-21 04:21 +03: the order lookups log their errors (fix round 1 item 2), task 596.
         $app['kwtsms.dispatch_keys'] = function (Container $app): DispatchKeys {
-            return new DispatchKeys(null, $app['kwtsms.logs.debug']);
+            // 2026-10-23 03:41 +03: Task A12 item 4 (R8, R24), task 596. The declarations give the windowed prefixes.
+            return new DispatchKeys(null, $app['kwtsms.logs.debug'], $app['kwtsms.declared_events']);
         };
 
         $app['kwtsms.templates'] = function (Container $app): TemplateRepository {

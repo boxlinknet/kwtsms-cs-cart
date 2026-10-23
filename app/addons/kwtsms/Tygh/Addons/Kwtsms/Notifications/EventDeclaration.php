@@ -269,6 +269,16 @@ final class EventDeclaration
     /**
      * Seconds a dedupe key blocks a repeat; 0 = permanent.
      */
+    /**
+     * 2026-10-23 03:41 +03: Task A12 item 4 (R53, R24), task 596. The literal start of the dedupe key template up to
+     * and including its first colon ("updated:" of "updated:{order_info.order_id}:{receiver}"); '' when the event has
+     * no dedupe key or the template does not start with a lower-case word and a colon.
+     */
+    public function dedupePrefix(): string
+    {
+        return preg_match('/^[a-z][a-z0-9_]*:/', $this->dedupe_key, $m) === 1 ? $m[0] : '';
+    }
+
     public function dedupeWindow(): int
     {
         return $this->dedupe_window;

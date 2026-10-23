@@ -44,7 +44,9 @@
  *            (Queue\Outbox::pruneFinal, one chunk per call).
  *            2026-10-21 04:22 +03, ruling R32, Task 1.9 fix round 1 item 6, task 596: prune_logs also deletes
  *            status:* dispatch keys older than 2 days (the 24 h status window plus a day of margin) through a key
- *            prune callable (int $before, int $limit): int (Orders\DispatchKeys::pruneStatus, one chunk per call),
+ *            prune callable (int $before, int $limit): int (Orders\DispatchKeys::pruneWindowed, one chunk per call;
+ *            2026-10-23 03:41 +03, Task A12 item 4, task 596: was pruneStatus, now the status:, resend:, updated:,
+ *            recover: and low_stock: keys, never the permanent ones),
  *            after the outbox, in the same 5,000-row chunks and 120 s budget; order_placed:* keys are never pruned.
  */
 
@@ -171,8 +173,9 @@ class CronRunner
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
      * @param callable|null $microclock   Returns seconds as a float (tests); null = microtime(true)
      * @param callable|null $prune_outbox (int $before, int $limit): int, deletes one chunk of final outbox rows
-     * @param callable|null $prune_keys   (int $before, int $limit): int, deletes one chunk of status dispatch keys
-     *                                    created before $before (2026-10-21 04:22 +03, ruling R32, task 596)
+     * @param callable|null $prune_keys   (int $before, int $limit): int, deletes one chunk of expired windowed dispatch keys
+     *                                    created before $before (2026-10-21 04:22 +03, ruling R32, task 596;
+     *                                    2026-10-23 03:41 +03: was status keys only, Task A12 item 4)
      */
     public function __construct(
         ConfigInterface $config,
@@ -453,6 +456,7 @@ class CronRunner
             }
         }
         // 2026-10-21 04:22 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6), task 596.
+        // 2026-10-23 03:41 +03: every windowed prefix (status:, resend:, updated:, recover:, low_stock:), Task A12 item 4.
         if (!$partial && $this->prune_keys !== null) {
             if ($this->micro() >= $deadline) {
                 $partial = true;

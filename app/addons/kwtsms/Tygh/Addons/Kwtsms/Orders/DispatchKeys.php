@@ -15,6 +15,10 @@
  *            The claim is one INSERT ... ON DUPLICATE KEY UPDATE and the affected-rows count decides: 1 = inserted,
  *            2 = an expired key was renewed (both claim), 0 = the key is still valid (no claim). Atomic in InnoDB, so
  *            two concurrent webhooks cannot both win.
+ *            2026-10-23 03:41 +03, Task A12 item 4 (R53), task 596: pruneStatus() is pruneWindowed($before, $limit): the
+ *            status:, resend:, updated:, recover: and low_stock: keys (WINDOWED_PREFIXES, plus declared dedupe keys
+ *            of 1 s to 2 days) older than the cut-off; order_placed:, shipment:, created:, registered: and
+ *            low_balance: (PERMANENT_PREFIXES) are never pruned. new DispatchKeys($clock, $debug_log, $declared).
  * USAGE:     $keys = new DispatchKeys();
  *            $keys->claim(DispatchKeys::orderPlaced(12, 'C'));                          // true once, ever
  *            $keys->claim(DispatchKeys::status('12', 'C', 'C'), DispatchKeys::STATUS_WINDOW); // true once per 24 h
@@ -31,6 +35,7 @@
 namespace Tygh\Addons\Kwtsms\Orders;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 
 class DispatchKeys
 {
@@ -41,10 +46,25 @@ class DispatchKeys
     public const MAX_LENGTH = 191;
 
     /**
-     * One chunk of expired status keys, read as a range of the primary key (the "status:" prefix).
-     * 2026-10-21 04:18 +03: added, ruling R32, task 596.
+     * 2026-10-23 03:41 +03: Task A12 item 4 (R53, R24), task 596. Prefixes of the keys that expire: the 24 h status
+     * keys, the resend claims, the 10 minute updated: and recover: keys, the 24 h low-stock keys. Declared dedupe
+     * keys with a window of 1 s to PRUNE_MAX_WINDOW join them at run time (windowedPrefixes()).
      */
-    public const PRUNE_STATUS_SQL = "DELETE FROM ?:kwtsms_dispatch_keys WHERE dispatch_key LIKE 'status:%'"
+    public const WINDOWED_PREFIXES = ['status:', 'resend:', 'updated:', 'recover:', 'low_stock:'];
+
+    /** Prefixes of the keys that are kept for ever (an order is placed once, a shipment is created once ...). */
+    public const PERMANENT_PREFIXES = ['order_placed:', 'shipment:', 'created:', 'registered:', 'low_balance:'];
+
+    /** The prune cuts at 2 days (CronRunner::STATUS_KEY_DAYS), so a longer declared window is never pruned. */
+    public const PRUNE_MAX_WINDOW = 172800;
+
+    /**
+     * One chunk of expired keys of ONE prefix, read as a range of the primary key (from the prefix to the prefix
+     * with its colon raised by one character).
+     * 2026-10-21 04:18 +03: added as PRUNE_STATUS_SQL (status: only), ruling R32, task 596.
+     * 2026-10-23 03:41 +03: any one prefix, Task A12 item 4, task 596.
+     */
+    public const PRUNE_RANGE_SQL = 'DELETE FROM ?:kwtsms_dispatch_keys WHERE dispatch_key >= ?s AND dispatch_key < ?s'
         . ' AND created_at < ?i LIMIT ?i';
 
     /** @var callable|null */
@@ -53,13 +73,32 @@ class DispatchKeys
     /** @var DebugLog|null 2026-10-21 04:18 +03: read errors are logged (fix round 1 item 2), task 596 */
     private $log;
 
+    /** @var string[] 2026-10-23 03:41 +03: Task A12 item 4, task 596. Windowed prefixes taken from declarations. */
+    private $declared_prefixes = [];
+
     /**
-     * @param callable|null $clock Returns the current Unix time (tests); null = time()
+     * @param callable|null $clock    Returns the current Unix time (tests); null = time()
+     * @param array|null    $declared The kwtsms events schema (fn_get_schema('kwtsms', 'events')): a declared dedupe key
+     *                                with a window of 1 s to 2 days is pruned like the built-in windowed prefixes
+     *                                (2026-10-23 03:41 +03: Task A12 item 4, R8, R24, task 596)
      */
-    public function __construct(?callable $clock = null, ?DebugLog $log = null)
+    public function __construct(?callable $clock = null, ?DebugLog $log = null, ?array $declared = null)
     {
         $this->clock = $clock;
         $this->log = $log;
+        if ($declared !== null) {
+            foreach (EventsSchemaExtender::declarations($declared, true) as $decl) {
+                $prefix = $decl->dedupePrefix();
+                if (
+                    $prefix !== '' && $decl->dedupeWindow() > 0 && $decl->dedupeWindow() <= self::PRUNE_MAX_WINDOW
+                    && !in_array($prefix, self::PERMANENT_PREFIXES, true)
+                    && !in_array($prefix, self::WINDOWED_PREFIXES, true)
+                    && !in_array($prefix, $this->declared_prefixes, true)
+                ) {
+                    $this->declared_prefixes[] = $prefix;
+                }
+            }
+        }
     }
 
     public static function orderPlaced(int $id, string $receiver): string
@@ -142,15 +181,59 @@ class DispatchKeys
     }
 
     /**
-     * Deletes ONE chunk of status:* keys created before $before; order_placed:* keys are never touched. Called by
-     * the cron prune_logs job (CronRunner) until a chunk comes back short. A database error is thrown to the caller,
-     * which reports it. 2026-10-21 04:18 +03: added, ruling R32, Task 1.9 fix round 1 item 6, task 596.
+     * The prefixes the prune deletes: WINDOWED_PREFIXES, then the declared windowed ones.
+     * 2026-10-23 03:41 +03: added, Task A12 item 4, task 596.
+     *
+     * @return string[]
+     */
+    public function windowedPrefixes(): array
+    {
+        return array_merge(self::WINDOWED_PREFIXES, $this->declared_prefixes);
+    }
+
+    /**
+     * The half-open key range of a prefix ending in a colon: [prefix, prefix with ';' for ':').
+     *
+     * @return string[] [from, to]
+     */
+    public static function prefixRange(string $prefix): array
+    {
+        return [$prefix, substr($prefix, 0, -1) . ';'];
+    }
+
+    /**
+     * Deletes ONE chunk (at most $limit rows in all) of the keys of the windowed prefixes created before $before;
+     * order_placed:, shipment:, created:, registered: and low_balance: keys are never touched. Called by the cron
+     * prune_logs job (CronRunner) until a chunk comes back short. A database error is thrown to the caller, which
+     * reports it. 2026-10-21 04:18 +03: added as pruneStatus() (status: only), ruling R32, Task 1.9 fix round 1 item 6,
+     * task 596. 2026-10-23 03:41 +03: every windowed prefix, one range of the primary key each, Task A12 item 4 (R53),
+     * task 596.
      *
      * @return int Keys deleted; fewer than $limit means none are left
      */
-    public function pruneStatus(int $before, int $limit): int
+    public function pruneWindowed(int $before, int $limit): int
     {
-        return (int) db_query(self::PRUNE_STATUS_SQL, max(0, $before), max(1, $limit));
+        $left = max(1, $limit);
+        $total = 0;
+        foreach ($this->windowedPrefixes() as $prefix) {
+            if ($left <= 0) {
+                break;
+            }
+            [$from, $to] = self::prefixRange($prefix);
+            $deleted = $this->deleteRange($from, $to, max(0, $before), $left);
+            $total += $deleted;
+            $left -= $deleted;
+        }
+
+        return $total;
+    }
+
+    /**
+     * One range delete (a test seam). 2026-10-23 03:41 +03: Task A12 item 4, task 596.
+     */
+    protected function deleteRange(string $from, string $to, int $before, int $limit): int
+    {
+        return (int) db_query(self::PRUNE_RANGE_SQL, $from, $to, $before, $limit);
     }
 
     private function now(): int
