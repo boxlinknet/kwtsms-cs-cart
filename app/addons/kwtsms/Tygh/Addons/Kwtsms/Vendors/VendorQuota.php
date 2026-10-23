@@ -68,14 +68,18 @@ class VendorQuota
     /**
      * True when $recipients more recipients still fit into this month's limit. Limit 0 never allows.
      */
-    public function allows(int $company_id, int $recipients): bool
+    public function allows(int $company_id, int $recipients, int $before_outbox_id = 0): bool
     {
         $limit = $this->limit($company_id);
         if ($limit <= 0) {
             return false;
         }
 
-        return $this->used($company_id, $this->monthStart()) + max(0, $recipients) <= $limit;
+        // 2026-10-23 05:50 +03: Task CA1-5 (A8 M1), task 596. The vendor's V rows waiting in the outbox count too
+        // (pending, sending, held); a drained row passes its own outbox id and counts only the rows queued before it.
+        $queued = $this->queuedRecipients($company_id, max(0, $before_outbox_id));
+
+        return $this->used($company_id, $this->monthStart()) + $queued + max(0, $recipients) <= $limit;
     }
 
     /**
@@ -152,6 +156,33 @@ class VendorQuota
             'V',
             $statuses
         );
+    }
+
+    /**
+     * Recipients of the vendor's V rows that are still in the outbox (pending, sending or held); with
+     * $before_outbox_id > 0 only the rows with a smaller outbox id. 2026-10-23 05:50 +03: added, Task CA1-5, task 596.
+     * The outbox keeps the company in its JSON context and only live rows are in the table, so the match is a LIKE
+     * on the rows the status index already narrows.
+     */
+    protected function queuedRecipients(int $company_id, int $before_outbox_id): int
+    {
+        $rows = (array) db_get_fields(
+            'SELECT phones FROM ?:kwtsms_outbox WHERE status IN (?a) AND (?i = 0 OR outbox_id < ?i)'
+            . ' AND context LIKE ?s AND (context LIKE ?s OR context LIKE ?s)',
+            ['pending', 'sending', 'held'],
+            $before_outbox_id,
+            $before_outbox_id,
+            '%"receiver":"V"%',
+            '%"company_id":' . $company_id . ',%',
+            '%"company_id":' . $company_id . '}%'
+        );
+        $count = 0;
+        foreach ($rows as $json) {
+            $phones = json_decode((string) $json, true);
+            $count += is_array($phones) ? count($phones) : 1;
+        }
+
+        return $count;
     }
 
     /**

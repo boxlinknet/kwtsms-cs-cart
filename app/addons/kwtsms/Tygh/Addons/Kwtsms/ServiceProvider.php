@@ -211,7 +211,25 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.alerts'],
                 null,
                 null,
-                $app['kwtsms.sender_resolver']
+                $app['kwtsms.sender_resolver'],
+                // 2026-10-23 05:50 +03: Task CA1-5 (A8 M1, M3), task 596. The V gate of the drain and of a Resend: the
+                // vendor's approved number and monthly quota are checked again right before the send. Built lazily.
+                static function (int $company_id, array $phones, int $outbox_id) use ($app): ?array {
+                    if (!$app['kwtsms.checkout_rules']->isMultiVendor()) {
+                        return null;
+                    }
+                    $approved = ltrim($app['kwtsms.vendor_phones']->approvedPhone($company_id), '+');
+                    foreach ($phones as $phone) {
+                        if ($approved === '' || ltrim((string) $phone, '+') !== $approved) {
+                            return ['no_phone', 'vendor_not_approved'];
+                        }
+                    }
+                    if (!$app['kwtsms.vendor_quota']->allows($company_id, count($phones), $outbox_id)) {
+                        return ['rate_limited', 'vendor_quota'];
+                    }
+
+                    return null;
+                }
             );
         };
 

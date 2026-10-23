@@ -275,6 +275,10 @@ class SmsService
     /** @var float */
     private $stage_started = 0.0;
 
+    /** @var callable|null 2026-10-23 05:50 +03: Task CA1-5 (A8 M1, M3), task 596. (int $company_id, string[] $phones,
+     *  int $outbox_id): ?array{0:string,1:string}, null = fine, else [outcome, reason]; null gate = no check */
+    private $vendor_gate;
+
     /** @var SenderResolver|null The Sender ID per storefront (2026-10-22 14:53 +03, Task A2, task 596) */
     private $senders;
 
@@ -298,8 +302,10 @@ class SmsService
         ?AdminAlerts $alerts = null,
         ?callable $clock = null,
         ?CapLock $cap_lock = null,
-        ?SenderResolver $senders = null
+        ?SenderResolver $senders = null,
+        ?callable $vendor_gate = null
     ) {
+        $this->vendor_gate = $vendor_gate;
         $this->senders = $senders;
         $this->config = $config;
         $this->state = $state;
@@ -942,6 +948,26 @@ class SmsService
             $rcpt[$i]['phone'] = $normalized;
             $rcpt[$i]['valid'] = $ok;
             $rcpt[$i]['invalid_reason'] = (string) $reason;
+        }
+        // 2026-10-23 05:50 +03: Task CA1-5 (A8 M1, M3), task 596. A V send (a drained outbox row, a Logs Resend) checks
+        // the vendor's approved number and monthly quota right before the caps; a refused send makes no API call.
+        if ($this->vendor_gate !== null && $context['receiver'] === 'V' && (int) $context['company_id'] > 0) {
+            $open = $this->open($rcpt);
+            if ($open !== []) {
+                $verdict = call_user_func(
+                    $this->vendor_gate,
+                    (int) $context['company_id'],
+                    array_map(static function ($i) use ($rcpt): string {
+                        return (string) $rcpt[$i]['phone'];
+                    }, $open),
+                    (int) $context['outbox_id']
+                );
+                if (is_array($verdict)) {
+                    foreach ($open as $i) {
+                        $rcpt[$i] = $this->decided($rcpt[$i], (string) $verdict[0], (string) $verdict[1]);
+                    }
+                }
+            }
         }
         try {
             $this->applyCaps($rcpt, $context);
