@@ -25,6 +25,7 @@
 namespace Tygh\Addons\Kwtsms\Alerts;
 
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
+use Tygh\Addons\Kwtsms\Sms\CapLock;
 use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
 
 class LowBalanceSms
@@ -47,6 +48,9 @@ class LowBalanceSms
     /** @var callable|null */
     private $clock;
 
+    /** @var CapLock|null 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596. The state lock; null = no lock (unit rigs). */
+    private $lock;
+
     /**
      * @param callable      $dispatch (string $event_id, array $data): void, through event.dispatcher
      * @param callable|null $clock    Returns the current Unix time (tests); null = time()
@@ -55,8 +59,10 @@ class LowBalanceSms
         KeyValueStoreInterface $store,
         GatewayState $state,
         callable $dispatch,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?CapLock $lock = null
     ) {
+        $this->lock = $lock;
         $this->store = $store;
         $this->state = $state;
         $this->dispatch = $dispatch;
@@ -66,12 +72,21 @@ class LowBalanceSms
     /**
      * Records a crossing (AdminAlerts calls this when it raises low_balance). Never throws.
      */
-    public static function recordCrossing(KeyValueStoreInterface $store, int $at, float $balance, int $threshold): void
-    {
+    public static function recordCrossing(
+        KeyValueStoreInterface $store,
+        int $at,
+        float $balance,
+        int $threshold,
+        ?CapLock $lock = null
+    ): void {
         try {
-            $data = self::read($store->getFresh(self::KEY));
-            $data['pending'] = ['at' => $at, 'balance' => $balance, 'threshold' => $threshold];
-            $store->set(self::KEY, (string) json_encode($data));
+            // 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596. The read-modify-write runs under the state lock, so
+            // the cron's consume step cannot overwrite a crossing recorded in between.
+            self::locked($lock, static function () use ($store, $at, $balance, $threshold): void {
+                $data = self::read($store->getFresh(self::KEY));
+                $data['pending'] = ['at' => $at, 'balance' => $balance, 'threshold' => $threshold];
+                $store->set(self::KEY, (string) json_encode($data));
+            });
         } catch (\Throwable $e) {
             error_log('kwtsms: low balance crossing not recorded: ' . get_class($e) . ': ' . $e->getMessage());
         }
@@ -85,19 +100,30 @@ class LowBalanceSms
     public function dispatchPending(): bool
     {
         try {
-            $data = self::read($this->store->getFresh(self::KEY));
-            $pending = $data['pending'] ?? null;
-            if (!is_array($pending) || !isset($pending['at']) || !is_numeric($pending['at'])) {
+            // 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596. Read and consume under the state lock (see
+            // recordCrossing()); the dispatch below runs outside it.
+            $pending = null;
+            $at = 0;
+            self::locked($this->lock, function () use (&$pending, &$at): void {
+                $data = self::read($this->store->getFresh(self::KEY));
+                $found = $data['pending'] ?? null;
+                if (!is_array($found) || !isset($found['at']) || !is_numeric($found['at'])) {
+                    return;
+                }
+                $when = (int) $found['at'];
+                if ($when <= 0 || $when <= (int) ($data['sent'] ?? 0)) {
+                    return;
+                }
+                // Consumed first: whatever happens below, this crossing is never dispatched again.
+                $data['sent'] = $when;
+                unset($data['pending']);
+                $this->store->set(self::KEY, (string) json_encode($data));
+                $pending = $found;
+                $at = $when;
+            });
+            if ($pending === null) {
                 return false;
             }
-            $at = (int) $pending['at'];
-            if ($at <= 0 || $at <= (int) ($data['sent'] ?? 0)) {
-                return false;
-            }
-            // Consumed first: whatever happens below, this crossing is never dispatched again.
-            $data['sent'] = $at;
-            unset($data['pending']);
-            $this->store->set(self::KEY, (string) json_encode($data));
 
             $threshold = (int) ($pending['threshold'] ?? 0);
             $cached = $this->state->balance();
@@ -121,6 +147,18 @@ class LowBalanceSms
                 . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
 
             return false;
+        }
+    }
+
+    /**
+     * Runs $work under the lock. A lock that is busy for its wait time (or unavailable) does not drop the crossing:
+     * the work runs without it, the 1.1.0 behaviour.
+     * 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596.
+     */
+    private static function locked(?CapLock $lock, callable $work): void
+    {
+        if ($lock === null || !$lock->runLocked($work)) {
+            $work();
         }
     }
 

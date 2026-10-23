@@ -43,6 +43,7 @@ use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
+use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
@@ -174,7 +175,16 @@ class ServiceProvider implements ServiceProviderInterface
         );
 
         $app['kwtsms.alerts'] = function (Container $app): AdminAlerts {
-            return new AdminAlerts($app['kwtsms.storage'], $app['kwtsms.config'], $app['kwtsms.logs.debug']);
+            // 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596. The state lock of the low-balance crossing key.
+            return new AdminAlerts(
+                $app['kwtsms.storage'],
+                $app['kwtsms.config'],
+                $app['kwtsms.logs.debug'],
+                null,
+                null,
+                null,
+                new StateLock()
+            );
         };
 
         // 2026-10-22 14:53 +03: the per-storefront switches and Sender IDs, Task A2 (P2-1, P2-2), task 596.
@@ -276,7 +286,9 @@ class ServiceProvider implements ServiceProviderInterface
                     $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
                         ? (int) $storefront->storefront_id : 0;
                     $app['event.dispatcher']->dispatch($event_id, $data, null, $provider);
-                }
+                },
+                null,
+                new StateLock() // 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596
             );
         };
     }

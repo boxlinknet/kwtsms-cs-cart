@@ -27,6 +27,7 @@ namespace Tygh\Addons\Kwtsms\Alerts;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
+use Tygh\Addons\Kwtsms\Sms\CapLock;
 use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
 
 class AdminAlerts
@@ -83,6 +84,9 @@ class AdminAlerts
     /** @var callable|null */
     private $clock;
 
+    /** @var CapLock|null 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596. The low-balance state lock; null = none. */
+    private $state_lock;
+
     /**
      * @param callable|null $notify ($condition, $title, $text): void; null = notifications center, every root admin
      * @param callable|null $mail   ($condition, $subject, $body): bool; null = the store mailer to the site admin
@@ -94,8 +98,10 @@ class AdminAlerts
         ?DebugLog $log = null,
         ?callable $notify = null,
         ?callable $mail = null,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?CapLock $state_lock = null
     ) {
+        $this->state_lock = $state_lock;
         $this->store = $store;
         $this->config = $config;
         $this->log = $log;
@@ -146,7 +152,8 @@ class AdminAlerts
                     $this->store,
                     $now,
                     (float) ($params['[balance]'] ?? 0),
-                    (int) ($params['[threshold]'] ?? 0)
+                    (int) ($params['[threshold]'] ?? 0),
+                    $this->state_lock
                 );
             }
 
