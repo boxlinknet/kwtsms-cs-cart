@@ -59,6 +59,9 @@ class LowStockCollector
     /** @var array<int,array{product_id:int,company_id:int,current_amount:int,new_amount:int}> */
     private $products = [];
 
+    /** @var bool 2026-10-23 05:45 +03: Task CA1-1, task 596 */
+    private static $any_recorded = false;
+
     /** @var bool */
     private $shutdown_registered = false;
 
@@ -111,6 +114,15 @@ class LowStockCollector
             && !(bool) call_user_func($this->in_order_management);
     }
 
+    /**
+     * 2026-10-23 05:45 +03: Task CA1-1 (A7 M7), task 596. True once any collector recorded a crossing in this
+     * process: lets the update_product_amount hook skip the "+" path without building the service.
+     */
+    public static function anyRecorded(): bool
+    {
+        return self::$any_recorded;
+    }
+
     public function record(
         int $product_id,
         int $company_id,
@@ -119,9 +131,20 @@ class LowStockCollector
         string $sign,
         int $threshold
     ): void {
+        // 2026-10-23 05:45 +03: Task CA1-1 (A7 M7), task 596. A stock revert (fn_change_order_status puts stock back
+        // with "+" after a backorder/error path) that lifts a pending product above the threshold clears its
+        // crossing: no SMS, no key burnt, for stock that is no longer low.
+        if ($sign === '+') {
+            if (isset($this->products[$product_id]) && $new_amount > $threshold) {
+                unset($this->products[$product_id]);
+            }
+
+            return;
+        }
         if ($product_id <= 0 || !$this->crosses($current_amount, $new_amount, $sign, $threshold)) {
             return;
         }
+        self::$any_recorded = true;
         $this->products[$product_id] = [
             'product_id' => $product_id,
             'company_id' => max(0, $company_id),

@@ -429,10 +429,27 @@ function fn_kwtsms_update_product_amount(
     $sign
 ) {
     try {
+        $threshold = (int) Registry::get('settings.General.low_stock_threshold');
+        // 2026-10-23 05:45 +03: Task CA1-1 (A7 M7), task 596. A "+" (stock put back after a backorder/error path in
+        // fn_change_order_status) above the threshold clears a crossing recorded earlier in the request; it only
+        // builds the service when a crossing was recorded at all.
+        if ((string) $sign === '+') {
+            if ((int) $new_amount > $threshold && \Tygh\Addons\Kwtsms\Orders\LowStockCollector::anyRecorded()) {
+                Tygh::$app['kwtsms.low_stock']->record(
+                    (int) $product_id,
+                    0,
+                    (int) $current_amount,
+                    (int) $new_amount,
+                    '+',
+                    $threshold
+                );
+            }
+
+            return;
+        }
         if ((string) $sign !== '-') {
             return;
         }
-        $threshold = (int) Registry::get('settings.General.low_stock_threshold');
         // The cheap test first (no service is built for the common case): fn.cart.php:1146-1148 mirrored.
         if ((int) $current_amount <= $threshold || (int) $new_amount > $threshold || defined('ORDER_MANAGEMENT')) {
             return;
