@@ -169,9 +169,9 @@ final class EventDeclaration
         // it) is refused.
         if ($key !== '' && preg_match_all('/\{([^{}]*)\}/', $key, $tokens) > 0) {
             foreach ($secret as $name) {
-                $secret_path = $placeholders[$name];
+                $masked_path = $placeholders[$name];
                 foreach ($tokens[1] as $token) {
-                    if ($token === $secret_path || strpos($token, $secret_path . '.') === 0) {
+                    if ($token === $masked_path || strpos($token, $masked_path . '.') === 0) {
                         return null;
                     }
                 }
