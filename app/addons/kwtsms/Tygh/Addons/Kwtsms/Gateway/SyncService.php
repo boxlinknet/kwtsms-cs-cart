@@ -818,7 +818,7 @@ class SyncService
 
     private function context(string $requested = ''): string
     {
-        if (in_array($requested, ['web', 'admin', 'cli'], true)) {
+        if (in_array($requested, ['web', 'admin', 'cli', 'admin_background'], true)) {
             return $requested;
         }
 

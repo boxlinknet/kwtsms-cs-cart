@@ -42,6 +42,11 @@
  *            further ahead than $max_wait_ms with LOCAL_BUSY and reserves nothing; ApiClient passes WEB_MAX_WAIT_MS
  *            (1 s) for a web call, so a storefront request never sleeps longer than that for the slot (the send is
  *            deferred to the outbox for the cron or the next request).
+ *            2026-10-23 03:45 +03, Task A12 item 5 (R53), task 596: ApiClient picks the cap by (context, interactive):
+ *            WEB_MAX_WAIT_MS (1 s) for the storefront, ADMIN_BACKGROUND_MAX_WAIT_MS (3 s) for a non-interactive admin
+ *            web call (the Dashboard drain, the sync an admin page runs on open), MAX_WAIT_MS (10 s) for an
+ *            interactive admin call and the command line. A refused slot is LOCAL_BUSY: the send is deferred
+ *            (gateway_unreachable), never failed.
  * DEPENDS:   Storage\KeyValueStoreInterface (getFresh), Gateway\GatewayState, CS-Cart db_get_field() for the
  *            default lock (without it the lock is "unavailable" and acquire() fails closed with LOCAL_BUSY).
  */
@@ -81,6 +86,14 @@ class ApiGuard
 
     /** The longest slot wait of a web call (2026-10-21 16:53 +03: final review I2, ruling R52, task 596). */
     public const WEB_MAX_WAIT_MS = 1000;
+
+    /**
+     * The longest slot wait of a non-interactive admin web call (the Dashboard drain, a sync an admin page runs on
+     * open): a page load must not sleep longer than that for the slot. 2026-10-23 03:45 +03: Task A12 item 5 (R53),
+     * task 596. An interactive admin call (a human waits on that very call) keeps MAX_WAIT_MS, the storefront keeps
+     * WEB_MAX_WAIT_MS, the command line is unchanged.
+     */
+    public const ADMIN_BACKGROUND_MAX_WAIT_MS = 3000;
 
     /** The longest slot wait of any other call (2026-10-21 16:53 +03: final review I2, task 596). */
     public const MAX_WAIT_MS = self::MAX_BACKLOG_MS;

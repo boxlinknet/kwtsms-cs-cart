@@ -79,6 +79,9 @@ class ApiClient
     /** The five endpoints; the first four are read-only. */
     public const ENDPOINTS = ['balance', 'senderid', 'coverage', 'validate', 'send'];
 
+    /** The context name of a non-interactive admin web call (2026-10-23 03:45 +03: Task A12 item 5, task 596). */
+    public const ADMIN_BACKGROUND = 'admin_background';
+
     /** Connect and total timeout in seconds by context. */
     private const TIMEOUTS = ['web' => [3, 8], 'admin' => [5, 20], 'cli' => [5, 30]];
 
@@ -147,11 +150,21 @@ class ApiClient
     private $request_guard;
 
     /**
+     * @var bool 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. A person waits on this very call (admin area
+     *      only; the storefront and the command line are never "interactive" for the slot cap).
+     */
+    private $interactive;
+
+    /**
      * @param string        $user          API username (not the account mobile number)
      * @param string        $pass          API password
      * @param string        $context       web, admin or cli: picks the timeouts; anything else is web
      * @param callable|null $request_guard Used only where fn_set_hook() does not exist: ($endpoint, $guard_view),
      *                                     must return exactly true to let the request go
+     * @param bool          $interactive   2026-10-23 03:45 +03: Task A12 item 5, task 596. With context admin: true = a
+     *                                     human waits on this call (slot wait up to 10 s), false = a background call of
+     *                                     an admin page (up to 3 s, web-sized timeouts). The context name
+     *                                     "admin_background" means admin with $interactive false.
      */
     public function __construct(
         string $user,
@@ -161,14 +174,20 @@ class ApiClient
         ApiGuard $guard,
         DebugLog $log,
         string $context,
-        ?callable $request_guard = null
+        ?callable $request_guard = null,
+        bool $interactive = true
     ) {
         $this->user = $user;
         $this->pass = $pass;
         $this->transport = $transport;
         $this->guard = $guard;
         $this->log = $log;
+        if ($context === self::ADMIN_BACKGROUND) {
+            $context = 'admin';
+            $interactive = false;
+        }
         $this->context = isset(self::TIMEOUTS[$context]) ? $context : 'web';
+        $this->interactive = $interactive;
         $this->request_guard = $request_guard;
 
         // Whatever a log line or a context array holds, these two never get in (PRD 10).
@@ -460,12 +479,17 @@ class ApiClient
             try {
                 // 2026-10-21 16:53 +03: a web call waits at most 1 s for the slot, then defers as LOCAL_BUSY (final
                 // review I2, ruling R52), task 596.
-                $this->guard->acquire($this->context === 'web' ? ApiGuard::WEB_MAX_WAIT_MS : ApiGuard::MAX_WAIT_MS);
+                // 2026-10-23 03:45 +03: by (context, interactive): storefront 1 s, admin background 3 s, the rest 10 s
+                // (Task A12 item 5, R53), task 596.
+                $this->guard->acquire($this->slotCap());
             } catch (ApiGuardException $e) {
                 return $this->local($endpoint, $e->apiCode(), $started, $raw_request);
             }
 
-            [$connect, $total] = self::TIMEOUTS[$this->context];
+            // 2026-10-23 03:45 +03: a background admin call has the web timeouts (the Dashboard drain and sync were
+            // always sized that way), Task A12 item 5, task 596.
+            $sized = $this->context === 'admin' && !$this->interactive ? 'web' : $this->context;
+            [$connect, $total] = self::TIMEOUTS[$sized];
             try {
                 $reply = $this->transport->post($this->baseUrl() . $endpoint . '/', $json, $connect, $total);
             } catch (\InvalidArgumentException $e) {
@@ -481,6 +505,23 @@ class ApiClient
 
         // From here the request may have reached the gateway: nothing below may lose the reply.
         return $this->afterTransport($endpoint, $reply, $started, $raw_request);
+    }
+
+    /**
+     * The longest wait for the global slot of this client: the storefront (web) 1 s, a non-interactive admin call 3 s,
+     * every other call (an interactive admin call, the command line) 10 s. 2026-10-23 03:45 +03: added, Task A12
+     * item 5 (R53), task 596.
+     */
+    private function slotCap(): int
+    {
+        if ($this->context === 'web') {
+            return ApiGuard::WEB_MAX_WAIT_MS;
+        }
+        if ($this->context === 'admin' && !$this->interactive) {
+            return ApiGuard::ADMIN_BACKGROUND_MAX_WAIT_MS;
+        }
+
+        return ApiGuard::MAX_WAIT_MS;
     }
 
     /**

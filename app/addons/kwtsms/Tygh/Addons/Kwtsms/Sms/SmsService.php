@@ -798,6 +798,14 @@ class SmsService
         }
     }
 
+    /**
+     * True in an admin-area request. 2026-10-23 03:45 +03: added, Task A12 item 5, task 596.
+     */
+    protected function adminArea(): bool
+    {
+        return defined('AREA') && AREA === 'A';
+    }
+
     /** The request budget applies to web requests only (the cron and CLI have their own time budget). */
     protected function isWebRequest(): bool
     {
@@ -2156,9 +2164,13 @@ class SmsService
         if ($this->client === null) {
             // 2026-10-21 02:29 +03: webContext() replaces isWebRequest(): a cron drain uses the cli timeouts even
             // over the URL mode, Task 1.7 fix round 1 item 7, task 596.
+            // 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. Not interactive in the admin area (the Dashboard
+            // drain): admin_background, a 3 s slot cap; on the storefront: web, 1 s.
             $timeout = !$this->webContext()
                 ? 'cli'
-                : ($context['interactive'] && $context['audience'] === 'admin' ? 'admin' : 'web');
+                : ($context['interactive'] && $context['audience'] === 'admin'
+                    ? 'admin'
+                    : ($this->adminArea() ? ApiClient::ADMIN_BACKGROUND : 'web'));
             $this->client = call_user_func($this->client_factory, $timeout);
         }
 

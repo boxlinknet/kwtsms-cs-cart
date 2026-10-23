@@ -71,7 +71,9 @@ class DashboardPage
      * 2026-10-21 06:21 +03: the timeout context of the sync the page runs on open: web, 3 s to connect and 8 s in all
      * for each call (admin is 5 and 20 s), Task 1.11 fix round 2 item 1, task 596.
      */
-    public const SYNC_CONTEXT = 'web';
+    // 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. Still the web timeouts, now with the 3 s admin background
+    // slot cap (the storefront web context caps the slot wait at 1 s).
+    public const SYNC_CONTEXT = 'admin_background';
 
     /** Where a merchant asks kwtSMS for a country (PRD 6.9 request-coverage link) and orders a Sender ID. */
     public const URL_COVERAGE = 'https://www.kwtsms.com/support.html';
