@@ -87,7 +87,7 @@ class RateLimiter
     /**
      * Counts one hit in the fixed window that started at the first hit of the bucket.
      *
-     * 2026-10-23 20:48 +03: Task M1.2 fix round 1 (minor 2), task 596. Fails closed: when the statement throws or
+     * 2026-10-23 20:46 +03: Task M1.2 fix round 1 (minor 2), task 596. Fails closed: when the statement throws or
      * LAST_INSERT_ID() comes back 0 (a query on an AUTO_INCREMENT table in between, a reconnect), the number of this
      * hit is unknown, so the call is logged (no bucket name, no address) and answers PHP_INT_MAX, which is over every
      * limit. It never reads as a first hit.
@@ -194,7 +194,7 @@ class RateLimiter
                 return $decision + ['claimed_at' => 0];
             }
             if ($this->swap($name, $row, $decision['prev_hits'] + 1, $now)) {
-                // 2026-10-23 20:47 +03: claimed_at, Task M1.2 fix round 1 (minor 1), task 596: undoStep() matches it.
+                // 2026-10-23 20:46 +03: claimed_at, Task M1.2 fix round 1 (minor 1), task 596: undoStep() matches it.
                 return $decision + ['claimed_at' => $now];
             }
         }
@@ -212,7 +212,7 @@ class RateLimiter
 
     /**
      * Puts a claimed step back (compare-and-set: only when nobody claimed a later step since).
-     * 2026-10-23 20:47 +03: Task M1.2 fix round 1 (minor 1), task 596. $claimed_at is the time the claim wrote
+     * 2026-10-23 20:46 +03: Task M1.2 fix round 1 (minor 1), task 596. $claimed_at is the time the claim wrote
      * (claimStep()['claimed_at']): the undo matches it as well as the hit count, so it can never erase the claim of
      * another request after a reset. Without it (null) only the hit count is matched, as before.
      */
@@ -263,27 +263,41 @@ class RateLimiter
     /**
      * Deletes one chunk of buckets idle since before $before and not locked now.
      *
+     * 2026-10-23 20:46 +03: Task M1.2 fix round 1 (minor 3), task 596. $prefix limits the delete to bucket names
+     * that start with it (tests prune only their own buckets); '' = every bucket, what the cron does.
+     *
      * @return int Rows deleted; fewer than $limit means none are left
      */
-    public function prune(int $before, int $limit): int
+    public function prune(int $before, int $limit, string $prefix = ''): int
     {
-        return $this->run(
-            'DELETE FROM ?:kwtsms_rate_limits WHERE last_at < ?i AND locked_until < ?i LIMIT ?i',
-            [max(0, $before), $this->now(), max(1, $limit)]
-        );
+        $sql = 'DELETE FROM ?:kwtsms_rate_limits WHERE last_at < ?i AND locked_until < ?i';
+        $args = [max(0, $before), $this->now()];
+        if ($prefix !== '') {
+            $sql .= ' AND bucket LIKE ?l';
+            $args[] = addcslashes($prefix, '%_\\') . '%';
+        }
+
+        return $this->run($sql . ' LIMIT ?i', array_merge($args, [max(1, $limit)]));
     }
 
     /**
      * Deletes one chunk of SMS code rows created before $before (any status: the codes expire in 15 minutes at most).
      *
+     * 2026-10-23 20:46 +03: Task M1.2 fix round 1 (minor 3), task 596. $subject limits the delete to the rows of that
+     * one subject (tests); '' = every row, what the cron does.
+     *
      * @return int Rows deleted; fewer than $limit means none are left
      */
-    public function pruneCodes(int $before, int $limit): int
+    public function pruneCodes(int $before, int $limit, string $subject = ''): int
     {
-        return $this->run(
-            'DELETE FROM ?:kwtsms_otp_codes WHERE created_at < ?i LIMIT ?i',
-            [max(0, $before), max(1, $limit)]
-        );
+        $sql = 'DELETE FROM ?:kwtsms_otp_codes WHERE created_at < ?i';
+        $args = [max(0, $before)];
+        if ($subject !== '') {
+            $sql .= ' AND subject = ?s';
+            $args[] = $subject;
+        }
+
+        return $this->run($sql . ' LIMIT ?i', array_merge($args, [max(1, $limit)]));
     }
 
     /**
