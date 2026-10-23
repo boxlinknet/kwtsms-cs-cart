@@ -554,7 +554,10 @@ class OrderNotifier
                 }
                 $computed = $this->dataClass($decl->dataClass())->values($data_payload, $receiver);
             } catch (\Throwable $e) {
-                FailureLog::report($this->log, 'order_sms.data_class_failed', $e);
+                // 2026-10-23 06:01 +03: Cleanup CA1-8 (A4 M2), task 596. A data_class is often third-party code: a
+                // warning (not an error of this add-on) with a plain sentence, and never the exception text, which can
+                // carry event data such as a reset link.
+                $this->dataClassFailed($decl->dataClass(), $e);
                 $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
 
                 return false;
@@ -631,6 +634,25 @@ class OrderNotifier
             'order_id' => (int) ($order['order_id'] ?? 0),
             'parent_order_id' => (int) ($order['parent_order_id'] ?? 0),
         ], $dedupe);
+    }
+
+    /**
+     * Logs a data_class whose values() threw: warning level, class names and file:line only. Never throws.
+     * 2026-10-23 06:01 +03: added, Cleanup CA1-8 (A4 M2), task 596.
+     */
+    private function dataClassFailed(string $class, \Throwable $e): void
+    {
+        $line = 'data_class ' . $class . ' threw ' . get_class($e) . ' at ' . basename($e->getFile()) . ':'
+            . $e->getLine() . '; the SMS was skipped';
+        error_log('kwtsms: order_sms.data_class_failed: ' . $line);
+        if ($this->log === null) {
+            return;
+        }
+        try {
+            $this->log->log('warning', 'order_sms.data_class_failed', $line);
+        } catch (\Throwable $ignored) {
+            error_log('kwtsms: order_sms.data_class_failed: the debug log could not take the line');
+        }
     }
 
     /**

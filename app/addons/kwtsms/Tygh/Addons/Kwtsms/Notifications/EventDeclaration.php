@@ -111,7 +111,12 @@ final class EventDeclaration
         if ($event_id === '' || !isset($decl['receivers']) || !is_array($decl['receivers'])) {
             return null;
         }
-        $receivers = array_values(array_intersect(EventsSchemaExtender::receivers($is_mve), $decl['receivers']));
+        // 2026-10-23 06:01 +03: Cleanup CA1-8 (A4 M8), task 596. Only strings are compared: a nested array in
+        // `receivers` made array_intersect() raise "Array to string conversion" on PHP 7.4.
+        $receivers = array_values(array_intersect(
+            EventsSchemaExtender::receivers($is_mve),
+            array_filter($decl['receivers'], 'is_string')
+        ));
         if ($receivers === []) {
             return null;
         }
@@ -155,6 +160,20 @@ final class EventDeclaration
             foreach ($decl['secret'] as $name) {
                 if (is_string($name) && isset($placeholders[$name])) {
                     $secret[$name] = $name;
+                }
+            }
+        }
+
+        // 2026-10-23 06:01 +03: Cleanup CA1-8 (A4 M5), task 596. The dedupe key is stored in kwtsms_dispatch_keys and
+        // shown as the duplicate reason: a declaration whose key names the path of a secret placeholder (or a child of
+        // it) is refused.
+        if ($key !== '' && preg_match_all('/\{([^{}]*)\}/', $key, $tokens) > 0) {
+            foreach ($secret as $name) {
+                $secret_path = $placeholders[$name];
+                foreach ($tokens[1] as $token) {
+                    if ($token === $secret_path || strpos($token, $secret_path . '.') === 0) {
+                        return null;
+                    }
                 }
             }
         }

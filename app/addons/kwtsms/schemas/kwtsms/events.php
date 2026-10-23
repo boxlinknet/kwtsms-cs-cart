@@ -34,6 +34,8 @@
  *                'group'        => 'langvar',                        // Templates page heading
  *                'data_class'   => \Acme\Sms\ShippedData::class,   // implements Notifications\DeclaredSmsData
  *            ]
+ *            2026-10-23 06:02 +03: Cleanup CA1-8 (A4 M5), task 596: a declaration whose dedupe key names the path of a
+ *            'secret' placeholder is refused (the whole event is ignored): the key is stored and shown as the reason.
  *            A core event gets the SMS transport only for receivers its merged notification schema already has; the
  *            add-on's own kwtsms.* events get every declared receiver. Own events are declared twice: here
  *            (receivers, paths, dedupe) and in schemas/notifications/events.post.php (the core event, no transport).
