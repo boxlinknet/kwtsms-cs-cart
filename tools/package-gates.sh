@@ -536,11 +536,15 @@ gate "no group/world-writable entry in the source shipped paths (the git index m
 # /tmp when that container is not running) with the modes measured here (the real file modes where this filesystem
 # keeps them, else the git index modes; an untracked file on a no-mode filesystem cannot be measured and fails), and
 # every group/world-writable entry of that stage fails the gate. The git-index gate above stays.
+# 2026-10-23 04:14 +03: Fix round 1 item 1, task 596. Decided in the main shell so the PASS line says where the stage was
+# built (php container or host /tmp) and where the modes came from (the filesystem, or the git index on a drive that
+# keeps no modes: then the gate cannot see a group/world-writable file, and the line says so).
+modes_keeps=0; modes_host="host /tmp"
+modes_probe="$(mktemp "$src/.kwtsms-modeprobe.XXXXXX")" && { chmod 644 "$modes_probe" && [ "$(stat -c %a "$modes_probe")" = "644" ] && modes_keeps=1; rm -f "$modes_probe"; }
+if docker compose -f "$here/docker/compose.yml" ps --status running --services 2>/dev/null | grep -qx php; then modes_host="php container"; fi
+if [ "$modes_keeps" = 1 ]; then modes_source="modes read from the filesystem"; else modes_source="NO FILESYSTEM MODES HERE: modes applied from the git index, a PASS is not a filesystem check"; fi
 modes_stage_check() {
-  local probe keeps=0 tmp files rc out
-  probe="$(mktemp "$src/.kwtsms-modeprobe.XXXXXX")" || return 3
-  chmod 644 "$probe" && [ "$(stat -c %a "$probe")" = "644" ] && keeps=1
-  rm -f "$probe"
+  local keeps="$modes_keeps" tmp files rc out
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/kwtsms-modes.XXXXXX")" || return 3
   files="$tmp/files"; : > "$tmp/.modes"
   find $SHIP -type f ! -name .gitkeep | sort > "$files" || { rm -rf "$tmp"; return 3; }
@@ -556,7 +560,7 @@ modes_stage_check() {
     echo "this filesystem does not keep modes and $src is not a git tree: modes cannot be measured"
   fi
   if ! { tar -cf "$tmp/in.tar" -C "$src" -T "$files" && tar -rf "$tmp/in.tar" -C "$tmp" .modes; }; then rm -rf "$tmp"; return 3; fi
-  if docker compose -f "$here/docker/compose.yml" ps --status running --services 2>/dev/null | grep -qx php; then
+  if [ "$modes_host" = "php container" ]; then
     out="$(docker compose -f "$here/docker/compose.yml" exec -T php sh -c "$(cat "$here/tools/stage-modes.sh")" < "$tmp/in.tar")"; rc=$?
   else
     out="$(sh -c "$(cat "$here/tools/stage-modes.sh")" < "$tmp/in.tar")"; rc=$?
@@ -565,7 +569,7 @@ modes_stage_check() {
   [ "$rc" -eq 0 ] || { printf '%s\n' "$out"; return "$rc"; }
   printf '%s\n' "$out"
 }
-gate "no group/world-writable entry in the stage built in the php container (modes measured on this tree)" modes_stage_check
+gate "no group/world-writable entry in the stage (stage on: $modes_host; $modes_source)" modes_stage_check
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "-- stage"
