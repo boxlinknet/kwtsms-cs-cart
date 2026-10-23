@@ -3104,7 +3104,7 @@ msgstr "إضافات أخرى"
 
 msgctxt "Languages::kwtsms.integrations.later.help"
 msgid "Available in a later version."
-msgstr "متاحة في إصدار لاحق."
+msgstr "قريبا في الإصدار 1.2."
 
 msgctxt "Languages::kwtsms.integrations.later.installed"
 msgid "Installed in this store"
@@ -3124,7 +3124,7 @@ msgstr "شهادات الهدايا"
 
 msgctxt "Languages::kwtsms.integrations.later.discussion"
 msgid "Reviews and comments"
-msgstr "التقييمات والتعليقات"
+msgstr "التعليقات والنقاش"
 
 msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
 msgid "Vendor communication"
@@ -5129,3 +5129,172 @@ msgstr "انتهت صلاحية رسالة نصية دون إرسالها"
 msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.text"
 msgid "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
 msgstr "انتظرت رسالة نصية في قائمة الانتظار حتى انتهت صلاحيتها قبل أي محاولة لإرسالها، لأن لا شيء أخذها من القائمة. تأكد من أن مهمة cron الخاصة بـ kwtSMS تعمل كل دقيقة: تعرض لوحة المعلومات آخر تشغيل."
+
+# 2026-10-23 04:22 +03: Task A13 (Integrations areas, Help sections, Dashboard vendor step), task 596.
+msgctxt "Languages::kwtsms.integrations.area.title"
+msgid "What sends SMS"
+msgstr "ما الذي يرسل الرسائل"
+
+msgctxt "Languages::kwtsms.integrations.area.help"
+msgid "Each message has its own switch, off until you turn it on. The switches are on the Templates page and under Administration > Notifications."
+msgstr "لكل رسالة مفتاحها الخاص، وهو متوقف حتى تشغّله. تجد المفاتيح في صفحة القوالب وفي الإدارة > الإشعارات."
+
+msgctxt "Languages::kwtsms.integrations.area.available"
+msgid "Available"
+msgstr "متاح"
+
+msgctxt "Languages::kwtsms.integrations.area.open"
+msgid "Open"
+msgstr "فتح"
+
+msgctxt "Languages::kwtsms.integrations.area.orders.title"
+msgid "Order updates and shipments"
+msgstr "تحديثات الطلبات والشحنات"
+
+msgctxt "Languages::kwtsms.integrations.area.orders.text"
+msgid "Order placed, status changes, order updated, and shipment created, to customers and administrators."
+msgstr "الطلب الجديد وتغيّر الحالة وتحديث الطلب وإنشاء الشحنة، للعملاء وللمدراء."
+
+msgctxt "Languages::kwtsms.integrations.area.storefronts.title"
+msgid "Storefronts"
+msgstr "واجهات المتجر"
+
+msgctxt "Languages::kwtsms.integrations.area.storefronts.text"
+msgid "Storefronts: [count]. With their own Sender ID: [own]. Switches, Sender ID, and texts can differ per storefront."
+msgstr "واجهات المتجر: [count]. التي لها معرف مرسل خاص: [own]. يمكن أن تختلف المفاتيح ومعرف المرسل والنصوص من واجهة إلى أخرى."
+
+msgctxt "Languages::kwtsms.integrations.area.profiles.title"
+msgid "Customer profile events"
+msgstr "أحداث ملف العميل"
+
+msgctxt "Languages::kwtsms.integrations.area.profiles.text"
+msgid "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
+msgstr "رسالة الترحيب وتنبيه المدير عند التسجيل، ورابط استعادة كلمة المرور، وخيار العميل بإيقاف رسائل الطلبات."
+
+msgctxt "Languages::kwtsms.integrations.area.low_stock.title"
+msgid "Low stock"
+msgstr "انخفاض المخزون"
+
+msgctxt "Languages::kwtsms.integrations.area.low_stock.text"
+msgid "SMS to administrators, and to vendors in Multi-Vendor, when a product drops to the threshold. Core threshold: [threshold]. Change it in Settings > General."
+msgstr "رسالة للمدراء، وللبائعين في تعدد البائعين، عندما ينخفض مخزون منتج إلى الحد. حد النظام: [threshold]. غيّره من الإعدادات > عام."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.title"
+msgid "Vendor SMS"
+msgstr "رسائل البائعين"
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.text"
+msgid "Vendors with an approved phone: [approved] of [total]. Monthly quota: [quota] recipients per vendor."
+msgstr "البائعون الذين اعتُمد هاتفهم: [approved] من [total]. الحصة الشهرية: [quota] مستلم لكل بائع."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.text_off"
+msgid "Vendors with an approved phone: [approved] of [total]. The monthly quota is 0, so vendor SMS is off."
+msgstr "البائعون الذين اعتُمد هاتفهم: [approved] من [total]. الحصة الشهرية 0، لذلك رسائل البائعين متوقفة."
+
+msgctxt "Languages::kwtsms.integrations.later.back_in_stock"
+msgid "Back in stock"
+msgstr "عودة المنتج إلى المخزون"
+
+msgctxt "Languages::kwtsms.integrations.later.product_reviews"
+msgid "Product reviews"
+msgstr "تقييمات المنتجات"
+
+msgctxt "Languages::kwtsms.dash.setup.vendor_phones"
+msgid "Vendor phones approved"
+msgstr "اعتماد هواتف البائعين"
+
+msgctxt "Languages::kwtsms.dash.setup.vendor_phones.link"
+msgid "Approve"
+msgstr "اعتمد"
+
+msgctxt "Languages::kwtsms.help.storefronts.title"
+msgid "Storefronts"
+msgstr "واجهات المتجر"
+
+msgctxt "Languages::kwtsms.help.vendors.title"
+msgid "Vendor SMS"
+msgstr "رسائل البائعين"
+
+msgctxt "Languages::kwtsms.help.optout.title"
+msgid "Customer opt-out"
+msgstr "إيقاف العميل للرسائل"
+
+msgctxt "Languages::kwtsms.help.recovery.title"
+msgid "Password recovery"
+msgstr "استعادة كلمة المرور"
+
+msgctxt "Languages::kwtsms.help.manual.title"
+msgid "Manual SMS from an order"
+msgstr "رسالة يدوية من الطلب"
+
+msgctxt "Languages::kwtsms.help.storefronts.p1"
+msgid "Each storefront can have its own Sender ID and its own texts. On Settings, pick a Sender ID for the storefront. \"Same as the main Sender ID\" follows the main one. On Templates, pick the storefront, then edit its text."
+msgstr "يمكن لكل واجهة متجر أن يكون لها معرف مرسل ونصوص خاصة بها. اختر معرف المرسل للواجهة من صفحة الإعدادات، وخيار \"مثل معرف المرسل الرئيسي\" يتبع المعرف الرئيسي. وفي صفحة القوالب اختر الواجهة ثم عدّل نصها."
+
+msgctxt "Languages::kwtsms.help.storefronts.p2"
+msgid "A storefront text always beats the All storefronts text in the same language. Reset a storefront text to use the All storefronts text again."
+msgstr "نص الواجهة يتقدم دائما على نص \"كل واجهات المتجر\" باللغة نفسها. أعد ضبط نص الواجهة لتعود إلى نص \"كل واجهات المتجر\"."
+
+msgctxt "Languages::kwtsms.help.storefronts.p3"
+msgid "The switches on Administration > Notifications stay the master. A storefront can turn an event off for itself, never on."
+msgstr "تبقى المفاتيح في الإدارة > الإشعارات هي الأساس. يمكن للواجهة إيقاف حدث لنفسها، ولا يمكنها تشغيله."
+
+msgctxt "Languages::kwtsms.help.storefronts.p4"
+msgid "If a storefront Sender ID leaves your synced list or is banned, that storefront uses the main Sender ID and you get an alert."
+msgstr "إذا خرج معرف مرسل الواجهة من قائمتك المتزامنة أو حُظر، تستخدم الواجهة المعرف الرئيسي وتصلك رسالة تنبيه."
+
+msgctxt "Languages::kwtsms.help.vendors.p1"
+msgid "In Multi-Vendor, a vendor gets SMS (new orders and low stock) only at a number you approved on the Vendor SMS page. The page starts from the phone in the vendor's own profile."
+msgstr "في تعدد البائعين، لا يتلقى البائع الرسائل (الطلبات الجديدة وانخفاض المخزون) إلا على رقم اعتمدته في صفحة رسائل البائعين. تبدأ الصفحة من الهاتف الموجود في ملف البائع."
+
+msgctxt "Languages::kwtsms.help.vendors.p2"
+msgid "If the vendor changes that phone, the approval is dropped. Approve the new number to start sending again."
+msgstr "إذا غيّر البائع هذا الهاتف يسقط الاعتماد. اعتمد الرقم الجديد لتعود الرسائل."
+
+msgctxt "Languages::kwtsms.help.vendors.p3"
+msgid "Each vendor has a monthly quota of recipients, counted per calendar month in the store time zone. The default is set on the Vendor SMS page, a plan can have its own limit when the vendor plans add-on is active, and 0 turns vendor SMS off."
+msgstr "لكل بائع حصة شهرية من المستلمين تُحسب لكل شهر ميلادي بتوقيت المتجر. تحدد الحصة الافتراضية في صفحة رسائل البائعين، ويمكن أن يكون لكل خطة حد خاص عند تفعيل إضافة خطط البائعين، والقيمة 0 توقف رسائل البائعين."
+
+msgctxt "Languages::kwtsms.help.vendors.p4"
+msgid "The quota is soft: messages sent at the same moment can take a vendor slightly over it."
+msgstr "الحصة مرنة: الرسائل المرسلة في اللحظة نفسها قد تتجاوزها قليلا."
+
+msgctxt "Languages::kwtsms.help.optout.p1"
+msgid "Customers can untick \"Send me SMS about my order status\" on the registration form and in their profile. It stops the status SMS, the order updated SMS, and the shipment SMS."
+msgstr "يمكن للعميل إلغاء خيار \"أرسلوا لي رسائل SMS عن حالة طلبي\" في نموذج التسجيل وفي ملفه. يوقف ذلك رسائل تغيّر الحالة ورسالة تحديث الطلب ورسالة الشحنة."
+
+msgctxt "Languages::kwtsms.help.optout.p2"
+msgid "It never stops the order confirmation or the password recovery SMS. Guest orders are not affected. The choice belongs to the account, not to the phone number."
+msgstr "لا يوقف أبدا رسالة تأكيد الطلب ولا رسالة استعادة كلمة المرور. ولا يشمل طلبات الزوار. الخيار مرتبط بالحساب لا برقم الهاتف."
+
+msgctxt "Languages::kwtsms.help.optout.p3"
+msgid "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
+msgstr "تظهر الرسالة المتخطاة في السجلات مع السبب \"أوقف العميل رسائل SMS الخاصة بحالة الطلب من ملفه الشخصي.\"."
+
+msgctxt "Languages::kwtsms.help.recovery.p1"
+msgid "The password recovery SMS carries the reset link. Turn it on with the switch for customers on the Templates page. It is off until you do."
+msgstr "تحمل رسالة استعادة كلمة المرور رابط إعادة التعيين. شغّلها من مفتاح العملاء في صفحة القوالب، وهي متوقفة حتى تفعل ذلك."
+
+msgctxt "Languages::kwtsms.help.recovery.p2"
+msgid "The link is a secret. Logs, attempts, and debug rows show it as asterisks, and only kwtSMS receives the real link. The link works for the time the text states, and a queued SMS that waits longer is dropped."
+msgstr "الرابط سري. تعرضه السجلات والمحاولات وسجل التصحيح على شكل نجوم، ولا يصل الرابط الحقيقي إلا إلى kwtSMS. يعمل الرابط للمدة المذكورة في النص، وتُلغى الرسالة المنتظرة في الطابور إن تجاوزت هذه المدة."
+
+msgctxt "Languages::kwtsms.help.recovery.p3"
+msgid "One recovery SMS goes to an account every 10 minutes. Repeated requests inside that time are skipped and logged. The Arabic text can take up to 3 pages."
+msgstr "تُرسل رسالة استعادة واحدة للحساب كل 10 دقائق. تُتخطى الطلبات المتكررة خلال هذه المدة وتُسجَّل. وقد يستغرق النص العربي حتى 3 صفحات."
+
+msgctxt "Languages::kwtsms.help.manual.p1"
+msgid "On an order page, open Tools > Send SMS to text the customer yourself. The phone starts as the customer's number and you can change it. Send one number at a time."
+msgstr "في صفحة الطلب افتح الأدوات > إرسال رسالة لتراسل العميل بنفسك. يبدأ الهاتف برقم العميل ويمكنك تغييره. أرسل إلى رقم واحد في المرة."
+
+msgctxt "Languages::kwtsms.help.manual.p2"
+msgid "The dialog counts characters, pages, and credits as you type. A message over 7 pages cannot be sent. Test mode, the country list, and your daily limits apply as for any other SMS."
+msgstr "يحسب الحوار الأحرف والصفحات والرصيد أثناء الكتابة. لا يمكن إرسال رسالة تتجاوز 7 صفحات. ويسري وضع الاختبار وقائمة الدول والحدود اليومية كما في أي رسالة أخرى."
+
+msgctxt "Languages::kwtsms.help.manual.p3"
+msgid "Each number can get 5 manual SMS an hour and 20 a day. The result shows on the SMS tab of the order, with a link to the message in Logs. Only a root administrator on All storefronts can send."
+msgstr "يمكن لكل رقم أن يتلقى 5 رسائل يدوية في الساعة و20 في اليوم. تظهر النتيجة في تبويب الرسائل في الطلب مع رابط للرسالة في السجلات. لا يرسل إلا مدير رئيسي على كل واجهات المتجر."
+
+msgctxt "Languages::kwtsms.help.switches.p4"
+msgid "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."
+msgstr "أحداث أخرى يمكنك تشغيلها: تحديث الطلب وإنشاء الشحنة ورسالة الترحيب وتنبيه المدير بالتسجيل وانخفاض المخزون وانخفاض رصيد kwtSMS. كلها تبدأ متوقفة."

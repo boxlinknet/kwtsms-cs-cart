@@ -19,7 +19,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
            variables.
 *}
 {$h = $kwtsms_help}
-{$topics = ["overview", "account", "setup", "golive", "switches", "ph", "costs", "cron", "test", "ip", "missing", "support", "links"]}
+{* 2026-10-23 04:23 +03: Task A13, task 596: the topic list comes from HelpPage::viewData() (vendors only in Multi-Vendor). *}
+{$topics = $h.topics}
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-help" id="kwtsms_help_page">
 
@@ -117,6 +118,52 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <p>{__("kwtsms.help.switches.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
                 {* 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. *}
                 <p>{__("kwtsms.help.switches.p3")}</p>
+                {* 2026-10-23 04:23 +03: Task A13, task 596 *}
+                <p>{__("kwtsms.help.switches.p4")}</p>
+            </section>
+
+            {* ---- storefronts (2026-10-23 04:23 +03: Task A13, task 596) -------------------------------------- *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_storefronts" aria-labelledby="kwtsms_help_storefronts_title">
+                <h4 class="subheader" id="kwtsms_help_storefronts_title">{__("kwtsms.help.storefronts.title")}</h4>
+                <p>{__("kwtsms.help.storefronts.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" pages=$h.pages} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.storefronts.p2")}</p>
+                <p>{__("kwtsms.help.storefronts.p3")}</p>
+                <p>{__("kwtsms.help.storefronts.p4")}</p>
+            </section>
+
+            {if $h.is_multivendor}
+            {* ---- vendor SMS: Multi-Vendor only *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_vendors" aria-labelledby="kwtsms_help_vendors_title">
+                <h4 class="subheader" id="kwtsms_help_vendors_title">{__("kwtsms.help.vendors.title")}</h4>
+                <p>{__("kwtsms.help.vendors.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="vendors" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.vendors.p2")}</p>
+                <p>{__("kwtsms.help.vendors.p3")}</p>
+                <p>{__("kwtsms.help.vendors.p4")}</p>
+            </section>
+            {/if}
+
+            {* ---- customer opt-out *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_optout" aria-labelledby="kwtsms_help_optout_title">
+                <h4 class="subheader" id="kwtsms_help_optout_title">{__("kwtsms.help.optout.title")}</h4>
+                <p>{__("kwtsms.help.optout.p1")}</p>
+                <p>{__("kwtsms.help.optout.p2")}</p>
+                <p>{__("kwtsms.help.optout.p3")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="logs" pages=$h.pages}</p>
+            </section>
+
+            {* ---- password recovery *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_recovery" aria-labelledby="kwtsms_help_recovery_title">
+                <h4 class="subheader" id="kwtsms_help_recovery_title">{__("kwtsms.help.recovery.title")}</h4>
+                <p>{__("kwtsms.help.recovery.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.recovery.p2")}</p>
+                <p>{__("kwtsms.help.recovery.p3")}</p>
+            </section>
+
+            {* ---- manual SMS from an order *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_manual" aria-labelledby="kwtsms_help_manual_title">
+                <h4 class="subheader" id="kwtsms_help_manual_title">{__("kwtsms.help.manual.title")}</h4>
+                <p>{__("kwtsms.help.manual.p1")}</p>
+                <p>{__("kwtsms.help.manual.p2")}</p>
+                <p>{__("kwtsms.help.manual.p3")}</p>
             </section>
 
             {* ---- placeholders ----------------------------------------------------------------------------------- *}

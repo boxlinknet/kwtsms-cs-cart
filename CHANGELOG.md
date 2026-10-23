@@ -17,7 +17,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
-Nothing yet.
+<!-- 2026-10-23 04:26 +03: the 1.1.0 entries, Task A13, task 596 -->
+### Added
+
+- Per-storefront SMS: a storefront can turn an event off for itself, have its own Sender ID and its own texts. A
+  storefront text beats the All storefronts text in the same language. A Sender ID that leaves the synced list or is
+  banned falls back to the main one and raises an alert.
+- SMS when an order is updated and when a shipment is created, with the tracking number, carrier, and tracking URL.
+- SMS to a customer who registers, an alert to administrators for each registration, and a password recovery SMS
+  whose reset link is masked in every log. These are sent only while CAPTCHA for registration is on.
+- Low stock SMS to administrators, and to vendors in Multi-Vendor, grouped per request.
+- Low kwtSMS balance SMS to administrators.
+- Vendor SMS in Multi-Vendor: a root administrator approves each vendor's phone on the new Vendor SMS page, with a
+  monthly quota of recipients per vendor (default 100, optional limit per vendor plan, 0 turns it off).
+- Customers can stop order status, order updated, and shipment SMS from their profile. The order confirmation and
+  password recovery SMS are never stopped by this choice.
+- Send an SMS to the customer from the order page (Tools > Send SMS) with a live character, page, and credit count.
+- Integrations page: what sends SMS, with the storefront count, the core low stock threshold, and the vendor phone
+  and quota numbers. Back in stock and product reviews join the list of add-ons coming in 1.2.
+- Help sections for storefronts, vendor SMS, customer opt-out, password recovery, and manual SMS, in English and
+  Arabic.
+- Dashboard: an optional "Vendor phones approved" step in Multi-Vendor.
+- An alert when an order SMS expires in the queue before any attempt to send it.
+
+### Changed
+
+- Every new event is off until you turn it on. Upgrading never switches a message on, and never changes an edited
+  text, switch, or setting.
 
 <!-- 2026-10-21 16:34 +03: the Unreleased entries became the 1.0.0 release, Task 1.17, task 596 -->
 ## [1.0.0] - 2026-10-21

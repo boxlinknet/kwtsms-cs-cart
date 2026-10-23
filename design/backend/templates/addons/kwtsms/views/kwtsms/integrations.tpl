@@ -112,6 +112,32 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
         {/if}
     </section>
 
+    {* 2026-10-23 04:21 +03: Task A13, task 596. What sends SMS in 1.1, each row with its live numbers and a link. *}
+    <section class="kwtsms-section" id="kwtsms_areas" aria-labelledby="kwtsms_areas_title">
+        <h4 class="subheader" id="kwtsms_areas_title">{__("kwtsms.integrations.area.title")}</h4>
+        <p class="muted description">{__("kwtsms.integrations.area.help")}</p>
+        <ul class="kwtsms-later-list kwtsms-areas" id="kwtsms_areas_list">
+            {foreach $i.areas as $area}
+                <li data-kwtsms-area="{$area.id}">
+                    <div class="kwtsms-area__head">
+                        <strong>{__("kwtsms.integrations.area.`$area.id`.title")}</strong>
+                        <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.integrations.area.available")}</span>
+                    </div>
+                    <div class="kwtsms-area__text">
+                    {if !empty($area.quota_off)}
+                        {__("kwtsms.integrations.area.vendors.text_off", $area.params)}
+                    {else}
+                        {__("kwtsms.integrations.area.`$area.id`.text", $area.params)}
+                    {/if}
+                    </div>
+                    <div class="kwtsms-area__action">
+                    {if $area.link}<a class="btn kwtsms-area__link" id="kwtsms_area_link_{$area.id}" href="{$area.link|fn_url}">{__("kwtsms.integrations.area.open")}</a>{/if}
+                    </div>
+                </li>
+            {/foreach}
+        </ul>
+    </section>
+
     {* ---- Multi-Vendor: only in Multi-Vendor ------------------------------------------------------------------------- *}
     {if $i.is_multivendor}
         {$m = $i.mve.values}

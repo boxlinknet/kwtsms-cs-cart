@@ -31,7 +31,8 @@ class DashboardState
     public const KEY = 'kwtsms_dashboard';
 
     /** The steps a merchant may mark as done: only the merchant can judge them (ruling R36). */
-    public const MARKABLE = ['country', 'brand', 'switches'];
+    // 2026-10-23 04:23 +03: Task A13, task 596. vendor_phones (Multi-Vendor only) is markable too.
+    public const MARKABLE = ['country', 'brand', 'switches', 'vendor_phones'];
 
     /** @var KeyValueStoreInterface */
     private $store;

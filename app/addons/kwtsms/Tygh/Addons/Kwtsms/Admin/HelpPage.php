@@ -56,7 +56,8 @@ class HelpPage
     private const LOCKING_BACKENDS = ['database', 'redis'];
 
     /** The pages of the add-on the text may link to, in the order of PRD 7. */
-    private const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'logs'];
+    // 2026-10-23 04:23 +03: Task A13, task 596. 'vendors' added (linked in Multi-Vendor only, see viewData()).
+    private const PAGES = ['dashboard', 'settings', 'templates', 'integrations', 'admin_alerts', 'vendors', 'logs'];
 
     /** @var ConfigInterface */
     private $config;
@@ -104,6 +105,9 @@ class HelpPage
                 && call_user_func($has_privilege, RequestGate::MODES[$mode][1]) === true;
             $pages[$mode] = $allowed && in_array($mode, Navigation::PAGES, true);
         }
+        // 2026-10-23 04:23 +03: Task A13, task 596. The Vendor SMS page and its Help section: Multi-Vendor only.
+        $is_mve = $this->isMultiVendor();
+        $pages['vendors'] = $pages['vendors'] && $is_mve;
 
         return [
             'cron' => [
@@ -129,10 +133,37 @@ class HelpPage
             ],
             'placeholders' => Defaults::PLACEHOLDERS,
             'pages' => $pages,
+            'is_multivendor' => $is_mve,
+            'topics' => self::topics($is_mve),
         ];
     }
 
     // ================================================================== seams
+
+    /**
+     * The topics of the page in order; the vendor section exists in Multi-Vendor only.
+     * 2026-10-23 04:23 +03: Task A13, task 596.
+     *
+     * @return string[]
+     */
+    public static function topics(bool $multivendor): array
+    {
+        $topics = ['overview', 'account', 'setup', 'golive', 'switches', 'storefronts'];
+        if ($multivendor) {
+            $topics[] = 'vendors';
+        }
+
+        return array_merge(
+            $topics,
+            ['optout', 'recovery', 'manual', 'ph', 'costs', 'cron', 'test', 'ip', 'missing', 'support', 'links']
+        );
+    }
+
+    /** Whether this store is Multi-Vendor. 2026-10-23 04:23 +03: Task A13, task 596. */
+    protected function isMultiVendor(): bool
+    {
+        return function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR');
+    }
 
     /** The core root directory of this install (config.dir.root). */
     protected function rootDir(): string

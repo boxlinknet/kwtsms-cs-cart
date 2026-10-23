@@ -3100,8 +3100,8 @@ msgid "Other add-ons"
 msgstr "Other add-ons"
 
 msgctxt "Languages::kwtsms.integrations.later.help"
-msgid "Available in a later version."
-msgstr "Available in a later version."
+msgid "Coming in 1.2."
+msgstr "Coming in 1.2."
 
 msgctxt "Languages::kwtsms.integrations.later.installed"
 msgid "Installed in this store"
@@ -3120,8 +3120,8 @@ msgid "Gift certificates"
 msgstr "Gift certificates"
 
 msgctxt "Languages::kwtsms.integrations.later.discussion"
-msgid "Reviews and comments"
-msgstr "Reviews and comments"
+msgid "Comments and discussion"
+msgstr "Comments and discussion"
 
 msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
 msgid "Vendor communication"
@@ -5126,3 +5126,172 @@ msgstr "An SMS expired without being sent"
 msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.text"
 msgid "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
 msgstr "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
+
+# 2026-10-23 04:22 +03: Task A13 (Integrations areas, Help sections, Dashboard vendor step), task 596.
+msgctxt "Languages::kwtsms.integrations.area.title"
+msgid "What sends SMS"
+msgstr "What sends SMS"
+
+msgctxt "Languages::kwtsms.integrations.area.help"
+msgid "Each message has its own switch, off until you turn it on. The switches are on the Templates page and under Administration > Notifications."
+msgstr "Each message has its own switch, off until you turn it on. The switches are on the Templates page and under Administration > Notifications."
+
+msgctxt "Languages::kwtsms.integrations.area.available"
+msgid "Available"
+msgstr "Available"
+
+msgctxt "Languages::kwtsms.integrations.area.open"
+msgid "Open"
+msgstr "Open"
+
+msgctxt "Languages::kwtsms.integrations.area.orders.title"
+msgid "Order updates and shipments"
+msgstr "Order updates and shipments"
+
+msgctxt "Languages::kwtsms.integrations.area.orders.text"
+msgid "Order placed, status changes, order updated, and shipment created, to customers and administrators."
+msgstr "Order placed, status changes, order updated, and shipment created, to customers and administrators."
+
+msgctxt "Languages::kwtsms.integrations.area.storefronts.title"
+msgid "Storefronts"
+msgstr "Storefronts"
+
+msgctxt "Languages::kwtsms.integrations.area.storefronts.text"
+msgid "Storefronts: [count]. With their own Sender ID: [own]. Switches, Sender ID, and texts can differ per storefront."
+msgstr "Storefronts: [count]. With their own Sender ID: [own]. Switches, Sender ID, and texts can differ per storefront."
+
+msgctxt "Languages::kwtsms.integrations.area.profiles.title"
+msgid "Customer profile events"
+msgstr "Customer profile events"
+
+msgctxt "Languages::kwtsms.integrations.area.profiles.text"
+msgid "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
+msgstr "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
+
+msgctxt "Languages::kwtsms.integrations.area.low_stock.title"
+msgid "Low stock"
+msgstr "Low stock"
+
+msgctxt "Languages::kwtsms.integrations.area.low_stock.text"
+msgid "SMS to administrators, and to vendors in Multi-Vendor, when a product drops to the threshold. Core threshold: [threshold]. Change it in Settings > General."
+msgstr "SMS to administrators, and to vendors in Multi-Vendor, when a product drops to the threshold. Core threshold: [threshold]. Change it in Settings > General."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.title"
+msgid "Vendor SMS"
+msgstr "Vendor SMS"
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.text"
+msgid "Vendors with an approved phone: [approved] of [total]. Monthly quota: [quota] recipients per vendor."
+msgstr "Vendors with an approved phone: [approved] of [total]. Monthly quota: [quota] recipients per vendor."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.text_off"
+msgid "Vendors with an approved phone: [approved] of [total]. The monthly quota is 0, so vendor SMS is off."
+msgstr "Vendors with an approved phone: [approved] of [total]. The monthly quota is 0, so vendor SMS is off."
+
+msgctxt "Languages::kwtsms.integrations.later.back_in_stock"
+msgid "Back in stock"
+msgstr "Back in stock"
+
+msgctxt "Languages::kwtsms.integrations.later.product_reviews"
+msgid "Product reviews"
+msgstr "Product reviews"
+
+msgctxt "Languages::kwtsms.dash.setup.vendor_phones"
+msgid "Vendor phones approved"
+msgstr "Vendor phones approved"
+
+msgctxt "Languages::kwtsms.dash.setup.vendor_phones.link"
+msgid "Approve"
+msgstr "Approve"
+
+msgctxt "Languages::kwtsms.help.storefronts.title"
+msgid "Storefronts"
+msgstr "Storefronts"
+
+msgctxt "Languages::kwtsms.help.vendors.title"
+msgid "Vendor SMS"
+msgstr "Vendor SMS"
+
+msgctxt "Languages::kwtsms.help.optout.title"
+msgid "Customer opt-out"
+msgstr "Customer opt-out"
+
+msgctxt "Languages::kwtsms.help.recovery.title"
+msgid "Password recovery"
+msgstr "Password recovery"
+
+msgctxt "Languages::kwtsms.help.manual.title"
+msgid "Manual SMS from an order"
+msgstr "Manual SMS from an order"
+
+msgctxt "Languages::kwtsms.help.storefronts.p1"
+msgid "Each storefront can have its own Sender ID and its own texts. On Settings, pick a Sender ID for the storefront. \"Same as the main Sender ID\" follows the main one. On Templates, pick the storefront, then edit its text."
+msgstr "Each storefront can have its own Sender ID and its own texts. On Settings, pick a Sender ID for the storefront. \"Same as the main Sender ID\" follows the main one. On Templates, pick the storefront, then edit its text."
+
+msgctxt "Languages::kwtsms.help.storefronts.p2"
+msgid "A storefront text always beats the All storefronts text in the same language. Reset a storefront text to use the All storefronts text again."
+msgstr "A storefront text always beats the All storefronts text in the same language. Reset a storefront text to use the All storefronts text again."
+
+msgctxt "Languages::kwtsms.help.storefronts.p3"
+msgid "The switches on Administration > Notifications stay the master. A storefront can turn an event off for itself, never on."
+msgstr "The switches on Administration > Notifications stay the master. A storefront can turn an event off for itself, never on."
+
+msgctxt "Languages::kwtsms.help.storefronts.p4"
+msgid "If a storefront Sender ID leaves your synced list or is banned, that storefront uses the main Sender ID and you get an alert."
+msgstr "If a storefront Sender ID leaves your synced list or is banned, that storefront uses the main Sender ID and you get an alert."
+
+msgctxt "Languages::kwtsms.help.vendors.p1"
+msgid "In Multi-Vendor, a vendor gets SMS (new orders and low stock) only at a number you approved on the Vendor SMS page. The page starts from the phone in the vendor's own profile."
+msgstr "In Multi-Vendor, a vendor gets SMS (new orders and low stock) only at a number you approved on the Vendor SMS page. The page starts from the phone in the vendor's own profile."
+
+msgctxt "Languages::kwtsms.help.vendors.p2"
+msgid "If the vendor changes that phone, the approval is dropped. Approve the new number to start sending again."
+msgstr "If the vendor changes that phone, the approval is dropped. Approve the new number to start sending again."
+
+msgctxt "Languages::kwtsms.help.vendors.p3"
+msgid "Each vendor has a monthly quota of recipients, counted per calendar month in the store time zone. The default is set on the Vendor SMS page, a plan can have its own limit when the vendor plans add-on is active, and 0 turns vendor SMS off."
+msgstr "Each vendor has a monthly quota of recipients, counted per calendar month in the store time zone. The default is set on the Vendor SMS page, a plan can have its own limit when the vendor plans add-on is active, and 0 turns vendor SMS off."
+
+msgctxt "Languages::kwtsms.help.vendors.p4"
+msgid "The quota is soft: messages sent at the same moment can take a vendor slightly over it."
+msgstr "The quota is soft: messages sent at the same moment can take a vendor slightly over it."
+
+msgctxt "Languages::kwtsms.help.optout.p1"
+msgid "Customers can untick \"Send me SMS about my order status\" on the registration form and in their profile. It stops the status SMS, the order updated SMS, and the shipment SMS."
+msgstr "Customers can untick \"Send me SMS about my order status\" on the registration form and in their profile. It stops the status SMS, the order updated SMS, and the shipment SMS."
+
+msgctxt "Languages::kwtsms.help.optout.p2"
+msgid "It never stops the order confirmation or the password recovery SMS. Guest orders are not affected. The choice belongs to the account, not to the phone number."
+msgstr "It never stops the order confirmation or the password recovery SMS. Guest orders are not affected. The choice belongs to the account, not to the phone number."
+
+msgctxt "Languages::kwtsms.help.optout.p3"
+msgid "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
+msgstr "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
+
+msgctxt "Languages::kwtsms.help.recovery.p1"
+msgid "The password recovery SMS carries the reset link. Turn it on with the switch for customers on the Templates page. It is off until you do."
+msgstr "The password recovery SMS carries the reset link. Turn it on with the switch for customers on the Templates page. It is off until you do."
+
+msgctxt "Languages::kwtsms.help.recovery.p2"
+msgid "The link is a secret. Logs, attempts, and debug rows show it as asterisks, and only kwtSMS receives the real link. The link works for the time the text states, and a queued SMS that waits longer is dropped."
+msgstr "The link is a secret. Logs, attempts, and debug rows show it as asterisks, and only kwtSMS receives the real link. The link works for the time the text states, and a queued SMS that waits longer is dropped."
+
+msgctxt "Languages::kwtsms.help.recovery.p3"
+msgid "One recovery SMS goes to an account every 10 minutes. Repeated requests inside that time are skipped and logged. The Arabic text can take up to 3 pages."
+msgstr "One recovery SMS goes to an account every 10 minutes. Repeated requests inside that time are skipped and logged. The Arabic text can take up to 3 pages."
+
+msgctxt "Languages::kwtsms.help.manual.p1"
+msgid "On an order page, open Tools > Send SMS to text the customer yourself. The phone starts as the customer's number and you can change it. Send one number at a time."
+msgstr "On an order page, open Tools > Send SMS to text the customer yourself. The phone starts as the customer's number and you can change it. Send one number at a time."
+
+msgctxt "Languages::kwtsms.help.manual.p2"
+msgid "The dialog counts characters, pages, and credits as you type. A message over 7 pages cannot be sent. Test mode, the country list, and your daily limits apply as for any other SMS."
+msgstr "The dialog counts characters, pages, and credits as you type. A message over 7 pages cannot be sent. Test mode, the country list, and your daily limits apply as for any other SMS."
+
+msgctxt "Languages::kwtsms.help.manual.p3"
+msgid "Each number can get 5 manual SMS an hour and 20 a day. The result shows on the SMS tab of the order, with a link to the message in Logs. Only a root administrator on All storefronts can send."
+msgstr "Each number can get 5 manual SMS an hour and 20 a day. The result shows on the SMS tab of the order, with a link to the message in Logs. Only a root administrator on All storefronts can send."
+
+msgctxt "Languages::kwtsms.help.switches.p4"
+msgid "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."
+msgstr "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."

@@ -402,6 +402,9 @@ class DashboardPage
             'brand_saved' => $this->stats->brandSaved(),
             'test_sms_done' => $this->stats->testSmsAccepted(),
             'switches_reviewed' => $this->switchesReviewed(),
+            // 2026-10-23 04:23 +03: Task A13, task 596. Multi-Vendor only: the optional "Vendor phones approved" step.
+            'is_multivendor' => $this->isMultiVendor(),
+            'vendor_phones_approved' => $this->isMultiVendor() ? $this->approvedVendorPhones() : 0,
             'admin_phones' => count($this->config->adminPhones()),
             'edited_langs' => $edited,
             'live_accepted' => $this->stats->liveAccepted(),
@@ -543,6 +546,18 @@ class DashboardPage
             self::step('test_mode_off', empty($f['test_mode']), '', 'settings', 'kwtsms_test_mode'),
             self::step('enable', !empty($f['enabled']), '', 'settings', 'kwtsms_enabled'),
         ];
+        // 2026-10-23 04:23 +03: Task A13, task 596. Multi-Vendor only, optional: done when a vendor phone is approved
+        // (or the merchant marked it), placed after "Review the SMS switches".
+        if (!empty($f['is_multivendor'])) {
+            array_splice($steps, 6, 0, [self::step(
+                'vendor_phones',
+                (int) ($f['vendor_phones_approved'] ?? 0) > 0 || in_array('vendor_phones', $marks, true),
+                '',
+                'vendors',
+                '',
+                true
+            )]);
+        }
 
         return self::markNext($steps);
     }
@@ -1129,6 +1144,29 @@ class DashboardPage
             $this->failed('dashboard.daily_cap_check_failed', $e);
 
             return false;
+        }
+    }
+
+    /** Whether this store is Multi-Vendor. 2026-10-23 04:23 +03: Task A13, task 596. */
+    protected function isMultiVendor(): bool
+    {
+        return function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR');
+    }
+
+    /** Active vendors with an approved SMS phone. 2026-10-23 04:23 +03: Task A13, task 596. */
+    protected function approvedVendorPhones(): int
+    {
+        try {
+            return (int) db_get_field(
+                'SELECT COUNT(*) FROM ?:kwtsms_vendor_phones p INNER JOIN ?:companies c'
+                . ' ON c.company_id = p.company_id WHERE c.status = ?s AND p.approved_at > 0 AND p.phone <> ?s',
+                'A',
+                ''
+            );
+        } catch (\Throwable $e) {
+            $this->failed('dashboard.vendor_phones_failed', $e);
+
+            return 0;
         }
     }
 

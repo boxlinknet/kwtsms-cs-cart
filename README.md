@@ -48,7 +48,12 @@ including order status changes and Multi-Vendor vendor events.
 - Editable message templates in English and Arabic with placeholders such as `{order_id}`
 - Gateway login with live balance, approved Sender IDs and country coverage
 - Test mode (messages are queued at kwtSMS but never delivered)
-- Admin pages: Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Logs, Help
+<!-- 2026-10-23 04:26 +03: 1.1.0 features, Task A13, task 596 -->
+- SMS for order updates and shipments, new customers, password recovery (reset link masked in the logs), low stock, and low kwtSMS balance
+- Per-storefront switches, Sender ID and texts
+- Vendor SMS in Multi-Vendor with approved phones and a monthly quota per vendor
+- Customer opt-out of order SMS, and a manual SMS from the order page
+- Admin pages: Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Vendor SMS (Multi-Vendor), Logs, Help
 - A full send log, an attempt log and an optional debug log
 - A daily sync of balance, Sender IDs and coverage, run by a cron job
 

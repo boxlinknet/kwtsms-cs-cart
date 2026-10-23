@@ -61,7 +61,20 @@ class IntegrationsPage
      *
      * @var string[]
      */
-    public const LATER_ADDONS = ['rma', 'call_requests', 'gift_certificates', 'discussion', 'vendor_communication'];
+    // 2026-10-23 04:21 +03: Task A13, task 596. Back in stock and product reviews listed on their own, the rest of the
+    // list is "Coming in 1.2".
+    public const LATER_ADDONS = [
+        'rma', 'call_requests', 'back_in_stock', 'gift_certificates', 'product_reviews', 'discussion',
+        'vendor_communication',
+    ];
+
+    /**
+     * 2026-10-23 04:21 +03: Task A13, task 596. The areas that send SMS in 1.1, in page order; 'vendors' exists in
+     * Multi-Vendor only.
+     *
+     * @var string[]
+     */
+    public const AREAS = ['orders', 'storefronts', 'profiles', 'low_stock', 'vendors'];
 
     /** @var ConfigInterface */
     private $config;
@@ -201,6 +214,8 @@ class IntegrationsPage
             // administrator who may open it.
             'vendor_sms_link' => $is_mve && call_user_func($has_privilege, 'manage_kwtsms') === true
                 ? 'kwtsms.vendors' : '',
+            // 2026-10-23 04:21 +03: Task A13, task 596. What sends SMS in 1.1, with the live numbers.
+            'areas' => $this->areas($is_mve, $has_privilege),
             'clickatell' => [
                 'active' => $this->addonActive('sms_notifications'),
                 'link' => $may_addons ? 'addons.manage' : '',
@@ -212,6 +227,52 @@ class IntegrationsPage
             ],
             'later' => $later,
         ];
+    }
+
+    /**
+     * The areas that send SMS: orders (status, updated, shipments), storefronts, profile events, low stock (with the
+     * core threshold) and, in Multi-Vendor, vendor SMS (approved phones, quota). Each row: id, params for the text,
+     * link (page mode, '' when the administrator may not open it).
+     *
+     * 2026-10-23 04:21 +03: Task A13, task 596.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function areas(bool $is_mve, callable $has_privilege): array
+    {
+        $may = call_user_func($has_privilege, 'manage_kwtsms') === true;
+        $may_settings = call_user_func($has_privilege, 'view_settings') === true;
+        $stores = $this->storefrontCounts();
+        $vendors = $is_mve ? $this->vendorCounts() : ['approved' => 0, 'total' => 0];
+        $quota = $this->config->vendorMonthlyQuota();
+        $rows = [
+            ['id' => 'orders', 'params' => [], 'link' => $may ? 'kwtsms.templates' : ''],
+            [
+                'id' => 'storefronts',
+                'params' => ['[count]' => (string) $stores['total'], '[own]' => (string) $stores['own']],
+                'link' => $may ? 'kwtsms.settings' : '',
+            ],
+            ['id' => 'profiles', 'params' => [], 'link' => $may ? 'kwtsms.templates' : ''],
+            [
+                'id' => 'low_stock',
+                'params' => ['[threshold]' => (string) $this->lowStockThreshold()],
+                'link' => $may_settings ? 'settings.manage?section_id=General' : '',
+            ],
+        ];
+        if ($is_mve) {
+            $rows[] = [
+                'id' => 'vendors',
+                'params' => [
+                    '[approved]' => (string) $vendors['approved'],
+                    '[total]' => (string) $vendors['total'],
+                    '[quota]' => (string) $quota,
+                ],
+                'quota_off' => $quota <= 0,
+                'link' => $may ? 'kwtsms.vendors' : '',
+            ];
+        }
+
+        return $rows;
     }
 
     /**
@@ -332,6 +393,47 @@ class IntegrationsPage
         }
 
         return strtoupper($iso);
+    }
+
+    /**
+     * Storefronts and how many of them have their own Sender ID. 2026-10-23 04:21 +03: Task A13, task 596.
+     *
+     * @return array{total:int,own:int}
+     */
+    protected function storefrontCounts(): array
+    {
+        return [
+            'total' => (int) db_get_field('SELECT COUNT(*) FROM ?:storefronts'),
+            'own' => (int) db_get_field(
+                'SELECT COUNT(*) FROM ?:kwtsms_brand_names b INNER JOIN ?:storefronts s'
+                . ' ON s.storefront_id = b.storefront_id WHERE b.sender_id <> ?s',
+                ''
+            ),
+        ];
+    }
+
+    /**
+     * Active vendors and those with an approved phone. 2026-10-23 04:21 +03: Task A13, task 596.
+     *
+     * @return array{approved:int,total:int}
+     */
+    protected function vendorCounts(): array
+    {
+        return [
+            'total' => (int) db_get_field('SELECT COUNT(*) FROM ?:companies WHERE status = ?s', 'A'),
+            'approved' => (int) db_get_field(
+                'SELECT COUNT(*) FROM ?:kwtsms_vendor_phones p INNER JOIN ?:companies c'
+                . ' ON c.company_id = p.company_id WHERE c.status = ?s AND p.approved_at > 0 AND p.phone <> ?s',
+                'A',
+                ''
+            ),
+        ];
+    }
+
+    /** The core low stock notification threshold (Settings > General). 2026-10-23 04:21 +03: Task A13, task 596. */
+    protected function lowStockThreshold(): int
+    {
+        return (int) \Tygh\Registry::get('settings.General.low_stock_threshold');
     }
 
     protected function isMultiVendor(): bool

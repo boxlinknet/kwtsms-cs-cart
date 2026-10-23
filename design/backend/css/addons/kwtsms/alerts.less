@@ -201,6 +201,25 @@ DEPENDS:   Nothing at build time.
         background: @kwt-wash;
         line-height: 22px;
     }
+    // 2026-10-23 04:31 +03: Task A13, task 596. The "What sends SMS" rows: title and badge, text, action in aligned columns.
+    .kwtsms-areas {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+    .kwtsms-later-list.kwtsms-areas li {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 4px 16px;
+        padding: 10px 14px;
+    }
+    .kwtsms-area__head {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
     .kwtsms-later-list li {
         display: inline-flex;
         align-items: center;
@@ -216,6 +235,9 @@ DEPENDS:   Nothing at build time.
 @media (max-width: 979px) {
     .kwtsms-page.kwtsms-alerts,
     .kwtsms-page.kwtsms-integrations {
+        .kwtsms-later-list.kwtsms-areas li {
+            grid-template-columns: minmax(0, 1fr);
+        }
         .kwtsms-check {
             grid-template-columns: minmax(0, 1fr);
         }
