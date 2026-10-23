@@ -5315,3 +5315,7 @@ msgstr "آخر رقم تمت الموافقة عليه. لن يُستخدم رق
 msgctxt "Languages::kwtsms.order_sms.braces"
 msgid "This text has { } braces, so it won't send. Placeholders only work in templates. Remove the braces."
 msgstr "يحتوي النص على أقواس { } ولن يُرسل. المتغيرات تعمل في القوالب فقط. احذف الأقواس."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.plans"
+msgid "Vendor plans can set their own quota, which replaces this number for vendors on those plans."
+msgstr "يمكن لخطط البائعين تحديد حصة خاصة بها، وتحل محل هذا الرقم للبائعين على تلك الخطط."

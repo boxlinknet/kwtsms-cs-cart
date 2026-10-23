@@ -5312,3 +5312,7 @@ msgstr "Last approved number. The new profile number is not used until you appro
 msgctxt "Languages::kwtsms.order_sms.braces"
 msgid "This text has { } braces, so it won't send. Placeholders only work in templates. Remove the braces."
 msgstr "This text has { } braces, so it won't send. Placeholders only work in templates. Remove the braces."
+
+msgctxt "Languages::kwtsms.integrations.area.vendors.plans"
+msgid "Vendor plans can set their own quota, which replaces this number for vendors on those plans."
+msgstr "Vendor plans can set their own quota, which replaces this number for vendors on those plans."

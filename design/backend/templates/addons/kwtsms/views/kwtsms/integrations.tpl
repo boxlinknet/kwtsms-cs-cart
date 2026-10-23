@@ -129,6 +129,8 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
                     {else}
                         {__("kwtsms.integrations.area.`$area.id`.text", $area.params)}
                     {/if}
+                    {* 2026-10-23 08:41 +0300: cleanup CA2-8 (A13 minor 4), task 596. *}
+                    {if !empty($area.plans) && empty($area.quota_off)} {__("kwtsms.integrations.area.vendors.plans")}{/if}
                     </div>
                     <div class="kwtsms-area__action">
                     {if $area.link}<a class="btn kwtsms-area__link" id="kwtsms_area_link_{$area.id}" href="{$area.link|fn_url}">{__("kwtsms.integrations.area.open")}</a>{/if}
