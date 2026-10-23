@@ -126,9 +126,9 @@ class ClientIp
      */
     private static function withoutPort(string $text): string
     {
-        if (preg_match('/^\[([0-9A-Fa-f:.]+)\](?::([0-9]{1,5}))?$/', $text, $m) === 1
-            || preg_match('/^([0-9]{1,3}(?:\.[0-9]{1,3}){3}):([0-9]{1,5})$/', $text, $m) === 1
-        ) {
+        $bracketed = preg_match('/^\[([0-9A-Fa-f:.]+)\](?::([0-9]{1,5}))?$/', $text, $m) === 1;
+        $dotted = !$bracketed && preg_match('/^([0-9]{1,3}(?:\.[0-9]{1,3}){3}):([0-9]{1,5})$/', $text, $m) === 1;
+        if ($bracketed || $dotted) {
             if (isset($m[2]) && (int) $m[2] > 65535) {
                 return '';
             }
@@ -180,9 +180,8 @@ class ClientIp
         // 2026-10-23 20:48 +03: Task M1.2 fix round 1 (review minor 5), task 596. A mapped CIDR (::ffff:10.0.0.0/104)
         // folds too (the prefix loses its 96 mapped bits), so it matches the IPv4 client; a mapped block shorter than
         // /96 covers more than IPv4 and stays a 16-byte IPv6 block.
-        if (strlen($packed) === 16 && substr($packed, 0, 12) === "\0\0\0\0\0\0\0\0\0\0\xff\xff"
-            && ($bits === null || $bits >= 96)
-        ) {
+        $mapped = strlen($packed) === 16 && substr($packed, 0, 12) === "\0\0\0\0\0\0\0\0\0\0\xff\xff";
+        if ($mapped && ($bits === null || $bits >= 96)) {
             $packed = substr($packed, 12);
             $bits = $bits === null ? null : $bits - 96;
         }
