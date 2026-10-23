@@ -255,13 +255,23 @@ try {
                         ? '' : rtrim(rtrim(number_format((float) $kwtsms_sent['balance_after'], 2, '.', ''), '0'), '.'),
                     'test' => $kwtsms_sent['ok'] && Tygh::$app['kwtsms.config']->testMode(),
                 ];
+                // 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4), task 596. The notice carries the outcome and the reason (an
+                // administrator without view_kwtsms_logs reads it nowhere else), and the redirect lands on the SMS tab
+                // only when that tab exists for this administrator.
                 fn_set_notification(
                     $kwtsms_sent['ok'] ? 'N' : 'W',
                     __('kwtsms.order_sms.notice_title'),
-                    fn_html_escape($kwtsms_logs->outcomeLabel($kwtsms_sent['outcome']))
+                    fn_html_escape(OrderSmsSender::noticeText(
+                        $kwtsms_logs->outcomeLabel($kwtsms_sent['outcome']),
+                        $kwtsms_logs->reasonLabel($kwtsms_sent['reason'], $kwtsms_sent['outcome'])
+                    ))
                 );
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_order_url . '&selected_section=kwtsms_sms'];
+                return [
+                    CONTROLLER_STATUS_REDIRECT,
+                    fn_check_current_user_access('view_kwtsms_logs') === true
+                        ? $kwtsms_order_url . '&selected_section=kwtsms_sms' : $kwtsms_order_url,
+                ];
 
             case 'sync':
                 $kwtsms_page->syncNow();

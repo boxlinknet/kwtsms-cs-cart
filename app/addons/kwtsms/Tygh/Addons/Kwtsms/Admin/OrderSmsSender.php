@@ -160,6 +160,17 @@ class OrderSmsSender
     }
 
     /**
+     * The text of the notice shown after a send: the outcome, then the reason when it adds something (an administrator
+     * without the Logs privilege has no other place to read it). 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4), task 596.
+     */
+    public static function noticeText(string $outcome_label, string $reason_text): string
+    {
+        $reason = trim($reason_text);
+
+        return $reason === '' || $reason === $outcome_label ? $outcome_label : $outcome_label . ': ' . $reason;
+    }
+
+    /**
      * Why a typed phone cannot go to the pipeline: '' when it is one number, else a reason code. The pipeline
      * normalizes and verifies it (outcome invalid / no_phone is its own attempt row).
      */

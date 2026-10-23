@@ -44,6 +44,8 @@ DEPENDS:   $kwtsms_order_send (Admin\OrderSmsSender::dialogData()), counter.js, 
                 <div><dt>{__("kwtsms.templates.counter_encoding")}</dt><dd id="kwtsms_order_count_enc">-</dd></div>
             </dl>
             <p class="kwtsms-order-sms-over hidden" id="kwtsms_order_sms_over" role="alert"></p>
+            {* 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 5), task 596. Shown by backend.js while the text holds a {...} token. *}
+            <p class="kwtsms-order-sms-braces hidden" id="kwtsms_order_sms_braces" role="status">{__("kwtsms.order_sms.braces")}</p>
             {if $d.test_mode}
                 <p class="kwtsms-order-sms-test" id="kwtsms_order_sms_test_note"><strong>{__("kwtsms.order_sms.test_mode")}</strong> {__("kwtsms.test_sms.test_note")}</p>
             {/if}

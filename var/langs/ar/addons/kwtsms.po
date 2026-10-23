@@ -5311,3 +5311,7 @@ msgstr "اربط حساب kwtSMS وزامنه لاختيار معرف مرسل �
 msgctxt "Languages::kwtsms.vendors.number_changed"
 msgid "Last approved number. The new profile number is not used until you approve it."
 msgstr "آخر رقم تمت الموافقة عليه. لن يُستخدم رقم الملف الجديد حتى توافق عليه."
+
+msgctxt "Languages::kwtsms.order_sms.braces"
+msgid "This text has { } braces, so it won't send. Placeholders only work in templates. Remove the braces."
+msgstr "يحتوي النص على أقواس { } ولن يُرسل. المتغيرات تعمل في القوالب فقط. احذف الأقواس."

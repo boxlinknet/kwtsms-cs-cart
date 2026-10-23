@@ -122,6 +122,9 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
             over.textContent = counts.over ? (dialog.getAttribute('data-kwtsms-msg-over') || '') : '';
             toggle(over, counts.over);
         }
+        // 2026-10-23 08:36 +03: Cleanup CA2-6 (A11 minor 5), task 596. A {...} token is blocked by the pipeline
+        // (blocked_placeholder): say so before the send. A warning only; the server decides.
+        toggle(out('#kwtsms_order_sms_braces'), /\{[^{}]*\}/.test(box.value));
         if (send) {
             send.disabled = counts.units === 0 || counts.over || orderSmsBusy;
         }
