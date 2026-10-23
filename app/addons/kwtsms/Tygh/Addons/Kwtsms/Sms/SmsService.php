@@ -612,6 +612,28 @@ class SmsService
             'outbox_id' => $row['outbox_id'],
             'recipients' => count($rcpt),
         ]);
+        if ($outcome === 'expired') {
+            $this->alertUnsentExpiry($row);
+        }
+    }
+
+    /**
+     * 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. A row queued for after the response that expires with no
+     * attempt at all (attempts 0, reason after_response) means nothing drained the outbox for 30 minutes: bell and
+     * e-mail, once per hour. Never throws.
+     *
+     * @param array<string,mixed> $row The decoded outbox row
+     */
+    private function alertUnsentExpiry(array $row): void
+    {
+        if ((int) ($row['attempts'] ?? 0) !== 0 || (string) ($row['reason'] ?? '') !== self::AFTER_RESPONSE) {
+            return;
+        }
+        try {
+            $this->alert('outbox_expired_unsent', [], true, 3600);
+        } catch (\Throwable $e) {
+            $this->noteThrowable('sms.expired_alert_failed', $e);
+        }
     }
 
     /**
@@ -827,6 +849,7 @@ class SmsService
             $rcpt = $this->recipients($phones);
             $this->decideAll($rcpt, 'expired', 'expired_in_outbox');
             $this->outbox->markExpired((int) $row['outbox_id']);
+            $this->alertUnsentExpiry($row);
 
             return $this->finish($rcpt, $context, $message, $meta, null);
         }

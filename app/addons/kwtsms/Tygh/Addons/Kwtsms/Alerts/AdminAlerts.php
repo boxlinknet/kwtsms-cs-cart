@@ -50,6 +50,9 @@ class AdminAlerts
         // 2026-10-22 14:53 +03: a storefront Sender ID that left the synced list or was banned; the storefront
         // sends under the global Sender ID (P2-2). Bell and e-mail, once per storefront per 24 h. Task A2, task 596.
         'storefront_sender_invalid',
+        // 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. An after-response row expired with no attempt: nothing
+        // drained the outbox for 30 minutes (cron stopped, no storefront traffic). Bell and e-mail, once per hour.
+        'outbox_expired_unsent',
     ];
 
     /**

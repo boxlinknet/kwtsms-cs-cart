@@ -441,7 +441,15 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.vendor_quota'],
                 // 2026-10-23 00:54 +03: Task A10 (R8, R10), task 596. The customer opt-out, checked after the
                 // storefront switch.
-                $app['kwtsms.customer_prefs']
+                $app['kwtsms.customer_prefs'],
+                // 2026-10-23 03:31 +03: Task A12 item 1 (R8, R53), task 596. A storefront request that sends inline
+                // because the cron heartbeat is stale also drains up to 5 due outbox rows (2 s budget, web limits).
+                static function () use ($app): void {
+                    if (PHP_SAPI === 'cli') {
+                        return;
+                    }
+                    $app['kwtsms.sms']->drainDue(5, 2.0, false);
+                }
             );
         };
 

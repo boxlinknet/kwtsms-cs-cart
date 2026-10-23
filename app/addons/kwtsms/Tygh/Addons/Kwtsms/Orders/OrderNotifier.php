@@ -157,6 +157,12 @@ class OrderNotifier
     /** @var StorefrontRules|null The per-storefront switches (2026-10-22 14:53 +03, Task A2, task 596) */
     private $storefront_rules;
 
+    /** @var callable|null 2026-10-23 03:30 +03: Task A12 item 1, task 596. The stale-cron drain seam. */
+    private $drain_stale;
+
+    /** @var bool 2026-10-23 03:30 +03: Task A12 item 1, task 596. One stale drain per request. */
+    private $stale_drained = false;
+
     /** @var int The storefront id of the notification being handled: one resolution per send (ruling R3) */
     private $storefront = 0;
 
@@ -190,8 +196,12 @@ class OrderNotifier
         ?VendorQuota $vendor_quota = null,
         // 2026-10-23 00:54 +03: Task A10 (R8, R10), task 596. The customer opt-out; nullable, appended last (null =
         // nobody opted out).
-        ?CustomerPrefs $prefs = null
+        ?CustomerPrefs $prefs = null,
+        // 2026-10-23 03:30 +03: Task A12 item 1 (R8, R53), task 596. () => void: drains up to 5 due outbox rows;
+        // called once after the request's own inline send when the cron heartbeat is stale. Nullable, appended last.
+        ?callable $drain_stale = null
     ) {
+        $this->drain_stale = $drain_stale;
         $this->prefs = $prefs;
         $this->vendor_quota = $vendor_quota;
         $this->antibot_gate = $antibot_gate;
@@ -785,8 +795,35 @@ class OrderNotifier
         $result = $this->sms->send($phones, $text, $context);
         $log['status'] = $result->status();
         $this->info('order_sms.sent', 'order SMS handed to the send pipeline', $log);
+        $this->drainStaleCron($mode, $actor);
 
         return true;
+    }
+
+    /**
+     * 2026-10-23 03:30 +03: Task A12 item 1 (R53), task 596. A storefront request that sends inline because the cron
+     * heartbeat is stale (no finisher function, no cron within 2 intervals) also drains up to 5 due outbox rows after
+     * its own send, so a row queued while the cron still ran is sent, not left to expire after 30 minutes. Once per
+     * request; never throws.
+     *
+     * @param array<string,mixed> $actor OrderSource::actor()
+     */
+    private function drainStaleCron(string $mode, array $actor): void
+    {
+        if (
+            $this->drain_stale === null
+            || $this->stale_drained
+            || $mode !== AfterResponse::INLINE
+            || ($actor['area'] ?? '') !== 'C'
+        ) {
+            return;
+        }
+        $this->stale_drained = true;
+        try {
+            call_user_func($this->drain_stale);
+        } catch (\Throwable $e) {
+            FailureLog::report($this->log, 'order_sms.stale_drain_failed', $e);
+        }
     }
 
     /**

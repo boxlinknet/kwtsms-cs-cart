@@ -5117,3 +5117,12 @@ msgstr "The SMS could not be sent. See the kwtSMS debug log."
 msgctxt "Languages::kwtsms.dash.event.manual_order_sms"
 msgid "Manual SMS (order)"
 msgstr "Manual SMS (order)"
+
+# 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. kwtsms.alert.outbox_expired_unsent.*, an order SMS expired in the outbox without one attempt.
+msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.title"
+msgid "An SMS expired without being sent"
+msgstr "An SMS expired without being sent"
+
+msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.text"
+msgid "An SMS waited 30 minutes in the queue and expired before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
+msgstr "An SMS waited 30 minutes in the queue and expired before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
