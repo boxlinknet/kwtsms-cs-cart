@@ -14,7 +14,9 @@
 #              content/package/<store paths>     only the new and changed shipped files (app/addons/kwtsms/..,
 #                                                design/backend/..., js/..., var/langs/...)
 #              content/migrations/*.php          upgrades/<to>/migrations/*.php
-#              content/scripts/post.php          upgrades/<to>/scripts/post.php (when it exists)
+#                                                (2026-10-23 17:35 +03, Task M1.1b, task 596: the migrations of every upgrades/<v> with
+#                                                 from < v <= to, sorted by timestamp, so 1.0.0 -> 1.2.0 carries the 1.1.0 and 1.2.0 ones)
+#              content/scripts/post.php          the post.php of the newest upgrades/<v> in the chain (when it exists)
 #            It then checks the zip with the rules of Tygh\UpgradeCenter\App (validateSchema, checkPackagePermissions)
 #            and applies it to the old tree to prove the result equals the new tree byte for byte.
 # WHY:       Task A1: 1.1.0 changes tables, so an upgrade is not a file copy. Migrations run through the Upgrade
@@ -62,7 +64,21 @@ version_check() {
 }
 gate "addon.xml version equals --to, and --from is older" version_check
 
-updir="$src/upgrades/$to"
+# 2026-10-23 17:35 +03: Task M1.1b, task 596. A chained package (1.0.0 -> 1.2.0) carries the upgrade files of every
+# version after --from up to --to (the 1.1.0 and the 1.2.0 migrations); the 1.1.0 files cannot be taken from the
+# installed tree, which is still 1.0.0 while the migrations run. Every upgrades/<v> directory in that range gets the
+# gates below (the body of the loop is not re-indented, to keep the diff small).
+upvers=""
+for upd in $(ls -d "$src"/upgrades/[0-9]*/ 2>/dev/null); do
+  v="$(basename "$upd")"
+  [ "$v" != "$from" ] || continue
+  [ "$(printf '%s\n%s\n' "$from" "$v" | sort -V | head -1)" = "$from" ] || continue
+  [ "$(printf '%s\n%s\n' "$v" "$to" | sort -V | head -1)" = "$v" ] || continue
+  upvers="$upvers $v"
+done
+upvers="$(printf '%s\n' $upvers | sort -V | tr '\n' ' ')"
+for uv in $upvers; do
+updir="$src/upgrades/$uv"
 upgrades_check() { # upgrades/<to>: migrations are named <14 digits>_<name>.php, the scripts are post.php only
   local f n=0
   [ -d "$updir" ] || { echo "CHECKED 1"; return 0; }
@@ -78,7 +94,7 @@ upgrades_check() { # upgrades/<to>: migrations are named <14 digits>_<name>.php,
   done
   echo "CHECKED $((n + 1))"
 }
-gate "upgrades/$to holds only migrations and post.php" upgrades_check
+gate "upgrades/$uv holds only migrations and post.php" upgrades_check
 if [ -d "$updir" ]; then
   up_private_check() {
     local res rc
@@ -87,10 +103,10 @@ if [ -d "$updir" ]; then
     [ -z "$res" ] || printf '%s\n' "$res" | sed 's/^\([^:]*:[0-9]*\):.*/\1: matches a private pattern/'
     echo "CHECKED $(find "$updir" -type f | wc -l)"
   }
-  gate "upgrades/$to: no private patterns" up_private_check
-  gate "upgrades/$to: no debug calls" scan "$updir" ':\d+:\s*(\*|//|/\*|\{\*)' -nE '(^|[^A-Za-z_>:$])(var_dump|print_r|dd)\('
-  gate "upgrades/$to: error_log( only as a whole 'kwtsms last-resort statement" error_log_check "$updir"
-  gate "upgrades/$to: no banned characters" scan "$updir" '' -nIP '[\x{2013}\x{2014}\x{2018}\x{2019}\x{201C}\x{201D}\x{2026}]'
+  gate "upgrades/$uv: no private patterns" up_private_check
+  gate "upgrades/$uv: no debug calls" scan "$updir" ':\d+:\s*(\*|//|/\*|\{\*)' -nE '(^|[^A-Za-z_>:$])(var_dump|print_r|dd)\('
+  gate "upgrades/$uv: error_log( only as a whole 'kwtsms last-resort statement" error_log_check "$updir"
+  gate "upgrades/$uv: no banned characters" scan "$updir" '' -nIP '[\x{2013}\x{2014}\x{2018}\x{2019}\x{201C}\x{201D}\x{2026}]'
   up_ascii_check() {
     local res rc
     res="$(grep -rnIP '[^\x00-\x7F]' "$updir")"; rc=$?
@@ -98,10 +114,10 @@ if [ -d "$updir" ]; then
     [ -z "$res" ] || printf '%s\n' "$res"
     echo "CHECKED $(find "$updir" -type f | wc -l)"
   }
-  gate "upgrades/$to: ASCII only" up_ascii_check
-  gate "upgrades/$to: no attribution words" scan "$updir" '' -niIE 'cl[a]ude|anthrop[i]c'
-  gate "upgrades/$to: no Tygh\\Http, VERIFYPEER 0, OVERRIDE or API_BASE" scan "$updir" '' -nE 'use[[:space:]]+Tygh\\Http\b|Tygh\\Http::|SSL_VERIFYPEER, ?(0|false)|OVERRIDE|API_BASE'
-  gate "upgrades/$to: php -l (host)" phpl_host "$updir"
+  gate "upgrades/$uv: ASCII only" up_ascii_check
+  gate "upgrades/$uv: no attribution words" scan "$updir" '' -niIE 'cl[a]ude|anthrop[i]c'
+  gate "upgrades/$uv: no Tygh\\Http, VERIFYPEER 0, OVERRIDE or API_BASE" scan "$updir" '' -nE 'use[[:space:]]+Tygh\\Http\b|Tygh\\Http::|SSL_VERIFYPEER, ?(0|false)|OVERRIDE|API_BASE'
+  gate "upgrades/$uv: php -l (host)" phpl_host "$updir"
   up_modes_check() { # no symlink, no group/world-writable entry (git index modes where the filesystem keeps none)
     local res n probe keeps=0
     n="$(find "$updir" | wc -l)" || return 3
@@ -114,25 +130,26 @@ if [ -d "$updir" ]; then
       res="$(find "$updir" -perm /022 \( -type f -o -type d \))" || return 3
       [ -z "$res" ] || printf 'group/world-writable: %s\n' $res
     elif git -C "$src" rev-parse --git-dir >/dev/null 2>&1; then
-      git -C "$src" ls-files -s -- "upgrades/$to" | awk '$1 != "100644" {print "index mode " $1 ": " $4}' || return 3
+      git -C "$src" ls-files -s -- "upgrades/$uv" | awk '$1 != "100644" {print "index mode " $1 ": " $4}' || return 3
     else
       echo "this filesystem does not keep modes and $src is not a git tree: modes cannot be checked"
     fi
     echo "CHECKED $n"
   }
-  gate "upgrades/$to: no symlink, no group/world-writable entry" up_modes_check
+  gate "upgrades/$uv: no symlink, no group/world-writable entry" up_modes_check
   if git -C "$src" rev-parse --git-dir >/dev/null 2>&1 && [ "$src" = "$here" ]; then
-    up_clean_check() { git status --porcelain -- "upgrades/$to" || return 3; echo "CHECKED $(git ls-files -- "upgrades/$to" | wc -l)"; }
-    gate "upgrades/$to has no uncommitted change" up_clean_check
+    up_clean_check() { git status --porcelain -- "upgrades/$uv" || return 3; echo "CHECKED $(git ls-files -- "upgrades/$uv" | wc -l)"; }
+    gate "upgrades/$uv has no uncommitted change" up_clean_check
   fi
   if [ "$lint74" = 1 ]; then
     up_phpl_74() {
       command -v docker >/dev/null 2>&1 || { echo "docker not found for the PHP 7.4 pass (use --no-lint74)"; echo "CHECKED 1"; return 0; }
       docker run --rm --quiet -v "$updir:/pkg:ro" php:7.4-cli sh -c 'n=0; for f in $(find /pkg -name "*.php"); do php -l "$f" >/dev/null 2>&1 || php -l "$f"; n=$((n + 1)); done; echo "CHECKED $n"'
     }
-    gate "upgrades/$to: php -l (PHP 7.4)" up_phpl_74
+    gate "upgrades/$uv: php -l (PHP 7.4)" up_phpl_74
   fi
 fi
+done
 
 # The old release, from git: tag v<from>, else the newest release candidate of it.
 oldtree="$stage/from"; mkdir -p "$oldtree"
@@ -160,7 +177,11 @@ if [ "$fail" != 0 ]; then echo "== GATES FAILED ($failed failed, $passed passed)
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "-- upgrade package"
-up_epoch="$(git -C "$src" log -1 --format=%ct -- $SHIP "upgrades/$to" 2>/dev/null || true)"
+# 2026-10-23 17:35 +03: Task M1.1b, task 596. updirs = the upgrade directories of the chain, oldest first.
+updirs=""; upaths=""
+for uv in $upvers; do updirs="$updirs:$src/upgrades/$uv"; upaths="$upaths upgrades/$uv"; done
+updirs="${updirs#:}"
+up_epoch="$(git -C "$src" log -1 --format=%ct -- $SHIP $upaths 2>/dev/null || true)"
 [ -n "$up_epoch" ] || up_epoch="$(date +%s)"
 up="$stage/up"; mkdir -p "$up/content/package" "$up/content/migrations" "$up/content/scripts" || exit 2
 zipname="kwtsms-upgrade-$from-$to.zip"
@@ -168,9 +189,10 @@ zipname="kwtsms-upgrade-$from-$to.zip"
 # exists next to schema.json (App.php: is_file($pack_path . $package_id . '/' . $schema['file'])); the Upgrade Center
 # unpacks nothing from it for an uploaded package (the files are in content/), so it is a one-line marker, Task A1, task 596.
 markername="kwtsms-upgrade-$from-$to.txt"
-build_layout() { py "$pkg" "$oldtree" "$updir" "$up" "$from" "$to" "$markername" "$up_epoch" <<'PY'
+build_layout() { py "$pkg" "$oldtree" "$updirs" "$up" "$from" "$to" "$markername" "$up_epoch" <<'PY'
 import hashlib, json, os, shutil, sys
-new, old, updir, up, frm, to, markername, epoch = sys.argv[1:9]
+new, old, updirs, up, frm, to, markername, epoch = sys.argv[1:9]
+updirs = [d for d in updirs.split(':') if d]   # 2026-10-23 17:35 +03: Task M1.1b (chained package), task 596
 def tree(root):
     out = {}
     for d, _, fs in os.walk(root):
@@ -202,15 +224,24 @@ for rel in sorted(o):
     if rel not in n:
         files[rel] = {'status': 'deleted', 'hash': md5(o[rel])}
 package = {'files': files}
-mig_src = os.path.join(updir, 'migrations')
-mig = sorted(os.listdir(mig_src)) if os.path.isdir(mig_src) else []
+# 2026-10-23 17:35 +03: Task M1.1b, task 596. Migrations of every version in the chain, sorted by their 14-digit
+# timestamp (the file name starts with it); the post script is the newest version's.
+mig_files = {}
+for updir in updirs:
+    mig_src = os.path.join(updir, 'migrations')
+    for f in (os.listdir(mig_src) if os.path.isdir(mig_src) else []):
+        mig_files[f] = os.path.join(mig_src, f)
+mig = sorted(mig_files)
 for f in mig:
-    shutil.copyfile(os.path.join(mig_src, f), os.path.join(up, 'content', 'migrations', f))
-    size += os.path.getsize(os.path.join(mig_src, f))
+    shutil.copyfile(mig_files[f], os.path.join(up, 'content', 'migrations', f))
+    size += os.path.getsize(mig_files[f])
 if mig:
     package['migrations'] = mig
-post = os.path.join(updir, 'scripts', 'post.php')
-if os.path.isfile(post):
+post = ''
+for updir in updirs:
+    if os.path.isfile(os.path.join(updir, 'scripts', 'post.php')):
+        post = os.path.join(updir, 'scripts', 'post.php')
+if post:
     shutil.copyfile(post, os.path.join(up, 'content', 'scripts', 'post.php'))
     size += os.path.getsize(post)
     package['scripts'] = {'post': 'post.php'}
@@ -240,9 +271,10 @@ must "clear the old upgrade zip" rm -f "$zipf"
 check="$(mktemp -d "${TMPDIR:-/tmp}/kwtsms-upcheck.XXXXXX")" || exit 2
 mkdir "$check/z" || exit 2
 must "unzip" unzip -q "$zipf" -d "$check/z"
-verify_package() { py "$check/z" "$oldtree" "$pkg" "$from" "$to" <<'PY'
+verify_package() { py "$check/z" "$oldtree" "$pkg" "$from" "$to" "$updirs" <<'PY'
 import hashlib, json, os, re, shutil, sys, tempfile
 z, old, new, frm, to = sys.argv[1:6]
+updirs = [d for d in sys.argv[6].split(':') if d]
 bad = []
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
@@ -271,6 +303,14 @@ mig_dir = os.path.join(z, 'content', 'migrations')
 mig = sorted(os.listdir(mig_dir)) if os.path.isdir(mig_dir) else []
 if mig != sorted(pj.get('migrations', [])):
     bad.append('migrations in the directory and in package.json differ')
+# 2026-10-23 17:35 +03: Task M1.1b, task 596. The chain: every migration of every upgrades/<v> from --from (exclusive) to
+# --to is in the package, in timestamp order, and the post script is the newest version's.
+want_mig = sorted(f for d in updirs for f in (os.listdir(os.path.join(d, 'migrations')) if os.path.isdir(os.path.join(d, 'migrations')) else []))
+if pj.get('migrations', []) != want_mig:
+    bad.append('package.json migrations %r are not the chain %r' % (pj.get('migrations', []), want_mig))
+posts = [os.path.join(d, 'scripts', 'post.php') for d in updirs if os.path.isfile(os.path.join(d, 'scripts', 'post.php'))]
+if posts and open(os.path.join(z, 'content', 'scripts', 'post.php'), 'rb').read() != open(posts[-1], 'rb').read():
+    bad.append('content/scripts/post.php is not the newest version post script: ' + posts[-1])
 scr_dir = os.path.join(z, 'content', 'scripts')
 scr = sorted(os.listdir(scr_dir)) if os.path.isdir(scr_dir) else []
 want = [v for v in (pj.get('scripts') or {}).values()]
@@ -291,7 +331,8 @@ for path in have - set(files):
 # 2026-10-23 13:14 +03: final review A C1, task 596. The storefront opt-out template (SafatMall F6) must travel in the package, as
 # the themes_repository copy.
 optout = 'var/themes_repository/responsive/templates/addons/kwtsms/hooks/profiles/account_update.post.tpl'
-if files.get(optout, {}).get('status') != 'new' or optout not in have:
+# 2026-10-23 17:35 +03: Task M1.1b, task 596. Only when the old release lacks it (a 1.1.0 -> 1.2.0 package does not carry it).
+if not os.path.isfile(os.path.join(old, optout)) and (files.get(optout, {}).get('status') != 'new' or optout not in have):
     bad.append('the opt-out storefront template is not in the upgrade package: ' + optout)
 # Hashes the Collisions validator compares with the installed (old) files
 for path, data in files.items():
