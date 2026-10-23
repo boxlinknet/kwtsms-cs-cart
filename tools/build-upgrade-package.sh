@@ -144,7 +144,11 @@ resolve_ref() {
 ref="$(resolve_ref)"
 old_tree_check() {
   [ -n "$ref" ] || { echo "no git tag v$from or v$from-rc.N: pass --from-ref"; echo "CHECKED 1"; return 0; }
-  git -C "$here" archive "$ref" -- $SHIP | tar -x -C "$oldtree" || { echo "git archive $ref failed"; echo "CHECKED 1"; return 0; }
+  # 2026-10-23 13:14 +03: final review A C1, task 596. A shipped path that the old release did not have (1.1.0 added the
+  # storefront template dirs) makes git archive fail on the pathspec; archive only the paths the ref holds.
+  local oldship="" sp
+  for sp in $SHIP; do git -C "$here" cat-file -e "$ref:$sp" 2>/dev/null && oldship="$oldship $sp"; done
+  git -C "$here" archive "$ref" -- $oldship | tar -x -C "$oldtree" || { echo "git archive $ref failed"; echo "CHECKED 1"; return 0; }
   local v
   v="$(sed -n 's|.*<version>\(.*\)</version>.*|\1|p' "$oldtree/app/addons/kwtsms/addon.xml" | head -1)"
   [ "$v" = "$from" ] || echo "ref $ref holds version $v, not --from $from"
@@ -177,6 +181,11 @@ def tree(root):
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
 n, o = tree(new), tree(old)
+# 2026-10-23 13:12 +03: final review A, Critical 1, task 596. The Upgrade Center refuses design/themes/ in an add-on package
+# (App::checkPackagePermissions); core copies var/themes_repository/<theme>/templates/addons/kwtsms into design/themes/<theme>
+# after the file copy (processThemesFiles). So the package carries the themes_repository copy only.
+n = {k: v for k, v in n.items() if not k.startswith('design/themes/')}
+o = {k: v for k, v in o.items() if not k.startswith('design/themes/')}
 files, size = {}, 0
 for rel in sorted(n):
     if rel not in o:
@@ -252,7 +261,8 @@ if schema.get('from_version') != frm or schema.get('to_version') != to:
 pj = json.load(open(os.path.join(z, 'content', 'package.json')))
 valid = ['app/addons/kwtsms', 'js/addons/kwtsms', 'images/', 'design/backend/css/addons/kwtsms',
          'design/backend/mail/templates/addons/kwtsms', 'design/backend/media/fonts/addons/kwtsms',
-         'design/backend/media/images/addons/kwtsms', 'design/backend/templates/addons/kwtsms', 'var/langs/']
+         'design/backend/media/images/addons/kwtsms', 'design/backend/templates/addons/kwtsms', 'var/langs/',
+         'var/themes_repository/[^/]+/templates/addons/kwtsms']  # 2026-10-23 13:12 +03: final review A C1, task 596 (App.php:1461-1500)
 files = pj.get('files', {})
 for path in files:
     if not any(re.match('^' + v, path) for v in valid):
@@ -278,6 +288,11 @@ for path, data in files.items():
         bad.append('listed but not in the package: ' + path)
 for path in have - set(files):
     bad.append('in the package but not listed: ' + path)
+# 2026-10-23 13:14 +03: final review A C1, task 596. The storefront opt-out template (SafatMall F6) must travel in the package, as
+# the themes_repository copy.
+optout = 'var/themes_repository/responsive/templates/addons/kwtsms/hooks/profiles/account_update.post.tpl'
+if files.get(optout, {}).get('status') != 'new' or optout not in have:
+    bad.append('the opt-out storefront template is not in the upgrade package: ' + optout)
 # Hashes the Collisions validator compares with the installed (old) files
 for path, data in files.items():
     o = os.path.join(old, path)
@@ -297,6 +312,19 @@ for path in have:
 for path, data in files.items():
     if data['status'] == 'deleted':
         os.remove(os.path.join(work, 'r', path))
+# 2026-10-23 13:12 +03: final review A C1, task 596. Model Upgrade Center processThemesFiles(): the themes_repository copy is
+# copied to design/themes/<same theme> after the file copy. The package itself must hold nothing under design/themes/.
+for path in files:
+    if path.startswith('design/themes/'):
+        bad.append('design/themes/ in an add-on package (the Upgrade Center refuses it): ' + path)
+repo_prefix = 'var/themes_repository/'
+for d, _, fs in os.walk(os.path.join(work, 'r', 'var', 'themes_repository')):
+    for f in fs:
+        rel = os.path.relpath(os.path.join(d, f), os.path.join(work, 'r')).replace(os.sep, '/')
+        if re.match('^var/themes_repository/[^/]+/templates/addons/kwtsms/', rel):
+            dst = os.path.join(work, 'r', 'design', 'themes', rel[len(repo_prefix):])
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copyfile(os.path.join(work, 'r', rel), dst)
 def snap(root):
     out = {}
     for d, _, fs in os.walk(root):
