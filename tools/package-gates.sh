@@ -203,23 +203,30 @@ phpl_host() { # phpl_host <dir>: php -l every PHP file
   echo "CHECKED $n"
 }
 gate "php -l (host $(php -r 'echo PHP_VERSION;'))" phpl_host "$A"
-placeholder_audit() { py "$1" "$2" <<'PY'
+placeholder_audit() { py "$1" "$2" "$3" <<'PY'
 import os, re, sys
 # Placeholder values of PHP __() calls end up in notices (raw HTML) or in template variables. Each value must be
 # escaped here, built by an escaping helper, a number, or a name allowlisted as data the add-on itself makes
 # (language variables, codes it chose) or admin data rendered through an auto-escaped template.
 # 2026-10-21 17:33 +03, final fix item 8, task 596.
 ESCAPED_VARS = {'$escaped', '$safe'}          # filled by a loop that runs fn_html_escape / htmlspecialchars
-ALLOW = {
-    "$names[$code] ?? $code": 'order status name (core status descriptions) or its code; returned to an auto-escaped template',
-    "$name": 'order status name (core status descriptions); returned to an auto-escaped template',
-    "$count": 'pages_n of an integer; returned to an auto-escaped template',
-    "$label": 'kwtsms.logs.enc.* language variable; returned to an auto-escaped template',
-    "$language": 'language label from a language variable or the core language name; auto-escaped template',
-    "$pages": 'integer page count',
-    "$params": 'TemplatesPage::plain(): text for the preview script, which shows it with textContent (never HTML)',
-}
-root, listing = sys.argv[1], sys.argv[2]
+# 2026-10-23 03:34 +03: Task A12 item 2 (R53), task 596. An allowance is a line <path>:<function>:<$variable> of
+# tools/audit-allowlist.txt (path relative to the add-on, as in the audit listing); the same variable name in another
+# function or file is NOT allowed.
+def load_allow(path):
+    out = set()
+    for raw in open(path, encoding='utf-8'):
+        line = raw.rstrip('\n')
+        if not line.strip() or line.lstrip().startswith('#'): continue
+        parts = line.split(':', 2)
+        if len(parts) == 3: out.add(tuple(x.strip() for x in parts))
+    return out
+def func_at(s, pos):
+    last = '{main}'
+    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', s[:pos]): last = m.group(1)
+    return last
+root, listing, allowfile = sys.argv[1], sys.argv[2], sys.argv[3]
+ALLOW = load_allow(allowfile)
 n = 0; bad = []; rows = []
 def args_of(s, start):
     i, depth, q = start, 1, None
@@ -273,25 +280,26 @@ for d, _, fs in os.walk(root):
                 if re.search(re.escape(arg) + r"\[[^\]]+\]\s*=\s*(?:function_exists\('fn_html_escape'\)\s*\?\s*)?(?:fn_html_escape|htmlspecialchars)\(", body):
                     rows.append(at + '  ' + arg + ' (escaped by the loop above)'); continue
                 bad.append(at + ': ' + arg + ' is not filled by an escaping loop'); continue
-            if arg in ALLOW:
-                rows.append(at + '  ' + arg + ' allowlisted: ' + ALLOW[arg]); continue
+            fn = func_at(s, m.start()); rel = os.path.relpath(p, root)
+            if (rel, fn, arg) in ALLOW:
+                rows.append(at + '  ' + arg + ' allowlisted for ' + fn); continue
             if arg.startswith('['):
                 for item in split_top(arg[1:-1]):
                     val = item.split('=>', 1)[1].strip() if '=>' in item else item
                     if SAFE_VALUE.match(val):
                         rows.append(at + '  ' + val + ' (escaped or a number)')
-                    elif val in ALLOW:
-                        rows.append(at + '  ' + val + ' allowlisted: ' + ALLOW[val])
+                    elif (rel, fn, val) in ALLOW:
+                        rows.append(at + '  ' + val + ' allowlisted for ' + fn)
                     else:
-                        bad.append(at + ': placeholder value ' + val + ' is not escaped')
+                        bad.append(at + ': placeholder value ' + val + ' is not escaped (allowlist line ' + rel + ':' + fn + ':' + val + ')')
                 continue
-            bad.append(at + ': params ' + arg + ' unknown')
+            bad.append(at + ': params ' + arg + ' unknown (allowlist line ' + rel + ':' + fn + ':' + arg + ')')
 open(listing, 'w', encoding='utf-8').write('\n'.join(rows + ['FINDINGS:'] + bad) + '\n')
 print('\n'.join(bad)) if bad else None
 print('CHECKED', n)
 PY
 }
-gate "placeholders of __() are escaped, numbers or allowlisted non-user data (audit: $audit/placeholders.txt)" placeholder_audit "$A" "$audit/placeholders.txt"
+gate "placeholders of __() are escaped, numbers or allowlisted non-user data (audit: $audit/placeholders.txt)" placeholder_audit "$A" "$audit/placeholders.txt" "$here/tools/audit-allowlist.txt"
 notification_check() { py "$1" <<'PY'
 import os, re, sys
 # fn_set_notification() renders its message as HTML: the message (third argument) is a language variable without
@@ -348,18 +356,28 @@ print('CHECKED', n)
 PY
 }
 gate "fn_set_notification messages are escaped or plain language variables" notification_check "$A"
-sql_audit() { py "$1" "$2" <<'PY'
+sql_audit() { py "$1" "$2" "$3" <<'PY'
 import os, re, sys
 # Every ?w, ?u or ?e placeholder (CS-Cart builds column names from the array KEYS) gets an array the add-on builds
 # from fixed keys or from a Schema whitelist, never request data. 2026-10-21 17:33 +03, final fix item 8, task 596.
-ALLOW = {
-    '$clean': 'DbLogStore::insert: array_intersect_key($row, Schema::columns($table)), only the Schema column names',
-    '$row': 'Outbox::enqueue: an array literal with fixed keys',
-    '$set': 'GdprUserData / Outbox: arrays with fixed keys built in the same method',
-    '$changes': 'Outbox::updateRow: every caller in Outbox passes an array with fixed keys (status, retry_at, attempts, reason, phones, message, context, expires_at)',
-}
 REQ = re.compile(r'\$_(REQUEST|POST|GET|COOKIE|SERVER)\b|\$params\b')
-root, listing = sys.argv[1], sys.argv[2]
+# 2026-10-23 03:34 +03: Task A12 item 2 (R53), task 596. An allowance is a line <path>:<function>:<$variable> of
+# tools/audit-allowlist.txt (path relative to the add-on, as in the audit listing); the same variable name in another
+# function or file is NOT allowed.
+def load_allow(path):
+    out = set()
+    for raw in open(path, encoding='utf-8'):
+        line = raw.rstrip('\n')
+        if not line.strip() or line.lstrip().startswith('#'): continue
+        parts = line.split(':', 2)
+        if len(parts) == 3: out.add(tuple(x.strip() for x in parts))
+    return out
+def func_at(s, pos):
+    last = '{main}'
+    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', s[:pos]): last = m.group(1)
+    return last
+root, listing, allowfile = sys.argv[1], sys.argv[2], sys.argv[3]
+ALLOW = load_allow(allowfile)
 n = 0; bad = []; rows = []
 for d, _, fs in os.walk(root):
     for f in fs:
@@ -390,12 +408,11 @@ for d, _, fs in os.walk(root):
             ok = True
             for v in vals:
                 name = re.match(r'\$\w+', v).group(0)
-                if name in ALLOW:
-                    rows.append(at + '  ' + name + ' allowlisted: ' + ALLOW[name])
-                elif name in ('$id', '$ids', '$outbox_id', '$extra', '$statuses', '$status', '$name', '$from_statuses'):
-                    rows.append(at + '  ' + name + ' (an id or a fixed SQL fragment, not a ?w/?u/?e array)')
+                fn = func_at(s, m.start()); rel = os.path.relpath(p, root)
+                if (rel, fn, name) in ALLOW:
+                    rows.append(at + '  ' + name + ' allowlisted for ' + fn)
                 else:
-                    ok = False; bad.append(at + ': ' + name + ' not audited')
+                    ok = False; bad.append(at + ': ' + name + ' not audited (allowlist line ' + rel + ':' + fn + ':' + name + ')')
             if lits and ok:
                 rows.append(at + '  plus an array literal with fixed keys')
 open(listing, 'w', encoding='utf-8').write('\n'.join(rows + ['FINDINGS:'] + bad) + '\n')
@@ -403,7 +420,7 @@ print('\n'.join(bad)) if bad else None
 print('CHECKED', n)
 PY
 }
-gate "no request value reaches a ?w/?u/?e placeholder (audit: $audit/sql-placeholders.txt)" sql_audit "$A" "$audit/sql-placeholders.txt"
+gate "no request value reaches a ?w/?u/?e placeholder (audit: $audit/sql-placeholders.txt)" sql_audit "$A" "$audit/sql-placeholders.txt" "$here/tools/audit-allowlist.txt"
 
 echo "-- manifest gates"
 min_check() {

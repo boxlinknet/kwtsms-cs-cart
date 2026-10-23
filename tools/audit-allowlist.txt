@@ -1,0 +1,46 @@
+# FILE:      tools/audit-allowlist.txt
+# CREATED:   2026-10-23 03:34 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      The variables the two scripted audits of tools/package-gates.sh accept without a proof in the call itself:
+#            the placeholder audit (every value of a PHP __() placeholder array is escaped, a number or listed here)
+#            and the SQL audit (no request value reaches a ?w, ?u or ?e placeholder; the arrays and ids listed here
+#            are built from fixed keys).
+# WHY:       Task A12 item 2 (R53). The 1.0.0 audits allowed a variable by its bare name, so copying an allowed name
+#            ($name, $row, $set ...) into a new function passed the gate unreviewed. An allowance is now one line,
+#            <path>:<function>:<$variable>, with the path relative to app/addons/kwtsms; the same name in another
+#            function or file FAILS the gate until a reviewer adds its own line and reason here.
+# USAGE:     Read by placeholder_audit and sql_audit (tools/package-gates.sh). Lines starting with # are comments.
+#            Format: <path>:<function>:<$variable>   (the variable text may contain ':' and spaces)
+#            When a gate FAILs it prints the exact line to add (after the review) as "allowlist line <...>".
+# DEPENDS:   nothing.
+
+# ---- placeholder audit (values of __() placeholder arrays) ----
+# order status name (core status descriptions) or its code; returned to an auto-escaped template
+Tygh/Addons/Kwtsms/Admin/DashboardPage.php:eventLabel:$names[$code] ?? $code
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:eventLabel:$names[$code] ?? $code
+# order status name (core status descriptions); returned to an auto-escaped template
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:options:$name
+# pages_n of an integer; returned to an auto-escaped template
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:pagesText:$count
+# kwtsms.logs.enc.* language variable; returned to an auto-escaped template
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:pagesText:$label
+# language label from a language variable or the core language name; auto-escaped template
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:pagesText:$language
+# integer page count
+Tygh/Addons/Kwtsms/Admin/LogsPage.php:pagesText:$pages
+# TemplatesPage::plain(): text for the preview script, which shows it with textContent (never HTML)
+Tygh/Addons/Kwtsms/Admin/TemplatesPage.php:plain:$params
+
+# ---- SQL audit (?w / ?u / ?e arrays and the ids beside them) ----
+# DbLogStore::insert: array_intersect_key($row, Schema::columns($table)), only the Schema column names
+Tygh/Addons/Kwtsms/Log/DbLogStore.php:insert:$clean
+# GdprUserData::anonymize: arrays with fixed keys built in the same method; $id is an integer id
+Tygh/Addons/Kwtsms/Privacy/GdprUserData.php:anonymize:$set
+Tygh/Addons/Kwtsms/Privacy/GdprUserData.php:anonymize:$id
+# Outbox::insertRow: the row is built by enqueue() from an array literal with fixed keys
+Tygh/Addons/Kwtsms/Queue/Outbox.php:insertRow:$row
+# Outbox::updateRow: every caller in Outbox passes an array with fixed keys (status, retry_at, attempts, reason, phones, message, context, expires_at); $id is an integer id; $from_statuses is a list of fixed status constants
+Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$changes
+Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$id
+Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$from_statuses
