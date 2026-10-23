@@ -94,6 +94,13 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
     The dialog is moved to the page body by the core dialog opener, so the listener is delegated on the document and finds
     its dialog from the textarea.
     */
+    /*
+    2026-10-23 06:06 +03: Cleanup CA1-10 (A11 minor 6), task 596. One post per dialog: after the first submit the Send
+    button is disabled (a tick later: a disabled submit button is left out of the form data) and a second submit before
+    the response is cancelled. The page is reloaded by the response, which resets the state.
+    */
+    var orderSmsBusy = false;
+
     function updateOrderSms(box) {
         var dialog = box.closest ? box.closest('.kwtsms-order-sms-dialog') : null;
         var counter = window.kwtsmsCounter;
@@ -116,9 +123,27 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
             toggle(over, counts.over);
         }
         if (send) {
-            send.disabled = counts.units === 0 || counts.over;
+            send.disabled = counts.units === 0 || counts.over || orderSmsBusy;
         }
     }
+
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!form || form.id !== 'kwtsms_order_sms_form') {
+            return;
+        }
+        if (orderSmsBusy) {
+            event.preventDefault();
+            return;
+        }
+        orderSmsBusy = true;
+        var send = form.querySelector ? form.querySelector('#kwtsms_order_sms_send') : null;
+        if (send) {
+            window.setTimeout(function () {
+                send.disabled = true;
+            }, 0);
+        }
+    });
 
     document.addEventListener('input', function (event) {
         if (event.target && event.target.classList && event.target.classList.contains('kwtsms-js-order-text')) {

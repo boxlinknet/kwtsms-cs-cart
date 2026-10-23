@@ -5098,9 +5098,10 @@ msgctxt "Languages::kwtsms.order_sms.err.phone_required"
 msgid "Enter a phone number."
 msgstr "Enter a phone number."
 
+# 2026-10-23 06:06 +03: Cleanup CA1-10 (A11 minor 2), task 596: names what the server accepts.
 msgctxt "Languages::kwtsms.order_sms.err.phone_invalid"
-msgid "Enter one phone number with digits only. A leading + is allowed."
-msgstr "Enter one phone number with digits only. A leading + is allowed."
+msgid "Enter one phone number. Use digits, spaces, and the characters + ( ) - . only."
+msgstr "Enter one phone number. Use digits, spaces, and the characters + ( ) - . only."
 
 msgctxt "Languages::kwtsms.order_sms.err.text_empty"
 msgid "Enter the text of the SMS."

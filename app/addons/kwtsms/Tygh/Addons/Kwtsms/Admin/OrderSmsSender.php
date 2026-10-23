@@ -110,10 +110,10 @@ class OrderSmsSender
             if ($order === []) {
                 return self::refusal('order_not_found');
             }
+            // 2026-10-23 06:06 +03: Cleanup CA1-10 (A11 minor 3), task 596. No silent fallback: the dialog prefills the
+            // customer's number (dialogData()), so an empty field was emptied on purpose and is an error
+            // (phone_required from phoneProblem()), not the customer's number.
             $phone = trim($phone);
-            if ($phone === '') {
-                $phone = $this->defaultPhone($order);
-            }
             $why = self::phoneProblem($phone);
             if ($why !== '') {
                 return self::refusal($why);
@@ -169,8 +169,10 @@ class OrderSmsSender
         if ($phone === '') {
             return 'phone_required';
         }
-        // 2026-10-23 02:18 +03: only digits (any script), + ( ) - . and plain spaces: a line break or a comma means
+        // 2026-10-23 02:18 +03: only digits (any script), + ( ) - . and spaces: a line break or a comma means
         // several numbers, and a list is not one number. Task A11, task 596.
+        // 2026-10-23 06:06 +03: Cleanup CA1-10 (A11 minor 1), task 596. "Spaces" are plain spaces and the no-break
+        // space U+00A0 (\x{A0} below, common in a pasted number); the pipeline's normalizer strips both.
         $too_long = mb_strlen($phone, 'UTF-8') > self::PHONE_MAX_CHARS;
         if ($too_long || preg_match('/^[\p{Nd}+()\-. \x{A0}]+$/u', $phone) !== 1) {
             return 'phone_invalid';
