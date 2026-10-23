@@ -676,6 +676,8 @@ function fn_kwtsms_log_hook_error(string $hook, \Throwable $e): void
  * in the admin area, finishes a 1.2.0 upgrade whose post-upgrade step failed or did not run (stored add-on version
  * behind the files). Re-uploading the package cannot do that (the Upgrade Center refuses it once the files are copied).
  * The handler takes no parameter, so a core that passes fewer or more arguments cannot break it. Never throws.
+ * 2026-10-23 19:35 +03: M1.1b fix round 2 (N1), task 596. The hook fires before core's login check, so
+ * PostUpgrade::selfHeal() itself refuses everyone but a store administrator and backs off 300 s per session.
  */
 function fn_kwtsms_before_dispatch()
 {

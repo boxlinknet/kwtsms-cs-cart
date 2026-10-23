@@ -87,6 +87,12 @@ class PostUpgrade
     /** Name of the database lock that serializes post-upgrade runs (post.php and the self-heal). */
     private const LOCK = 'kwtsms_post_upgrade';
 
+    /** Seconds after a heal run (success or failure) during which the same admin session does not run it again. */
+    public const HEAL_BACKOFF = 300;
+
+    /** Session key of the last heal run (2026-10-23 19:35 +03, M1.1b fix round 2, task 596). */
+    private const HEAL_SESSION_KEY = 'kwtsms_heal_at';
+
     /** @var bool True once selfHeal() has looked at the version in this request */
     private static $healChecked = false;
 
@@ -194,15 +200,31 @@ class PostUpgrade
      * The retry. The add-on files are 1.2.0 (this class is one of them); when the stored add-on version is behind,
      * a post-upgrade step failed or has not run, so it runs again with the stored version as $from. Idempotent;
      * once per request; nothing when the version is current (one indexed query).
+     * 2026-10-23 19:35 +03: M1.1b fix round 2 (N1), task 596. Only a store administrator (session auth user_type 'A'
+     * with a user id) can trigger it: the hook fires before core's login check, so an anonymous visitor of the admin
+     * login page and a vendor user (user_type 'V') must not. After a run, success or failure, the session is stamped
+     * and the heal is skipped for HEAL_BACKOFF seconds, so a failure that persists runs and notifies once per admin
+     * session every five minutes. No storage key: the stamp lives in the session.
      *
-     * @param bool $once False lets a test call it repeatedly in one process
+     * @param bool                    $once  False lets a test call it repeatedly in one process
+     * @param array<string,mixed>|null $auth Session auth (null: the current session's)
+     * @param int|null                $now   Unix time (null: time())
      *
      * @return bool True when it ran the upgrade step
      */
-    public static function selfHeal(bool $once = true): bool
+    public static function selfHeal(bool $once = true, ?array $auth = null, ?int $now = null): bool
     {
         // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596.
         if ($once && self::$healChecked) {
+            return false;
+        }
+        $auth = $auth ?? (array) (\Tygh::$app['session']['auth'] ?? []);
+        if (($auth['user_type'] ?? '') !== 'A' || empty($auth['user_id'])) {
+            return false;
+        }
+        $now = $now ?? time();
+        $stamp = (int) (\Tygh::$app['session'][self::HEAL_SESSION_KEY] ?? 0);
+        if ($stamp > 0 && $now - $stamp < self::HEAL_BACKOFF) {
             return false;
         }
         self::$healChecked = true;
@@ -211,6 +233,7 @@ class PostUpgrade
             return false;
         }
         self::runReported($from);
+        \Tygh::$app['session'][self::HEAL_SESSION_KEY] = $now;
 
         return true;
     }
