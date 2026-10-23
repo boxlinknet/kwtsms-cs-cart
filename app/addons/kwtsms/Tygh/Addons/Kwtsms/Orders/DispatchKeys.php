@@ -120,11 +120,27 @@ class DispatchKeys
                     array_merge(self::WINDOWED_PREFIXES, $this->declared_prefixes)
                 ));
                 $this->refused_prefixes = $conflict;
-                if ($conflict !== []) {
-                    error_log('kwtsms: dispatch key prefix ' . implode(', ', $conflict)
-                        . ' is declared with a window and with window 0; it is never pruned');
+                foreach ($conflict as $prefix) {
+                    $this->noteConflictOnce($prefix);
                 }
             }
+        }
+    }
+
+    /**
+     * Writes the conflict line once per store, not on every request: a permanent dispatch key marks it as written.
+     * 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 3), task 596. No database function (unit rigs): no line.
+     */
+    private function noteConflictOnce(string $prefix): void
+    {
+        try {
+            if (!function_exists('db_query') || !$this->claim('notice:prefix_conflict:' . $prefix, 0)) {
+                return;
+            }
+            error_log('kwtsms: dispatch key prefix ' . $prefix
+                . ' is declared with a window and with window 0; it is never pruned');
+        } catch (\Throwable $e) {
+            // A notice never stops the service.
         }
     }
 

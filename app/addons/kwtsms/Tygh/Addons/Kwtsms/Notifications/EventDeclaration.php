@@ -172,6 +172,10 @@ final class EventDeclaration
                 $masked_path = $placeholders[$name];
                 foreach ($refs[1] as $ref) {
                     if ($ref === $masked_path || strpos($ref, $masked_path . '.') === 0) {
+                        // 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 4), task 596. One line saying why.
+                        error_log('kwtsms: declaration ' . $event_id . ' refused: its dedupe key uses the path of the'
+                            . ' secret placeholder ' . $name . ' (' . $masked_path . ')');
+
                         return null;
                     }
                 }

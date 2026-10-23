@@ -549,8 +549,14 @@ class OrderNotifier
                     $path_lang = $lang_path === '' ? null : EventDeclaration::value($payload, $lang_path);
                     $path_lang = is_scalar($path_lang) && !is_bool($path_lang)
                         ? strtolower(trim((string) $path_lang)) : '';
-                    $data_payload['kwtsms_lang'] = preg_match('/^[a-z]{2}$/D', $path_lang) === 1
+                    $requested = preg_match('/^[a-z]{2}$/D', $path_lang) === 1
                         ? $path_lang : $this->data->customerLang($order);
+                    // 2026-10-23 08:23 +03: Task CA1 fix round 1 (important 1), task 596. The language the template
+                    // lookup really answers from (a blank or missing text falls back to the default language), the
+                    // one deliver() renders in.
+                    $found = $this->templates->resolve($event_id, $receiver, $requested, $this->storefront);
+                    $data_payload['kwtsms_lang'] = is_array($found) && isset($found['lang']) && $found['lang'] !== ''
+                        ? (string) $found['lang'] : $requested;
                 }
                 $computed = $this->dataClass($decl->dataClass())->values($data_payload, $receiver);
             } catch (\Throwable $e) {

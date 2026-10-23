@@ -356,6 +356,9 @@ class LogResender
                 'interactive' => true,
                 'ip' => $ip,
                 'retry_of' => $attempt_id,
+                // 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 2), task 596. The vendor gate excludes the held
+                // outbox row being resent from the vendor's queued count (it would count itself).
+                'resend_outbox_id' => (int) ($attempt['outbox_id'] ?? 0),
             ];
             // The stored number is normalized; the + keeps it international so no default-country prefix is added.
             $result = $this->sms->send(['+' . (string) $attempt['phone']], $text['text'], $context);

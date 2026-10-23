@@ -187,6 +187,8 @@ class SmsService
         'company_id' => 0, 'storefront_id' => 0, 'user_id' => 0, 'actor_user_id' => 0, 'actor_company_id' => 0,
         'lang_code' => '', 'audience' => 'storefront', 'interactive' => false, 'ip' => '', 'secret_values' => [],
         'country_iso' => '', 'caller' => '', 'retry_of' => 0, 'outbox_id' => 0,
+        // 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 2), task 596. Outbox row a Logs resend closes (vendor gate).
+        'resend_outbox_id' => 0,
         // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. Seconds an outbox row stays valid (0 = the default
         // 1800).
         'ttl' => 0,
@@ -194,7 +196,7 @@ class SmsService
 
     private const INT_KEYS = [
         'order_id', 'parent_order_id', 'company_id', 'storefront_id', 'user_id', 'actor_user_id', 'actor_company_id',
-        'retry_of', 'outbox_id', 'ttl',
+        'retry_of', 'outbox_id', 'ttl', 'resend_outbox_id',
     ];
 
     /** @var ConfigInterface */
@@ -981,7 +983,7 @@ class SmsService
                     array_map(static function ($i) use ($rcpt): string {
                         return (string) $rcpt[$i]['phone'];
                     }, $open),
-                    (int) $context['outbox_id']
+                    (int) ($context['outbox_id'] ?: $context['resend_outbox_id'])
                 );
                 if (is_array($verdict)) {
                     foreach ($open as $i) {
