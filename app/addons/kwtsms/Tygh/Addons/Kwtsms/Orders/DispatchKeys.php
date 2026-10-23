@@ -76,6 +76,9 @@ class DispatchKeys
     /** @var string[] 2026-10-23 03:41 +03: Task A12 item 4, task 596. Windowed prefixes taken from declarations. */
     private $declared_prefixes = [];
 
+    /** @var string[] 2026-10-23 06:04 +03: Cleanup CA1-9, task 596. Prefixes that a window-0 declaration also uses. */
+    private $refused_prefixes = [];
+
     /**
      * @param callable|null $clock    Returns the current Unix time (tests); null = time()
      * @param array|null    $declared The kwtsms events schema (fn_get_schema('kwtsms', 'events')): a declared dedupe key
@@ -87,7 +90,20 @@ class DispatchKeys
         $this->clock = $clock;
         $this->log = $log;
         if ($declared !== null) {
-            foreach (EventsSchemaExtender::declarations($declared, true) as $decl) {
+            $decls = EventsSchemaExtender::declarations($declared, true);
+            // 2026-10-23 06:04 +03: Cleanup CA1-9 (A12), task 596. A prefix that any declaration uses with window 0
+            // (permanent keys) is refused as a windowed prefix, built-in or declared: the prune would delete those
+            // permanent keys with the windowed ones. The keys are kept (the safe direction).
+            foreach ($decls as $decl) {
+                $prefix = $decl->dedupePrefix();
+                if (
+                    $prefix !== '' && $decl->dedupeWindow() === 0
+                    && !in_array($prefix, $this->refused_prefixes, true)
+                ) {
+                    $this->refused_prefixes[] = $prefix;
+                }
+            }
+            foreach ($decls as $decl) {
                 $prefix = $decl->dedupePrefix();
                 if (
                     $prefix !== '' && $decl->dedupeWindow() > 0 && $decl->dedupeWindow() <= self::PRUNE_MAX_WINDOW
@@ -98,7 +114,29 @@ class DispatchKeys
                     $this->declared_prefixes[] = $prefix;
                 }
             }
+            if ($this->refused_prefixes !== []) {
+                $conflict = array_values(array_intersect(
+                    $this->refused_prefixes,
+                    array_merge(self::WINDOWED_PREFIXES, $this->declared_prefixes)
+                ));
+                $this->refused_prefixes = $conflict;
+                if ($conflict !== []) {
+                    error_log('kwtsms: dispatch key prefix ' . implode(', ', $conflict)
+                        . ' is declared with a window and with window 0; it is never pruned');
+                }
+            }
         }
+    }
+
+    /**
+     * Prefixes that are both windowed and used by a window-0 declaration; never pruned.
+     * 2026-10-23 06:04 +03: added, Cleanup CA1-9, task 596.
+     *
+     * @return string[]
+     */
+    public function refusedPrefixes(): array
+    {
+        return $this->refused_prefixes;
     }
 
     public static function orderPlaced(int $id, string $receiver): string
@@ -188,7 +226,10 @@ class DispatchKeys
      */
     public function windowedPrefixes(): array
     {
-        return array_merge(self::WINDOWED_PREFIXES, $this->declared_prefixes);
+        return array_values(array_diff(
+            array_merge(self::WINDOWED_PREFIXES, $this->declared_prefixes),
+            $this->refused_prefixes
+        ));
     }
 
     /**

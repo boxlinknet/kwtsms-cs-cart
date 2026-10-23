@@ -275,6 +275,9 @@ class SmsService
     /** @var float */
     private $stage_started = 0.0;
 
+    /** @var float|null 2026-10-23 06:03 +03: Cleanup CA1-9, task 596. microtime() at which the running drain's budget ends. */
+    private $drain_deadline;
+
     /** @var callable|null 2026-10-23 05:50 +03: Task CA1-5 (A8 M1, M3), task 596. (int $company_id, string[] $phones,
      *  int $outbox_id): ?array{0:string,1:string}, null = fine, else [outcome, reason]; null gate = no check */
     private $vendor_gate;
@@ -516,6 +519,24 @@ class SmsService
     private function drainRows(int $limit, float $time_budget_s): array
     {
         $started = microtime(true);
+        // 2026-10-23 06:03 +03: Cleanup CA1-9 (A12), task 596. The budget also ends right before the API call of a
+        // drained row (pipeline step 12), not only before each claim.
+        $outer_deadline = $this->drain_deadline;
+        $this->drain_deadline = $started + $time_budget_s;
+        try {
+            return $this->drainRowsBody($limit, $time_budget_s, $started);
+        } finally {
+            $this->drain_deadline = $outer_deadline;
+        }
+    }
+
+    /**
+     * The body of drainRows(). 2026-10-23 06:03 +03: split out for the deadline's try/finally, Cleanup CA1-9, task 596.
+     *
+     * @return array<string,mixed>
+     */
+    private function drainRowsBody(int $limit, float $time_budget_s, float $started): array
+    {
         $summary = ['reaped' => 0, 'due' => 0, 'claimed' => 0, 'busy' => 0, 'stopped' => null, 'results' => []];
         try {
             foreach ($this->outbox->reap($this->now()) as $reaped) {
@@ -1111,6 +1132,15 @@ class SmsService
         $this->stage('11_pilot_quiet', $rcpt);
         $open = $this->open($rcpt);
         if ($open === []) {
+            return $this->finish($rcpt, $context, $message, $meta, $row);
+        }
+        // 2026-10-23 06:03 +03: Cleanup CA1-9 (A12), task 596. A drained row whose drain budget is used up (a slow
+        // hook, a cap lock wait) is not sent now: it waits for the next drain.
+        if ($row !== null && $this->drain_deadline !== null && microtime(true) >= $this->drain_deadline) {
+            foreach ($open as $i) {
+                $rcpt[$i] = $this->deferred($rcpt[$i], 'time_budget', $this->now());
+            }
+
             return $this->finish($rcpt, $context, $message, $meta, $row);
         }
 
