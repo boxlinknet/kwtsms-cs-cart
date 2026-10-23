@@ -266,8 +266,8 @@ class Config implements ConfigInterface
     }
 
     /**
-     * 2026-10-23 17:16 +03: fix round 1, finding M7, task 596. The one rule for "this posted secret field is empty, keep
-     * the stored secret": a string that is empty after trim(). Config::save() and SettingsPage::saveCodes() both call
+     * 2026-10-23 17:16 +03: fix round 1, finding M7, task 596. The one rule for "this posted secret field is empty,
+     * keep the stored secret": a string that is empty after trim(). Config::save() and SettingsPage::saveCodes() both call
      * it, so they cannot disagree about what was saved.
      *
      * @param mixed $value
