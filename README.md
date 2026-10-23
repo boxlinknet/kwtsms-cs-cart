@@ -37,8 +37,9 @@ Send automated SMS notifications to your CS-Cart and Multi-Vendor customers and 
 <!-- 2026-10-21 23:17 +03: status line no longer promises a Marketplace listing (not decided); GitHub Releases is
      the download channel from the first tag, task 596. -->
 <!-- 2026-10-22 23:08 +03: v1.0.0 released (Boss 23:01), the rc.1 build passed a merchant test on 4.20.1, task 596 -->
-> **Status:** version 1.0.0, the first release. The installable zip is on
-> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases).
+<!-- 2026-10-23 14:11 +03: status for 1.1.0 release candidate, Task A15, task 596 -->
+> **Status:** version 1.1.0 release candidate. The installable zip is on
+> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) as the v1.1.0-rc.1 pre-release.
 
 ## Features
 
@@ -77,7 +78,8 @@ country check at registration, and later abandoned cart reminders, bulk and sche
 
 ## Installation
 
-1. Download `kwtsms-1.0.0.zip` from [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases).
+<!-- 2026-10-23 14:11 +03: zip name 1.1.0, Task A15, task 596 -->
+1. Download `kwtsms-1.1.0.zip` from [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases).
 2. Manual installation: Administration > Add-ons > Manage add-ons > the gear icon > Manual installation > Local > pick the zip > Upload & install.
 
 Uninstalling (Add-ons > kwtSMS > Uninstall) removes the add-on's tables, settings, language variables, privileges and

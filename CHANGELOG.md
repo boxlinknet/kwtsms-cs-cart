@@ -17,6 +17,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+<!-- 2026-10-23 14:11 +03: the Unreleased entries became the 1.1.0 release, Task A15, task 596 -->
+## [1.1.0] - 2026-10-23
+
+Upgrading from 1.0.0: download `kwtsms-upgrade-1.0.0-1.1.0.zip`, rename it to `kwtsms.zip`, and upload it in
+Administration > Upgrade Center > Upload upgrade package (the Upgrade Center takes the package id from the file name).
+A fresh install uses `kwtsms-1.1.0.zip`. An upgrade keeps your credentials, settings, switches and edited texts, and
+starts no new SMS: every new event stays off until you turn it on. Release candidate pre-release: v1.1.0-rc.1.
+
 <!-- 2026-10-23 04:26 +03: the 1.1.0 entries, Task A13, task 596 -->
 ### Added
 
