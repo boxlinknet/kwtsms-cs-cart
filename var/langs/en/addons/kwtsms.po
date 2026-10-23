@@ -5165,8 +5165,8 @@ msgid "Customer profile events"
 msgstr "Customer profile events"
 
 msgctxt "Languages::kwtsms.integrations.area.profiles.text"
-msgid "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
-msgstr "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
+msgid "Welcome SMS and administrator alert at registration (sent only while CAPTCHA for registration is on), password recovery link, and the customer's choice to stop order SMS."
+msgstr "Welcome SMS and administrator alert at registration (sent only while CAPTCHA for registration is on), password recovery link, and the customer's choice to stop order SMS."
 
 msgctxt "Languages::kwtsms.integrations.area.low_stock.title"
 msgid "Low stock"
@@ -5265,8 +5265,8 @@ msgid "It never stops the order confirmation or the password recovery SMS. Guest
 msgstr "It never stops the order confirmation or the password recovery SMS. Guest orders are not affected. The choice belongs to the account, not to the phone number."
 
 msgctxt "Languages::kwtsms.help.optout.p3"
-msgid "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
-msgstr "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
+msgid "A skipped message shows in Logs with this reason: The customer turned off order status SMS in their profile."
+msgstr "A skipped message shows in Logs with this reason: The customer turned off order status SMS in their profile."
 
 msgctxt "Languages::kwtsms.help.recovery.p1"
 msgid "The password recovery SMS carries the reset link. Turn it on with the switch for customers on the Templates page. It is off until you do."

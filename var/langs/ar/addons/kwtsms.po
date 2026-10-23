@@ -5168,8 +5168,8 @@ msgid "Customer profile events"
 msgstr "أحداث ملف العميل"
 
 msgctxt "Languages::kwtsms.integrations.area.profiles.text"
-msgid "Welcome SMS and administrator alert at registration, password recovery link, and the customer's choice to stop order SMS."
-msgstr "رسالة الترحيب وتنبيه المدير عند التسجيل، ورابط استعادة كلمة المرور، وخيار العميل بإيقاف رسائل الطلبات."
+msgid "Welcome SMS and administrator alert at registration (sent only while CAPTCHA for registration is on), password recovery link, and the customer's choice to stop order SMS."
+msgstr "رسالة الترحيب وتنبيه المدير عند التسجيل (تُرسل فقط عند تفعيل الكابتشا للتسجيل)، ورابط استعادة كلمة المرور، وخيار العميل بإيقاف رسائل الطلبات."
 
 msgctxt "Languages::kwtsms.integrations.area.low_stock.title"
 msgid "Low stock"
@@ -5268,8 +5268,8 @@ msgid "It never stops the order confirmation or the password recovery SMS. Guest
 msgstr "لا يوقف أبدا رسالة تأكيد الطلب ولا رسالة استعادة كلمة المرور. ولا يشمل طلبات الزوار. الخيار مرتبط بالحساب لا برقم الهاتف."
 
 msgctxt "Languages::kwtsms.help.optout.p3"
-msgid "A skipped message shows in Logs with the reason \"The customer turned off order status SMS in their profile.\"."
-msgstr "تظهر الرسالة المتخطاة في السجلات مع السبب \"أوقف العميل رسائل SMS الخاصة بحالة الطلب من ملفه الشخصي.\"."
+msgid "A skipped message shows in Logs with this reason: The customer turned off order status SMS in their profile."
+msgstr "تظهر الرسالة المتخطاة في السجلات مع السبب التالي: أوقف العميل رسائل SMS الخاصة بحالة الطلب من ملفه الشخصي."
 
 msgctxt "Languages::kwtsms.help.recovery.p1"
 msgid "The password recovery SMS carries the reset link. Turn it on with the switch for customers on the Templates page. It is off until you do."
@@ -5285,7 +5285,7 @@ msgstr "تُرسل رسالة استعادة واحدة للحساب كل 10 د�
 
 msgctxt "Languages::kwtsms.help.manual.p1"
 msgid "On an order page, open Tools > Send SMS to text the customer yourself. The phone starts as the customer's number and you can change it. Send one number at a time."
-msgstr "في صفحة الطلب افتح الأدوات > إرسال رسالة لتراسل العميل بنفسك. يبدأ الهاتف برقم العميل ويمكنك تغييره. أرسل إلى رقم واحد في المرة."
+msgstr "في صفحة الطلب افتح الأدوات > إرسال رسالة SMS لتراسل العميل بنفسك. يبدأ الهاتف برقم العميل ويمكنك تغييره. أرسل إلى رقم واحد في المرة."
 
 msgctxt "Languages::kwtsms.help.manual.p2"
 msgid "The dialog counts characters, pages, and credits as you type. A message over 7 pages cannot be sent. Test mode, the country list, and your daily limits apply as for any other SMS."
