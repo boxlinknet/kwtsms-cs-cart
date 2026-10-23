@@ -63,7 +63,9 @@ class VendorPhones implements VendorPhoneSourceInterface
             return '';
         }
         $company = $this->companyRow($company_id);
-        if ($company === null) {
+        // 2026-10-23 13:17 +03: final review A, Minor 2, task 596. A vendor that is not active has no approved number, whether or not
+        // the change_company_status_pre hook ran (it is verified on 4.21.2 only).
+        if ($company === null || (string) ($company['status'] ?? 'A') !== 'A') {
             return '';
         }
         $current = $this->normalize($company);
