@@ -20,7 +20,9 @@ namespace Tygh\Addons\Kwtsms\Notifications;
 interface DeclaredSmsData
 {
     /**
-     * @param array<string,mixed> $data     The event data the dispatcher handed over
+     * @param array<string,mixed> $data     The event data the dispatcher handed over. 2026-10-23 05:59 +03: Cleanup
+     *                                      CA1-7, task 596: for receiver C it also holds kwtsms_lang, the language
+     *                                      the SMS is rendered in (a two-letter code)
      * @param string              $receiver C, A or V
      *
      * @return array{placeholders?:array<string,string>,phone?:string,secret_values?:array<int,string>,ttl?:int}

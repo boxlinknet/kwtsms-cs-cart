@@ -49,17 +49,19 @@ final class ShipmentSmsData implements DeclaredSmsData
         $tracking = self::trackingNumber(self::scalar($shipment['tracking_number'] ?? ''));
         $carrier = self::asciiText(self::scalar($info['name'] ?? ''), self::MAX_LENGTH);
         $url = self::asciiText(self::scalar($info['tracking_url'] ?? ''), self::MAX_URL);
-        $lang = strtolower(self::scalar($data['order_info']['lang_code'] ?? ''));
+        // 2026-10-23 05:59 +03: Cleanup CA1-7 (A5), task 596. The language the template is rendered in (kwtsms_lang,
+        // set by OrderNotifier), else the order's own, as before.
+        $lang = strtolower(self::scalar($data['kwtsms_lang'] ?? ($data['order_info']['lang_code'] ?? '')));
 
         if ($lang === 'ar') {
             $details = $tracking !== '' ? "\u{062A}\u{062A}\u{0628}\u{0639} " . $tracking : '';
         } else {
             $parts = [];
             if ($carrier !== '') {
-                $parts[] = 'Carrier: ' . $carrier . '.';
+                $parts[] = self::sentence('Carrier: ' . $carrier);
             }
             if ($tracking !== '') {
-                $parts[] = 'Tracking: ' . $tracking . '.';
+                $parts[] = self::sentence('Tracking: ' . $tracking);
             }
             $details = implode(' ', $parts);
         }
@@ -70,6 +72,15 @@ final class ShipmentSmsData implements DeclaredSmsData
             'tracking_url' => $url,
             'shipment_info' => $details,
         ]];
+    }
+
+    /**
+     * The text with one final period: a value that already ends with "." does not give "X..".
+     * 2026-10-23 05:59 +03: added, Cleanup CA1-7 (A5), task 596.
+     */
+    private static function sentence(string $text): string
+    {
+        return substr($text, -1) === '.' ? $text : $text . '.';
     }
 
     /**

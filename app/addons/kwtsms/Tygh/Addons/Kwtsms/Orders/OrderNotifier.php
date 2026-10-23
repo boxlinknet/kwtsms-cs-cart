@@ -540,7 +540,19 @@ class OrderNotifier
         $computed = [];
         if ($decl->dataClass() !== '') {
             try {
-                $computed = $this->dataClass($decl->dataClass())->values($payload, $receiver);
+                // 2026-10-23 05:59 +03: Cleanup CA1-7 (A5), task 596. A customer SMS is rendered in the language
+                // deliver() resolves (the declared lang path when it is a valid code, else the order's language chain);
+                // the data class is told it as kwtsms_lang, so computed wording follows the template.
+                $data_payload = $payload;
+                if ($receiver === 'C') {
+                    $lang_path = $decl->path('lang');
+                    $path_lang = $lang_path === '' ? null : EventDeclaration::value($payload, $lang_path);
+                    $path_lang = is_scalar($path_lang) && !is_bool($path_lang)
+                        ? strtolower(trim((string) $path_lang)) : '';
+                    $data_payload['kwtsms_lang'] = preg_match('/^[a-z]{2}$/D', $path_lang) === 1
+                        ? $path_lang : $this->data->customerLang($order);
+                }
+                $computed = $this->dataClass($decl->dataClass())->values($data_payload, $receiver);
             } catch (\Throwable $e) {
                 FailureLog::report($this->log, 'order_sms.data_class_failed', $e);
                 $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
