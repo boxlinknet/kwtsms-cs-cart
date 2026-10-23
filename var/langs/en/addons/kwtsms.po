@@ -5296,3 +5296,11 @@ msgstr "Each number can get 5 manual SMS an hour and 20 a day. The result shows 
 msgctxt "Languages::kwtsms.help.switches.p4"
 msgid "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."
 msgstr "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."
+
+msgctxt "Languages::kwtsms.templates.sf_master_off"
+msgid "All storefronts is Off, so this storefront sends nothing."
+msgstr "All storefronts is Off, so this storefront sends nothing."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_connect"
+msgid "Connect your kwtSMS account and sync to pick a Sender ID for each storefront."
+msgstr "Connect your kwtSMS account and sync to pick a Sender ID for each storefront."

@@ -844,7 +844,8 @@ class TemplatesPage
             return $result;
         }
 
-        $panel = $this->settings->sendTestText($phone, $intl, $text, $admin_id, $ip, $input['lang']);
+        // 2026-10-23 08:28 +03: the storefront of the text goes along, so the test uses its Sender ID (cleanup CA2-2, A3 M1, task 596).
+        $panel = $this->settings->sendTestText($phone, $intl, $text, $admin_id, $ip, $input['lang'], max(0, $input['storefront_id']));
         if ($panel === null) {
             // The Settings page has said why (no number, the cap, the count failed).
             $this->trace('info', 'test', 'Test not sent', $input, $started, 'not_sent');
@@ -1221,8 +1222,10 @@ class TemplatesPage
         $receiver = $text('receiver');
         $lang = $text('lang');
         // 2026-10-22 16:13 +03: Task A3, task 596. Digits only; anything else is -1, which storefrontKnown() refuses.
+        // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M4), task 596. A key that is present but not a string (an array posted by hand) is -1,
+        // refused, not read as '' = All storefronts.
         $sf_raw = $text('storefront_id');
-        $storefront_id = $sf_raw === '' ? 0 : (ctype_digit($sf_raw) && strlen($sf_raw) <= 10 ? (int) $sf_raw : -1);
+        $storefront_id = isset($post['storefront_id']) && !is_string($post['storefront_id']) ? -1 : ($sf_raw === '' ? 0 : (ctype_digit($sf_raw) && strlen($sf_raw) <= 10 ? (int) $sf_raw : -1));
 
         return [
             'key' => self::rowKey($event_id, $receiver),

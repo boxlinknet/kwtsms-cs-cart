@@ -263,6 +263,13 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                 </div>
             </div>
         </section>
+        {elseif $kwtsms.storefront_senders}
+        {* 2026-10-23 08:30 +0300: cleanup CA2-2 (A3 M5), task 596. Not connected, or no Sender ID listed yet: say why the block is not usable
+           instead of hiding it (storefront_senders is only filled when the store has two or more storefronts). *}
+        <section class="kwtsms-section kwtsms-sf-senders" id="kwtsms_storefront_senders" aria-labelledby="kwtsms_sf_senders_title">
+            <h4 class="subheader" id="kwtsms_sf_senders_title">{__("kwtsms.settings.sf_senders_title")}</h4>
+            <p class="muted description" id="kwtsms_sf_senders_connect">{__("kwtsms.settings.sf_senders_connect")}</p>
+        </section>
         {/if}
 
         <section class="kwtsms-section" id="kwtsms_general" aria-labelledby="kwtsms_general_title">

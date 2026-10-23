@@ -5299,3 +5299,11 @@ msgstr "يمكن لكل رقم أن يتلقى 5 رسائل يدوية في ال
 msgctxt "Languages::kwtsms.help.switches.p4"
 msgid "Other events you can switch on: order updated, shipment created, welcome SMS, administrator registration alert, low stock, and low kwtSMS balance. All start off."
 msgstr "أحداث أخرى يمكنك تشغيلها: تحديث الطلب وإنشاء الشحنة ورسالة الترحيب وتنبيه المدير بالتسجيل وانخفاض المخزون وانخفاض رصيد kwtSMS. كلها تبدأ متوقفة."
+
+msgctxt "Languages::kwtsms.templates.sf_master_off"
+msgid "All storefronts is Off, so this storefront sends nothing."
+msgstr "الإرسال متوقف لكل الواجهات، لذا لن ترسل هذه الواجهة شيئا."
+
+msgctxt "Languages::kwtsms.settings.sf_senders_connect"
+msgid "Connect your kwtSMS account and sync to pick a Sender ID for each storefront."
+msgstr "اربط حساب kwtSMS وزامنه لاختيار معرف مرسل لكل واجهة."

@@ -176,6 +176,8 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                             <button type="submit" class="btn kwtsms-sf-switch__apply" name="dispatch[kwtsms.update_storefront_switch]" value="1"
                                     {if !$t.can_toggle}disabled="disabled" title="{__("kwtsms.templates.switch_locked")}"{/if}>{__("kwtsms.templates.sf_apply")}</button>
                         </form>
+                        {* 2026-10-23 08:30 +0300: cleanup CA2-2 (A3 M2), task 596. With the master Off this storefront cannot send, whatever it is set to. *}
+                        {if !$row.switch.on}<p class="muted kwtsms-hint-line kwtsms-sf-master-off">{__("kwtsms.templates.sf_master_off")}</p>{/if}
                     {elseif $row.switch}
                         <form action="{""|fn_url}" method="post" name="kwtsms_switch_{$row.dom_id}" class="kwtsms-switch-form">
                             <input type="hidden" name="kwtsms_tpl[event_id]" value="{$row.event_id}">
