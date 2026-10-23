@@ -33,6 +33,9 @@
  *            account: the approved vendor number (kwtsms_vendor_phones), the vendor V messages and attempts belong to
  *            the company (company_id) and are removed with it (delete_company hook), never through this personal data
  *            path, which finds rows by user id, the customer's orders and the customer's own numbers.
+ *            2026-10-23 15:14 +03, Task M1.1a, task 596: collect() also lists the account's rows of
+ *            kwtsms_phone_index ('phone_index') and kwtsms_otp_codes ('codes', without code_hash, salt and
+ *            session_hash); anonymize() deletes both by the exact user id (P3-31).
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]
@@ -113,12 +116,18 @@ class GdprUserData
         $out = [
             'user_id' => $user_id, 'phones' => $phones, 'order_ids' => $order_ids,
             'messages' => [], 'attempts' => [], 'outbox' => [], 'prefs' => [],
+            // 2026-10-23 15:14 +03: Task M1.1a (P3-31), task 596. The account's phone index row and code rows.
+            'phone_index' => [], 'codes' => [],
         ];
         if ($user_id < 1) {
             return $out;
         }
         // 2026-10-23 00:56 +03: Task A10 (SafatMall F6), task 596. The customer's SMS preference row (empty when none).
         $out['prefs'] = $this->prefs($user_id);
+        // 2026-10-23 15:14 +03: Task M1.1a, task 596. The index row (the phone tied to the account) and the code rows
+        // of the account (never the code hash, the salt or the session hash).
+        $out['phone_index'] = $this->phoneIndex($user_id);
+        $out['codes'] = $this->codes($user_id);
         $out['messages'] = $this->messages($user_id, $order_ids, $phones);
         $out['attempts'] = $this->attempts($user_id, $order_ids, $phones);
         $out['outbox'] = $this->outbox($user_id, $order_ids, $phones);
@@ -333,6 +342,9 @@ class GdprUserData
         // 2026-10-23 00:56 +03: Task A10 (SafatMall F6), task 596. The opt-out row of the account goes with the rest
         // of its SMS data.
         $this->deletePrefs((int) ($data['user_id'] ?? 0));
+        // 2026-10-23 15:14 +03: Task M1.1a (P3-31), task 596. The phone index row and the code rows of the account,
+        // by the exact user id (user 0 is a guest and never matches).
+        $this->deletePhoneIndexAndCodes((int) ($data['user_id'] ?? 0));
         $this->log->log('info', 'gdpr.anonymized', 'SMS rows of a customer anonymized', [
             'user_id' => (int) ($data['user_id'] ?? 0), 'numbers' => count($tokens),
         ] + $done);
@@ -420,6 +432,48 @@ class GdprUserData
         );
 
         return is_array($row) ? $row : [];
+    }
+
+    /**
+     * 2026-10-23 15:14 +03: Task M1.1a, task 596. The account's row of kwtsms_phone_index.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function phoneIndex(int $user_id): array
+    {
+        $rows = db_get_array(
+            'SELECT user_id, phone, verified_phone, verified_at, updated_at'
+            . ' FROM ?:kwtsms_phone_index WHERE user_id = ?i',
+            $user_id
+        );
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * 2026-10-23 15:14 +03: Task M1.1a, task 596. The account's rows of kwtsms_otp_codes. Named columns, so code_hash,
+     * salt and session_hash never leave the database.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function codes(int $user_id): array
+    {
+        $rows = db_get_array(
+            'SELECT code_id, purpose, subject, user_id, status, created_at, expires_at, ip, storefront_id'
+            . ' FROM ?:kwtsms_otp_codes WHERE user_id = ?i ORDER BY code_id',
+            $user_id
+        );
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    /** 2026-10-23 15:14 +03: Task M1.1a, task 596. Deletes both tables' rows of one account (exact user id). */
+    protected function deletePhoneIndexAndCodes(int $user_id): void
+    {
+        if ($user_id > 0) {
+            db_query('DELETE FROM ?:kwtsms_phone_index WHERE user_id = ?i', $user_id);
+            db_query('DELETE FROM ?:kwtsms_otp_codes WHERE user_id = ?i', $user_id);
+        }
     }
 
     /** 2026-10-23 00:56 +03: Task A10, task 596. Removes the account's opt-out row (exact user id). */

@@ -30,6 +30,8 @@ use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+// 2026-10-23 15:14 +03: Config::MODE_KEYS for saveCodes() (Task M1.1a, task 596).
+use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
@@ -298,6 +300,59 @@ class SettingsPage
         ], (int) round((microtime(true) - $started) * 1000));
 
         return $out;
+    }
+
+    // ================================================================== "Phone and codes" (Task M1.1a)
+
+    /**
+     * 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596. Saves the "Phone and codes" section through Config mode
+     * update_codes, which writes only the allow-listed keys present in the post (each later task of Milestone 1 adds
+     * its fields and keys). A key the mode does not allow is refused by Config and logged; only the keys of the section
+     * ever reach the administrator as a notice (a hostile field name is never echoed). An empty Turnstile secret keeps
+     * the stored one and counts as not posted. The log holds key names and reasons only, never a value.
+     *
+     * @param array<string,mixed> $posted kwtsms_codes of the request
+     *
+     * @return array{saved: string[], rejected: array<string,string>}
+     */
+    public function saveCodes(
+        #[\SensitiveParameter]
+        array $posted
+    ): array {
+        $started = microtime(true);
+        $blank_secret = isset($posted['turnstile_secret']) && is_string($posted['turnstile_secret'])
+            && trim($posted['turnstile_secret']) === '';
+        $requested = array_map('strval', array_keys($posted));
+        $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
+        $reasons = [];
+        foreach ($rejected_keys as $key) {
+            $reasons[$key] = $this->rejectionReason($key);
+        }
+        $saved = array_values(array_filter(
+            $requested,
+            static function (string $key) use ($reasons, $blank_secret): bool {
+                return !isset($reasons[$key]) && !($blank_secret && $key === 'turnstile_secret');
+            }
+        ));
+
+        $this->log->log('info', 'settings.codes.save', 'update_codes', [
+            'saved' => $saved,
+            'rejected' => $reasons,
+        ], (int) round((microtime(true) - $started) * 1000));
+
+        if ($saved !== []) {
+            $this->say('N', $reasons === [] ? 'kwtsms.settings.saved' : 'kwtsms.settings.saved_others');
+        } elseif ($reasons === []) {
+            $this->say('N', 'kwtsms.settings.codes_unchanged');
+        }
+        $shown = (array) (Config::MODE_KEYS['update_codes'] ?? []);
+        foreach ($reasons as $key => $reason) {
+            if (in_array($key, $shown, true)) {
+                $this->notify('E', $this->rejectionText($key, $reason), false);
+            }
+        }
+
+        return ['saved' => $saved, 'rejected' => $reasons];
     }
 
     // ================================================================== POST actions

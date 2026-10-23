@@ -184,8 +184,9 @@ class Kwtsms110 extends AbstractMigration
         SchemesManager::clearInternalCache(self::ADDON);
         $scheme = SchemesManager::getScheme(self::ADDON);
         self::must(
-            $scheme !== null && $scheme->getVersion() === self::VERSION,
-            'the add-on files on disk are not ' . self::VERSION
+            // 2026-10-23 16:36 +03: ">=" like filesAreCurrent() (Task M1.1a, task 596).
+            $scheme !== null && version_compare((string) $scheme->getVersion(), self::VERSION, '>='),
+            'the add-on files on disk are older than ' . self::VERSION
         );
 
         // fn_update_addon_settings() deletes the add-on's settings section and rebuilds it from addon.xml, so it only
@@ -334,7 +335,11 @@ class Kwtsms110 extends AbstractMigration
         SchemesManager::clearInternalCache(self::ADDON);
         $scheme = SchemesManager::getScheme(self::ADDON);
 
-        return $scheme !== null && $scheme->getVersion() === self::VERSION;
+        // 2026-10-23 16:36 +03: ">=" (was "==="): from 1.2.0 on the repository's files are newer than 1.1.0 and still
+        // contain everything this step needs; with "==" the dev-store dry runs (tests/Store/UpgradeSchemaTest) could not
+        // run content() any more. In an Upgrade Center run the old files are on disk (1.0.0), so it stays false there.
+        // Task M1.1a, task 596.
+        return $scheme !== null && version_compare((string) $scheme->getVersion(), self::VERSION, '>=');
     }
 
     private static function tableExists(string $table): bool

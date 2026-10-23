@@ -14,13 +14,17 @@ USAGE:     Read by CS-Cart (Admin > Add-ons > Manage add-ons, or fn_install_addo
            info link to the add-on's Settings page and marketplace_license_number.
 2026-10-22 13:13 +03: 1.1.0 adds four Milestone A tables (13 in all), two columns and the setting vendor_monthly_quota
            (Task A1, task 596); the upgrade path from 1.0.0 is upgrades/1.1.0 (tools/build-upgrade-package.sh).
+2026-10-23 15:11 +03: 1.2.0 adds three tables (16 in all: kwtsms_otp_codes, kwtsms_rate_limits, kwtsms_phone_index) and
+           23 hidden settings for the phone and SMS-code features, all OFF by default (Task M1.1a, task 596); the
+           upgrade path from 1.1.0 and 1.0.0 is upgrades/1.2.0 (Task M1.1b).
 DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_info),
            var/langs/{en,ar}/addons/kwtsms.po, design/backend/media/images/addons/kwtsms/icon.png.
 -->
 <addon scheme="3.0">
     <id>kwtsms</id>
     <!-- 2026-10-22 13:13 +03: 1.1.0 (Phase 2: schema of Milestone A, setting vendor_monthly_quota, four tables), Task A1, task 596 -->
-    <version>1.1.0</version>
+    <!-- 2026-10-23 15:11 +03: 1.2.0 (Phase 3 Milestone 1: phone and SMS-code set, three tables, 23 settings), Task M1.1a, task 596 -->
+    <version>1.2.0</version>
     <priority>4000</priority>
     <status>active</status>
     <default_language>en</default_language>
@@ -202,6 +206,103 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                     <item id="vendor_monthly_quota">
                         <type>hidden</type>
                         <default_value>100</default_value>
+                    </item>
+
+                    <!-- 2026-10-23 15:11 +03: Task M1.1a (Phase 3 Milestone 1, data model), task 596. Phone and SMS-code
+                         settings, written only by the Settings mode update_codes. Every feature switch defaults to N
+                         and nothing here turns anything on. turnstile_secret is stored encrypted with the prefix
+                         kwtsms1: like api_password, never rendered back. -->
+                    <item id="phone_country_check">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="phone_unique">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="register_code">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="register_phone_required">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="phone_change_code">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="phone_change_notice">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="otp_expiry_seconds">
+                        <type>hidden</type>
+                        <default_value>300</default_value>
+                    </item>
+                    <item id="otp_max_attempts">
+                        <type>hidden</type>
+                        <default_value>5</default_value>
+                    </item>
+                    <item id="otp_lockout_seconds">
+                        <type>hidden</type>
+                        <default_value>900</default_value>
+                    </item>
+                    <item id="otp_phone_fail_ceiling">
+                        <type>hidden</type>
+                        <default_value>20</default_value>
+                    </item>
+                    <item id="otp_resend_waits">
+                        <type>hidden</type>
+                        <default_value>60,120,300</default_value>
+                    </item>
+                    <item id="otp_unreachable">
+                        <type>hidden</type>
+                        <default_value>pause</default_value>
+                    </item>
+                    <item id="cap_ip_hour">
+                        <type>hidden</type>
+                        <default_value>20</default_value>
+                    </item>
+                    <item id="cap_ip_day">
+                        <type>hidden</type>
+                        <default_value>100</default_value>
+                    </item>
+                    <item id="cap_ip_verify_hour">
+                        <type>hidden</type>
+                        <default_value>30</default_value>
+                    </item>
+                    <item id="cap_store_hour">
+                        <type>hidden</type>
+                        <default_value>0</default_value>
+                    </item>
+                    <item id="captcha_after_ip">
+                        <type>hidden</type>
+                        <default_value>3</default_value>
+                    </item>
+                    <item id="captcha_after_subject">
+                        <type>hidden</type>
+                        <default_value>2</default_value>
+                    </item>
+                    <item id="captcha_after_store">
+                        <type>hidden</type>
+                        <default_value>30</default_value>
+                    </item>
+                    <item id="trusted_proxies">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="turnstile_enabled">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="turnstile_site_key">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="turnstile_secret">
+                        <type>hidden</type>
+                        <default_value/>
                     </item>
 
                     <!-- Kept for marketplace documentation compliance (PRD 4.5). -->
@@ -423,6 +524,53 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
 
+        <!-- 2026-10-23 15:11 +03: Task M1.1a (Phase 3 Milestone 1, data model), task 596. The code table (hash only,
+             never a plain code), the rate-limit buckets (atomic counters) and the phone index (one row per account;
+             verified_phone is UNIQUE and NULL while unverified). The upgrade migration (upgrades/1.2.0, Task M1.1b)
+             builds exactly these definitions. -->
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_otp_codes` (
+            `code_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `purpose` varchar(16) NOT NULL DEFAULT '',
+            `subject` varchar(32) NOT NULL DEFAULT '',
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `session_hash` char(64) NOT NULL DEFAULT '',
+            `code_hash` char(64) NOT NULL DEFAULT '',
+            `salt` char(32) NOT NULL DEFAULT '',
+            `status` char(1) NOT NULL DEFAULT 'A',
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `expires_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `ip` varchar(45) NOT NULL DEFAULT '',
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`code_id`),
+            KEY `purpose_subject` (`purpose`, `subject`, `status`),
+            KEY `idx_created_at` (`created_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_rate_limits` (
+            `bucket` varchar(128) NOT NULL DEFAULT '',
+            `hits` int(11) unsigned NOT NULL DEFAULT 0,
+            `window_start` int(11) unsigned NOT NULL DEFAULT 0,
+            `last_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `locked_until` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`bucket`),
+            KEY `idx_last_at` (`last_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_phone_index` (
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `phone` varchar(32) NOT NULL DEFAULT '',
+            `verified_phone` varchar(32) DEFAULT NULL,
+            `verified_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`user_id`),
+            KEY `idx_phone` (`phone`),
+            UNIQUE KEY `uniq_verified_phone` (`verified_phone`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+
         <!-- Privileges (PRD 7): section addons, group kwtsms. -->
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms', 'Y', 'addons', 'kwtsms', 'Y');</item>
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms_logs', 'Y', 'addons', 'kwtsms', 'Y');</item>
@@ -449,6 +597,10 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_vendor_phones`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_vendor_quotas`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_customer_prefs`;</item>
+        <!-- 2026-10-23 15:11 +03: the three 1.2.0 tables (PRD 13), Task M1.1a, task 596. -->
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_otp_codes`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_rate_limits`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_phone_index`;</item>
         <item for="uninstall">DELETE FROM ?:usergroup_privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>
@@ -460,7 +612,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
              id starts with kwtsms_ (e.g. the mode key of a test add-on). The add-on has no dynamic key family; a unit test compares this list
              with every key the code writes (final review M3), task 596. 2026-10-21 17:37 +03: wording without the dev add-on's name (package dev-marker
              gate), task 596 -->
-        <item for="uninstall">DELETE FROM ?:storage_data WHERE data_key IN ('kwtsms_alerts', 'kwtsms_api_slot', 'kwtsms_balance', 'kwtsms_balance_refresh', 'kwtsms_coverage', 'kwtsms_cron_denied', 'kwtsms_cron_jobs', 'kwtsms_daily_cap', 'kwtsms_dashboard', 'kwtsms_gateway_state', 'kwtsms_last_cron', 'kwtsms_last_sync', 'kwtsms_low_balance_auto', 'kwtsms_low_balance_sms', 'kwtsms_sender_ban', 'kwtsms_senderids', 'kwtsms_sync_state');</item>
+        <item for="uninstall">DELETE FROM ?:storage_data WHERE data_key IN ('kwtsms_alerts', 'kwtsms_api_slot', 'kwtsms_balance', 'kwtsms_balance_refresh', 'kwtsms_coverage', 'kwtsms_cron_denied', 'kwtsms_cron_jobs', 'kwtsms_daily_cap', 'kwtsms_dashboard', 'kwtsms_gateway_state', 'kwtsms_last_cron', 'kwtsms_last_sync', 'kwtsms_low_balance_auto', 'kwtsms_low_balance_sms', 'kwtsms_phone_index_state', 'kwtsms_sender_ban', 'kwtsms_senderids', 'kwtsms_sync_state');</item>
+        <!-- 2026-10-23 15:11 +03: kwtsms_phone_index_state added to the list above (P3-31, Task M1.1a, task 596). -->
         <item for="uninstall">DELETE FROM ?:language_values WHERE name LIKE 'kwtsms.%';</item>
         <item for="uninstall" editions="ULTIMATE">DELETE FROM ?:ult_language_values WHERE name LIKE 'kwtsms.%';</item>
         <item for="uninstall">DELETE FROM ?:original_values WHERE msgctxt LIKE 'Languages::kwtsms.%';</item>

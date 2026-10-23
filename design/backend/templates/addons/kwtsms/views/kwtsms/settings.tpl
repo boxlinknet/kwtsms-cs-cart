@@ -478,6 +478,22 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </div>
     </div>
 
+    {* 2026-10-23 15:15 +03: Task M1.1a (P3-23), task 596. Shell of the "Phone and codes" section: its own form (Config mode
+       update_codes, POST, redirect back to #kwtsms_codes). Each later task of Milestone 1 adds its own fields inside the form
+       as kwtsms_codes[<setting id>]. The Turnstile secret key is never rendered back: its field is empty and an empty post
+       keeps the stored key. *}
+    <section class="kwtsms-section" id="kwtsms_codes" aria-labelledby="kwtsms_codes_title">
+        <h4 class="subheader" id="kwtsms_codes_title">{__("kwtsms.settings.codes_title")}</h4>
+        <p class="muted description" id="kwtsms_codes_help">{__("kwtsms.settings.codes_help")}</p>
+        <form action="{""|fn_url}" method="post" name="kwtsms_codes_form" id="kwtsms_codes_form" class="form-horizontal form-edit" autocomplete="off">
+            <div class="control-group">
+                <div class="controls kwtsms-actions">
+                    <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">
+                </div>
+            </div>
+        </form>
+    </section>
+
     {* ---- test SMS ----------------------------------------------------------------------------------------------- *}
     <section class="kwtsms-section" id="kwtsms_test_sms" aria-labelledby="kwtsms_test_sms_title">
         <h4 class="subheader" id="kwtsms_test_sms_title">{__("kwtsms.test_sms.title")}</h4>

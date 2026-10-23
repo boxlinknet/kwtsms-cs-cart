@@ -33,6 +33,8 @@
  *            Admin\VendorsPage.
  *            2026-10-23 02:12 +03: Task A11, task 596: POST send_order_sms (manual SMS of the admin order page),
  *            handled by Admin\OrderSmsSender.
+ *            2026-10-23 15:14 +03: Task M1.1a, task 596: POST update_codes (the "Phone and codes" section of Settings),
+ *            handled by Admin\SettingsPage::saveCodes().
  */
 
 // 2026-10-21 07:03 +03: the shared cron line helper, Tasks 1.13 and 1.15 fix round 1, task 596.
@@ -184,6 +186,20 @@ try {
                 );
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_storefront_senders'];
+
+            // 2026-10-23 15:14 +03: the "Phone and codes" section of Settings (Task M1.1a, P3-23, task 596). The gate
+            // has asked for POST, manage_kwtsms_gateway and the security hash. The fields are read from the POST body
+            // only (a query string is logged by servers and must never supply a value), raw, because the Turnstile
+            // secret key must reach Config unchanged; it is dropped from both request arrays right after.
+            case 'update_codes':
+                $kwtsms_codes = isset($_POST['kwtsms_codes']) && is_array($_POST['kwtsms_codes'])
+                    ? $_POST['kwtsms_codes']
+                    : [];
+                unset($_POST['kwtsms_codes'], $_REQUEST['kwtsms_codes']);
+                $kwtsms_page->saveCodes($kwtsms_codes);
+                unset($kwtsms_codes);
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_codes'];
 
             case 'test_sms':
                 $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';

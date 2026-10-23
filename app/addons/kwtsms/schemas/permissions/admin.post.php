@@ -74,6 +74,8 @@ $schema['kwtsms'] = [
         'update_vendor_quotas'      => ['permissions' => 'manage_kwtsms'],
         // 2026-10-23 02:08 +03: Task A11, task 596 (same privilege as Admin\RequestGate::MODES).
         'send_order_sms'            => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596 (same privilege as Admin\RequestGate::MODES).
+        'update_codes'              => ['permissions' => 'manage_kwtsms_gateway'],
     ],
 ];
 

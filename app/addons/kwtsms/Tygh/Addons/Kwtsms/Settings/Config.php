@@ -85,7 +85,39 @@ class Config implements ConfigInterface
         // 2026-10-22 13:15 +03: recipients one vendor may SMS per calendar month (P2-6); equals addon.xml,
         // Task A1, task 596.
         'vendor_monthly_quota' => '100',
+        // 2026-10-23 15:12 +03: the phone and SMS-code settings of 1.2.0 (P3 data model); equals addon.xml. Every
+        // feature switch is N: nothing turns on by itself. Task M1.1a, task 596.
+        'phone_country_check' => 'N',
+        'phone_unique' => 'N',
+        'register_code' => 'N',
+        'register_phone_required' => 'N',
+        'phone_change_code' => 'N',
+        'phone_change_notice' => 'N',
+        'otp_expiry_seconds' => '300',
+        'otp_max_attempts' => '5',
+        'otp_lockout_seconds' => '900',
+        'otp_phone_fail_ceiling' => '20',
+        'otp_resend_waits' => '60,120,300',
+        'otp_unreachable' => 'pause',
+        'cap_ip_hour' => '20',
+        'cap_ip_day' => '100',
+        'cap_ip_verify_hour' => '30',
+        'cap_store_hour' => '0',
+        'captcha_after_ip' => '3',
+        'captcha_after_subject' => '2',
+        'captcha_after_store' => '30',
+        'trusted_proxies' => '',
+        'turnstile_enabled' => 'N',
+        'turnstile_site_key' => '',
+        'turnstile_secret' => '',
     ];
+
+    /**
+     * 2026-10-23 15:12 +03: the storage_data key of the phone index backfill state (P3-31). Named here so the
+     * uninstall list of addon.xml and its parity test stay exact from 1.2.0 on; the backfill (Task M1.6) reads and
+     * writes it. Task M1.1a, task 596.
+     */
+    public const KEY_PHONE_INDEX_STATE = 'kwtsms_phone_index_state';
 
     /**
      * Which keys each save mode may write, in the order they are validated and written. enabled comes
@@ -114,6 +146,10 @@ class Config implements ConfigInterface
         ],
         // 2026-10-22 22:22 +03: Task A8 (SafatMall F4, P2-6), task 596. The Vendor SMS page writes the monthly quota.
         'update_vendor_quotas' => ['vendor_monthly_quota'],
+        // 2026-10-23 15:12 +03: Task M1.1a (P3-23), task 596. The "Phone and codes" section of Settings. Only the
+        // keys listed here are writable; each later task of Milestone 1 adds the keys of its own fields. The Turnstile
+        // secret is first because the save rule for an empty post (keep the stored secret) is part of this task.
+        'update_codes' => ['turnstile_secret'],
     ];
 
     /**
@@ -155,6 +191,32 @@ class Config implements ConfigInterface
         // Task A1, task 596.
         'vendor_monthly_quota' => ['int', 0, 100000],
         'cron_url_enabled' => ['flag'],
+        // 2026-10-23 15:12 +03: Task M1.1a, task 596. Ranges of the 1.2.0 settings (P3 data model). The three
+        // captcha_after_* ranges are mine (the plan gives defaults only): 1 up to 1000 per IP and subject, 100000 for
+        // the store window. 'waits' = 1 to 5 whole numbers (min, max, count) that never decrease; 'proxies' = a list
+        // of IPs or CIDR blocks; 'sitekey' = the public Turnstile site key.
+        'phone_country_check' => ['flag'],
+        'phone_unique' => ['flag'],
+        'register_code' => ['flag'],
+        'register_phone_required' => ['flag'],
+        'phone_change_code' => ['flag'],
+        'phone_change_notice' => ['flag'],
+        'otp_expiry_seconds' => ['int', 60, 900],
+        'otp_max_attempts' => ['int', 3, 10],
+        'otp_lockout_seconds' => ['int', 60, 86400],
+        'otp_phone_fail_ceiling' => ['int', 5, 1000],
+        'otp_resend_waits' => ['waits', 30, 3600, 5],
+        'otp_unreachable' => ['enum', ['pause', 'continue']],
+        'cap_ip_hour' => ['int', 1, 10000],
+        'cap_ip_day' => ['int', 1, 10000],
+        'cap_ip_verify_hour' => ['int', 5, 10000],
+        'cap_store_hour' => ['int', 0, 100000],
+        'captcha_after_ip' => ['int', 1, 1000],
+        'captcha_after_subject' => ['int', 1, 1000],
+        'captcha_after_store' => ['int', 1, 100000],
+        'trusted_proxies' => ['proxies'],
+        'turnstile_enabled' => ['flag'],
+        'turnstile_site_key' => ['sitekey'],
     ];
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
@@ -275,22 +337,9 @@ class Config implements ConfigInterface
 
     public function password(): string
     {
-        $stored = $this->raw('api_password');
-        if ($stored === '') {
-            return '';
-        }
-
-        $password = '';
-        try {
-            $plain = $this->decrypt($stored);
-            if (is_string($plain) && strncmp($plain, self::PASSWORD_PREFIX, strlen(self::PASSWORD_PREFIX)) === 0) {
-                $password = (string) substr($plain, strlen(self::PASSWORD_PREFIX));
-            }
-        } catch (\Throwable $e) {
-            $password = '';
-        }
-
-        return $password;
+        // 2026-10-23 15:12 +03: the decrypt-and-check-prefix steps moved to prefixedSecret(), shared with
+        // turnstileSecret() (Task M1.1a, task 596). Behaviour unchanged.
+        return $this->prefixedSecret('api_password');
     }
 
     public function credentialsState(): string
@@ -418,6 +467,134 @@ class Config implements ConfigInterface
         return preg_match('/^[0-9a-f]{32}$/D', $key) === 1 ? $key : '';
     }
 
+    // ------------------------------------------------------------------ phone and codes (2026-10-23 15:12 +03,
+    // Task M1.1a, task 596). A stored value that is out of range or malformed reads as the default.
+
+    public function phoneCountryCheck(): bool
+    {
+        return $this->flag('phone_country_check');
+    }
+
+    public function phoneUnique(): bool
+    {
+        return $this->flag('phone_unique');
+    }
+
+    public function registerCode(): bool
+    {
+        return $this->flag('register_code');
+    }
+
+    public function registerPhoneRequired(): bool
+    {
+        return $this->flag('register_phone_required');
+    }
+
+    public function phoneChangeCode(): bool
+    {
+        return $this->flag('phone_change_code');
+    }
+
+    public function phoneChangeNotice(): bool
+    {
+        return $this->flag('phone_change_notice');
+    }
+
+    public function otpExpirySeconds(): int
+    {
+        return $this->number('otp_expiry_seconds');
+    }
+
+    public function otpMaxAttempts(): int
+    {
+        return $this->number('otp_max_attempts');
+    }
+
+    public function otpLockoutSeconds(): int
+    {
+        return $this->number('otp_lockout_seconds');
+    }
+
+    public function otpPhoneFailCeiling(): int
+    {
+        return $this->number('otp_phone_fail_ceiling');
+    }
+
+    public function otpResendWaits(): array
+    {
+        return $this->parseWaits($this->raw('otp_resend_waits')) ?? [60, 120, 300];
+    }
+
+    public function otpUnreachable(): string
+    {
+        return $this->enum('otp_unreachable');
+    }
+
+    public function capIpHour(): int
+    {
+        return $this->number('cap_ip_hour');
+    }
+
+    public function capIpDay(): int
+    {
+        return $this->number('cap_ip_day');
+    }
+
+    public function capIpVerifyHour(): int
+    {
+        return $this->number('cap_ip_verify_hour');
+    }
+
+    public function capStoreHour(): int
+    {
+        return $this->number('cap_store_hour');
+    }
+
+    public function captchaAfterIp(): int
+    {
+        return $this->number('captcha_after_ip');
+    }
+
+    public function captchaAfterSubject(): int
+    {
+        return $this->number('captcha_after_subject');
+    }
+
+    public function captchaAfterStore(): int
+    {
+        return $this->number('captcha_after_store');
+    }
+
+    public function trustedProxies(): array
+    {
+        $proxies = [];
+        foreach ((array) preg_split('/[,;\s]+/', $this->raw('trusted_proxies'), -1, PREG_SPLIT_NO_EMPTY) as $entry) {
+            $entry = (string) $entry;
+            if ($this->isIpOrCidr($entry) && !in_array($entry, $proxies, true)) {
+                $proxies[] = $entry;
+            }
+        }
+
+        return $proxies;
+    }
+
+    public function turnstileEnabled(): bool
+    {
+        return $this->flag('turnstile_enabled');
+    }
+
+    public function turnstileSiteKey(): string
+    {
+        $key = $this->raw('turnstile_site_key');
+
+        return preg_match('/^[0-9A-Za-z_\-]{1,100}$/D', $key) === 1 ? $key : '';
+    }
+
+    public function turnstileSecret(): string
+    {
+        return $this->prefixedSecret('turnstile_secret');
+    }
+
     // ------------------------------------------------------------------ save
 
     public function save(
@@ -441,9 +618,19 @@ class Config implements ConfigInterface
                 if (!array_key_exists($key, $values)) {
                     continue;
                 }
-                $stored = $mode === 'logout'
-                    ? $this->normalizeClear($key, $values[$key])
-                    : $this->normalize($key, $values[$key]);
+                // 2026-10-23 15:12 +03: Task M1.1a, task 596. The Turnstile secret key is stored like the API password
+                // (prefix kwtsms1:, encrypted). The settings form never shows it, so an empty post means "keep the
+                // stored one" (not a write and not a rejection); only a new non-empty value replaces it.
+                if ($mode === 'update_codes' && $key === 'turnstile_secret') {
+                    if (is_string($values[$key]) && trim($values[$key]) === '') {
+                        continue;
+                    }
+                    $stored = $this->encryptPassword($values[$key]);
+                } else {
+                    $stored = $mode === 'logout'
+                        ? $this->normalizeClear($key, $values[$key])
+                        : $this->normalize($key, $values[$key]);
+                }
                 // 2026-10-20 22:26 +03: enabled = Y is refused when the same request empties the sender or asks
                 // for one that was refused or could not be saved, task 596 (Task 1.4 fix round 1).
                 if (
@@ -803,6 +990,75 @@ class Config implements ConfigInterface
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /**
+     * 2026-10-23 15:12 +03: the plain value of a secret stored as fn_encrypt_text('kwtsms1:' . $secret), or '' when
+     * none is saved, it cannot be decrypted or it lacks the prefix (a changed crypt key or a tampered value reads as
+     * "not set", never as a wrong secret sent out). Shared by password() and turnstileSecret(), Task M1.1a, task 596.
+     */
+    private function prefixedSecret(string $key): string
+    {
+        $stored = $this->raw($key);
+        if ($stored === '') {
+            return '';
+        }
+
+        $secret = '';
+        try {
+            $plain = $this->decrypt($stored);
+            if (is_string($plain) && strncmp($plain, self::PASSWORD_PREFIX, strlen(self::PASSWORD_PREFIX)) === 0) {
+                $secret = (string) substr($plain, strlen(self::PASSWORD_PREFIX));
+            }
+        } catch (\Throwable $e) {
+            $secret = '';
+        }
+
+        return $secret;
+    }
+
+    /**
+     * 2026-10-23 15:12 +03: "30,60,120" to [30, 60, 120] when it holds 1 to the allowed count whole numbers inside the
+     * range of the otp_resend_waits spec that never decrease; null for anything else (empty item, text, sign, too
+     * many, out of range, decreasing). Task M1.1a, task 596.
+     *
+     * @return int[]|null
+     */
+    private function parseWaits(string $stored): ?array
+    {
+        [, $min, $max, $count] = self::SPECS['otp_resend_waits'];
+        $items = explode(',', $stored);
+        if (count($items) > $count) {
+            return null;
+        }
+        $waits = [];
+        foreach ($items as $item) {
+            $item = trim($item);
+            if (!$this->isDigits($item, 5) || (int) $item < $min || (int) $item > $max) {
+                return null;
+            }
+            if ($waits !== [] && (int) $item < $waits[count($waits) - 1]) {
+                return null;
+            }
+            $waits[] = (int) $item;
+        }
+
+        return $waits;
+    }
+
+    /** An IPv4 or IPv6 address, or one with a /prefix inside the family's range. */
+    private function isIpOrCidr(string $entry): bool
+    {
+        $parts = explode('/', $entry);
+        if (count($parts) > 2 || filter_var($parts[0], FILTER_VALIDATE_IP) === false) {
+            return false;
+        }
+        if (count($parts) === 1) {
+            return true;
+        }
+        $max = strpos($parts[0], ':') !== false ? 128 : 32;
+
+        return $this->isDigits($parts[1], 3) && (int) $parts[1] <= $max;
+    }
 
     private function encrypt(
         #[\SensitiveParameter]

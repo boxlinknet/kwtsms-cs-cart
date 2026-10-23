@@ -148,13 +148,97 @@ interface ConfigInterface
 
     public function cronKey(): string;
 
+    // Phone and codes. 2026-10-23 15:12 +03: Task M1.1a (1.2.0), task 596. Every getter returns its default for an
+    // absent setting, an out of range value or a malformed one.
+
+    /** C3: country check on the phones of registration, checkout and profile. Default N. */
+    public function phoneCountryCheck(): bool;
+
+    /** C4: one account per phone. Default N. */
+    public function phoneUnique(): bool;
+
+    /** B1: registration needs a verified SMS code. Default N. */
+    public function registerCode(): bool;
+
+    /** B1: the registration phone is required. Default N. */
+    public function registerPhoneRequired(): bool;
+
+    /** B5: a changed account phone needs a code sent to the new number. Default N. */
+    public function phoneChangeCode(): bool;
+
+    /** B5: a notice SMS goes to the old number after a change. Default N. */
+    public function phoneChangeNotice(): bool;
+
+    /** 60..900, default 300 */
+    public function otpExpirySeconds(): int;
+
+    /** 3..10, default 5 */
+    public function otpMaxAttempts(): int;
+
+    /** 60..86400, default 900 */
+    public function otpLockoutSeconds(): int;
+
+    /** 5..1000, default 20 */
+    public function otpPhoneFailCeiling(): int;
+
+    /**
+     * Seconds to wait before the 2nd, 3rd, ... code of one sequence: 1 to 5 values of 30..3600 that never decrease;
+     * [60, 120, 300] for anything invalid.
+     *
+     * @return int[]
+     */
+    public function otpResendWaits(): array;
+
+    /** 'pause' or 'continue' (P3-13), default 'pause' */
+    public function otpUnreachable(): string;
+
+    /** 1..10000, default 20 */
+    public function capIpHour(): int;
+
+    /** 1..10000, default 100 */
+    public function capIpDay(): int;
+
+    /** 5..10000, default 30 */
+    public function capIpVerifyHour(): int;
+
+    /** 0..100000, 0 = off (default) */
+    public function capStoreHour(): int;
+
+    /** Requests per IP and hour before a CAPTCHA token is needed, 1..1000, default 3 */
+    public function captchaAfterIp(): int;
+
+    /** Codes per phone and hour before a token is needed, 1..1000, default 2 */
+    public function captchaAfterSubject(): int;
+
+    /** Requests per store and 10 minutes before a token is needed, 1..100000, default 30 */
+    public function captchaAfterStore(): int;
+
+    /**
+     * IPs and CIDR blocks (IPv4 and IPv6) of the proxies whose X-Forwarded-For is believed; invalid entries dropped.
+     *
+     * @return string[]
+     */
+    public function trustedProxies(): array;
+
+    public function turnstileEnabled(): bool;
+
+    /** The public site key; '' when none or malformed. */
+    public function turnstileSiteKey(): string;
+
+    /**
+     * The decrypted Turnstile secret key, '' when none is saved or it cannot be decrypted or lacks the "kwtsms1:"
+     * prefix. Never logged, rendered back or put in JS.
+     */
+    public function turnstileSecret(): string;
+
     /**
      * Writes the keys that $mode may write, each validated and cast, and returns the rejected keys
      * (not allowed in this mode, unknown, invalid value, or failing a precondition such as
      * "enabled = Y only when configured"). Rejected keys are not written; accepted keys are.
      *
      * @param string               $mode   One of save_settings, login, logout,
-     *                                     update_admin_alerts, update_integrations
+     *                                     update_admin_alerts, update_integrations, update_vendor_quotas,
+     *                                     update_codes
      * @param array<string, mixed> $values Request values keyed by setting id
      *
      * @return string[] Rejected keys, in request order

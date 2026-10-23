@@ -162,6 +162,99 @@ msgctxt "SettingsOptions::kwtsms::vendor_monthly_quota"
 msgid "Vendor SMS per month"
 msgstr "عدد رسائل المورد في الشهر"
 
+# 2026-10-23 15:21 +03: the 1.2.0 phone and code settings, Task M1.1a, task 596
+msgctxt "SettingsOptions::kwtsms::phone_country_check"
+msgid "Check phone number country"
+msgstr "التحقق من دولة رقم الهاتف"
+
+msgctxt "SettingsOptions::kwtsms::phone_unique"
+msgid "One account per phone number"
+msgstr "حساب واحد لكل رقم هاتف"
+
+msgctxt "SettingsOptions::kwtsms::register_code"
+msgid "SMS code at registration"
+msgstr "رمز تحقق نصي عند التسجيل"
+
+msgctxt "SettingsOptions::kwtsms::register_phone_required"
+msgid "Phone number required at registration"
+msgstr "رقم الهاتف مطلوب عند التسجيل"
+
+msgctxt "SettingsOptions::kwtsms::phone_change_code"
+msgid "SMS code when the phone number changes"
+msgstr "رمز تحقق نصي عند تغيير رقم الهاتف"
+
+msgctxt "SettingsOptions::kwtsms::phone_change_notice"
+msgid "Notice to the old number after a change"
+msgstr "إشعار إلى الرقم القديم بعد التغيير"
+
+msgctxt "SettingsOptions::kwtsms::otp_expiry_seconds"
+msgid "SMS code lifetime (seconds)"
+msgstr "مدة صلاحية رمز التحقق (بالثواني)"
+
+msgctxt "SettingsOptions::kwtsms::otp_max_attempts"
+msgid "Wrong code attempts before lockout"
+msgstr "عدد المحاولات الخاطئة قبل الإيقاف"
+
+msgctxt "SettingsOptions::kwtsms::otp_lockout_seconds"
+msgid "Lockout time (seconds)"
+msgstr "مدة الإيقاف (بالثواني)"
+
+msgctxt "SettingsOptions::kwtsms::otp_phone_fail_ceiling"
+msgid "Wrong attempts per phone and hour"
+msgstr "المحاولات الخاطئة لكل رقم في الساعة"
+
+msgctxt "SettingsOptions::kwtsms::otp_resend_waits"
+msgid "Wait before a new code (seconds)"
+msgstr "الانتظار قبل رمز جديد (بالثواني)"
+
+msgctxt "SettingsOptions::kwtsms::otp_unreachable"
+msgid "When codes cannot be sent"
+msgstr "عند تعذر إرسال الرموز"
+
+msgctxt "SettingsOptions::kwtsms::cap_ip_hour"
+msgid "Code requests per IP address and hour"
+msgstr "طلبات الرمز لكل عنوان IP في الساعة"
+
+msgctxt "SettingsOptions::kwtsms::cap_ip_day"
+msgid "Code requests per IP address and day"
+msgstr "طلبات الرمز لكل عنوان IP في اليوم"
+
+msgctxt "SettingsOptions::kwtsms::cap_ip_verify_hour"
+msgid "Code submissions per IP address and hour"
+msgstr "إدخالات الرمز لكل عنوان IP في الساعة"
+
+msgctxt "SettingsOptions::kwtsms::cap_store_hour"
+msgid "Code SMS per store and hour (0 = off)"
+msgstr "رسائل الرمز لكل متجر في الساعة (0 = معطل)"
+
+msgctxt "SettingsOptions::kwtsms::captcha_after_ip"
+msgid "CAPTCHA after requests per IP address"
+msgstr "اختبار CAPTCHA بعد عدد الطلبات لكل عنوان IP"
+
+msgctxt "SettingsOptions::kwtsms::captcha_after_subject"
+msgid "CAPTCHA after codes per phone number"
+msgstr "اختبار CAPTCHA بعد عدد الرموز لكل رقم"
+
+msgctxt "SettingsOptions::kwtsms::captcha_after_store"
+msgid "CAPTCHA after requests per store"
+msgstr "اختبار CAPTCHA بعد عدد الطلبات لكل متجر"
+
+msgctxt "SettingsOptions::kwtsms::trusted_proxies"
+msgid "Trusted proxies"
+msgstr "الوكلاء الموثوقون"
+
+msgctxt "SettingsOptions::kwtsms::turnstile_enabled"
+msgid "Cloudflare Turnstile"
+msgstr "حماية Cloudflare Turnstile"
+
+msgctxt "SettingsOptions::kwtsms::turnstile_site_key"
+msgid "Turnstile site key"
+msgstr "مفتاح موقع Turnstile"
+
+msgctxt "SettingsOptions::kwtsms::turnstile_secret"
+msgid "Turnstile secret key"
+msgstr "المفتاح السري لـ Turnstile"
+
 msgctxt "SettingsOptions::kwtsms::marketplace_license_number"
 msgid "Marketplace license number"
 msgstr "رقم ترخيص Marketplace"
@@ -5319,3 +5412,25 @@ msgstr "يحتوي النص على أقواس { } ولن يُرسل. المتغ�
 msgctxt "Languages::kwtsms.integrations.area.vendors.plans"
 msgid "Vendor plans can set their own quota, which replaces this number for vendors on those plans."
 msgstr "يمكن لخطط البائعين تحديد حصة خاصة بها، وتحل محل هذا الرقم للبائعين على تلك الخطط."
+
+# 2026-10-23 15:15 +03: Task M1.1a, task 596. The "Phone and codes" section of Settings (shell; the fields arrive with the
+# tasks of Milestone 1).
+msgctxt "Languages::kwtsms.settings.codes_title"
+msgid "Phone and codes"
+msgstr "الهاتف ورموز التحقق"
+
+msgctxt "Languages::kwtsms.settings.codes_help"
+msgid "Phone number checks and SMS verification codes. Every option is off until you turn it on."
+msgstr "التحقق من أرقام الهاتف ورموز التحقق عبر الرسائل النصية. كل خيار معطل حتى تقوم بتفعيله."
+
+msgctxt "Languages::kwtsms.settings.codes_save"
+msgid "Save phone and code settings"
+msgstr "حفظ إعدادات الهاتف والرموز"
+
+msgctxt "Languages::kwtsms.settings.codes_unchanged"
+msgid "Nothing to save."
+msgstr "لا توجد تغييرات للحفظ."
+
+msgctxt "Languages::kwtsms.settings.field.turnstile_secret"
+msgid "Turnstile secret key"
+msgstr "المفتاح السري لـ Turnstile"

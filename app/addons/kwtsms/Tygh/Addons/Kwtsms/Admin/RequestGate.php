@@ -98,6 +98,9 @@ final class RequestGate
         // needs the gateway privilege like the test SMS; the controller also asks core's view_orders for that order.
         // Root administrators on All storefronts only, like every mode here (a vendor administrator is refused).
         'send_order_sms'            => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596. The "Phone and codes" section of Settings. It changes
+        // what customers can do and which SMS the store pays for, so it needs the gateway privilege like Settings.
+        'update_codes'              => [self::POST, 'manage_kwtsms_gateway'],
     ];
 
     /**
