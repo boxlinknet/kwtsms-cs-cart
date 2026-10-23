@@ -544,9 +544,13 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY (`code_id`),
             KEY `purpose_subject` (`purpose`, `subject`, `status`),
-            KEY `idx_created_at` (`created_at`)
+            KEY `idx_created_at` (`created_at`),
+            KEY `idx_user_id` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
+        <!-- 2026-10-23 17:15 +03: idx_user_id on kwtsms_otp_codes for the GDPR collect and anonymize queries (they filter
+             on user_id; without it the DELETE scans and locks the whole table). Fix round 1, finding M3, ruling P3-R2: a
+             deliberate departure from the plan's Data model; Task M1.1b builds the same definition, task 596. -->
         <item>
             CREATE TABLE IF NOT EXISTS `?:kwtsms_rate_limits` (
             `bucket` varchar(128) NOT NULL DEFAULT '',
