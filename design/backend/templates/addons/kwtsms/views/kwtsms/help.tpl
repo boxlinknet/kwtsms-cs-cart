@@ -18,6 +18,7 @@ USAGE:     Rendered by kwtsms.help (controllers/backend/kwtsms.php) with $kwtsms
 DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, kwtsms.help.* and kwtsms.nav.* language
            variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
    array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
    (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
@@ -191,10 +192,10 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
             {* ---- costs ------------------------------------------------------------------------------------------ *}
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_costs" aria-labelledby="kwtsms_help_costs_title">
                 <h4 class="subheader" id="kwtsms_help_costs_title">{__("kwtsms.help.costs.title")}</h4>
-                <p>{__("kwtsms.help.costs.p1", ["[gsm_single]" => $h.sms.gsm_single, "[gsm_multi]" => $h.sms.gsm_multi])}</p>
-                <p>{__("kwtsms.help.costs.p2", ["[unicode_single]" => $h.sms.unicode_single, "[unicode_multi]" => $h.sms.unicode_multi])}</p>
+                <p>{__("kwtsms.help.costs.p1", ["[gsm_single]" => $h.sms.gsm_single|fn_html_escape, "[gsm_multi]" => $h.sms.gsm_multi|fn_html_escape])}</p>
+                <p>{__("kwtsms.help.costs.p2", ["[unicode_single]" => $h.sms.unicode_single|fn_html_escape, "[unicode_multi]" => $h.sms.unicode_multi|fn_html_escape])}</p>
                 <p>{__("kwtsms.help.costs.p3")}</p>
-                <p>{__("kwtsms.help.costs.p4", ["[max_pages]" => $h.sms.max_pages])} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.costs.p4", ["[max_pages]" => $h.sms.max_pages|fn_html_escape])} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
 
                 <h5 class="kwtsms-subtitle">{__("kwtsms.help.costs.low_title")}</h5>
                 <p>{__("kwtsms.help.costs.low_p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="dashboard" pages=$h.pages}</p>

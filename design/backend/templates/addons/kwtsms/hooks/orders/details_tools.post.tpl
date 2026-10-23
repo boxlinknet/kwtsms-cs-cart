@@ -16,6 +16,7 @@ USAGE:     Rendered by core on orders.details.
 DEPENDS:   $kwtsms_order_send (Admin\OrderSmsSender::dialogData()), counter.js, backend.js, ordersms.less, kwtsms.order_sms.*
            and kwtsms.templates.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {if $kwtsms_order_send}
     {$d = $kwtsms_order_send}
     <li><a class="cm-dialog-opener cm-dialog-auto-size" id="kwtsms_order_sms_open" data-ca-target-id="kwtsms_order_sms_dialog" data-ca-dialog-title="{__("kwtsms.order_sms.title")}">{__("kwtsms.order_sms.button")}</a>
@@ -23,7 +24,7 @@ DEPENDS:   $kwtsms_order_send (Admin\OrderSmsSender::dialogData()), counter.js, 
          data-kwtsms-max-pages="{$d.max_pages}"
          data-kwtsms-enc-ascii="{__("kwtsms.templates.enc_ascii")}"
          data-kwtsms-enc-unicode="{__("kwtsms.templates.enc_unicode")}"
-         data-kwtsms-msg-over="{__("kwtsms.order_sms.over", ["[max]" => $d.max_pages])}">
+         data-kwtsms-msg-over="{__("kwtsms.order_sms.over", ["[max]" => $d.max_pages|fn_html_escape])}">
         <form action="{""|fn_url}" method="post" name="kwtsms_order_sms_form" id="kwtsms_order_sms_form" class="kwtsms-order-sms-form" autocomplete="off">
             <input type="hidden" name="kwtsms_order_id" value="{$d.order_id}">
             <p class="muted">{__("kwtsms.order_sms.intro")}</p>

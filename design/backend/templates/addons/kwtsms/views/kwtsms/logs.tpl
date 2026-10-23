@@ -13,6 +13,7 @@ USAGE:     Rendered by kwtsms.logs (controllers/backend/kwtsms.php) with $kwtsms
            $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, logs.js, kwtsms.logs.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {$l = $kwtsms_logs}
 {$date_time = "`$settings.Appearance.date_format`, `$settings.Appearance.time_format`"}
 {capture name="mainbox"}
@@ -42,15 +43,15 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <p class="kwtsms-hint" id="kwtsms_clear_error" role="alert">{__($c.error)}</p>
             {elseif $c.count == 0}
                 <h4 id="kwtsms_clear_confirm_title">{__("kwtsms.logs.clear.nothing_title")}</h4>
-                <p>{__("kwtsms.logs.clear.nothing", ["[log]" => $c.log])}</p>
+                <p>{__("kwtsms.logs.clear.nothing", ["[log]" => $c.log|fn_html_escape])}</p>
                 <a class="btn" href="{$l.list_url|fn_url}">{__("kwtsms.logs.clear.back")}</a>
             {else}
                 {* 2026-10-21 17:28 +03: plural forms, the number first (final review M5), task 596 *}
-                <h4 id="kwtsms_clear_confirm_title">{__("kwtsms.logs.clear.confirm_title", [0 => $c.count, "[count]" => $c.count|number_format])}</h4>
+                <h4 id="kwtsms_clear_confirm_title">{__("kwtsms.logs.clear.confirm_title", [0 => $c.count|fn_html_escape, "[count]" => $c.count|number_format|fn_html_escape])}</h4>
                 <p>
-                    {if $c.scope == "all"}{__("kwtsms.logs.clear.confirm_all", ["[log]" => $c.log])}
-                    {elseif $c.scope == "older"}{__("kwtsms.logs.clear.confirm_older", ["[log]" => $c.log, "[days]" => $c.days])}
-                    {else}{__("kwtsms.logs.clear.confirm_filter", ["[log]" => $c.log])}{/if}
+                    {if $c.scope == "all"}{__("kwtsms.logs.clear.confirm_all", ["[log]" => $c.log|fn_html_escape])}
+                    {elseif $c.scope == "older"}{__("kwtsms.logs.clear.confirm_older", ["[log]" => $c.log|fn_html_escape, "[days]" => $c.days|fn_html_escape])}
+                    {else}{__("kwtsms.logs.clear.confirm_filter", ["[log]" => $c.log|fn_html_escape])}{/if}
                     {__("kwtsms.logs.clear.cannot_undo")}
                 </p>
                 {if $l.tab == "debug"}<p class="muted">{__("kwtsms.logs.clear.audit_kept")}</p>{/if}
@@ -61,7 +62,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                         {foreach $c.hidden as $field}
                             <input type="hidden" name="{$field.name}" value="{$field.value}">
                         {/foreach}
-                        <input type="submit" class="btn btn-danger" id="kwtsms_clear_submit" name="dispatch[kwtsms.clear_logs]" value="{__("kwtsms.logs.clear.submit", [0 => $c.count, "[count]" => $c.count|number_format])}">
+                        <input type="submit" class="btn btn-danger" id="kwtsms_clear_submit" name="dispatch[kwtsms.clear_logs]" value="{__("kwtsms.logs.clear.submit", [0 => $c.count|fn_html_escape, "[count]" => $c.count|number_format|fn_html_escape])}">
                     </form>
                     <a class="btn" id="kwtsms_clear_cancel" href="{$l.list_url|fn_url}">{__("cancel")}</a>
                 </div>
@@ -207,7 +208,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
     {* ---- summary and export ------------------------------------------------------------------------------------- *}
     <div class="kwtsms-logs-bar">
         {* 2026-10-21 17:28 +03: plural forms, the number first (final review M5), task 596 *}
-        <p class="kwtsms-logs-bar__count" id="kwtsms_logs_count">{__("kwtsms.logs.count", [0 => $l.search.total_items, "[count]" => $l.search.total_items|number_format])}</p>
+        <p class="kwtsms-logs-bar__count" id="kwtsms_logs_count">{__("kwtsms.logs.count", [0 => $l.search.total_items|fn_html_escape, "[count]" => $l.search.total_items|number_format|fn_html_escape])}</p>
         {if $l.tab == "messages" && $l.can.gateway}
             <a class="btn" id="kwtsms_logs_export" href="{$l.export_url|fn_url}" download>{__("kwtsms.logs.export")}</a>
         {/if}
@@ -263,7 +264,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                                     <span class="kwtsms-logs-to__who">{$r.receiver_label}</span>
                                     {if $l.tab == "messages"}
                                         {foreach $r.numbers as $number}<bdi dir="ltr" class="kwtsms-logs-number">{$number}</bdi> {/foreach}
-                                        {if $r.numbers_more}<span class="muted">{__("kwtsms.logs.more_numbers", ["[count]" => $r.numbers_more])}</span>{/if}
+                                        {if $r.numbers_more}<span class="muted">{__("kwtsms.logs.more_numbers", ["[count]" => $r.numbers_more|fn_html_escape])}</span>{/if}
                                     {else}
                                         <bdi dir="ltr" class="kwtsms-logs-number">{if $r.phone}{$r.phone}{else}{$r.phone_raw}{/if}</bdi>
                                     {/if}
@@ -294,7 +295,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
             {if $l.prev_url}
                 <a class="btn" id="kwtsms_page_prev" href="{$l.prev_url|fn_url}">{__("kwtsms.logs.page_prev")}</a>
             {/if}
-            <span class="kwtsms-pager__where">{__("kwtsms.logs.page_of", ["[page]" => $l.search.page, "[pages]" => $l.search.pages])}</span>
+            <span class="kwtsms-pager__where">{__("kwtsms.logs.page_of", ["[page]" => $l.search.page|fn_html_escape, "[pages]" => $l.search.pages|fn_html_escape])}</span>
             {if $l.next_url}
                 <a class="btn" id="kwtsms_page_next" href="{$l.next_url|fn_url}">{__("kwtsms.logs.page_next")}</a>
             {/if}
@@ -305,8 +306,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
     <section class="kwtsms-section kwtsms-logs-maint" aria-labelledby="kwtsms_logs_maint_title">
         <h4 class="subheader" id="kwtsms_logs_maint_title">{__("kwtsms.logs.keep_title")}</h4>
         <p class="muted" id="kwtsms_logs_retention">
-            {if $l.retention.messages > 0}{__("kwtsms.logs.keep.messages_days", ["[days]" => $l.retention.messages])}{else}{__("kwtsms.logs.keep.messages_forever")}{/if}
-            {__("kwtsms.logs.keep.attempts_debug", ["[attempts]" => $l.retention.attempts, "[debug]" => $l.retention.debug])}
+            {if $l.retention.messages > 0}{__("kwtsms.logs.keep.messages_days", ["[days]" => $l.retention.messages|fn_html_escape])}{else}{__("kwtsms.logs.keep.messages_forever")}{/if}
+            {__("kwtsms.logs.keep.attempts_debug", ["[attempts]" => $l.retention.attempts|fn_html_escape, "[debug]" => $l.retention.debug|fn_html_escape])}
         </p>
         {if $l.can.gateway}
             <div class="kwtsms-logs-clear" id="kwtsms_logs_clear">
@@ -314,7 +315,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                     <input type="hidden" name="dispatch" value="kwtsms.logs">
                     <input type="hidden" name="tab" value="{$l.tab}">
                     <input type="hidden" name="clear" value="all">
-                    <input type="submit" class="btn" id="kwtsms_clear_all" value="{__("kwtsms.logs.clear.all", ["[log]" => $l.tabs[$l.tab].title])}">
+                    <input type="submit" class="btn" id="kwtsms_clear_all" value="{__("kwtsms.logs.clear.all", ["[log]" => $l.tabs[$l.tab].title|fn_html_escape])}">
                 </form>
                 <form action="{""|fn_url}" method="get" class="kwtsms-inline-form kwtsms-logs-clear__older" name="kwtsms_clear_older_form">
                     <input type="hidden" name="dispatch" value="kwtsms.logs">

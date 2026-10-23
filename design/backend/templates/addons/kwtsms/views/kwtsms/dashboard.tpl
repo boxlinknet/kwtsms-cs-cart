@@ -15,6 +15,7 @@ USAGE:     Rendered by kwtsms.dashboard (controllers/backend/kwtsms.php) with $k
            and $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.outcome.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {$date_time = "`$settings.Appearance.date_format`, `$settings.Appearance.time_format`"}
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-dashboard" id="kwtsms_dashboard_page">
@@ -49,8 +50,8 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                     {* 2026-10-21 14:10 +03: the message count picks the singular or plural form (core's plural langvar: the number
                        comes first in the params and fills [n]); the credits are their own text, "1 credit" or "3 credits".
                        Cleanup 2 item 4, task 596. *}
-                    {$held_credits = __("kwtsms.dash.credits_n", [$kwtsms.test_card.credits])}
-                    {__("kwtsms.dash.test.held", [$kwtsms.test_card.messages, "[date]" => $held_date, "[credits]" => $held_credits])}
+                    {$held_credits = __("kwtsms.dash.credits_n", [$kwtsms.test_card.credits|fn_html_escape])}
+                    {__("kwtsms.dash.test.held", [$kwtsms.test_card.messages|fn_html_escape, "[date]" => $held_date|fn_html_escape, "[credits]" => $held_credits|fn_html_escape])}
                 {else}
                     {__("kwtsms.dash.test.none")}
                 {/if}
@@ -69,16 +70,16 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                 <span class="kwtsms-label">{__("kwtsms.dash.card.balance")}</span>
                 {if $kwtsms.balance}
                     {* 2026-10-21 14:10 +03: "1 credit available" / "5 credits available": the balance picks the form (cleanup 2 item 4, task 596) *}
-                    <p class="kwtsms-balance-card__number"><bdi id="kwtsms_balance_value">{$kwtsms.balance.available}</bdi> <span>{__("kwtsms.dash.balance.available", [$kwtsms.balance.available])}</span></p>
+                    <p class="kwtsms-balance-card__number"><bdi id="kwtsms_balance_value">{$kwtsms.balance.available}</bdi> <span>{__("kwtsms.dash.balance.available", [$kwtsms.balance.available|fn_html_escape])}</span></p>
                     <p class="muted kwtsms-balance-card__meta">
-                        {if $kwtsms.balance.purchased !== ""}{__("kwtsms.dash.balance.purchased", ["[count]" => $kwtsms.balance.purchased])}. {/if}{__("kwtsms.settings.checked_at")}: <bdi>{$kwtsms.balance.synced_at|date_format:$date_time}</bdi>
+                        {if $kwtsms.balance.purchased !== ""}{__("kwtsms.dash.balance.purchased", ["[count]" => $kwtsms.balance.purchased|fn_html_escape])}. {/if}{__("kwtsms.settings.checked_at")}: <bdi>{$kwtsms.balance.synced_at|date_format:$date_time}</bdi>
                     </p>
                     <p class="kwtsms-balance-card__days" id="kwtsms_days_left">
                         {if $kwtsms.days_left === null}{__("kwtsms.dash.balance.days_none")}
                         {elseif $kwtsms.days_left == 0}{__("kwtsms.dash.balance.days_less")}
                         {elseif $kwtsms.days_left > 365}{__("kwtsms.dash.balance.days_year")}
                         {* 2026-10-21 14:10 +03: "About 1 day" / "About 5 days": plural langvar (cleanup 2 item 4, task 596) *}
-                        {else}{__("kwtsms.dash.balance.days", [$kwtsms.days_left])}{/if}
+                        {else}{__("kwtsms.dash.balance.days", [$kwtsms.days_left|fn_html_escape])}{/if}
                     </p>
                 {else}
                     <p class="muted" id="kwtsms_balance_none">{__("kwtsms.dash.balance.none")}</p>
@@ -151,13 +152,13 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                     <dt>{__("kwtsms.dash.card.outbox")}</dt>
                     <dd>
                         {if $kwtsms.outbox.waiting > 0}
-                            <span class="kwtsms-ledger__value">{__("kwtsms.dash.outbox.waiting", ["[count]" => $kwtsms.outbox.waiting])}</span>
+                            <span class="kwtsms-ledger__value">{__("kwtsms.dash.outbox.waiting", ["[count]" => $kwtsms.outbox.waiting|fn_html_escape])}</span>
                             {* 2026-10-21 14:10 +03: six Arabic forms for the minutes (cleanup 2 item 4, task 596) *}
-                            <span class="kwtsms-ledger__note">{__("kwtsms.dash.outbox.oldest", [$kwtsms.outbox.oldest_minutes])}</span>
+                            <span class="kwtsms-ledger__note">{__("kwtsms.dash.outbox.oldest", [$kwtsms.outbox.oldest_minutes|fn_html_escape])}</span>
                         {else}
                             <span class="kwtsms-ledger__value">{__("kwtsms.dash.outbox.empty")}</span>
                         {/if}
-                        {if $kwtsms.outbox.held > 0}<span class="kwtsms-ledger__note">{__("kwtsms.dash.outbox.held", ["[count]" => $kwtsms.outbox.held])}</span>{/if}
+                        {if $kwtsms.outbox.held > 0}<span class="kwtsms-ledger__note">{__("kwtsms.dash.outbox.held", ["[count]" => $kwtsms.outbox.held|fn_html_escape])}</span>{/if}
                     </dd>
                 </div>
             </dl>

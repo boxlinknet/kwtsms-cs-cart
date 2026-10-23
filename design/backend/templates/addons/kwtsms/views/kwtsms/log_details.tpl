@@ -13,6 +13,7 @@ USAGE:     Rendered by kwtsms.log_details?tab=<messages|attempts|debug>&id=<n> w
            Admin\LogsPage::details().
 DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, logs.js (copy button).
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {$d = $kwtsms_logs}
 {$r = $d.row}
 {$date_time = "`$settings.Appearance.date_format`, `$settings.Appearance.time_format`"}
@@ -21,9 +22,9 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
 
     {include file="addons/kwtsms/views/kwtsms/components/navigation.tpl" sections=$kwtsms_nav}
 
-    <p class="kwtsms-logs-back"><a href="{"kwtsms.logs?tab=`$d.tab`"|fn_url}" id="kwtsms_back_to_list">{__("kwtsms.logs.back", ["[log]" => $d.tabs[$d.tab].title])}</a></p>
+    <p class="kwtsms-logs-back"><a href="{"kwtsms.logs?tab=`$d.tab`"|fn_url}" id="kwtsms_back_to_list">{__("kwtsms.logs.back", ["[log]" => $d.tabs[$d.tab].title|fn_html_escape])}</a></p>
 
-    <h4 class="kwtsms-log-details__title" id="kwtsms_detail_title">{__("kwtsms.logs.detail_title.`$d.tab`", ["[id]" => $d.id])}</h4>
+    <h4 class="kwtsms-log-details__title" id="kwtsms_detail_title">{__("kwtsms.logs.detail_title.`$d.tab`", ["[id]" => $d.id|fn_html_escape])}</h4>
 
     <dl class="kwtsms-details" id="kwtsms_detail_fields">
         <div><dt>{__("kwtsms.logs.col.time")}</dt><dd><bdi>{$r.created_at|date_format:$date_time}</bdi> <span class="kwtsms-logs-time__kwt">{__("kwtsms.logs.kwtsms_time")} <bdi dir="ltr">{$r.kwt_time}</bdi></span></dd></div>
@@ -39,16 +40,16 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
             <div><dt>{__("kwtsms.logs.f.receiver")}</dt><dd>{$r.receiver_label}</dd></div>
             <div><dt>{if $d.tab == "messages"}{__("kwtsms.logs.col.status")}{else}{__("kwtsms.logs.col.outcome")}{/if}</dt><dd>{include file="addons/kwtsms/views/kwtsms/components/log_outcome.tpl" row=$r}{if $r.outcome_tip} <span class="muted kwtsms-outcome-reason">{$r.outcome_tip}</span>{/if}</dd></div>
             {if $r.order_id}
-                <div><dt>{__("kwtsms.logs.col.order")}</dt><dd><a href="{"orders.details?order_id=`$r.order_id`"|fn_url}"><bdi dir="ltr">{$r.order_id}</bdi></a>{if $r.parent_order_id && $r.parent_order_id != $r.order_id} <span class="muted">{__("kwtsms.logs.parent_order", ["[id]" => $r.parent_order_id])}</span>{/if}</dd></div>
+                <div><dt>{__("kwtsms.logs.col.order")}</dt><dd><a href="{"orders.details?order_id=`$r.order_id`"|fn_url}"><bdi dir="ltr">{$r.order_id}</bdi></a>{if $r.parent_order_id && $r.parent_order_id != $r.order_id} <span class="muted">{__("kwtsms.logs.parent_order", ["[id]" => $r.parent_order_id|fn_html_escape])}</span>{/if}</dd></div>
             {/if}
             {if $d.tab == "messages"}
                 <div><dt>{__("kwtsms.logs.sender")}</dt><dd><bdi dir="ltr">{$r.sender}</bdi></dd></div>
-                <div><dt>{__("kwtsms.logs.numbers")}</dt><dd class="kwtsms-logs-numbers">{foreach $r.numbers as $number}<bdi dir="ltr" class="kwtsms-logs-number">{$number}</bdi> {/foreach}<span class="muted">{__("kwtsms.logs.numbers_accepted", ["[accepted]" => $r.numbers_accepted, "[count]" => $r.recipient_count])}</span></dd></div>
+                <div><dt>{__("kwtsms.logs.numbers")}</dt><dd class="kwtsms-logs-numbers">{foreach $r.numbers as $number}<bdi dir="ltr" class="kwtsms-logs-number">{$number}</bdi> {/foreach}<span class="muted">{__("kwtsms.logs.numbers_accepted", ["[accepted]" => $r.numbers_accepted|fn_html_escape, "[count]" => $r.recipient_count|fn_html_escape])}</span></dd></div>
                 <div><dt>{__("kwtsms.logs.col.msg_id")}</dt><dd>{if $r.api_msg_id}<bdi dir="ltr" class="kwtsms-code-tag">{$r.api_msg_id}</bdi>{else}-{/if}</dd></div>
                 <div><dt>{__("kwtsms.logs.f.code")}</dt><dd>{if $r.api_code}<bdi dir="ltr" class="kwtsms-code-tag">{$r.api_code}</bdi> <span class="muted">{__("kwtsms.logs.code_source.`$r.code_source`")}</span>{else}-{/if}</dd></div>
                 {* 2026-10-21 14:11 +03: "1 page, GSM (English)" instead of "1 gsm en" (Admin\LogsPage::pagesText), cleanup 2 item 6, task 596 *}
-                <div><dt>{__("kwtsms.logs.pages")}</dt><dd><bdi>{$r.pages_text}</bdi>{if $r.batch_total > 1} <span class="muted">{__("kwtsms.logs.batch", ["[no]" => $r.batch_no, "[total]" => $r.batch_total])}</span>{/if}</dd></div>
-                <div><dt>{__("kwtsms.logs.col.credits")}</dt><dd><bdi dir="ltr">{$r.points_charged}</bdi> <span class="muted">{__("kwtsms.logs.balance_after", ["[balance]" => $r.balance_after])}</span></dd></div>
+                <div><dt>{__("kwtsms.logs.pages")}</dt><dd><bdi>{$r.pages_text}</bdi>{if $r.batch_total > 1} <span class="muted">{__("kwtsms.logs.batch", ["[no]" => $r.batch_no|fn_html_escape, "[total]" => $r.batch_total|fn_html_escape])}</span>{/if}</dd></div>
+                <div><dt>{__("kwtsms.logs.col.credits")}</dt><dd><bdi dir="ltr">{$r.points_charged}</bdi> <span class="muted">{__("kwtsms.logs.balance_after", ["[balance]" => $r.balance_after|fn_html_escape])}</span></dd></div>
                 <div><dt>{__("kwtsms.logs.col.ms")}</dt><dd><bdi dir="ltr">{$r.duration_ms}</bdi></dd></div>
             {else}
                 <div><dt>{__("kwtsms.logs.f.phone")}</dt><dd><bdi dir="ltr" class="kwtsms-logs-number">{$r.phone}</bdi>{if $r.phone_raw && $r.phone_raw != $r.phone} <span class="muted">{__("kwtsms.logs.phone_typed")} <bdi dir="ltr">{$r.phone_raw}</bdi></span>{/if}</dd></div>
@@ -59,7 +60,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <div><dt>{__("kwtsms.logs.col.reason")}</dt><dd class="kwtsms-logs-text">{if $r.reason_label}<bdi>{include file="addons/kwtsms/views/kwtsms/components/log_reason.tpl" row=$r}</bdi>{if $r.reason != $r.reason_code} <span class="muted kwtsms-reason-id" id="kwtsms_reason_id">{__("kwtsms.logs.reason_id")}: <bdi dir="ltr">{$r.reason}</bdi></span>{/if}{else}<bdi>{$r.reason|default:"-"}</bdi>{/if}</dd></div>
                 {if $r.message_id}<div><dt>{__("kwtsms.logs.message")}</dt><dd><a href="{"kwtsms.log_details?tab=messages&id=`$r.message_id`"|fn_url}" id="kwtsms_attempt_message">#{$r.message_id}</a></dd></div>{/if}
                 {if $r.retry_of}<div><dt>{__("kwtsms.logs.resend_of")}</dt><dd><a href="{"kwtsms.log_details?tab=attempts&id=`$r.retry_of`"|fn_url}" id="kwtsms_retry_of">#{$r.retry_of}</a></dd></div>{/if}
-                {if $d.outbox}<div><dt>{__("kwtsms.logs.outbox")}</dt><dd>{__("kwtsms.logs.outbox_state.`$d.outbox.status`")} <span class="muted">{__("kwtsms.logs.outbox_tries", ["[n]" => $d.outbox.attempts])}</span></dd></div>{/if}
+                {if $d.outbox}<div><dt>{__("kwtsms.logs.outbox")}</dt><dd>{__("kwtsms.logs.outbox_state.`$d.outbox.status`")} <span class="muted">{__("kwtsms.logs.outbox_tries", ["[n]" => $d.outbox.attempts|fn_html_escape])}</span></dd></div>{/if}
             {/if}
         {/if}
     </dl>
@@ -84,7 +85,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
             <section class="kwtsms-section kwtsms-raw" aria-labelledby="kwtsms_raw_{$raw_key}_title">
                 <h4 class="subheader" id="kwtsms_raw_{$raw_key}_title">{__("kwtsms.logs.raw_`$raw_key`")}</h4>
                 {if $raw.truncated}
-                    <p class="kwtsms-hint" id="kwtsms_raw_{$raw_key}_truncated">{__("kwtsms.logs.truncated", ["[bytes]" => $raw.bytes|number_format])}</p>
+                    <p class="kwtsms-hint" id="kwtsms_raw_{$raw_key}_truncated">{__("kwtsms.logs.truncated", ["[bytes]" => $raw.bytes|number_format|fn_html_escape])}</p>
                 {/if}
                 <pre dir="ltr" class="kwtsms-pre" id="kwtsms_raw_{$raw_key}">{if $raw.text}{$raw.text}{else}-{/if}</pre>
             </section>

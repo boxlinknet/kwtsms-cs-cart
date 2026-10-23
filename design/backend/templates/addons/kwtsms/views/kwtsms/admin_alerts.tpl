@@ -16,6 +16,7 @@ USAGE:     Rendered by kwtsms.admin_alerts (controllers/backend/kwtsms.php) with
            Admin\AlertsPage::viewData() and $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.nav.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
    array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
    (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
@@ -47,7 +48,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                               autocomplete="off" spellcheck="false" inputmode="tel"
                               placeholder="{__("kwtsms.alerts.numbers_placeholder")}">{$a.phones_text}</textarea>
                     <p class="muted description">{__("kwtsms.alerts.numbers_help", ["[code]" => $country_label|fn_html_escape])}</p>
-                    <p class="kwtsms-count" id="kwtsms_alerts_count" dir="auto">{__("kwtsms.alerts.count", ["[count]" => $a.phones|count, "[max]" => $a.max])}</p>
+                    <p class="kwtsms-count" id="kwtsms_alerts_count" dir="auto">{__("kwtsms.alerts.count", ["[count]" => $a.phones|count|fn_html_escape, "[max]" => $a.max|fn_html_escape])}</p>
                 </div>
             </div>
 
@@ -84,7 +85,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
 
         {if $r && $r.ignored > 0}
             <div class="alert alert-warning kwtsms-inline-alert" id="kwtsms_alerts_ignored" role="status">
-                {__("kwtsms.alerts.ignored", ["[count]" => $r.ignored, "[max]" => $a.max_entries])}
+                {__("kwtsms.alerts.ignored", ["[count]" => $r.ignored|fn_html_escape, "[max]" => $a.max_entries|fn_html_escape])}
             </div>
         {/if}
 
@@ -113,9 +114,9 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                                         <span class="kwtsms-badge kwtsms-badge--danger">{if $r.mode == "check"}{__("kwtsms.alerts.row.not_valid")}{else}{__("kwtsms.alerts.row.not_saved")}{/if}</span>
                                         {* 2026-10-21 07:05 +03: a check saves nothing, so the limit reason doesn't say "wasn't saved" (fix round 1, task 596) *}
                                         {if $r.mode == "check" && $row.reason == "limit"}
-                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.limit_check", ["[max]" => $a.max])}</span>
+                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.limit_check", ["[max]" => $a.max|fn_html_escape])}</span>
                                         {else}
-                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.`$row.reason`", ["[max]" => $a.max])}</span>
+                                            <span class="kwtsms-reason">{__("kwtsms.alerts.reason.`$row.reason`", ["[max]" => $a.max|fn_html_escape])}</span>
                                         {/if}
                                     {/if}
                                 </td>
@@ -184,7 +185,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                 {if $a.switches.status_total == 0}
                     <span class="kwtsms-badge">{__("kwtsms.alerts.switches.unavailable")}</span>
                 {elseif $a.switches.status_on}
-                    <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.alerts.switches.summary", ["[on]" => $a.switches.status_on|count, "[total]" => $a.switches.status_total])}</span>
+                    <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.alerts.switches.summary", ["[on]" => $a.switches.status_on|count|fn_html_escape, "[total]" => $a.switches.status_total|fn_html_escape])}</span>
                     <span class="kwtsms-reason muted">{foreach $a.switches.status_on as $status_name}{$status_name}{if !$status_name@last}, {/if}{/foreach}</span>
                 {else}
                     <span class="kwtsms-badge">{__("kwtsms.alerts.switches.none_on")}</span>

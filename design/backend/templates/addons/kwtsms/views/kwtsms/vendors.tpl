@@ -14,6 +14,7 @@ USAGE:     Rendered by kwtsms.vendors (controllers/backend/kwtsms.php) with $kwt
            Admin\VendorsPage::viewData() and $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.nav.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
    array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
    (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
@@ -60,7 +61,7 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                 <div class="controls">
                     <input type="text" id="kwtsms_quota_default" name="kwtsms_quota[default]" value="{$v.default_quota}" class="input-small kwtsms-number" dir="ltr"
                            inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
-                    <p class="muted description">{__("kwtsms.vendors.quota.default_help", ["[max]" => $v.max_quota])}</p>
+                    <p class="muted description">{__("kwtsms.vendors.quota.default_help", ["[max]" => $v.max_quota|fn_html_escape])}</p>
                 </div>
             </div>
 
@@ -132,7 +133,7 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                 </td>
                                 <td data-th="{__("kwtsms.vendors.col.used")}">
                                     {if $row.limit > 0}
-                                        <span class="kwtsms-quota{if $row.used >= $row.limit} is-full{/if}">{__("kwtsms.vendors.used_of", ["[used]" => $row.used, "[limit]" => $row.limit])}</span>
+                                        <span class="kwtsms-quota{if $row.used >= $row.limit} is-full{/if}">{__("kwtsms.vendors.used_of", ["[used]" => $row.used|fn_html_escape, "[limit]" => $row.limit|fn_html_escape])}</span>
                                     {else}
                                         <span class="kwtsms-badge">{__("kwtsms.vendors.quota_off")}</span>
                                     {/if}
@@ -159,7 +160,7 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
             {if $v.search.pages > 1}
                 <nav class="kwtsms-pager" aria-label="{__("kwtsms.logs.pager")}" id="kwtsms_vendors_pager">
                     {if $v.prev_url}<a class="btn" id="kwtsms_vendors_prev" href="{$v.prev_url|fn_url}">{__("kwtsms.logs.page_prev")}</a>{/if}
-                    <span class="kwtsms-pager__where">{__("kwtsms.logs.page_of", ["[page]" => $v.search.page, "[pages]" => $v.search.pages])}</span>
+                    <span class="kwtsms-pager__where">{__("kwtsms.logs.page_of", ["[page]" => $v.search.page|fn_html_escape, "[pages]" => $v.search.pages|fn_html_escape])}</span>
                     {if $v.next_url}<a class="btn" id="kwtsms_vendors_next" href="{$v.next_url|fn_url}">{__("kwtsms.logs.page_next")}</a>{/if}
                 </nav>
             {/if}

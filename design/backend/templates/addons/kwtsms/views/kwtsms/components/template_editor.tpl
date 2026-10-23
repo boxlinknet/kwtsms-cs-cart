@@ -16,6 +16,7 @@ USAGE:     {include file="addons/kwtsms/views/kwtsms/components/template_editor.
            $e: Admin\TemplatesPage::viewData()['editor']; $t: the page data.
 DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}.js, kwtsms.templates.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 <section class="kwtsms-editor" id="kwtsms_editor" aria-labelledby="kwtsms_editor_title"
          data-kwtsms-editor="1"
          data-kwtsms-receiver="{$e.receiver}"
@@ -32,9 +33,9 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
          data-kwtsms-msg-leftover="{__("kwtsms.templates.preview_leftover")}"
          data-kwtsms-msg-removed="{__("kwtsms.templates.preview_removed")}"
          data-kwtsms-msg-length="{__("kwtsms.templates.length_summary")}"
-         data-kwtsms-msg-over="{__("kwtsms.templates.counter_over", ["[max]" => $t.max_pages])}">
+         data-kwtsms-msg-over="{__("kwtsms.templates.counter_over", ["[max]" => $t.max_pages|fn_html_escape])}">
 
-    <h4 class="subheader" id="kwtsms_editor_title">{__("kwtsms.templates.editor_title", ["[row]" => "`$row_label` / `$receiver_label`", "[language]" => $e.lang_name])}</h4>
+    <h4 class="subheader" id="kwtsms_editor_title">{__("kwtsms.templates.editor_title", ["[row]" => "`$row_label|fn_html_escape` / `$receiver_label|fn_html_escape`", "[language]" => $e.lang_name|fn_html_escape])}</h4>
     <p class="kwtsms-editor__ids muted"><bdi dir="ltr">{$e.event_id}</bdi> <bdi dir="ltr">{$e.receiver}</bdi></p>
 
     <div class="kwtsms-editor__grid">
@@ -47,7 +48,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 {if $e.storefront_id}<input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$e.storefront_id}">{/if}
                 {if $e.unknown}<input type="hidden" name="kwtsms_tpl[confirm]" value="{$e.confirm}">{/if}
 
-                <label class="kwtsms-editor__label" for="kwtsms_body">{__("kwtsms.templates.editor_label", ["[language]" => $e.lang_name])}</label>
+                <label class="kwtsms-editor__label" for="kwtsms_body">{__("kwtsms.templates.editor_label", ["[language]" => $e.lang_name|fn_html_escape])}</label>
                 {if $e.origin == "generic"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_generic")}</p>
                 {elseif $e.origin == "placed"}
@@ -55,7 +56,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 {elseif $e.origin == "all_storefronts"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_all_storefronts")}</p>
                 {elseif $e.origin == "default_lang"}
-                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_default_lang", ["[language]" => $t.default_lang_name])}</p>
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_default_lang", ["[language]" => $t.default_lang_name|fn_html_escape])}</p>
                 {elseif $e.origin == "none"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_none")}</p>
                 {/if}
@@ -75,7 +76,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                     {foreach ["store_name_missing", "unknown", "html_span", "adjacent", "entity_fragment", "promotional"] as $code}
                         {$show = isset($e.advice[$code])}
                         <li class="kwtsms-advice__item kwtsms-advice__item--{if $code == "store_name_missing" || $code == "unknown"}stop{else}warn{/if}{if !$show} hidden{/if}"
-                            data-code="{$code}" data-text="{__("kwtsms.templates.warn_`$code`")}"><span class="kwtsms-advice__text">{if $show}{__("kwtsms.templates.warn_`$code`", ["[found]" => $e.advice[$code]])}{/if}</span></li>
+                            data-code="{$code}" data-text="{__("kwtsms.templates.warn_`$code`")}"><span class="kwtsms-advice__text">{if $show}{__("kwtsms.templates.warn_`$code`", ["[found]" => $e.advice[$code]|fn_html_escape])}{/if}</span></li>
                     {/foreach}
                 </ul>
 
@@ -138,7 +139,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
             {if $t.can_test}
                 <fieldset class="kwtsms-test" id="kwtsms_template_test">
                     <legend>{__("kwtsms.templates.test_title")}</legend>
-                    <p class="muted kwtsms-test__help">{__("kwtsms.templates.test_help", ["[max]" => $t.test_per_hour])}</p>
+                    <p class="muted kwtsms-test__help">{__("kwtsms.templates.test_help", ["[max]" => $t.test_per_hour|fn_html_escape])}</p>
                     {if $t.test_result}
                         {$r = $t.test_result}
                         <div class="kwtsms-result kwtsms-result--{$r.status}" id="kwtsms_template_test_result" role="status">
@@ -167,7 +168,7 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                                inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432" required="required">
                         {* 2026-10-21 06:00 +03: an own flex line instead of the core .checkbox float, which left the box outside the panel in Arabic *}
                         <label class="kwtsms-checkline"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_tpl[intl]" value="Y"> <span>{__("kwtsms.test_sms.intl")}</span></label>
-                        <p class="muted kwtsms-test__country">{__("kwtsms.test_sms.intl_help", ["[country]" => $t.test_country])}</p>
+                        <p class="muted kwtsms-test__country">{__("kwtsms.test_sms.intl_help", ["[country]" => $t.test_country|fn_html_escape])}</p>
                         <div class="kwtsms-actions">
                             <input type="submit" class="btn" id="kwtsms_test_send" name="dispatch[kwtsms.test_template]" value="{__("kwtsms.templates.test_send")}">
                         </div>

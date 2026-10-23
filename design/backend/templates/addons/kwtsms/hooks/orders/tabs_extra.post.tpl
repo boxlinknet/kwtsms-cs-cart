@@ -13,6 +13,7 @@ WHY:       PRD 6.8 and 4.3. Hook orders:tabs_extra (views/orders/details.tpl of 
 USAGE:     Rendered by core on orders.details.
 DEPENDS:   $kwtsms_order_sms (Admin\OrderSmsTab::viewData()), components/log_outcome.tpl, logs.less.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {if $kwtsms_order_sms}
     {$o = $kwtsms_order_sms}
     {$date_time = "`$settings.Appearance.date_format`, `$settings.Appearance.time_format`"}
@@ -32,7 +33,7 @@ DEPENDS:   $kwtsms_order_sms (Admin\OrderSmsTab::viewData()), components/log_out
                 {if $m.test}<p class="kwtsms-result__note" id="kwtsms_order_result_test_note">{__("kwtsms.test_sms.test_note")}</p>{/if}
             </div>
         {/if}
-        <p class="muted">{if $o.parent_id}{__("kwtsms.order_tab.intro_parent", ["[parent]" => $o.parent_id])}{else}{__("kwtsms.order_tab.intro")}{/if}</p>
+        <p class="muted">{if $o.parent_id}{__("kwtsms.order_tab.intro_parent", ["[parent]" => $o.parent_id|fn_html_escape])}{else}{__("kwtsms.order_tab.intro")}{/if}</p>
         {if !$o.rows}
             <p class="kwtsms-logs-empty" id="kwtsms_order_sms_none">{__("kwtsms.order_tab.none")}</p>
         {else}

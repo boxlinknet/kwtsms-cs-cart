@@ -22,6 +22,7 @@ USAGE:     Rendered by kwtsms.templates (controllers/backend/kwtsms.php) with $k
 DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,templates}.js (loaded by the hooks),
            kwtsms.templates.* and kwtsms.status.* language variables.
 *}
+{* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
    array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
    (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
@@ -82,21 +83,21 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
         <form action="{""|fn_url}" method="post" name="kwtsms_load_defaults_form" class="kwtsms-inline-form">
             <input type="hidden" name="kwtsms_tpl[lang]" value="{$t.lang}">
             <input type="submit" class="btn" id="kwtsms_load_defaults" name="dispatch[kwtsms.load_template_defaults]"
-                   value="{__("kwtsms.templates.load_defaults", ["[language]" => $t.lang_name])}"
+                   value="{__("kwtsms.templates.load_defaults", ["[language]" => $t.lang_name|fn_html_escape])}"
                    {if !$t.has_shipped}disabled="disabled"{/if}>
         </form>
         {/if}
     </div>
     {if !$t.storefront_id}
     <p class="kwtsms-hint-line muted">
-        {if $t.has_shipped}{__("kwtsms.templates.load_defaults_help")}{else}{__("kwtsms.templates.no_shipped", ["[language]" => $t.default_lang_name])}{/if}
+        {if $t.has_shipped}{__("kwtsms.templates.load_defaults_help")}{else}{__("kwtsms.templates.no_shipped", ["[language]" => $t.default_lang_name|fn_html_escape])}{/if}
     </p>
     {/if}
 
     {* ---- SMS brand name: what the store_name placeholder is, one entry per storefront, for the language of the tab ------------ *}
     <section class="kwtsms-brand" id="kwtsms_brand" aria-labelledby="kwtsms_brand_title">
         <h4 class="subheader" id="kwtsms_brand_title">{__("kwtsms.templates.brand_title")}</h4>
-        <p class="muted kwtsms-brand__help">{__("kwtsms.templates.brand_help", ["[language]" => $t.lang_name, "[max]" => $t.brand.max])}</p>
+        <p class="muted kwtsms-brand__help">{__("kwtsms.templates.brand_help", ["[language]" => $t.lang_name|fn_html_escape, "[max]" => $t.brand.max|fn_html_escape])}</p>
         {if $t.brand.storefronts}
             <form action="{""|fn_url}" method="post" name="kwtsms_brand_form" id="kwtsms_brand_form" class="kwtsms-brand__form" autocomplete="off"
                   data-kwtsms-brand-max="{$t.brand.max}" data-kwtsms-brand-unicode="{if $t.brand.warn_unicode}1{else}0{/if}">
@@ -172,7 +173,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                             <input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$t.storefront_id}">
                             <label class="kwtsms-sf-switch__label" for="kwtsms_sfstate_{$row.dom_id}">{__("kwtsms.templates.sf_this")}</label>
                             <select name="kwtsms_tpl[state]" id="kwtsms_sfstate_{$row.dom_id}" class="kwtsms-sf-switch__select"
-                                    aria-label="{__("kwtsms.templates.sf_switch_aria", ["[row]" => "`$row_label` / `$receiver_label`"])}"
+                                    aria-label="{__("kwtsms.templates.sf_switch_aria", ["[row]" => "`$row_label|fn_html_escape` / `$receiver_label|fn_html_escape`"])}"
                                     {if !$t.can_toggle}disabled="disabled" title="{__("kwtsms.templates.switch_locked")}"{/if}>
                                 <option value="inherit"{if !$row.sf_switch.off} selected="selected"{/if}>{__("kwtsms.templates.sf_state_inherit")}</option>
                                 <option value="off"{if $row.sf_switch.off} selected="selected"{/if}>{__("kwtsms.templates.sf_state_off")}</option>
@@ -190,7 +191,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                             <input type="hidden" name="kwtsms_tpl[enable]" value="{if $row.switch.on}N{else}Y{/if}">
                             <button type="submit" class="kwtsms-switch{if $row.switch.on} is-on{/if}" role="switch"
                                     aria-checked="{if $row.switch.on}true{else}false{/if}"
-                                    aria-label="{__("kwtsms.templates.switch_aria", ["[row]" => "`$row_label` / `$receiver_label`"])}"
+                                    aria-label="{__("kwtsms.templates.switch_aria", ["[row]" => "`$row_label|fn_html_escape` / `$receiver_label|fn_html_escape`"])}"
                                     name="dispatch[kwtsms.toggle_event]" value="1"
                                     {if !$t.can_toggle}disabled="disabled" title="{__("kwtsms.templates.switch_locked")}"{/if}>
                                 <span class="kwtsms-switch__knob"></span>
@@ -213,11 +214,11 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                     {if $row.public_form}<p class="kwtsms-row__notice muted">{__("kwtsms.templates.notice_captcha")}</p>{/if}
                     <p class="kwtsms-row__meta">
                         <span class="kwtsms-badge kwtsms-badge--{$row.badge}">
-                            {if $row.badge == "default_lang"}{__("kwtsms.templates.badge_default_lang", ["[language]" => $t.default_lang_name])}
+                            {if $row.badge == "default_lang"}{__("kwtsms.templates.badge_default_lang", ["[language]" => $t.default_lang_name|fn_html_escape])}
                             {else}{__("kwtsms.templates.badge_`$row.badge`")}{/if}
                         </span>
                         {if $row.has_text}
-                            <span class="kwtsms-length{if $row.unicode} is-unicode{/if}">{__("kwtsms.templates.length_summary", ["[units]" => $row.units, "[pages]" => $row.pages])}</span>
+                            <span class="kwtsms-length{if $row.unicode} is-unicode{/if}">{__("kwtsms.templates.length_summary", ["[units]" => $row.units|fn_html_escape, "[pages]" => $row.pages|fn_html_escape])}</span>
                         {/if}
                     </p>
                 </td>
@@ -226,7 +227,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                         <a class="btn" href="{"kwtsms.templates?lang=`$t.lang``$sfq`"|fn_url}#{$row.dom_id}">{__("kwtsms.templates.close")}</a>
                     {else}
                         <a class="btn kwtsms-edit" href="{$edit_href|fn_url}#kwtsms_editor"
-                           aria-label="{__("kwtsms.templates.edit_aria", ["[row]" => "`$row_label` / `$receiver_label`"])}">{__("kwtsms.templates.edit")}</a>
+                           aria-label="{__("kwtsms.templates.edit_aria", ["[row]" => "`$row_label|fn_html_escape` / `$receiver_label|fn_html_escape`"])}">{__("kwtsms.templates.edit")}</a>
                     {/if}
                 </td>
             </tr>
