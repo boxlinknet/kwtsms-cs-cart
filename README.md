@@ -11,6 +11,8 @@ CHANGED:   2026-10-21 23:15 +03: restructured to the layout of the kwtSMS WHMCS 
            Requirements, Installation, Configuration, Support, License); every fact kept, task 596.
            2026-10-22 12:39 +03: release badge (as the Joomla README has, pre-releases included), status line names the
            v1.0.0-rc.1 pre-release, Installation no longer mentions a Marketplace listing, task 596.
+           2026-10-22 23:08 +03: status line names the v1.0.0 release; Requirements records the merchant test of the
+           rc.1 build on Multi-Vendor Plus 4.20.1, task 596.
 -->
 
 # kwtSMS for CS-Cart and Multi-Vendor
@@ -34,8 +36,9 @@ Send automated SMS notifications to your CS-Cart and Multi-Vendor customers and 
 <!-- 2026-10-21 16:36 +03: status for 1.0.0, Task 1.17, task 596 -->
 <!-- 2026-10-21 23:17 +03: status line no longer promises a Marketplace listing (not decided); GitHub Releases is
      the download channel from the first tag, task 596. -->
-> **Status:** version 1.0.0 release candidate, the first release. The installable zip is on
-> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases) as the v1.0.0-rc.1 pre-release.
+<!-- 2026-10-22 23:08 +03: v1.0.0 released (Boss 23:01), the rc.1 build passed a merchant test on 4.20.1, task 596 -->
+> **Status:** version 1.0.0, the first release. The installable zip is on
+> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases).
 
 ## Features
 
@@ -65,8 +68,10 @@ country check at registration, and later abandoned cart reminders, bulk and sche
 ## Requirements
 
 - CS-Cart or CS-Cart Multi-Vendor **4.20.1 to 4.21.2** (`addon.xml` declares this range). **Verified on 4.21.2**, both
-  CS-Cart (Ultimate) and Multi-Vendor. 4.20.1 is the lowest version the add-on allows; it has not been verified yet, and the
-  add-on does not claim any version below it.
+  CS-Cart (Ultimate) and Multi-Vendor. 4.20.1 is the lowest version the add-on allows; a merchant tested the release
+  candidate on CS-Cart Multi-Vendor Plus 4.20.1 (Arabic and English) with no issues. The add-on does not claim any version
+  below 4.20.1.
+  <!-- 2026-10-22 23:08 +03: 4.20.1 merchant test of the rc.1 build recorded, task 596 -->
 - PHP 7.4 to 8.3 (the code is linted on 7.4, 8.0, 8.1, 8.2 and 8.3), with the `curl`, `json` and `mbstring` extensions
 - A kwtSMS account with API access and an approved Sender ID: https://www.kwtsms.com
 

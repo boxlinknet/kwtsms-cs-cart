@@ -46,11 +46,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   text, switch, or setting.
 
 <!-- 2026-10-21 16:34 +03: the Unreleased entries became the 1.0.0 release, Task 1.17, task 596 -->
-## [1.0.0] - 2026-10-21
+<!-- 2026-10-22 23:08 +03: release date set to the tag date; 4.20.1 merchant test recorded, task 596 -->
+## [1.0.0] - 2026-10-22
 
 First release. Verified on CS-Cart 4.21.2 and CS-Cart Multi-Vendor 4.21.2 (fresh installs of the packaged zip, an
-upgrade through the Upgrade Center, uninstall). The add-on declares 4.20.1 as the lowest supported version; 4.20.1 itself
-has not been verified yet.
+upgrade through the Upgrade Center, uninstall). The add-on declares 4.20.1 as the lowest supported version; a merchant
+tested the release candidate on CS-Cart Multi-Vendor Plus 4.20.1 (Arabic and English) with no issues.
 
 ### Added
 
