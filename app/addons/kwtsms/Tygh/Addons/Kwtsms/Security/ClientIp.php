@@ -107,7 +107,7 @@ class ClientIp
         if (!is_string($text) || trim($text) === '' || strlen($text) > 64) {
             return '';
         }
-        $packed = @inet_pton(trim($text));
+        $packed = @inet_pton(self::withoutPort(trim($text)));
         if ($packed === false) {
             return '';
         }
@@ -116,6 +116,27 @@ class ClientIp
         }
 
         return (string) inet_ntop($packed);
+    }
+
+    /**
+     * 2026-10-23 20:47 +03: Task M1.2 fix round 1 (minor 4), task 596. A forwarded hop can carry a port
+     * ("198.51.100.7:51234", "[2001:db8::1]:443", "[2001:db8::1]"), as some cloud load balancers send it. The port is
+     * removed (it must be 0..65535) before the address is validated; anything else is returned as it is and fails
+     * validation. A bare IPv6 address has colons but no brackets: it is never cut.
+     */
+    private static function withoutPort(string $text): string
+    {
+        if (preg_match('/^\[([0-9A-Fa-f:.]+)\](?::([0-9]{1,5}))?$/', $text, $m) === 1
+            || preg_match('/^([0-9]{1,3}(?:\.[0-9]{1,3}){3}):([0-9]{1,5})$/', $text, $m) === 1
+        ) {
+            if (isset($m[2]) && (int) $m[2] > 65535) {
+                return '';
+            }
+
+            return $m[1];
+        }
+
+        return $text;
     }
 
     /**
