@@ -22,6 +22,10 @@ USAGE:     Rendered by kwtsms.templates (controllers/backend/kwtsms.php) with $k
 DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,templates}.js (loaded by the hooks),
            kwtsms.templates.* and kwtsms.status.* language variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$t = $kwtsms_templates}
 {$e = $t.editor}
 {* 2026-10-22 16:16 +03: Task A3, task 596. The query suffix that keeps the selected storefront. *}
@@ -61,7 +65,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
             </ul>
         </nav>
         {if $t.storefront_id}
-            <p class="kwtsms-hint-line muted" id="kwtsms_storefront_help">{__("kwtsms.templates.storefront_help", ["[storefront]" => "<bdi dir=\"auto\">`$t.storefront_name|escape:"html"`</bdi>"])}</p>
+            <p class="kwtsms-hint-line muted" id="kwtsms_storefront_help">{__("kwtsms.templates.storefront_help", ["[storefront]" => "<bdi dir=\"auto\">`$t.storefront_name|fn_html_escape`</bdi>"])}</p>
         {/if}
     {/if}
 

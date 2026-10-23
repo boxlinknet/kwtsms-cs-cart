@@ -16,6 +16,10 @@ USAGE:     Rendered by kwtsms.integrations (controllers/backend/kwtsms.php) with
            Admin\IntegrationsPage::viewData() plus can_open_settings and can_open_templates; $kwtsms_nav = Navigation::sections().
 DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwtsms.nav.* language variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$i = $kwtsms_integrations}
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-integrations" id="kwtsms_integrations_page">
@@ -58,15 +62,15 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
                                     {else}
                                         {$mode_label = __("kwtsms.integrations.mode.unset")}
                                     {/if}
-                                    {__("kwtsms.integrations.check.validation_mode.bad", ["[mode]" => $mode_label|escape:"html"])}
+                                    {__("kwtsms.integrations.check.validation_mode.bad", ["[mode]" => $mode_label|fn_html_escape])}
                                 {/if}
                             {else}
                                 {if $check.detail == "unknown"}
                                     {__("kwtsms.integrations.check.default_country.unknown")}
                                 {elseif $check.ok}
-                                    {__("kwtsms.integrations.check.default_country.ok", ["[code]" => $check.store_code|escape:"html"])}
+                                    {__("kwtsms.integrations.check.default_country.ok", ["[code]" => $check.store_code|fn_html_escape])}
                                 {else}
-                                    {__("kwtsms.integrations.check.default_country.mismatch", ["[store]" => $check.store_code|escape:"html", "[addon]" => $check.addon_code|escape:"html"])}
+                                    {__("kwtsms.integrations.check.default_country.mismatch", ["[store]" => $check.store_code|fn_html_escape, "[addon]" => $check.addon_code|fn_html_escape])}
                                 {/if}
                             {/if}
                         </p>

@@ -16,6 +16,10 @@ USAGE:     Rendered by kwtsms.admin_alerts (controllers/backend/kwtsms.php) with
            Admin\AlertsPage::viewData() and $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.nav.* language variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$a = $kwtsms_alerts}
 {$country_label = "+`$a.default_country_code`"}
 {$r = $a.result}
@@ -24,7 +28,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
 
     {include file="addons/kwtsms/views/kwtsms/components/navigation.tpl" sections=$kwtsms_nav}
 
-    <p class="kwtsms-intro">{__("kwtsms.alerts.intro", ["[max]" => $a.max|escape:"html"])}</p>
+    <p class="kwtsms-intro">{__("kwtsms.alerts.intro", ["[max]" => $a.max|fn_html_escape])}</p>
     <p class="kwtsms-note" id="kwtsms_alerts_email_note">{__("kwtsms.alerts.email_note")}</p>
 
     {if !$a.sms_enabled}
@@ -42,7 +46,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                     <textarea id="kwtsms_admin_phones" name="kwtsms_alerts[admin_phones]" rows="6" class="kwtsms-code kwtsms-phones" dir="ltr"
                               autocomplete="off" spellcheck="false" inputmode="tel"
                               placeholder="{__("kwtsms.alerts.numbers_placeholder")}">{$a.phones_text}</textarea>
-                    <p class="muted description">{__("kwtsms.alerts.numbers_help", ["[code]" => $country_label|escape:"html"])}</p>
+                    <p class="muted description">{__("kwtsms.alerts.numbers_help", ["[code]" => $country_label|fn_html_escape])}</p>
                     <p class="kwtsms-count" id="kwtsms_alerts_count" dir="auto">{__("kwtsms.alerts.count", ["[count]" => $a.phones|count, "[max]" => $a.max])}</p>
                 </div>
             </div>
@@ -51,7 +55,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                 <label class="control-label" for="kwtsms_admin_alert_lang">{__("kwtsms.alerts.lang")}:</label>
                 <div class="controls">
                     <select id="kwtsms_admin_alert_lang" name="kwtsms_alerts[admin_alert_lang]" class="kwtsms-select-wide">
-                        <option value=""{if $a.lang == ""} selected="selected"{/if}>{__("kwtsms.alerts.lang_default", ["[name]" => $a.default_lang_name|escape:"html"])}</option>
+                        <option value=""{if $a.lang == ""} selected="selected"{/if}>{__("kwtsms.alerts.lang_default", ["[name]" => $a.default_lang_name|fn_html_escape])}</option>
                         {foreach $a.languages as $code => $language}
                             <option value="{$code}"{if $a.lang == $code} selected="selected"{/if}>{$language.name}</option>
                         {/foreach}
@@ -125,7 +129,7 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.alerts.* and kwtsms.na
                                         {if $row.verdict_code == "not_connected"}
                                             <span class="kwtsms-reason muted">{__("kwtsms.alerts.verdict.not_connected")}</span>
                                         {elseif $row.verdict_code}
-                                            <span class="kwtsms-reason muted">{__("kwtsms.alerts.verdict_why", ["[reason]" => $row.verdict_text|escape:"html"])}</span>
+                                            <span class="kwtsms-reason muted">{__("kwtsms.alerts.verdict_why", ["[reason]" => $row.verdict_text|fn_html_escape])}</span>
                                         {/if}
                                     {else}
                                         <span class="muted">-</span>

@@ -20,6 +20,10 @@ USAGE:     Rendered by kwtsms.settings (controllers/backend/kwtsms.php) with $kw
            plus test_result, order_statuses, cron_command, cron_url; $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, kwtsms.* language variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$s = $kwtsms.settings}
 {$is_test_sender = ($s.sender_id == $kwtsms.test_sender)}
 {capture name="mainbox"}
@@ -70,13 +74,13 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </div>
     </dl>
     {if !$kwtsms.configured}
-        <p class="kwtsms-status__note muted" id="kwtsms_not_ready">{__("kwtsms.status.not_ready", ["[reason]" => $kwtsms.configured_reason|escape:"html"])}</p>
+        <p class="kwtsms-status__note muted" id="kwtsms_not_ready">{__("kwtsms.status.not_ready", ["[reason]" => $kwtsms.configured_reason|fn_html_escape])}</p>
     {/if}
 
     {* ---- alerts with their own action ------------------------------------------------------------------------- *}
     {if $kwtsms.suspended}
         <div class="alert alert-error kwtsms-alert" id="kwtsms_suspended">
-            <p>{__("kwtsms.settings.suspended", ["[reason]" => $kwtsms.suspended_text|escape:"html"])}</p>
+            <p>{__("kwtsms.settings.suspended", ["[reason]" => $kwtsms.suspended_text|fn_html_escape])}</p>
             <form action="{""|fn_url}" method="post" name="kwtsms_retry_form" class="kwtsms-inline-form">
                 <input type="submit" class="btn" name="dispatch[kwtsms.retry_gateway]" value="{__("kwtsms.settings.retry_now")}">
             </form>
@@ -232,20 +236,20 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         <section class="kwtsms-section kwtsms-sf-senders" id="kwtsms_storefront_senders" aria-labelledby="kwtsms_sf_senders_title">
             <h4 class="subheader" id="kwtsms_sf_senders_title">{__("kwtsms.settings.sf_senders_title")}</h4>
             <p class="muted description">{__("kwtsms.settings.sf_senders_help")}</p>
-            {if $kwtsms.main_sender}<p class="muted description kwtsms-sf-main" id="kwtsms_sf_main">{__("kwtsms.settings.sf_sender_main", ["[sender]" => $kwtsms.main_sender|escape:"html"])}</p>{/if}
+            {if $kwtsms.main_sender}<p class="muted description kwtsms-sf-main" id="kwtsms_sf_main">{__("kwtsms.settings.sf_sender_main", ["[sender]" => $kwtsms.main_sender|fn_html_escape])}</p>{/if}
             {foreach $kwtsms.storefront_senders as $sf}
                 <div class="control-group">
                     <label class="control-label" for="kwtsms_sf_sender_{$sf.id}">{$sf.name}:</label>
                     <div class="controls">
                         <select name="kwtsms_sf_senders[{$sf.id}]" id="kwtsms_sf_sender_{$sf.id}" form="kwtsms_sf_senders_form"
                                 class="kwtsms-js-sf-sender" data-kwtsms-saved="{$sf.value}"
-                                aria-label="{__("kwtsms.settings.sf_sender_aria", ["[storefront]" => $sf.name|escape:"html"])}">
+                                aria-label="{__("kwtsms.settings.sf_sender_aria", ["[storefront]" => $sf.name|fn_html_escape])}">
                             <option value=""{if $sf.value == ""} selected="selected"{/if}>{__("kwtsms.settings.sf_sender_same")}</option>
                             {foreach $kwtsms.senders as $sender}
                                 <option value="{$sender}"{if $sender == $sf.value} selected="selected"{/if}>{$sender}</option>
                             {/foreach}
                             {if $sf.stale}
-                                <option value="{$sf.value}" selected="selected">{__("kwtsms.settings.sf_sender_stale", ["[sender]" => $sf.value|escape:"html"])}</option>
+                                <option value="{$sf.value}" selected="selected">{__("kwtsms.settings.sf_sender_stale", ["[sender]" => $sf.value|fn_html_escape])}</option>
                             {/if}
                         </select>
                         <div class="alert alert-warning kwtsms-inline-alert kwtsms-js-sf-warning{if $sf.value != $kwtsms.test_sender} hidden{/if}" id="kwtsms_sf_warning_{$sf.id}" role="status">
@@ -282,7 +286,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <label class="checkbox"><input type="checkbox" id="kwtsms_enabled" name="kwtsms_settings[enabled]" value="Y"{if $s.enabled == "Y"} checked="checked"{/if}> {__("kwtsms.settings.enabled_label")}</label>
                     <p class="muted description">{__("kwtsms.settings.enabled_help")}</p>
                     {if !$kwtsms.configured}
-                        <p class="kwtsms-hint" id="kwtsms_enable_reason">{__("kwtsms.settings.enable_blocked", ["[reason]" => $kwtsms.configured_reason|escape:"html"])}</p>
+                        <p class="kwtsms-hint" id="kwtsms_enable_reason">{__("kwtsms.settings.enable_blocked", ["[reason]" => $kwtsms.configured_reason|fn_html_escape])}</p>
                     {/if}
                 </div>
             </div>
@@ -503,14 +507,14 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <input type="text" id="kwtsms_test_phone" name="kwtsms_test[phone]" value="" class="input-medium" dir="ltr"
                            inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432">
                     <label class="checkbox"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_test[intl]" value="Y"> {__("kwtsms.test_sms.intl")}</label>
-                    <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label|escape:"html"])}</p>
+                    <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label|fn_html_escape])}</p>
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="kwtsms_test_suffix">{__("kwtsms.test_sms.suffix")}:</label>
                 <div class="controls">
                     <input type="text" id="kwtsms_test_suffix" name="kwtsms_test[suffix]" value="" class="input-large" maxlength="{$kwtsms.test_sms_suffix_max}" autocomplete="off">
-                    <p class="muted description">{__("kwtsms.test_sms.suffix_help", ["[max]" => $kwtsms.test_sms_suffix_max|escape:"html"])}</p>
+                    <p class="muted description">{__("kwtsms.test_sms.suffix_help", ["[max]" => $kwtsms.test_sms_suffix_max|fn_html_escape])}</p>
                 </div>
             </div>
             <div class="control-group">
@@ -522,7 +526,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_test_send" name="dispatch[kwtsms.test_sms]" value="{__("kwtsms.test_sms.send")}">
-                    <span class="muted">{__("kwtsms.test_sms.limit_help", ["[max]" => $kwtsms.test_sms_per_hour|escape:"html"])}</span>
+                    <span class="muted">{__("kwtsms.test_sms.limit_help", ["[max]" => $kwtsms.test_sms_per_hour|fn_html_escape])}</span>
                 </div>
             </div>
         </form>

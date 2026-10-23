@@ -18,6 +18,10 @@ USAGE:     Rendered by kwtsms.help (controllers/backend/kwtsms.php) with $kwtsms
 DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, kwtsms.help.* and kwtsms.nav.* language
            variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$h = $kwtsms_help}
 {* 2026-10-23 04:23 +03: Task A13, task 596: the topic list comes from HelpPage::viewData() (vendors only in Multi-Vendor). *}
 {$topics = $h.topics}
@@ -204,7 +208,7 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <p>{__("kwtsms.help.cron.p1")}</p>
                 <p>{__("kwtsms.help.cron.p2")}</p>
                 <pre class="kwtsms-pre" id="kwtsms_help_cron_line" dir="ltr" tabindex="0">{$h.cron.line}</pre>
-                <p>{__("kwtsms.help.cron.p3", ["[script]" => $h.cron.admin_index|escape:"html"])} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_cron" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.cron.p3", ["[script]" => $h.cron.admin_index|fn_html_escape])} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_cron" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.cron.p4")}</p>
                 {* 2026-10-21 16:56 +03: when order SMS go out on a host without PHP-FPM or LiteSpeed (final review I2), task 596 *}
                 <p id="kwtsms_help_cron_host">{__("kwtsms.help.cron.host_p1")}</p>
@@ -221,9 +225,9 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <h5 class="kwtsms-subtitle">{__("kwtsms.help.cron.lock_title")}</h5>
                 <p>{__("kwtsms.help.cron.lock_p1")}</p>
                 {if $h.cron.lock_ok}
-                    <p class="muted" id="kwtsms_help_lock" data-kwtsms-lock="ok">{__("kwtsms.help.cron.lock_state", ["[backend]" => $h.cron.lock_backend|escape:"html"])} {__("kwtsms.help.cron.lock_ok")}</p>
+                    <p class="muted" id="kwtsms_help_lock" data-kwtsms-lock="ok">{__("kwtsms.help.cron.lock_state", ["[backend]" => $h.cron.lock_backend|fn_html_escape])} {__("kwtsms.help.cron.lock_ok")}</p>
                 {else}
-                    <div class="alert alert-warning kwtsms-inline-alert" id="kwtsms_help_lock" data-kwtsms-lock="none" role="status">{__("kwtsms.help.cron.lock_state", ["[backend]" => $h.cron.lock_backend|escape:"html"])} {__("kwtsms.help.cron.lock_bad")}</div>
+                    <div class="alert alert-warning kwtsms-inline-alert" id="kwtsms_help_lock" data-kwtsms-lock="none" role="status">{__("kwtsms.help.cron.lock_state", ["[backend]" => $h.cron.lock_backend|fn_html_escape])} {__("kwtsms.help.cron.lock_bad")}</div>
                 {/if}
             </section>
 

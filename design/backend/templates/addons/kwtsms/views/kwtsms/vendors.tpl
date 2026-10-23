@@ -14,6 +14,10 @@ USAGE:     Rendered by kwtsms.vendors (controllers/backend/kwtsms.php) with $kwt
            Admin\VendorsPage::viewData() and $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.nav.* language variables.
 *}
+{* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
+   array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
+   (stored XSS, tests/Store/A14XssStoreTest). Every value placed into a __() placeholder now goes through |fn_html_escape, which escapes
+   < > & and both quotes (tests/Unit/TemplateEscapeTest keeps the dropped modifier out). *}
 {$v = $kwtsms_vendors}
 {capture name="mainbox"}
 <div class="kwtsms-page kwtsms-vendors" id="kwtsms_vendors_page">
@@ -139,11 +143,11 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                         <input type="hidden" name="kwtsms_page" value="{$v.search.page}">
                                         {if $row.can_approve}
                                             <button type="submit" class="btn" id="kwtsms_approve_{$row.company_id}" name="dispatch[kwtsms.update_vendor_phone.approve]" value="1"
-                                                    aria-label="{__("kwtsms.vendors.approve_aria", ["[vendor]" => $row.name|escape:"html"])}">{if $row.status == "approved"}{__("kwtsms.vendors.approve_again")}{else}{__("kwtsms.vendors.approve")}{/if}</button>
+                                                    aria-label="{__("kwtsms.vendors.approve_aria", ["[vendor]" => $row.name|fn_html_escape])}">{if $row.status == "approved"}{__("kwtsms.vendors.approve_again")}{else}{__("kwtsms.vendors.approve")}{/if}</button>
                                         {/if}
                                         {if $row.can_revoke}
                                             <button type="submit" class="btn" id="kwtsms_revoke_{$row.company_id}" name="dispatch[kwtsms.update_vendor_phone.revoke]" value="1"
-                                                    aria-label="{__("kwtsms.vendors.revoke_aria", ["[vendor]" => $row.name|escape:"html"])}">{__("kwtsms.vendors.revoke")}</button>
+                                                    aria-label="{__("kwtsms.vendors.revoke_aria", ["[vendor]" => $row.name|fn_html_escape])}">{__("kwtsms.vendors.revoke")}</button>
                                         {/if}
                                     </form>
                                 </td>
