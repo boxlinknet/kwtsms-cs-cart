@@ -141,13 +141,18 @@ function fn_kwtsms_settings_info(): string
  * @param bool                $place_order        True inside fn_place_order()
  */
 function fn_kwtsms_change_order_status(
-    $status_to,
-    $status_from,
-    $order_info,
-    $force_notification,
-    $order_statuses,
-    $place_order
+    $status_to = null,
+    $status_from = null,
+    $order_info = null,
+    $force_notification = null,
+    $order_statuses = null,
+    $place_order = null
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('change_order_status', func_num_args(), 6)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatus(
             (string) $status_to,
@@ -174,14 +179,19 @@ function fn_kwtsms_change_order_status(
  * @param mixed               $edp_data           Unused
  */
 function fn_kwtsms_change_order_status_post(
-    $order_id,
-    $status_to,
-    $status_from,
-    $force_notification,
-    $place_order,
-    $order_info,
-    $edp_data
+    $order_id = null,
+    $status_to = null,
+    $status_from = null,
+    $force_notification = null,
+    $place_order = null,
+    $order_info = null,
+    $edp_data = null
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('change_order_status_post', func_num_args(), 6)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatusPost(
             (int) $order_id,
@@ -201,8 +211,13 @@ function fn_kwtsms_change_order_status_post(
  *
  * @param int $order_id
  */
-function fn_kwtsms_edit_place_order($order_id)
+function fn_kwtsms_edit_place_order($order_id = null)
 {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('edit_place_order', func_num_args(), 1)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onEditPlaceOrder((int) $order_id);
     } catch (\Throwable $e) {
@@ -225,16 +240,21 @@ function fn_kwtsms_edit_place_order($order_id)
  * @param bool                $is_order_placed_notification_required Unused
  */
 function fn_kwtsms_place_order_manually_post(
-    $cart,
-    $params,
-    $customer_auth,
-    $action,
-    $issuer_id,
-    $force_notification,
+    $cart = null,
+    $params = null,
+    $customer_auth = null,
+    $action = null,
+    $issuer_id = null,
+    $force_notification = null,
     $order_info = null,
     $edp_data = null,
     $is_order_placed_notification_required = true
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('place_order_manually_post', func_num_args(), 6)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onPlaceOrderManuallyPost($force_notification);
     } catch (\Throwable $e) {
@@ -257,16 +277,21 @@ function fn_kwtsms_place_order_manually_post(
  * @param mixed               $notification_rules Unused (all false on a parent)
  */
 function fn_kwtsms_place_order_post(
-    $cart,
-    $auth,
-    $action,
-    $issuer_id,
-    $parent_order_id,
-    $order_id,
-    $order_status,
-    $short_order_data,
-    $notification_rules
+    $cart = null,
+    $auth = null,
+    $action = null,
+    $issuer_id = null,
+    $parent_order_id = null,
+    $order_id = null,
+    $order_status = null,
+    $short_order_data = null,
+    $notification_rules = null
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('place_order_post', func_num_args(), 8)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onPlaceOrderPost(
             (int) $parent_order_id,
@@ -292,16 +317,21 @@ function fn_kwtsms_place_order_post(
  * @param string $child_status_from
  */
 function fn_kwtsms_change_order_status_child_order(
-    $order_id,
-    $status_to,
-    $status_from,
-    $force_notification,
-    $place_order,
-    $child_order_id,
-    $child_status_to,
-    $change_child_status,
-    $child_status_from
+    $order_id = null,
+    $status_to = null,
+    $status_from = null,
+    $force_notification = null,
+    $place_order = null,
+    $child_order_id = null,
+    $child_status_to = null,
+    $change_child_status = null,
+    $child_status_from = null
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('change_order_status_child_order', func_num_args(), 8)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onChangeOrderStatusChildOrder(
             (int) $order_id,
@@ -329,14 +359,19 @@ function fn_kwtsms_change_order_status_child_order(
  * @param array<string,mixed> $shipment
  */
 function fn_kwtsms_update_shipment_before_send_notification(
-    $shipment_data,
-    $shipment_id,
-    $group_no,
-    $all_products,
-    $force_notification,
-    $order_info,
+    $shipment_data = null,
+    $shipment_id = null,
+    $group_no = null,
+    $all_products = null,
+    $force_notification = null,
+    $order_info = null,
     $shipment = []
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('update_shipment_before_send_notification', func_num_args(), 6)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.order_hooks']->onShipmentBeforeSend(
             is_array($order_info) ? $order_info : [],
@@ -358,8 +393,13 @@ function fn_kwtsms_update_shipment_before_send_notification(
  * @param array<string,mixed> $user_data
  * @param array<string,mixed> $current_user_data
  */
-function fn_kwtsms_update_profile($action, $user_data, $current_user_data)
+function fn_kwtsms_update_profile($action = null, $user_data = null, $current_user_data = [])
 {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('update_profile', func_num_args(), 2)) {
+        return;
+    }
     try {
         Tygh::$app['kwtsms.profile_hooks']->onUpdateProfile(
             (string) $action,
@@ -417,17 +457,22 @@ function fn_kwtsms_order_sms_choice($user_id)
  * @param string $sign            - or +
  */
 function fn_kwtsms_update_product_amount(
-    $new_amount,
-    $product_id,
-    $cart_id,
-    $tracking,
-    $notify,
-    $order_info,
-    $amount_delta,
-    $current_amount,
-    $original_amount,
-    $sign
+    $new_amount = null,
+    $product_id = null,
+    $cart_id = null,
+    $tracking = null,
+    $notify = null,
+    $order_info = null,
+    $amount_delta = null,
+    $current_amount = null,
+    $original_amount = null,
+    $sign = null
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('update_product_amount', func_num_args(), 10)) {
+        return;
+    }
     try {
         $threshold = (int) Registry::get('settings.General.low_stock_threshold');
         // 2026-10-23 05:45 +03: Task CA1-1 (A7 M7), task 596. A "+" (stock put back after a backorder/error path in
@@ -486,8 +531,13 @@ function fn_kwtsms_update_product_amount(
  * @param string              $lang_code
  * @param string              $action        add or update
  */
-function fn_kwtsms_update_company($company_data, $company_id, $lang_code, $action)
+function fn_kwtsms_update_company($company_data = null, $company_id = null, $lang_code = null, $action = null)
 {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('update_company', func_num_args(), 4)) {
+        return;
+    }
     try {
         if ((string) $action !== 'update' || !fn_allowed_for('MULTIVENDOR')) {
             return;
@@ -506,8 +556,13 @@ function fn_kwtsms_update_company($company_data, $company_id, $lang_code, $actio
  * @param mixed $result      The deletion result
  * @param mixed $storefronts Unused
  */
-function fn_kwtsms_delete_company($company_id, $result, $storefronts = [])
+function fn_kwtsms_delete_company($company_id = null, $result = null, $storefronts = [])
 {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('delete_company', func_num_args(), 2)) {
+        return;
+    }
     try {
         if (!$result || !fn_allowed_for('MULTIVENDOR')) {
             return;
@@ -531,13 +586,18 @@ function fn_kwtsms_delete_company($company_id, $result, $storefronts = [])
  * @param bool   $notify       Unused
  */
 function fn_kwtsms_change_company_status_pre(
-    $company_id,
-    $status_to,
+    $company_id = null,
+    $status_to = null,
     $reason = '',
     $status_from = '',
     $skip_query = false,
     $notify = true
 ) {
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    if (fn_kwtsms_hook_args_missing('change_company_status_pre', func_num_args(), 2)) {
+        return;
+    }
     try {
         if (!fn_allowed_for('MULTIVENDOR')) {
             return;
@@ -546,6 +606,28 @@ function fn_kwtsms_change_company_status_pre(
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('change_company_status_pre', $e);
     }
+}
+
+/**
+ * 2026-10-23 13:17 +03: final review A, Important 3, task 596. True (and one error-log line per hook and request) when a hook
+ * handler was called with fewer arguments than it needs; the handler then returns without doing anything.
+ *
+ * @param string $hook   Hook name
+ * @param int    $given  func_num_args() of the handler
+ * @param int    $needed Number of leading arguments the handler cannot work without
+ */
+function fn_kwtsms_hook_args_missing(string $hook, int $given, int $needed): bool
+{
+    if ($given >= $needed) {
+        return false;
+    }
+    static $logged = [];
+    if (!isset($logged[$hook])) {
+        $logged[$hook] = true;
+        error_log('kwtsms: hook ' . $hook . ' called with ' . $given . ' of the ' . $needed . ' arguments it needs: skipped (core version mismatch?)');
+    }
+
+    return true;
 }
 
 /**
