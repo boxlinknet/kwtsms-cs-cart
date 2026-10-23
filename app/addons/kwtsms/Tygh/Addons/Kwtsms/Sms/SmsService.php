@@ -1283,6 +1283,11 @@ class SmsService
             // task 596.
             $sender = (string) $context['_sender'];
             $this->state->banSender($sender);
+            // 2026-10-23 05:49 +03: Cleanup CA1-4 (A2 M1), task 596. The rest of this request (a drain batch) must
+            // not keep sending under the banned storefront sender.
+            if ($this->senders !== null) {
+                $this->senders->forget();
+            }
             $this->note('error', 'sms.sender_banned', $code, ['sender' => $sender]);
             $this->alert('sender_banned', ['[sender]' => $sender], true, 86400, $sender);
         }

@@ -79,6 +79,15 @@ class SenderResolver
     }
 
     /**
+     * Drops the per-request cache so the next forStorefront() resolves again (a Sender ID was banned mid-request).
+     * 2026-10-23 05:49 +03: added, Cleanup CA1-4 (A2 M1), task 596.
+     */
+    public function forget(): void
+    {
+        $this->cache = [];
+    }
+
+    /**
      * Saves the storefront's Sender ID ('' clears it).
      *
      * @return array{ok:bool,reason:string} reason: '', not_in_list, kwtsms_ack, bad_storefront
