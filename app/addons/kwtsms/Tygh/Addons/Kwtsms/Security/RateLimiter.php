@@ -87,15 +87,40 @@ class RateLimiter
     /**
      * Counts one hit in the fixed window that started at the first hit of the bucket.
      *
-     * @return int This hit's number in its window (1 for the first)
+     * 2026-10-23 20:48 +03: Task M1.2 fix round 1 (minor 2), task 596. Fails closed: when the statement throws or
+     * LAST_INSERT_ID() comes back 0 (a query on an AUTO_INCREMENT table in between, a reconnect), the number of this
+     * hit is unknown, so the call is logged (no bucket name, no address) and answers PHP_INT_MAX, which is over every
+     * limit. It never reads as a first hit.
+     *
+     * @return int This hit's number in its window (1 for the first); PHP_INT_MAX when it could not be counted
      */
     public function hit(string $bucket, int $window_s): int
     {
         $now = $this->now();
         $edge = $now - max(1, $window_s);
-        $this->run(self::HIT_SQL, [self::bucketName($bucket), $now, $now, $edge, $edge]);
+        try {
+            $this->run(self::HIT_SQL, [self::bucketName($bucket), $now, $now, $edge, $edge]);
+            $n = (int) $this->field('SELECT LAST_INSERT_ID()', []);
+        } catch (\Throwable $e) {
+            $this->report('rate limiter hit failed: ' . get_class($e));
 
-        return max(1, (int) $this->field('SELECT LAST_INSERT_ID()', []));
+            return PHP_INT_MAX;
+        }
+        if ($n < 1) {
+            $this->report('rate limiter hit: LAST_INSERT_ID() returned ' . $n . ', counted as over the limit');
+
+            return PHP_INT_MAX;
+        }
+
+        return $n;
+    }
+
+    /**
+     * One log line (a test seam). Never holds a bucket name, an address or a phone number.
+     */
+    protected function report(string $message): void
+    {
+        error_log('kwtsms: ' . $message);
     }
 
     /**
