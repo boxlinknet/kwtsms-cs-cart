@@ -671,6 +671,25 @@ function fn_kwtsms_log_hook_error(string $hook, \Throwable $e): void
 }
 
 /**
+ * 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Hook before_dispatch (fn.control.php, before every
+ * controller):
+ * in the admin area, finishes a 1.2.0 upgrade whose post-upgrade step failed or did not run (stored add-on version
+ * behind the files). Re-uploading the package cannot do that (the Upgrade Center refuses it once the files are copied).
+ * The handler takes no parameter, so a core that passes fewer or more arguments cannot break it. Never throws.
+ */
+function fn_kwtsms_before_dispatch()
+{
+    if (!defined('AREA') || AREA !== 'A') {
+        return;
+    }
+    try {
+        \Tygh\Addons\Kwtsms\Upgrade\PostUpgrade::selfHeal();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('before_dispatch', $e);
+    }
+}
+
+/**
  * Public send API for other add-ons (PRD 5.2 extension contract, stable from 1.0.0). The text goes through the
  * whole send pipeline with source "api": its own per-number rate bucket, at most 1000 recipients per call, and
  * the calling add-on recorded (event_id "api.<add-on>" unless the caller gives one, and the debug log).

@@ -15,11 +15,16 @@
  *            the file copy (P2-R6); settings, language files and the version need the 1.2.0 files. An upgrade changes
  *            no edited template, switch, setting or credential, writes no notification_settings row, turns no
  *            feature on, writes no phone-index row and no kwtsms_phone_index_state key (P3-31): the index backfill
- *            starts only when an admin turns a phone feature on. Every step is idempotent, so uploading the same
- *            package again is the retry.
+ *            starts only when an admin turns a phone feature on. Every step is idempotent.
+ *            2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Uploading the package again is NOT a retry: the
+ *            Upgrade Center refuses a package whose from_version differs from the addon.xml on disk, and by the time
+ *            post.php runs the 1.2.0 files are on disk. So selfHeal() (called on the admin-area before_dispatch hook)
+ *            runs this step again whenever the stored add-on version is behind the files.
  * USAGE:     PostUpgrade::run($from) throws on failure; PostUpgrade::runReported($from) (what post.php calls)
  *            reports instead and returns false. $from is the add-on version before the upgrade
  *            (fn_get_addon_version('kwtsms'), still the old one when post.php starts).
+ *            PostUpgrade::selfHeal() does nothing when the stored version is 1.2.0 or newer, else runReported() with
+ *            the stored version, at most once per request, serialized by a database lock.
  * DEPENDS:   The 1.2.0 files on disk, SchemesManager, fn_update_addon_settings(), fn_update_addon_version(),
  *            fn_kwtsms_seed_default_templates(); for $from 1.0.0 the class Kwtsms110 (post.php loads its file).
  */
@@ -43,6 +48,49 @@ class PostUpgrade
     private const SHIPPED_1_1_0 = [];
 
     /**
+     * 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Copy of Kwtsms110::SHIPPED_1_0_0 (the four texts 1.0.0
+     * shipped and 1.1.0 changed). Used only when a store at 1.0.0 is healed without the 1.1.0 migration file (the file
+     * lives in the upgrade package, not in the add-on tree); a unit test compares it with the original.
+     */
+    private const SHIPPED_1_0_0 = [
+        'kwtsms.integrations.mve.vendor_sms' => [
+            'en' => "Vendor SMS: not included in 1.0, planned for 1.1",
+            'ar' => "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646}: "
+                . "\u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}"
+                . "\u{635}\u{62f}\u{627}\u{631} 1.0\u{60c} "
+                . "\u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1",
+        ],
+        'kwtsms.help.overview.p2' => [
+            'en' => "kwtSMS sends one-way messages, so customers can't reply. "
+                . "Vendor SMS is not included in version 1.0 and is planned for 1.1.",
+            'ar' => "\u{64a}\u{631}\u{633}\u{644} kwtSMS \u{631}\u{633}\u{627}\u{626}\u{644} \u{628}\u{627}\u{62a}"
+                . "\u{62c}\u{627}\u{647} \u{648}\u{627}\u{62d}\u{62f}\u{60c} \u{641}\u{644}\u{627} \u{64a}\u{633}"
+                . "\u{62a}\u{637}\u{64a}\u{639} \u{627}\u{644}\u{639}\u{645}\u{644}\u{627}\u{621} \u{627}\u{644}"
+                . "\u{631}\u{62f}. "
+                . "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646} "
+                    . "\u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}"
+                    . "\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0 "
+                . "\u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1.",
+        ],
+        'kwtsms.integrations.later.help' => [
+            'en' => "Available in a later version.",
+            'ar' => "\u{645}\u{62a}\u{627}\u{62d}\u{629} \u{641}\u{64a} \u{625}\u{635}\u{62f}\u{627}\u{631} "
+                . "\u{644}\u{627}\u{62d}\u{642}.",
+        ],
+        'kwtsms.integrations.later.discussion' => [
+            'en' => "Reviews and comments",
+            'ar' => "\u{627}\u{644}\u{62a}\u{642}\u{64a}\u{64a}\u{645}\u{627}\u{62a} "
+                . "\u{648}\u{627}\u{644}\u{62a}\u{639}\u{644}\u{64a}\u{642}\u{627}\u{62a}",
+        ],
+    ];
+
+    /** Name of the database lock that serializes post-upgrade runs (post.php and the self-heal). */
+    private const LOCK = 'kwtsms_post_upgrade';
+
+    /** @var bool True once selfHeal() has looked at the version in this request */
+    private static $healChecked = false;
+
+    /**
      * @param string $from_version The add-on version before the upgrade ('1.0.0' or '1.1.0')
      *
      * @return void
@@ -60,13 +108,20 @@ class PostUpgrade
         // The 1.1.0 steps of a 1.0.0 store run first: Kwtsms110::content() writes version 1.1.0, so it must come
         // before the 1.2.0 version write below (otherwise the store would end on 1.1.0).
         if ($from_version === '1.0.0') {
-            if (!class_exists('Kwtsms110', false)) {
-                throw new \RuntimeException('the 1.1.0 migration file is not loaded (needed to upgrade from 1.0.0)');
+            if (class_exists('Kwtsms110', false)) {
+                // The package path: post.php loaded the 1.1.0 migration file. No notice of its own (one for the chain).
+                if (!\Kwtsms110::runContent(null, false)) {
+                    throw new \RuntimeException('the 1.1.0 content step failed (details in the kwtSMS debug log)');
+                }
+                SchemesManager::clearInternalCache(self::ADDON);
+            } else {
+                // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. The self-heal has no migration file.
+                // Everything
+                // else Kwtsms110::content() does (the vendor_monthly_quota setting, missing templates, missing
+                // language values) is covered by the generic steps below; only the refresh of the four 1.0.0 texts
+                // is repeated here.
+                self::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::SHIPPED_1_0_0);
             }
-            if (!\Kwtsms110::runContent()) {
-                throw new \RuntimeException('the 1.1.0 content step failed (details in the kwtSMS debug log)');
-            }
-            SchemesManager::clearInternalCache(self::ADDON);
         }
 
         self::addMissingSettings($scheme);
@@ -89,12 +144,19 @@ class PostUpgrade
      * @param string        $from_version See run()
      * @param callable|null $step         Replaces run() (a test injects a failing step)
      *
-     * @return bool True when every step finished
+     * @return bool True when every step finished (or another request holds the lock and is running them)
      */
     public static function runReported(string $from_version, ?callable $step = null): bool
     {
         // 2026-10-23 17:37 +03: Task M1.1b, task 596. $step lets a test prove the failure path (like
         // Kwtsms110::runContent).
+        // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. One run at a time: post.php and a self-heal from an
+        // admin request can overlap (the Upgrade Center takes several requests); the second one leaves the work to the
+        // first (non-blocking lock).
+        $locked = $step === null;
+        if ($locked && (int) db_get_field('SELECT GET_LOCK(?s, 0)', self::LOCK) !== 1) {
+            return true;
+        }
         try {
             $step === null ? self::run($from_version) : $step();
 
@@ -114,14 +176,43 @@ class PostUpgrade
                 'E',
                 __('error'),
                 fn_html_escape(
-                    'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e) . '). It is safe to '
-                    . 'repeat: upload the same upgrade package again. Details are in the kwtSMS debug log and the PHP '
-                    . 'error log.'
+                    'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e) . '). Open any '
+                    . 'kwtSMS admin page to finish the upgrade: the step runs again by itself and is safe to repeat. '
+                    . 'Details are in the kwtSMS debug log and the PHP error log.'
                 )
             );
 
             return false;
+        } finally {
+            if ($locked) {
+                db_get_field('SELECT RELEASE_LOCK(?s)', self::LOCK);
+            }
         }
+    }
+
+    /**
+     * The retry. The add-on files are 1.2.0 (this class is one of them); when the stored add-on version is behind,
+     * a post-upgrade step failed or has not run, so it runs again with the stored version as $from. Idempotent;
+     * once per request; nothing when the version is current (one indexed query).
+     *
+     * @param bool $once False lets a test call it repeatedly in one process
+     *
+     * @return bool True when it ran the upgrade step
+     */
+    public static function selfHeal(bool $once = true): bool
+    {
+        // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596.
+        if ($once && self::$healChecked) {
+            return false;
+        }
+        self::$healChecked = true;
+        $from = (string) fn_get_addon_version(self::ADDON);
+        if ($from === '' || version_compare($from, self::VERSION, '>=')) {
+            return false;
+        }
+        self::runReported($from);
+
+        return true;
     }
 
     /**

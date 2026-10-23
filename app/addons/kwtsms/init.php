@@ -49,6 +49,9 @@ fn_register_hooks(
     // its existence (Multi-Vendor only; the handlers return at once elsewhere).
     'update_company',
     'delete_company',
-    'change_company_status_pre'
+    'change_company_status_pre',
+    // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. The retry of a failed 1.2.0 post-upgrade step (admin area
+    // only, handler fn_kwtsms_before_dispatch).
+    'before_dispatch'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

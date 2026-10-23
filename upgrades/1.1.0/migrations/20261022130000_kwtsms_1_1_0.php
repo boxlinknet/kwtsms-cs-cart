@@ -290,23 +290,29 @@ class Kwtsms110 extends AbstractMigration
      *
      * @return bool True when the step finished
      */
-    public static function runContent(?callable $step = null): bool
+    public static function runContent(?callable $step = null, bool $notice = true): bool
     {
-        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. The step is idempotent, so re-uploading the same
-        // package is the retry.
+        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. The step is idempotent.
+        // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1, m2), task 596. Re-uploading the package is NOT a retry (the
+        // Upgrade
+        // Center refuses a package whose from_version is not the version on disk, and the files are already copied);
+        // from 1.2.0 on PostUpgrade::selfHeal() repeats the step on the next kwtSMS admin page. $notice false lets
+        // PostUpgrade show one notice for the whole chain instead of two.
         try {
             $step === null ? self::content() : $step();
 
             return true;
         } catch (\Throwable $e) {
             self::report('upgrade.content_failed', get_class($e) . ': ' . $e->getMessage());
-            fn_set_notification(
-                'E',
-                __('error'),
-                'kwtsms 1.1.0: the post-upgrade step failed (' . get_class($e) . '). It is safe to repeat: '
-                . 'upload the same upgrade package again.'
-                . ' Details are in the kwtSMS debug log and the PHP error log.'
-            );
+            if ($notice) {
+                fn_set_notification(
+                    'E',
+                    __('error'),
+                    'kwtsms 1.1.0: the post-upgrade step failed (' . get_class($e) . '). Details are in the kwtSMS '
+                    . 'debug log and the PHP error log. With the add-on at version 1.2.0 or later the step runs '
+                    . 'again by itself when you open any kwtSMS admin page.'
+                );
+            }
 
             return false;
         }
