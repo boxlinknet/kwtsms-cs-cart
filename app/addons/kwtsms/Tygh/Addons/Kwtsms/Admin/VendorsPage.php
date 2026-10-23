@@ -115,6 +115,10 @@ class VendorsPage
                 'active' => (string) $vendor['status'] === VendorPhones::STATUS_ACTIVE,
                 'phone' => $state['raw'],
                 'normalized' => $state['normalized'],
+                // 2026-10-23 08:34 +0300: cleanup CA2-4 (A8 copy), task 596. "Number used": on a phone-changed row it is the number that
+                // was approved (the profile number is not used until it is approved), marked as changed.
+                'number' => $state['status'] === 'changed' ? $state['approved_phone'] : $state['normalized'],
+                'number_changed' => $state['status'] === 'changed',
                 'status' => $state['status'],
                 'reason' => $state['reason'],
                 'approved_at' => $state['approved_at'],
@@ -154,6 +158,9 @@ class VendorsPage
                 'placed' => $switches[Defaults::EVENT_PLACED]['V'] ?? null,
                 'low_stock' => $switches[Defaults::EVENT_LOW_STOCK]['V'] ?? null,
             ],
+            // 2026-10-23 08:34 +0300: cleanup CA2-4 (A8 copy), task 596. The "Both are off" note shows only while neither switch is On.
+            'switches_all_off' => ($switches[Defaults::EVENT_PLACED]['V'] ?? null) !== true
+                && ($switches[Defaults::EVENT_LOW_STOCK]['V'] ?? null) !== true,
             'search' => ['page' => $page, 'pages' => $pages, 'total' => $total, 'per_page' => self::PER_PAGE],
             'prev_url' => $page > 1 ? 'kwtsms.vendors?page=' . ($page - 1) : '',
             'next_url' => $page < $pages ? 'kwtsms.vendors?page=' . ($page + 1) : '',

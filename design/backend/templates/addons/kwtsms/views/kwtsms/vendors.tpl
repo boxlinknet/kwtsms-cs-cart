@@ -39,7 +39,8 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                 {if $v.switches.low_stock === true}<span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.status.on")}</span>{else}<span class="kwtsms-badge">{__("kwtsms.status.off")}</span>{/if}
             </dd>
         </dl>
-        <p class="muted description">{__("kwtsms.vendors.switches.help")}</p>
+        {* 2026-10-23 08:34 +0300: cleanup CA2-4 (A8 copy), task 596. "Both are off" is only true while both are off. *}
+        {if $v.switches_all_off}<p class="muted description" id="kwtsms_vendors_switches_help">{__("kwtsms.vendors.switches.help")}</p>{/if}
         {if $v.can_open_templates}<p><a class="btn" id="kwtsms_vendors_open_templates" href="{"kwtsms.templates"|fn_url}">{__("kwtsms.vendors.switches.open")}</a></p>{/if}
     </section>
 
@@ -108,7 +109,9 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                     {if !$row.active}<span class="kwtsms-badge">{__("kwtsms.vendors.not_active")}</span>{/if}
                                 </td>
                                 <td data-th="{__("kwtsms.vendors.col.phone")}">{if $row.phone}<bdi dir="ltr">{$row.phone}</bdi>{else}-{/if}</td>
-                                <td data-th="{__("kwtsms.vendors.col.number")}">{if $row.normalized}<bdi dir="ltr">+{$row.normalized}</bdi>{else}-{/if}</td>
+                                <td data-th="{__("kwtsms.vendors.col.number")}">{* 2026-10-23 08:34 +0300: cleanup CA2-4 (A8 copy), task 596. A changed row shows the approved number and says the new one is not used. *}
+                                    {if $row.number}<bdi dir="ltr">+{$row.number}</bdi>{else}-{/if}
+                                    {if $row.number_changed}<span class="kwtsms-reason muted kwtsms-number-changed">{__("kwtsms.vendors.number_changed")}</span>{/if}</td>
                                 <td data-th="{__("kwtsms.vendors.col.status")}">
                                     {if $row.status == "approved"}
                                         <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.vendors.status.approved")}</span>

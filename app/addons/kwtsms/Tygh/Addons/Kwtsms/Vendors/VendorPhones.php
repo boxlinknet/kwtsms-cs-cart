@@ -215,6 +215,8 @@ class VendorPhones implements VendorPhoneSourceInterface
             'reason' => $current['ok'] ? '' : $current['reason'],
             'approved_at' => $approved_at,
             'approved_by' => $row === null ? 0 : (int) $row['approved_by'],
+            // 2026-10-23 08:34 +0300: cleanup CA2-4 (A8 copy), task 596. The number that was approved ('' when none).
+            'approved_phone' => $approved_at > 0 && $row !== null ? (string) $row['phone'] : '',
         ];
     }
 
