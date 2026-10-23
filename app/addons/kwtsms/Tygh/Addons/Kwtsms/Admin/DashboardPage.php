@@ -988,6 +988,10 @@ class DashboardPage
         if ($event_id === SettingsPage::TEST_SMS_EVENT) {
             return (string) __('kwtsms.dash.event.test_sms');
         }
+        // 2026-10-23 02:10 +03: the manual SMS of the order page, Task A11, task 596.
+        if ($event_id === OrderSmsSender::EVENT_ID) {
+            return (string) __('kwtsms.dash.event.manual_order_sms');
+        }
         if (strpos($event_id, 'kwtsms.order_placed') === 0) {
             return (string) __('kwtsms.dash.event.order_placed');
         }

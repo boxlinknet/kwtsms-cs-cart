@@ -832,6 +832,10 @@ class LogsPage
         if (strpos($event_id, 'kwtsms.order_placed') === 0) {
             return (string) __('kwtsms.dash.event.order_placed');
         }
+        // 2026-10-23 02:09 +03: the manual SMS of the order page, Task A11, task 596.
+        if ($event_id === OrderSmsSender::EVENT_ID) {
+            return (string) __('kwtsms.dash.event.manual_order_sms');
+        }
         if (preg_match('/^order\.status_changed\.([a-z0-9])$/D', $event_id, $m) === 1) {
             $code = strtoupper($m[1]);
             $names = $this->statusNames();
@@ -877,6 +881,8 @@ class LogsPage
             'kwtsms.order_placed.multi' => (string) __('kwtsms.dash.event.order_placed')
                 . ' (' . (string) __('kwtsms.logs.event_multi') . ')',
             SettingsPage::TEST_SMS_EVENT => (string) __('kwtsms.dash.event.test_sms'),
+            // 2026-10-23 02:09 +03: Task A11, task 596.
+            OrderSmsSender::EVENT_ID => (string) __('kwtsms.dash.event.manual_order_sms'),
         ];
         foreach ($this->statusNames() as $code => $name) {
             $events['order.status_changed.' . strtolower((string) $code)]

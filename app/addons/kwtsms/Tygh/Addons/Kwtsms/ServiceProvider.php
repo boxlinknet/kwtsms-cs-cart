@@ -79,6 +79,7 @@ use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
 use Tygh\Addons\Kwtsms\Orders\OrderHooks;
 use Tygh\Addons\Kwtsms\Orders\OrderNotifier;
 use Tygh\Addons\Kwtsms\Orders\OrderSource;
+use Tygh\Addons\Kwtsms\Admin\OrderSmsSender; // 2026-10-23 02:06 +03: Task A11, task 596
 use Tygh\Addons\Kwtsms\Orders\RuntimeFlags;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
 use Tygh\Addons\Kwtsms\Vendors\VendorPhones; // 2026-10-22 22:22 +03: Task A8, task 596
@@ -347,6 +348,16 @@ class ServiceProvider implements ServiceProviderInterface
 
         $app['kwtsms.order_source'] = function (Container $app): OrderSource {
             return new OrderSource($app['kwtsms.logs.debug']);
+        };
+
+        // 2026-10-23 02:06 +03: the manual SMS of the admin order page, Task A11, task 596.
+        $app['kwtsms.order_sms_sender'] = function (Container $app): OrderSmsSender {
+            return new OrderSmsSender(
+                $app['kwtsms.sms'],
+                $app['kwtsms.config'],
+                $app['kwtsms.order_source'],
+                $app['kwtsms.logs.debug']
+            );
         };
 
         // The kwtsms events schema (our kwtsms.order_placed and third-party declarations, PRD 5.2).

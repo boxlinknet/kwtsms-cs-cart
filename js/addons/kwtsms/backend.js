@@ -87,6 +87,45 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
         refreshStorefronts();
     }
 
+    /*
+    2026-10-23 02:18 +03, Task A11, task 596. The manual SMS dialog of the admin order page: the live character, page and
+    credit counter. The count is what the gateway bills: counter.js (a mirror of MessageCleaner) cleans the stored form of
+    the typed text. One recipient, so the credits equal the pages. Display only; the server validates and counts again.
+    The dialog is moved to the page body by the core dialog opener, so the listener is delegated on the document and finds
+    its dialog from the textarea.
+    */
+    function updateOrderSms(box) {
+        var dialog = box.closest ? box.closest('.kwtsms-order-sms-dialog') : null;
+        var counter = window.kwtsmsCounter;
+        if (!dialog || !counter) {
+            return;
+        }
+        var counts = counter.count(counter.clean(counter.storedForm(box.value)));
+        var out = function (id) {
+            return dialog.querySelector(id);
+        };
+        var over = out('#kwtsms_order_sms_over');
+        var send = out('#kwtsms_order_sms_send');
+        out('#kwtsms_order_count_units').textContent = String(counts.units);
+        out('#kwtsms_order_count_pages').textContent = String(counts.pages);
+        out('#kwtsms_order_count_credits').textContent = String(counts.pages);
+        out('#kwtsms_order_count_enc').textContent = counts.units === 0 ? '-' : (counts.unicode
+            ? (dialog.getAttribute('data-kwtsms-enc-unicode') || '') : (dialog.getAttribute('data-kwtsms-enc-ascii') || ''));
+        if (over) {
+            over.textContent = counts.over ? (dialog.getAttribute('data-kwtsms-msg-over') || '') : '';
+            toggle(over, counts.over);
+        }
+        if (send) {
+            send.disabled = counts.units === 0 || counts.over;
+        }
+    }
+
+    document.addEventListener('input', function (event) {
+        if (event.target && event.target.classList && event.target.classList.contains('kwtsms-js-order-text')) {
+            updateOrderSms(event.target);
+        }
+    });
+
     function init(context) {
         var root = context && context.jquery ? context.get(0) : (context || document);
         if (root) {

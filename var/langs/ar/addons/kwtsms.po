@@ -5039,3 +5039,84 @@ msgstr "تأكيدات الطلب ورموز الأمان تُرسل دائمً�
 msgctxt "Languages::kwtsms.logs.reason.customer_opt_out"
 msgid "The customer turned off order status SMS in their profile."
 msgstr "أوقف العميل رسائل SMS الخاصة بحالة الطلب من ملفه الشخصي."
+
+# 2026-10-23 02:18 +03: Task A11 (manual SMS from the admin order page), task 596.
+msgctxt "Languages::kwtsms.order_sms.button"
+msgid "Send SMS"
+msgstr "إرسال رسالة SMS"
+
+msgctxt "Languages::kwtsms.order_sms.title"
+msgid "Send an SMS to the customer"
+msgstr "إرسال رسالة SMS إلى العميل"
+
+msgctxt "Languages::kwtsms.order_sms.intro"
+msgid "Sends one SMS now, from the Sender ID of this order's storefront."
+msgstr "ترسل رسالة SMS واحدة الآن باستخدام معرّف المرسل الخاص بواجهة المتجر لهذا الطلب."
+
+msgctxt "Languages::kwtsms.order_sms.phone"
+msgid "Phone number"
+msgstr "رقم الهاتف"
+
+msgctxt "Languages::kwtsms.order_sms.phone_help"
+msgid "One number only. Start with + or 00 and the country code for a number outside the default country."
+msgstr "رقم واحد فقط. ابدأ بعلامة + أو 00 ثم رمز الدولة لرقم من خارج الدولة الافتراضية."
+
+msgctxt "Languages::kwtsms.order_sms.text"
+msgid "Message"
+msgstr "نص الرسالة"
+
+msgctxt "Languages::kwtsms.order_sms.text_help"
+msgid "Emoji and hidden characters are removed before sending."
+msgstr "تُحذف الرموز التعبيرية والمحارف المخفية قبل الإرسال."
+
+msgctxt "Languages::kwtsms.order_sms.credits"
+msgid "Credits (estimate)"
+msgstr "الرصيد التقديري"
+
+msgctxt "Languages::kwtsms.order_sms.over"
+msgid "This text is longer than [max] SMS. It will not be sent."
+msgstr "هذا النص أطول من [max] رسائل SMS ولن يُرسل."
+
+msgctxt "Languages::kwtsms.order_sms.test_mode"
+msgid "Test mode is on."
+msgstr "وضع الاختبار مفعّل."
+
+msgctxt "Languages::kwtsms.order_sms.send"
+msgid "Send SMS"
+msgstr "إرسال"
+
+msgctxt "Languages::kwtsms.order_sms.result"
+msgid "Manual SMS result"
+msgstr "نتيجة الرسالة اليدوية"
+
+msgctxt "Languages::kwtsms.order_sms.notice_title"
+msgid "Manual SMS"
+msgstr "رسالة يدوية"
+
+msgctxt "Languages::kwtsms.order_sms.err.order_not_found"
+msgid "The order was not found."
+msgstr "لم يتم العثور على الطلب."
+
+msgctxt "Languages::kwtsms.order_sms.err.phone_required"
+msgid "Enter a phone number."
+msgstr "أدخل رقم هاتف."
+
+msgctxt "Languages::kwtsms.order_sms.err.phone_invalid"
+msgid "Enter one phone number with digits only. A leading + is allowed."
+msgstr "أدخل رقم هاتف واحدا يتكون من أرقام فقط. يُسمح بعلامة + في البداية."
+
+msgctxt "Languages::kwtsms.order_sms.err.text_empty"
+msgid "Enter the text of the SMS."
+msgstr "أدخل نص الرسالة."
+
+msgctxt "Languages::kwtsms.order_sms.err.text_too_long"
+msgid "The text is too long."
+msgstr "النص طويل جدا."
+
+msgctxt "Languages::kwtsms.order_sms.err.failed"
+msgid "The SMS could not be sent. See the kwtSMS debug log."
+msgstr "تعذر إرسال الرسالة. راجع سجل التصحيح في kwtSMS."
+
+msgctxt "Languages::kwtsms.dash.event.manual_order_sms"
+msgid "Manual SMS (order)"
+msgstr "رسالة يدوية (طلب)"

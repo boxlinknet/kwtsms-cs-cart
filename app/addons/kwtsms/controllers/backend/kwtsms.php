@@ -31,6 +31,8 @@
  *            2026-10-22 22:26 +03: Task A8, task 596: the Vendor SMS page (GET vendors, Multi-Vendor only) and its
  *            POST modes update_vendor_phone (.approve | .revoke) and update_vendor_quotas, handled by
  *            Admin\VendorsPage.
+ *            2026-10-23 02:12 +03: Task A11, task 596: POST send_order_sms (manual SMS of the admin order page),
+ *            handled by Admin\OrderSmsSender.
  */
 
 // 2026-10-21 07:03 +03: the shared cron line helper, Tasks 1.13 and 1.15 fix round 1, task 596.
@@ -45,6 +47,8 @@ use Tygh\Addons\Kwtsms\Admin\LogExport;
 use Tygh\Addons\Kwtsms\Admin\LogResender;
 use Tygh\Addons\Kwtsms\Admin\LogsPage;
 use Tygh\Addons\Kwtsms\Admin\Navigation;
+// 2026-10-23 02:12 +03: Task A11, task 596.
+use Tygh\Addons\Kwtsms\Admin\OrderSmsSender;
 use Tygh\Addons\Kwtsms\Admin\RequestGate;
 use Tygh\Addons\Kwtsms\Admin\SettingsPage;
 use Tygh\Addons\Kwtsms\Admin\TemplatesPage;
@@ -193,6 +197,71 @@ try {
                 }
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_test_sms'];
+
+            // 2026-10-23 02:12 +03: the manual SMS of the admin order page (Task A11, task 596). Gate passed
+            // already: POST, root administrator on All storefronts, manage_kwtsms_gateway, our security hash. Here:
+            // core's view_orders and the order's company (defence in depth), then Admin\OrderSmsSender (server-side
+            // phone and text checks, the one send pipeline, the per-number manual caps, test mode). PRG back to the
+            // order; the result panel sits on the order's SMS tab (selected_section=kwtsms_sms) and a notice says
+            // the outcome.
+            case 'send_order_sms':
+                $kwtsms_oid = isset($_REQUEST['kwtsms_order_id']) && is_scalar($_REQUEST['kwtsms_order_id'])
+                    && ctype_digit((string) $_REQUEST['kwtsms_order_id']) ? (int) $_REQUEST['kwtsms_order_id'] : 0;
+                if (
+                    $kwtsms_oid < 1
+                    || fn_check_current_user_access('view_orders') !== true
+                    || !fn_check_company_id('orders', 'order_id', $kwtsms_oid)
+                ) {
+                    return [CONTROLLER_STATUS_DENIED];
+                }
+                // The raw text (bootstrap strip_tags would cut at a "<"); only from the POST body.
+                fn_trusted_vars('kwtsms_order_text');
+                $kwtsms_text = isset($_POST['kwtsms_order_text'], $_REQUEST['kwtsms_order_text'])
+                    && is_string($_REQUEST['kwtsms_order_text']) ? $_REQUEST['kwtsms_order_text'] : '';
+                $kwtsms_phone = isset($_POST['kwtsms_order_phone']) && is_string($_POST['kwtsms_order_phone'])
+                    ? $_POST['kwtsms_order_phone'] : '';
+                $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+                $kwtsms_sent = OrderSmsSender::fromContainer(Tygh::$app)->send(
+                    $kwtsms_oid,
+                    $kwtsms_phone,
+                    $kwtsms_text,
+                    isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                    filter_var($kwtsms_ip, FILTER_VALIDATE_IP) !== false ? $kwtsms_ip : ''
+                );
+                $kwtsms_order_url = 'orders.details?order_id=' . $kwtsms_oid;
+                if ($kwtsms_sent['outcome'] === '') {
+                    // Refused before the pipeline: nothing was sent and no row written.
+                    // 2026-10-23 02:30 +03: a fixed list of reasons, escaped text (package gate), Task A11, task 596.
+                    $kwtsms_known = [
+                        'order_not_found', 'phone_required', 'phone_invalid', 'text_empty', 'text_too_long',
+                    ];
+                    $kwtsms_why = in_array($kwtsms_sent['reason'], $kwtsms_known, true)
+                        ? $kwtsms_sent['reason'] : 'failed';
+                    $kwtsms_text = (string) __('kwtsms.order_sms.err.' . $kwtsms_why);
+                    fn_set_notification('E', __('error'), fn_html_escape($kwtsms_text));
+
+                    return [CONTROLLER_STATUS_REDIRECT, $kwtsms_order_url];
+                }
+                $kwtsms_logs = LogsPage::fromContainer(Tygh::$app);
+                $kwtsms_session['kwtsms_order_sms_result'] = [
+                    'order_id' => $kwtsms_oid,
+                    'ok' => $kwtsms_sent['ok'],
+                    'outcome' => $kwtsms_sent['outcome'],
+                    'outcome_text' => $kwtsms_logs->outcomeLabel($kwtsms_sent['outcome']),
+                    'reason_text' => $kwtsms_logs->reasonLabel($kwtsms_sent['reason'], $kwtsms_sent['outcome']),
+                    'message_id' => $kwtsms_sent['message_id'],
+                    'points' => $kwtsms_sent['points'],
+                    'balance_after' => $kwtsms_sent['balance_after'] === null
+                        ? '' : rtrim(rtrim(number_format((float) $kwtsms_sent['balance_after'], 2, '.', ''), '0'), '.'),
+                    'test' => $kwtsms_sent['ok'] && Tygh::$app['kwtsms.config']->testMode(),
+                ];
+                fn_set_notification(
+                    $kwtsms_sent['ok'] ? 'N' : 'W',
+                    __('kwtsms.order_sms.notice_title'),
+                    fn_html_escape($kwtsms_logs->outcomeLabel($kwtsms_sent['outcome']))
+                );
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_order_url . '&selected_section=kwtsms_sms'];
 
             case 'sync':
                 $kwtsms_page->syncNow();

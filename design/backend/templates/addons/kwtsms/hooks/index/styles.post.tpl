@@ -22,3 +22,5 @@ DEPENDS:   design/backend/css/addons/kwtsms/styles.less
 {style src="addons/kwtsms/logs.less"}
 {* 2026-10-22 22:27 +03: the Vendor SMS page styles, Task A8, task 596 *}
 {style src="addons/kwtsms/vendors.less"}
+{* 2026-10-23 02:18 +03: the manual SMS dialog of the admin order page, Task A11, task 596 *}
+{style src="addons/kwtsms/ordersms.less"}

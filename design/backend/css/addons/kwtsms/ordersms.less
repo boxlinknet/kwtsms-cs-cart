@@ -1,0 +1,89 @@
+/*
+FILE:      design/backend/css/addons/kwtsms/ordersms.less
+CREATED:   2026-10-23 02:18 +03
+TASK:      596
+AUTHOR:    kwtSMS
+WHAT:      Styles of the manual SMS dialog of the admin order page (the Tools menu entry "Send SMS").
+WHY:       Task A11. The dialog is moved to the page body by the core dialog opener, so it cannot sit under the
+           .kwtsms-page root class: every selector here lives under .kwtsms-order-sms-dialog (the dialog's own root),
+           so nothing leaks into other admin pages. Logical properties only, so the dialog reads right in RTL.
+           Colours are the add-on tokens (AA on white: text #434345, muted #666669, danger #B42318, line #E3E3E6).
+USAGE:     Loaded by hooks/index/styles.post.tpl.
+DEPENDS:   Nothing.
+*/
+@kwtsms-os-text: #434345;
+@kwtsms-os-muted: #666669;
+@kwtsms-os-danger: #B42318;
+@kwtsms-os-line: #E3E3E6;
+@kwtsms-os-warning: #8A5F0F;
+
+.kwtsms-order-sms-dialog {
+    color: @kwtsms-os-text;
+    .muted {
+        color: @kwtsms-os-muted;
+    }
+    .kwtsms-order-sms-field {
+        margin: 0 0 14px;
+        label {
+            display: block;
+            margin: 0 0 4px;
+            font-weight: 600;
+        }
+        input[type="text"],
+        textarea {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+    }
+    .kwtsms-order-sms-help {
+        margin: 4px 0 0;
+        font-size: 12px;
+    }
+    .kwtsms-order-sms-counts {
+        display: grid;
+        grid-template-columns: repeat(4, auto);
+        justify-content: start;
+        gap: 4px 28px;
+        margin: 0 0 8px;
+        dt {
+            font-weight: normal;
+            font-size: 12px;
+            color: @kwtsms-os-muted;
+        }
+        dd {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+    }
+    .kwtsms-order-sms-over {
+        margin: 6px 0 0;
+        color: @kwtsms-os-danger;
+        font-weight: 600;
+    }
+    .kwtsms-order-sms-test {
+        margin: 8px 0 0;
+        padding: 8px 12px;
+        border: 1px solid @kwtsms-os-line;
+        border-inline-start: 4px solid #FFA200;
+        border-radius: 4px;
+        color: @kwtsms-os-warning;
+    }
+    .kwtsms-order-sms-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 16px 0 0;
+    }
+}
+
+@media (max-width: 979px) {
+    .kwtsms-order-sms-dialog .kwtsms-order-sms-counts {
+        grid-template-columns: repeat(2, auto);
+    }
+}

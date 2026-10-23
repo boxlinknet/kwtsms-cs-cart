@@ -5036,3 +5036,84 @@ msgstr "Order confirmations and security codes are always sent."
 msgctxt "Languages::kwtsms.logs.reason.customer_opt_out"
 msgid "The customer turned off order status SMS in their profile."
 msgstr "The customer turned off order status SMS in their profile."
+
+# 2026-10-23 02:18 +03: Task A11 (manual SMS from the admin order page), task 596.
+msgctxt "Languages::kwtsms.order_sms.button"
+msgid "Send SMS"
+msgstr "Send SMS"
+
+msgctxt "Languages::kwtsms.order_sms.title"
+msgid "Send an SMS to the customer"
+msgstr "Send an SMS to the customer"
+
+msgctxt "Languages::kwtsms.order_sms.intro"
+msgid "Sends one SMS now, from the Sender ID of this order's storefront."
+msgstr "Sends one SMS now, from the Sender ID of this order's storefront."
+
+msgctxt "Languages::kwtsms.order_sms.phone"
+msgid "Phone number"
+msgstr "Phone number"
+
+msgctxt "Languages::kwtsms.order_sms.phone_help"
+msgid "One number only. Start with + or 00 and the country code for a number outside the default country."
+msgstr "One number only. Start with + or 00 and the country code for a number outside the default country."
+
+msgctxt "Languages::kwtsms.order_sms.text"
+msgid "Message"
+msgstr "Message"
+
+msgctxt "Languages::kwtsms.order_sms.text_help"
+msgid "Emoji and hidden characters are removed before sending."
+msgstr "Emoji and hidden characters are removed before sending."
+
+msgctxt "Languages::kwtsms.order_sms.credits"
+msgid "Credits (estimate)"
+msgstr "Credits (estimate)"
+
+msgctxt "Languages::kwtsms.order_sms.over"
+msgid "This text is longer than [max] SMS. It will not be sent."
+msgstr "This text is longer than [max] SMS. It will not be sent."
+
+msgctxt "Languages::kwtsms.order_sms.test_mode"
+msgid "Test mode is on."
+msgstr "Test mode is on."
+
+msgctxt "Languages::kwtsms.order_sms.send"
+msgid "Send SMS"
+msgstr "Send SMS"
+
+msgctxt "Languages::kwtsms.order_sms.result"
+msgid "Manual SMS result"
+msgstr "Manual SMS result"
+
+msgctxt "Languages::kwtsms.order_sms.notice_title"
+msgid "Manual SMS"
+msgstr "Manual SMS"
+
+msgctxt "Languages::kwtsms.order_sms.err.order_not_found"
+msgid "The order was not found."
+msgstr "The order was not found."
+
+msgctxt "Languages::kwtsms.order_sms.err.phone_required"
+msgid "Enter a phone number."
+msgstr "Enter a phone number."
+
+msgctxt "Languages::kwtsms.order_sms.err.phone_invalid"
+msgid "Enter one phone number with digits only. A leading + is allowed."
+msgstr "Enter one phone number with digits only. A leading + is allowed."
+
+msgctxt "Languages::kwtsms.order_sms.err.text_empty"
+msgid "Enter the text of the SMS."
+msgstr "Enter the text of the SMS."
+
+msgctxt "Languages::kwtsms.order_sms.err.text_too_long"
+msgid "The text is too long."
+msgstr "The text is too long."
+
+msgctxt "Languages::kwtsms.order_sms.err.failed"
+msgid "The SMS could not be sent. See the kwtSMS debug log."
+msgstr "The SMS could not be sent. See the kwtSMS debug log."
+
+msgctxt "Languages::kwtsms.dash.event.manual_order_sms"
+msgid "Manual SMS (order)"
+msgstr "Manual SMS (order)"

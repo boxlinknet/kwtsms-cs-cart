@@ -92,6 +92,10 @@ final class RequestGate
         'vendors'                   => [self::GET, 'manage_kwtsms'],
         'update_vendor_phone'       => [self::POST, 'manage_kwtsms'],
         'update_vendor_quotas'      => [self::POST, 'manage_kwtsms'],
+        // 2026-10-23 02:08 +03: Task A11, task 596. The manual SMS of the admin order page. It spends credits, so it
+        // needs the gateway privilege like the test SMS; the controller also asks core's view_orders for that order.
+        // Root administrators on All storefronts only, like every mode here (a vendor administrator is refused).
+        'send_order_sms'            => [self::POST, 'manage_kwtsms_gateway'],
     ];
 
     /**

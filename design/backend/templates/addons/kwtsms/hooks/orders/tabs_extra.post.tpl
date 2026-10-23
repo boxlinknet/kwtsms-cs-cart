@@ -17,6 +17,21 @@ DEPENDS:   $kwtsms_order_sms (Admin\OrderSmsTab::viewData()), components/log_out
     {$o = $kwtsms_order_sms}
     {$date_time = "`$settings.Appearance.date_format`, `$settings.Appearance.time_format`"}
     <div class="{if $selected_section !== "kwtsms_sms"}hidden {/if}kwtsms-page kwtsms-order-sms" id="content_kwtsms_sms" data-kwtsms-order="{$o.order_id}" data-kwtsms-parent="{$o.parent_id}" data-kwtsms-rows="{$o.rows|count}">
+        {* 2026-10-23 02:18 +03: the result of the manual SMS just sent from the Tools menu, Task A11, task 596 *}
+        {if $kwtsms_order_send_result}
+            {$m = $kwtsms_order_send_result}
+            <div class="kwtsms-result kwtsms-result--{if $m.ok}sent{else}failed{/if}" id="kwtsms_order_send_result" role="status">
+                <h5 class="kwtsms-result__title">{__("kwtsms.order_sms.result")}</h5>
+                <dl class="kwtsms-result__list">
+                    <dt>{__("kwtsms.test_sms.outcome")}</dt><dd id="kwtsms_order_result_outcome" data-kwtsms-outcome="{$m.outcome}">{$m.outcome_text}</dd>
+                    {if $m.reason_text && $m.reason_text !== $m.outcome_text}<dt>{__("kwtsms.test_sms.details")}</dt><dd id="kwtsms_order_result_reason">{$m.reason_text}</dd>{/if}
+                    {if $m.points}<dt>{__("kwtsms.test_sms.points")}</dt><dd><bdi id="kwtsms_order_result_points">{$m.points}</bdi></dd>{/if}
+                    {if $m.balance_after !== ""}<dt>{__("kwtsms.test_sms.balance_after")}</dt><dd><bdi id="kwtsms_order_result_balance">{$m.balance_after}</bdi></dd>{/if}
+                    {if $m.message_id}<dt>{__("kwtsms.logs.tab.messages")}</dt><dd><a id="kwtsms_order_result_message" href="{"kwtsms.log_details?tab=messages&id=`$m.message_id`"|fn_url}">{__("kwtsms.logs.view")}</a></dd>{/if}
+                </dl>
+                {if $m.test}<p class="kwtsms-result__note" id="kwtsms_order_result_test_note">{__("kwtsms.test_sms.test_note")}</p>{/if}
+            </div>
+        {/if}
         <p class="muted">{if $o.parent_id}{__("kwtsms.order_tab.intro_parent", ["[parent]" => $o.parent_id])}{else}{__("kwtsms.order_tab.intro")}{/if}</p>
         {if !$o.rows}
             <p class="kwtsms-logs-empty" id="kwtsms_order_sms_none">{__("kwtsms.order_tab.none")}</p>
