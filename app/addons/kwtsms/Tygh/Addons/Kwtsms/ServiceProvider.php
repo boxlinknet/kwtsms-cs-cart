@@ -486,7 +486,22 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. The antibot gate as a service: the order notifier and
         // the Templates page both ask it (was an inline closure in the notifier wiring). Returns a callable.
         $app['kwtsms.antibot_gate'] = $app->protect(static function (string $scenario) use ($app): bool {
-            return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
+            // 2026-10-23 13:18 +03: final review A, Minor 3, task 596. A core without Antibot::isValidationRequiredForScenario()
+            // (unverified below 4.21.2) keeps the gate closed (no SMS) and logs once instead of throwing on every registration.
+            if (!isset($app['antibot'])) {
+                return false;
+            }
+            if (!method_exists($app['antibot'], 'isValidationRequiredForScenario')) {
+                static $logged = false;
+                if (!$logged) {
+                    $logged = true;
+                    error_log('kwtsms: Antibot::isValidationRequiredForScenario() does not exist in this core: the antibot-gated SMS stay off');
+                }
+
+                return false;
+            }
+
+            return (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
         });
 
         $app['kwtsms.order_hooks'] = function (Container $app): OrderHooks {
