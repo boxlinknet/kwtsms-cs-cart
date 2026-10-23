@@ -107,14 +107,19 @@ class TemplatesPage
      */
     private $brand_cache = [];
 
+    /** @var callable|null 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. (string $scenario): bool, true = the antibot scenario is on */
+    private $antibot_gate;
+
     public function __construct(
         TemplateRepository $templates,
         DebugLog $log,
         OrderSmsData $orders,
         ConfigInterface $config,
         ?SettingsPage $settings = null,
-        ?StorefrontRules $rules = null
+        ?StorefrontRules $rules = null,
+        ?callable $antibot_gate = null
     ) {
+        $this->antibot_gate = $antibot_gate;
         $this->templates = $templates;
         $this->log = $log;
         $this->orders = $orders;
@@ -134,7 +139,9 @@ class TemplatesPage
             $app['kwtsms.order_sms_data'],
             $app['kwtsms.config'],
             SettingsPage::fromContainer($app),
-            $app['kwtsms.storefront_rules']
+            $app['kwtsms.storefront_rules'],
+            // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. The same antibot gate the order notifier uses.
+            $app['kwtsms.antibot_gate']
         );
     }
 
@@ -255,6 +262,22 @@ class TemplatesPage
     }
 
     /**
+     * The antibot scenario to name in the row's notice: $scenario while it is off, '' when it is on or the row has none.
+     * 2026-10-23 05:57 +03: added, Cleanup CA1-6 (A6 N2), task 596.
+     */
+    private function captchaNotice(string $scenario): string
+    {
+        if ($scenario === '' || $this->antibot_gate === null) {
+            return $scenario;
+        }
+        try {
+            return (bool) call_user_func($this->antibot_gate, $scenario) ? '' : $scenario;
+        } catch (\Throwable $e) {
+            return $scenario;
+        }
+    }
+
+    /**
      * One row of the matrix.
      *
      * @param array<string,mixed>                 $source   A row of TemplateRepository::rowsForUi()
@@ -327,7 +350,9 @@ class TemplatesPage
             'group_key' => $kind === 'declared' ? (string) ($source['group'] ?? '') : '',
             'group_label' => $kind === 'declared' ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
             // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. A public-form row shows the CAPTCHA notice.
-            'public_form' => $kind === 'declared' ? (string) ($source['public_form'] ?? '') : '',
+            // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. Only while that scenario is off (the notice says to
+            // turn it on); a scenario that is on shows nothing. No gate, or a gate that throws: the notice shows.
+            'public_form' => $kind === 'declared' ? $this->captchaNotice((string) ($source['public_form'] ?? '')) : '',
             'switch_note' => $note,
             'badge' => $badge,
             'has_text' => $effective !== '',

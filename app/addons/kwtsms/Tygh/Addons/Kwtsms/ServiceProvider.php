@@ -466,9 +466,7 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. The core antibot scenario of a
                 // public form
                 // (Tygh\Web\Antibot::isValidationRequiredForScenario, app/Tygh/Web/Antibot.php:121-129).
-                static function (string $scenario) use ($app): bool {
-                    return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
-                },
+                $app['kwtsms.antibot_gate'],
                 // 2026-10-22 22:22 +03: Task A8 (R8, R11), task 596. The vendor's monthly quota.
                 $app['kwtsms.vendor_quota'],
                 // 2026-10-23 00:54 +03: Task A10 (R8, R10), task 596. The customer opt-out, checked after the
@@ -484,6 +482,12 @@ class ServiceProvider implements ServiceProviderInterface
                 }
             );
         };
+
+        // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. The antibot gate as a service: the order notifier and
+        // the Templates page both ask it (was an inline closure in the notifier wiring). Returns a callable.
+        $app['kwtsms.antibot_gate'] = $app->protect(static function (string $scenario) use ($app): bool {
+            return isset($app['antibot']) && (bool) $app['antibot']->isValidationRequiredForScenario($scenario);
+        });
 
         $app['kwtsms.order_hooks'] = function (Container $app): OrderHooks {
             $flags = $app['kwtsms.order_flags'];

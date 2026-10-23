@@ -74,16 +74,24 @@ final class ProfileSmsData implements DeclaredSmsData
 
     /**
      * The storefront link of the password recovery page for an ekey, built like core builds it for the e-mail
-     * (events.php, profile.password_recover.c). It resolves against the storefront of the current request, which is
-     * the one that dispatched the event.
+     * (events.php, profile.password_recover.c).
+     * 2026-10-23 05:55 +03: Cleanup CA1-6 (A6 M4), task 596. It is built for the storefront the event came from:
+     * core's fn_url() reads storefront_id from the path (and strips it from the result), so a recovery started from
+     * the admin area or the cron no longer links to the default storefront. 0 = the current request's storefront.
+     *
+     * @param callable|null $url_builder (string $path, string $area): string; null = fn_url (test seam)
      */
     // 2026-10-22 20:17 +03: the ekey is a one-time secret (package gate: SensitiveParameter), task 596.
     public static function resetUrl(
         #[\SensitiveParameter]
         string $ekey,
-        int $storefront_id
+        int $storefront_id,
+        ?callable $url_builder = null
     ): string {
-        $path = 'auth.recover_password?ekey=' . $ekey;
+        $path = 'auth.recover_password?ekey=' . $ekey . ($storefront_id > 0 ? '&storefront_id=' . $storefront_id : '');
+        if ($url_builder !== null) {
+            return (string) call_user_func($url_builder, $path, 'C');
+        }
         if (function_exists('fn_url')) {
             return (string) fn_url($path, 'C');
         }
