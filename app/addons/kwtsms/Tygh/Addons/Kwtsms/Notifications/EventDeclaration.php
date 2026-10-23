@@ -167,11 +167,11 @@ final class EventDeclaration
         // 2026-10-23 06:01 +03: Cleanup CA1-8 (A4 M5), task 596. The dedupe key is stored in kwtsms_dispatch_keys and
         // shown as the duplicate reason: a declaration whose key names the path of a secret placeholder (or a child of
         // it) is refused.
-        if ($key !== '' && preg_match_all('/\{([^{}]*)\}/', $key, $tokens) > 0) {
+        if ($key !== '' && preg_match_all('/\{([^{}]*)\}/', $key, $refs) > 0) {
             foreach ($secret as $name) {
                 $masked_path = $placeholders[$name];
-                foreach ($tokens[1] as $token) {
-                    if ($token === $masked_path || strpos($token, $masked_path . '.') === 0) {
+                foreach ($refs[1] as $ref) {
+                    if ($ref === $masked_path || strpos($ref, $masked_path . '.') === 0) {
                         return null;
                     }
                 }
