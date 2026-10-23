@@ -103,8 +103,10 @@ class LowStockCollector
     }
 
     /**
-     * True when a stock change crosses the threshold downwards (fn.cart.php:1146-1148 mirrored: a decrease, the
-     * stock was above the threshold and is now at or below it) and the order editor is not the caller.
+     * True when a stock change crosses the threshold downwards: a decrease, the stock was above the threshold
+     * and is now at or below it. 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M6), task 596: core (fn.cart.php:1146-1148, 4.21.2) is looser, it
+     * mails on every sale at or below the threshold; this add-on deliberately alerts on the crossing only, so a product
+     * that is already low when sold (or created low) never alerts here and the order editor is not the caller.
      */
     public function crosses(int $current_amount, int $new_amount, string $sign, int $threshold): bool
     {
@@ -174,19 +176,22 @@ class LowStockCollector
     /**
      * flush() with the dispatcher given to the constructor (0 when there is none).
      */
-    public function flushPending(): int
+    public function flushPending(int $storefront_id = 0): int
     {
-        return $this->dispatch === null ? 0 : $this->flush($this->dispatch);
+        // 2026-10-23 08:33 +0300: $storefront_id added (the order's), cleanup CA2-3 (A7 M2), task 596.
+        return $this->dispatch === null ? 0 : $this->flush($this->dispatch, $storefront_id);
     }
 
     /**
      * Dispatches one kwtsms.low_stock per receiver unit and empties the collector.
      *
      * @param callable $dispatch function (string $event_id, array $data, array $rules): void
+     * @param int      $storefront_id 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The storefront of the order whose status
+     *                                change triggers the flush; 0 = none known, the dispatcher then uses the request's
      *
      * @return int Dispatches made
      */
-    public function flush(callable $dispatch): int
+    public function flush(callable $dispatch, int $storefront_id = 0): int
     {
         $products = array_values($this->products);
         $this->products = [];
@@ -235,11 +240,15 @@ class LowStockCollector
             $rules = $receiver === 'V'
                 ? ['C' => false, 'A' => false]
                 : ['C' => false, 'V' => false];
-            call_user_func($dispatch, self::EVENT_ID, [
+            $payload = [
                 'products' => $kept,
                 'company_id' => (int) $company,
                 'more_count' => count($kept) - 1,
-            ], $rules);
+            ];
+            if ($storefront_id > 0) {
+                $payload['storefront_id'] = $storefront_id;
+            }
+            call_user_func($dispatch, self::EVENT_ID, $payload, $rules);
             $made++;
         }
 

@@ -450,7 +450,8 @@ function fn_kwtsms_update_product_amount(
         if ((string) $sign !== '-') {
             return;
         }
-        // The cheap test first (no service is built for the common case): fn.cart.php:1146-1148 mirrored.
+        // The cheap test first (no service is built for the common case). 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M6), task 596: this is the
+        // threshold test of core (fn.cart.php:1146-1148) without its mail; the "was above" part is LowStockCollector::crosses().
         if ((int) $current_amount <= $threshold || (int) $new_amount > $threshold || defined('ORDER_MANAGEMENT')) {
             return;
         }

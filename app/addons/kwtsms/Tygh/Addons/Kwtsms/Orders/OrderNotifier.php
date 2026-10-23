@@ -557,6 +557,19 @@ class OrderNotifier
                     $found = $this->templates->resolve($event_id, $receiver, $requested, $this->storefront);
                     $data_payload['kwtsms_lang'] = is_array($found) && isset($found['lang']) && $found['lang'] !== ''
                         ? (string) $found['lang'] : $requested;
+                } else {
+                    // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The same for A and V: the language deliver() resolves for
+                    // them (admin alert language, the vendor's language, else the backend default), after the fallback.
+                    $company_path = $decl->path('company_id');
+                    $company_raw = $company_path === '' ? null : EventDeclaration::value($payload, $company_path);
+                    $company = is_scalar($company_raw) && !is_bool($company_raw) && (int) $company_raw > 0
+                        ? (int) $company_raw : (int) ($order['company_id'] ?? 0);
+                    $requested = $receiver === 'A'
+                        ? $this->data->adminLang($this->config->adminAlertLang())
+                        : $this->data->adminLang($this->vendorLang($company));
+                    $found = $this->templates->resolve($event_id, $receiver, $requested, $this->storefront);
+                    $data_payload['kwtsms_lang'] = is_array($found) && isset($found['lang']) && $found['lang'] !== ''
+                        ? (string) $found['lang'] : $requested;
                 }
                 $computed = $this->dataClass($decl->dataClass())->values($data_payload, $receiver);
             } catch (\Throwable $e) {
@@ -643,6 +656,16 @@ class OrderNotifier
     }
 
     /**
+     * The language of a vendor company, or '' (Multi-Vendor functions absent or no company). 2026-10-23 08:32 +0300: split out of
+     * deliver() so declaredSms() resolves the same language, cleanup CA2-3 (A7 M3), task 596.
+     */
+    private function vendorLang(int $company_id): string
+    {
+        return $company_id > 0 && function_exists('fn_get_company_language')
+            ? strtolower((string) fn_get_company_language($company_id)) : '';
+    }
+
+    /**
      * Logs a data_class whose values() threw: warning level, class names and file:line only. Never throws.
      * 2026-10-23 06:01 +03: added, Cleanup CA1-8 (A4 M2), task 596.
      */
@@ -711,9 +734,7 @@ class OrderNotifier
             $phone = $company_id > 0 && $this->vendor_phones !== null
                 ? $this->vendor_phones->approvedPhone($company_id) : '';
             $phones = $phone === '' ? [] : [$phone];
-            $vendor_lang = $company_id > 0 && function_exists('fn_get_company_language')
-                ? strtolower((string) fn_get_company_language($company_id)) : '';
-            $lang = $this->data->adminLang($vendor_lang);
+            $lang = $this->data->adminLang($this->vendorLang($company_id));
         } else {
             $phone = OrderSmsData::customerPhone($order, $this->orders->profilePhone((int) ($order['user_id'] ?? 0)));
             $phones = $phone === '' ? [] : [$phone];

@@ -36,7 +36,11 @@ class LowStockSmsData implements DeclaredSmsData
             return ['placeholders' => []];
         }
         $first = $products[0];
-        $info = $this->describe((int) ($first['product_id'] ?? 0), (int) ($data['company_id'] ?? 0));
+        // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The language the template is rendered in (the notifier hands it over as
+        // kwtsms_lang); anything but a two-letter lowercase code leaves the old lookup (vendor language, backend default).
+        $lang = isset($data['kwtsms_lang']) && is_string($data['kwtsms_lang'])
+            && preg_match('/^[a-z]{2}$/D', $data['kwtsms_lang']) === 1 ? $data['kwtsms_lang'] : '';
+        $info = $this->describe((int) ($first['product_id'] ?? 0), (int) ($data['company_id'] ?? 0), $lang);
         $more = max(0, (int) ($data['more_count'] ?? 0));
 
         return ['placeholders' => [
@@ -48,14 +52,14 @@ class LowStockSmsData implements DeclaredSmsData
     }
 
     /**
-     * The name (in the vendor's language, else the backend default) and the code of a product.
+     * The name (in $lang when given, else the vendor's language, else the backend default) and the code of a product.
+     * 2026-10-23 08:32 +0300: $lang added, cleanup CA2-3 (A7 M3), task 596.
      *
      * @return array{name:string,code:string}
      */
-    protected function describe(int $product_id, int $company_id): array
+    protected function describe(int $product_id, int $company_id, string $lang = ''): array
     {
-        $lang = '';
-        if ($company_id > 0 && function_exists('fn_get_company_language')) {
+        if ($lang === '' && $company_id > 0 && function_exists('fn_get_company_language')) {
             $lang = (string) fn_get_company_language($company_id);
         }
         if ($lang === '' && class_exists('\Tygh\Registry')) {

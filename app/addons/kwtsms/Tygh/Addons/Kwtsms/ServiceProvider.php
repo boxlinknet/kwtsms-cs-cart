@@ -546,9 +546,13 @@ class ServiceProvider implements ServiceProviderInterface
                         return $this->id;
                     }
                 };
-                $storefront = $app['storefront'] ?? null;
-                $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
-                    ? (int) $storefront->storefront_id : 0;
+                // 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The order's storefront (set by the collector on a flush that
+                // follows an order status change) wins; the request's storefront is the fallback.
+                if ((int) ($data['storefront_id'] ?? 0) <= 0) {
+                    $storefront = $app['storefront'] ?? null;
+                    $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
+                        ? (int) $storefront->storefront_id : 0;
+                }
                 $app['event.dispatcher']->dispatch(
                     $event_id,
                     $data,
