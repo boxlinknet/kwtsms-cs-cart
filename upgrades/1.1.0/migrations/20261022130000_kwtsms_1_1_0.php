@@ -336,8 +336,9 @@ class Kwtsms110 extends AbstractMigration
         $scheme = SchemesManager::getScheme(self::ADDON);
 
         // 2026-10-23 16:36 +03: ">=" (was "==="): from 1.2.0 on the repository's files are newer than 1.1.0 and still
-        // contain everything this step needs; with "==" the dev-store dry runs (tests/Store/UpgradeSchemaTest) could not
-        // run content() any more. In an Upgrade Center run the old files are on disk (1.0.0), so it stays false there.
+        // contain everything this step needs; with "==" the dev-store dry runs (tests/Store/UpgradeSchemaTest) could
+        // not run content() any more. In an Upgrade Center run the old files are on disk (1.0.0), so it stays false
+        // there.
         // Task M1.1a, task 596.
         return $scheme !== null && version_compare((string) $scheme->getVersion(), self::VERSION, '>=');
     }

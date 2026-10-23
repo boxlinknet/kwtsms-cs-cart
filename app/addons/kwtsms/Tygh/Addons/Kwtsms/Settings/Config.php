@@ -839,7 +839,9 @@ class Config implements ConfigInterface
             case 'sitekey':
                 $text = is_string($value) ? trim($value) : null;
 
-                return ($text !== null && ($text === '' || preg_match(self::SITE_KEY_PATTERN, $text) === 1)) ? $text : null;
+                $valid = $text !== null && ($text === '' || preg_match(self::SITE_KEY_PATTERN, $text) === 1);
+
+                return $valid ? $text : null;
         }
 
         return null;
