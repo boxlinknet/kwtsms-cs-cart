@@ -470,7 +470,8 @@ function fn_kwtsms_update_product_amount(
 ) {
     // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
     // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
-    // 2026-10-23 14:11 +03: task A15 small fix, task 596. Needs 9 of the 10 arguments: $original_amount (9th) is unused, so a core passing 9 still runs the low-stock path.
+    // 2026-10-23 14:11 +03: task A15 small fix, task 596. Needs 9 of the 10 arguments: $original_amount (9th) is
+    // unused, so a core passing 9 still runs the low-stock path.
     if (fn_kwtsms_hook_args_missing('update_product_amount', func_num_args(), 9)) {
         return;
     }
