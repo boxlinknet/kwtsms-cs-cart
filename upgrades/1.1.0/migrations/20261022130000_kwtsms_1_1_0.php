@@ -36,6 +36,31 @@ class Kwtsms110 extends AbstractMigration
     private const VERSION = '1.1.0';
 
     /**
+     * 2026-10-23 13:14 +03: final review A, Important 1 (ruling P2-R17), task 596. The four language variables whose text changed
+     * between 1.0.0 and 1.1.0 (they said "Vendor SMS ... planned for 1.1"), with the value 1.0.0 shipped, per language. A stored
+     * value that still equals this is the shipped one, so it is updated to the 1.1.0 text; an edited value stays. A language
+     * other than en and ar was filled from the English text. ASCII only (\u{} escapes), copied from the tag v1.0.0 .po files.
+     */
+    private const SHIPPED_1_0_0 = [
+        'kwtsms.integrations.mve.vendor_sms' => [
+            'en' => "Vendor SMS: not included in 1.0, planned for 1.1",
+            'ar' => "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646}: \u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0\u{60c} \u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1",
+        ],
+        'kwtsms.help.overview.p2' => [
+            'en' => "kwtSMS sends one-way messages, so customers can't reply. Vendor SMS is not included in version 1.0 and is planned for 1.1.",
+            'ar' => "\u{64a}\u{631}\u{633}\u{644} kwtSMS \u{631}\u{633}\u{627}\u{626}\u{644} \u{628}\u{627}\u{62a}\u{62c}\u{627}\u{647} \u{648}\u{627}\u{62d}\u{62f}\u{60c} \u{641}\u{644}\u{627} \u{64a}\u{633}\u{62a}\u{637}\u{64a}\u{639} \u{627}\u{644}\u{639}\u{645}\u{644}\u{627}\u{621} \u{627}\u{644}\u{631}\u{62f}. \u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646} \u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0 \u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1.",
+        ],
+        'kwtsms.integrations.later.help' => [
+            'en' => "Available in a later version.",
+            'ar' => "\u{645}\u{62a}\u{627}\u{62d}\u{629} \u{641}\u{64a} \u{625}\u{635}\u{62f}\u{627}\u{631} \u{644}\u{627}\u{62d}\u{642}.",
+        ],
+        'kwtsms.integrations.later.discussion' => [
+            'en' => "Reviews and comments",
+            'ar' => "\u{627}\u{644}\u{62a}\u{642}\u{64a}\u{64a}\u{645}\u{627}\u{62a} \u{648}\u{627}\u{644}\u{62a}\u{639}\u{644}\u{64a}\u{642}\u{627}\u{62a}",
+        ],
+    ];
+
+    /**
      * DDL of the four new tables, identical to app/addons/kwtsms/addon.xml (a test compares SHOW CREATE TABLE of an
      * upgraded 1.0.0 database with a fresh 1.1.0 install). {t} is the full table name.
      */
@@ -157,6 +182,8 @@ class Kwtsms110 extends AbstractMigration
 
         // fn_update_addon_language_variables() does REPLACE INTO ?:language_values and so overwrites a value the
         // merchant edited (spike of Task A1, 2026-10-22): only the missing rows are inserted here.
+        // 2026-10-23 13:14 +03: final review A, Important 1 (P2-R17), task 596. First the texts that still hold the 1.0.0 wording.
+        self::refreshUneditedValues((array) $scheme->getLanguageValues(false));
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
         }
@@ -165,6 +192,37 @@ class Kwtsms110 extends AbstractMigration
         }
 
         fn_update_addon_version(self::ADDON, self::VERSION);
+    }
+
+    /**
+     * Updates a language variable whose text changed in 1.1.0 only where the stored value still equals the one 1.0.0 shipped
+     * (merchant edits stay). Idempotent: after the update the stored value is the new one and no longer matches.
+     *
+     * @param array<int,array{lang_code:string,name:string,value:string}> $rows The 1.1.0 values of the add-on
+     *
+     * @return int Number of values updated
+     */
+    public static function refreshUneditedValues(array $rows): int
+    {
+        $updated = 0;
+        foreach ($rows as $row) {
+            $name = (string) ($row['name'] ?? '');
+            if (!isset(self::SHIPPED_1_0_0[$name])) {
+                continue;
+            }
+            $lang = (string) $row['lang_code'];
+            $old = self::SHIPPED_1_0_0[$name][$lang] ?? self::SHIPPED_1_0_0[$name]['en'];
+            if ($old === (string) $row['value']) {
+                continue;
+            }
+            $stored = db_get_field('SELECT value FROM ?:language_values WHERE lang_code = ?s AND name = ?s', $lang, $name);
+            if ($stored !== false && (string) $stored === $old) {
+                db_query('UPDATE ?:language_values SET value = ?s WHERE lang_code = ?s AND name = ?s', $row['value'], $lang, $name);
+                $updated++;
+            }
+        }
+
+        return $updated;
     }
 
     /**
