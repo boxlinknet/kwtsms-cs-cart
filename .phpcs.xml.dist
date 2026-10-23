@@ -20,10 +20,12 @@ DEPENDS:   squizlabs/php_codesniffer, phpcompatibility/php-compatibility (compos
          keep only: top level "app", then "app/addons", then "app/addons/kwtsms". With no add-on yet
          the queue is empty and phpcs exits 0. Patterns are relative to this file. -->
     <file>.</file>
-    <exclude-pattern type="relative">^(?!app(/|$))[^/]+</exclude-pattern>
+    <exclude-pattern type="relative">^(?!(app|upgrades)(/|$))[^/]+</exclude-pattern>
     <exclude-pattern type="relative">^app/(?!addons(/|$))[^/]+</exclude-pattern>
     <exclude-pattern type="relative">^app/addons/(?!kwtsms(/|$))[^/]+</exclude-pattern>
 
+    <!-- 2026-10-23 08:26 +0300: upgrades/ is scanned too (cleanup CA2-1, A1 M6, task 596): the upgrade package migrations and scripts are
+         add-on code that ships in a package. Only the "app" and "upgrades" top levels are kept; under app only addons/kwtsms. -->
     <arg name="extensions" value="php"/>
     <arg name="basepath" value="."/>
     <arg name="cache" value=".phpcs-cache"/>
@@ -58,5 +60,11 @@ DEPENDS:   squizlabs/php_codesniffer, phpcompatibility/php-compatibility (compos
          In func.php that guard (a side effect) sits next to the function declarations. -->
     <rule ref="PSR1.Files.SideEffects">
         <exclude-pattern>*/func.php</exclude-pattern>
+        <!-- 2026-10-23 08:26 +0300: an upgrade migration/script has the same guard-then-declare shape (cleanup CA2-1, A1 M6, task 596). -->
+        <exclude-pattern>upgrades/*</exclude-pattern>
+    </rule>
+    <!-- 2026-10-23 08:26 +0300: Phinx finds a migration by its global class name (Kwtsms110), so the namespace rule cannot apply (CA2-1, A1 M6). -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>upgrades/*</exclude-pattern>
     </rule>
 </ruleset>

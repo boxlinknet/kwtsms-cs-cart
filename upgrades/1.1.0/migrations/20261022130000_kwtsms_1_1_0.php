@@ -153,9 +153,7 @@ class Kwtsms110 extends AbstractMigration
         }
 
         // INSERT IGNORE: the default texts of events a 1.0.0 install did not have; an existing (edited) text stays.
-        if (function_exists('fn_kwtsms_seed_default_templates')) {
-            fn_kwtsms_seed_default_templates();
-        }
+        self::seedTemplates();
 
         // fn_update_addon_language_variables() does REPLACE INTO ?:language_values and so overwrites a value the
         // merchant edited (spike of Task A1, 2026-10-22): only the missing rows are inserted here.
@@ -167,6 +165,63 @@ class Kwtsms110 extends AbstractMigration
         }
 
         fn_update_addon_version(self::ADDON, self::VERSION);
+    }
+
+    /**
+     * @param string $function The seeding function (a parameter so a test can name a missing one)
+     */
+    public static function seedTemplates(string $function = 'fn_kwtsms_seed_default_templates'): void
+    {
+        if (function_exists($function)) {
+            $function();
+
+            return;
+        }
+        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M5), task 596. It was skipped silently; a tree without the function is broken, so say so.
+        self::report('upgrade.seed_skipped', 'the default templates were not seeded: ' . $function . '() does not exist');
+    }
+
+    /**
+     * The content step as the post script runs it: a failure is reported, never thrown (the Upgrade Center would then
+     * show a raw error), and the notice says how to repeat the step.
+     *
+     * @param callable|null $step Defaults to self::content()
+     *
+     * @return bool True when the step finished
+     */
+    public static function runContent(?callable $step = null): bool
+    {
+        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. The step is idempotent, so re-uploading the same package is the retry.
+        try {
+            $step === null ? self::content() : $step();
+
+            return true;
+        } catch (\Throwable $e) {
+            self::report('upgrade.content_failed', get_class($e) . ': ' . $e->getMessage());
+            fn_set_notification(
+                'E',
+                __('error'),
+                'kwtsms 1.1.0: the post-upgrade step failed (' . get_class($e) . '). It is safe to repeat: upload the same upgrade package again.'
+                . ' Details are in the kwtSMS debug log and the PHP error log.'
+            );
+
+            return false;
+        }
+    }
+
+    /**
+     * Writes a line to the PHP error log and, when the add-on's container is up, to its debug log (level error).
+     */
+    private static function report(string $action, string $message): void
+    {
+        error_log('kwtsms: ' . $action . ': ' . $message);
+        try {
+            if (isset(\Tygh::$app['kwtsms.logs.debug'])) {
+                \Tygh::$app['kwtsms.logs.debug']->log('error', $action, $message);
+            }
+        } catch (\Throwable $e) {
+            error_log('kwtsms: the debug log write failed: ' . get_class($e));
+        }
     }
 
     /**

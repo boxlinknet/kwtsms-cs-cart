@@ -430,7 +430,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('manage_kwtsms_gateway', 'Y', 'addons', 'kwtsms', 'N');</item>
 
         <!-- 2026-10-20 20:46 +03: this comment was rewritten when the table sweep left fn_kwtsms_uninstall() (review
-             finding: broader than our own tables); the nine DROPs below are now the only table cleanup, task 596.2026-10-22 13:13 +03: thirteen with the Milestone A tables, Task A1. -->
+             finding: broader than our own tables); the nine DROPs below are now the only table cleanup, task 596. 2026-10-22 13:13 +03: thirteen with the Milestone A tables, Task A1.
+             2026-10-23 08:26 +0300: a space added after "task 596." where the two comments were glued (cleanup CA2-1, A1 M4, task 596). -->
         <!-- Uninstall (PRD 13): nothing of ours stays behind, a reinstall starts clean, and nothing that is not
              ours is touched: every statement names its target exactly. A version that adds a table adds its
              DROP here. -->

@@ -17,12 +17,9 @@
 
 defined('BOOTSTRAP') or die('Access denied');
 
-try {
-    if (!class_exists('Kwtsms110', false)) {
-        require_once __DIR__ . '/../migrations/20261022130000_kwtsms_1_1_0.php';
-    }
-    Kwtsms110::content();
-} catch (\Throwable $e) {
-    error_log('kwtsms: the 1.1.0 post-upgrade step failed: ' . get_class($e) . ': ' . $e->getMessage());
-    fn_set_notification('E', __('error'), 'kwtsms 1.1.0: the post-upgrade step failed, see the PHP error log.');
+// 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. Failure handling moved into
+// Kwtsms110::runContent() (debug log, retry hint).
+if (!class_exists('Kwtsms110', false)) {
+    require_once __DIR__ . '/../migrations/20261022130000_kwtsms_1_1_0.php';
 }
+Kwtsms110::runContent();
