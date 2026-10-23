@@ -15,7 +15,8 @@
  *            The claim is one INSERT ... ON DUPLICATE KEY UPDATE and the affected-rows count decides: 1 = inserted,
  *            2 = an expired key was renewed (both claim), 0 = the key is still valid (no claim). Atomic in InnoDB, so
  *            two concurrent webhooks cannot both win.
- *            2026-10-23 03:41 +03, Task A12 item 4 (R53), task 596: pruneStatus() is pruneWindowed($before, $limit): the
+ *            2026-10-23 03:41 +03, Task A12 item 4 (R53), task 596: pruneStatus() is pruneWindowed($before, $limit):
+ *            the
  *            status:, resend:, updated:, recover: and low_stock: keys (WINDOWED_PREFIXES, plus declared dedupe keys
  *            of 1 s to 2 days) older than the cut-off; order_placed:, shipment:, created:, registered: and
  *            low_balance: (PERMANENT_PREFIXES) are never pruned. new DispatchKeys($clock, $debug_log, $declared).
@@ -81,7 +82,8 @@ class DispatchKeys
 
     /**
      * @param callable|null $clock    Returns the current Unix time (tests); null = time()
-     * @param array|null    $declared The kwtsms events schema (fn_get_schema('kwtsms', 'events')): a declared dedupe key
+     * @param array|null    $declared The kwtsms events schema (fn_get_schema('kwtsms', 'events')): a declared dedupe
+     * key
      *                                with a window of 1 s to 2 days is pruned like the built-in windowed prefixes
      *                                (2026-10-23 03:41 +03: Task A12 item 4, R8, R24, task 596)
      */

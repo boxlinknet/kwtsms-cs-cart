@@ -268,7 +268,8 @@ class IntegrationsPage
                     '[quota]' => (string) $quota,
                 ],
                 'quota_off' => $quota <= 0,
-                // 2026-10-23 08:41 +0300: cleanup CA2-8 (A13 minor 4), task 596. Per-plan limits override the quota while vendor_plans is on.
+                // 2026-10-23 08:41 +0300: cleanup CA2-8 (A13 minor 4), task 596. Per-plan limits override the quota
+                // while vendor_plans is on.
                 'plans' => $this->addonActive('vendor_plans'),
                 'link' => $may ? 'kwtsms.vendors' : '',
             ];

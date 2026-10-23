@@ -161,7 +161,8 @@ class OrderSmsSender
 
     /**
      * The text of the notice shown after a send: the outcome, then the reason when it adds something (an administrator
-     * without the Logs privilege has no other place to read it). 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4), task 596.
+     * without the Logs privilege has no other place to read it). 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4),
+     * task 596.
      */
     public static function noticeText(string $outcome_label, string $reason_text): string
     {

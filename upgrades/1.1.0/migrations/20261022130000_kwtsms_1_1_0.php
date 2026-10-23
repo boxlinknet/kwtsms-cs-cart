@@ -36,27 +36,44 @@ class Kwtsms110 extends AbstractMigration
     private const VERSION = '1.1.0';
 
     /**
-     * 2026-10-23 13:14 +03: final review A, Important 1 (ruling P2-R17), task 596. The four language variables whose text changed
-     * between 1.0.0 and 1.1.0 (they said "Vendor SMS ... planned for 1.1"), with the value 1.0.0 shipped, per language. A stored
-     * value that still equals this is the shipped one, so it is updated to the 1.1.0 text; an edited value stays. A language
-     * other than en and ar was filled from the English text. ASCII only (\u{} escapes), copied from the tag v1.0.0 .po files.
+     * 2026-10-23 13:14 +03: final review A, Important 1 (ruling P2-R17), task 596. The four language variables whose
+     * text changed
+     * between 1.0.0 and 1.1.0 (they said "Vendor SMS ... planned for 1.1"), with the value 1.0.0 shipped, per language.
+     * A stored
+     * value that still equals this is the shipped one, so it is updated to the 1.1.0 text; an edited value stays. A
+     * language
+     * other than en and ar was filled from the English text. ASCII only (\u{} escapes), copied from the tag v1.0.0 .po
+     * files.
      */
     private const SHIPPED_1_0_0 = [
         'kwtsms.integrations.mve.vendor_sms' => [
             'en' => "Vendor SMS: not included in 1.0, planned for 1.1",
-            'ar' => "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646}: \u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0\u{60c} \u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1",
+            'ar' => "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646}: "
+                . "\u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}"
+                . "\u{635}\u{62f}\u{627}\u{631} 1.0\u{60c} "
+                . "\u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1",
         ],
         'kwtsms.help.overview.p2' => [
-            'en' => "kwtSMS sends one-way messages, so customers can't reply. Vendor SMS is not included in version 1.0 and is planned for 1.1.",
-            'ar' => "\u{64a}\u{631}\u{633}\u{644} kwtSMS \u{631}\u{633}\u{627}\u{626}\u{644} \u{628}\u{627}\u{62a}\u{62c}\u{627}\u{647} \u{648}\u{627}\u{62d}\u{62f}\u{60c} \u{641}\u{644}\u{627} \u{64a}\u{633}\u{62a}\u{637}\u{64a}\u{639} \u{627}\u{644}\u{639}\u{645}\u{644}\u{627}\u{621} \u{627}\u{644}\u{631}\u{62f}. \u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646} \u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0 \u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1.",
+            'en' => "kwtSMS sends one-way messages, so customers can't reply. "
+                . "Vendor SMS is not included in version 1.0 and is planned for 1.1.",
+            'ar' => "\u{64a}\u{631}\u{633}\u{644} kwtSMS \u{631}\u{633}\u{627}\u{626}\u{644} \u{628}\u{627}\u{62a}"
+                . "\u{62c}\u{627}\u{647} \u{648}\u{627}\u{62d}\u{62f}\u{60c} \u{641}\u{644}\u{627} \u{64a}\u{633}"
+                . "\u{62a}\u{637}\u{64a}\u{639} \u{627}\u{644}\u{639}\u{645}\u{644}\u{627}\u{621} \u{627}\u{644}"
+                . "\u{631}\u{62f}. "
+                . "\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{628}\u{627}\u{626}\u{639}\u{64a}\u{646} "
+                    . "\u{63a}\u{64a}\u{631} \u{645}\u{636}\u{645}\u{646}\u{629} \u{641}\u{64a} \u{627}\u{644}"
+                    . "\u{625}\u{635}\u{62f}\u{627}\u{631} 1.0 "
+                . "\u{648}\u{645}\u{62e}\u{637}\u{637} \u{644}\u{647}\u{627} \u{641}\u{64a} 1.1.",
         ],
         'kwtsms.integrations.later.help' => [
             'en' => "Available in a later version.",
-            'ar' => "\u{645}\u{62a}\u{627}\u{62d}\u{629} \u{641}\u{64a} \u{625}\u{635}\u{62f}\u{627}\u{631} \u{644}\u{627}\u{62d}\u{642}.",
+            'ar' => "\u{645}\u{62a}\u{627}\u{62d}\u{629} \u{641}\u{64a} \u{625}\u{635}\u{62f}\u{627}\u{631} "
+                . "\u{644}\u{627}\u{62d}\u{642}.",
         ],
         'kwtsms.integrations.later.discussion' => [
             'en' => "Reviews and comments",
-            'ar' => "\u{627}\u{644}\u{62a}\u{642}\u{64a}\u{64a}\u{645}\u{627}\u{62a} \u{648}\u{627}\u{644}\u{62a}\u{639}\u{644}\u{64a}\u{642}\u{627}\u{62a}",
+            'ar' => "\u{627}\u{644}\u{62a}\u{642}\u{64a}\u{64a}\u{645}\u{627}\u{62a} "
+                . "\u{648}\u{627}\u{644}\u{62a}\u{639}\u{644}\u{64a}\u{642}\u{627}\u{62a}",
         ],
     ];
 
@@ -124,13 +141,17 @@ class Kwtsms110 extends AbstractMigration
             }
             // Add the wider key first (it is satisfied by every existing row), then drop the old one.
             if (!self::indexExists($templates, 'uniq_event_receiver_sf')) {
-                self::run('ALTER TABLE ?p ADD UNIQUE KEY `uniq_event_receiver_sf` (`event_id`, `receiver`, `storefront_id`)', $templates);
+                self::run(
+                    'ALTER TABLE ?p ADD UNIQUE KEY `uniq_event_receiver_sf` (`event_id`, `receiver`, `storefront_id`)',
+                    $templates
+                );
             }
             if (self::indexExists($templates, 'uniq_event_receiver')) {
                 self::run('ALTER TABLE ?p DROP KEY `uniq_event_receiver`', $templates);
             }
             self::must(
-                self::columnExists($templates, 'storefront_id') && self::indexExists($templates, 'uniq_event_receiver_sf')
+                self::columnExists($templates, 'storefront_id')
+                && self::indexExists($templates, 'uniq_event_receiver_sf')
                 && !self::indexExists($templates, 'uniq_event_receiver'),
                 'kwtsms_templates was not upgraded'
             );
@@ -162,7 +183,10 @@ class Kwtsms110 extends AbstractMigration
     {
         SchemesManager::clearInternalCache(self::ADDON);
         $scheme = SchemesManager::getScheme(self::ADDON);
-        self::must($scheme !== null && $scheme->getVersion() === self::VERSION, 'the add-on files on disk are not ' . self::VERSION);
+        self::must(
+            $scheme !== null && $scheme->getVersion() === self::VERSION,
+            'the add-on files on disk are not ' . self::VERSION
+        );
 
         // fn_update_addon_settings() deletes the add-on's settings section and rebuilds it from addon.xml, so it only
         // runs when the new setting is missing and is given every stored value (and per-storefront override) to put
@@ -174,7 +198,10 @@ class Kwtsms110 extends AbstractMigration
                 fn_get_addon_settings_values(self::ADDON),
                 fn_get_addon_settings_vendor_values(self::ADDON)
             );
-            self::must($result !== false && self::settingExists('vendor_monthly_quota'), 'the setting vendor_monthly_quota was not created');
+            self::must(
+                $result !== false && self::settingExists('vendor_monthly_quota'),
+                'the setting vendor_monthly_quota was not created'
+            );
         }
 
         // INSERT IGNORE: the default texts of events a 1.0.0 install did not have; an existing (edited) text stays.
@@ -182,7 +209,8 @@ class Kwtsms110 extends AbstractMigration
 
         // fn_update_addon_language_variables() does REPLACE INTO ?:language_values and so overwrites a value the
         // merchant edited (spike of Task A1, 2026-10-22): only the missing rows are inserted here.
-        // 2026-10-23 13:14 +03: final review A, Important 1 (P2-R17), task 596. First the texts that still hold the 1.0.0 wording.
+        // 2026-10-23 13:14 +03: final review A, Important 1 (P2-R17), task 596. First the texts that still hold the
+        // 1.0.0 wording.
         self::refreshUneditedValues((array) $scheme->getLanguageValues(false));
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
@@ -195,7 +223,8 @@ class Kwtsms110 extends AbstractMigration
     }
 
     /**
-     * Updates a language variable whose text changed in 1.1.0 only where the stored value still equals the one 1.0.0 shipped
+     * Updates a language variable whose text changed in 1.1.0 only where the stored value still equals the one 1.0.0
+     * shipped
      * (merchant edits stay). Idempotent: after the update the stored value is the new one and no longer matches.
      *
      * @param array<int,array{lang_code:string,name:string,value:string}> $rows The 1.1.0 values of the add-on
@@ -215,9 +244,18 @@ class Kwtsms110 extends AbstractMigration
             if ($old === (string) $row['value']) {
                 continue;
             }
-            $stored = db_get_field('SELECT value FROM ?:language_values WHERE lang_code = ?s AND name = ?s', $lang, $name);
+            $stored = db_get_field(
+                'SELECT value FROM ?:language_values WHERE lang_code = ?s AND name = ?s',
+                $lang,
+                $name
+            );
             if ($stored !== false && (string) $stored === $old) {
-                db_query('UPDATE ?:language_values SET value = ?s WHERE lang_code = ?s AND name = ?s', $row['value'], $lang, $name);
+                db_query(
+                    'UPDATE ?:language_values SET value = ?s WHERE lang_code = ?s AND name = ?s',
+                    $row['value'],
+                    $lang,
+                    $name
+                );
                 $updated++;
             }
         }
@@ -235,8 +273,12 @@ class Kwtsms110 extends AbstractMigration
 
             return;
         }
-        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M5), task 596. It was skipped silently; a tree without the function is broken, so say so.
-        self::report('upgrade.seed_skipped', 'the default templates were not seeded: ' . $function . '() does not exist');
+        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M5), task 596. It was skipped silently; a tree without the function
+        // is broken, so say so.
+        self::report(
+            'upgrade.seed_skipped',
+            'the default templates were not seeded: ' . $function . '() does not exist'
+        );
     }
 
     /**
@@ -249,7 +291,8 @@ class Kwtsms110 extends AbstractMigration
      */
     public static function runContent(?callable $step = null): bool
     {
-        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. The step is idempotent, so re-uploading the same package is the retry.
+        // 2026-10-23 08:26 +0300: cleanup CA2-1 (A1 M1), task 596. The step is idempotent, so re-uploading the same
+        // package is the retry.
         try {
             $step === null ? self::content() : $step();
 
@@ -259,7 +302,8 @@ class Kwtsms110 extends AbstractMigration
             fn_set_notification(
                 'E',
                 __('error'),
-                'kwtsms 1.1.0: the post-upgrade step failed (' . get_class($e) . '). It is safe to repeat: upload the same upgrade package again.'
+                'kwtsms 1.1.0: the post-upgrade step failed (' . get_class($e) . '). It is safe to repeat: '
+                . 'upload the same upgrade package again.'
                 . ' Details are in the kwtSMS debug log and the PHP error log.'
             );
 
@@ -304,7 +348,8 @@ class Kwtsms110 extends AbstractMigration
     private static function columnExists(string $table, string $column): bool
     {
         return (int) db_get_field(
-            'SELECT COUNT(*) FROM information_schema.COLUMNS WHERE table_schema = DATABASE() AND table_name = ?s AND column_name = ?s',
+            'SELECT COUNT(*) FROM information_schema.COLUMNS WHERE table_schema = DATABASE()'
+            . ' AND table_name = ?s AND column_name = ?s',
             $table,
             $column
         ) > 0;
@@ -313,7 +358,8 @@ class Kwtsms110 extends AbstractMigration
     private static function indexExists(string $table, string $index): bool
     {
         return (int) db_get_field(
-            'SELECT COUNT(*) FROM information_schema.STATISTICS WHERE table_schema = DATABASE() AND table_name = ?s AND index_name = ?s',
+            'SELECT COUNT(*) FROM information_schema.STATISTICS WHERE table_schema = DATABASE()'
+            . ' AND table_name = ?s AND index_name = ?s',
             $table,
             $index
         ) > 0;
@@ -322,7 +368,8 @@ class Kwtsms110 extends AbstractMigration
     private static function settingExists(string $name): bool
     {
         return (int) db_get_field(
-            'SELECT COUNT(*) FROM ?:settings_objects AS o INNER JOIN ?:settings_sections AS s ON s.section_id = o.section_id'
+            'SELECT COUNT(*) FROM ?:settings_objects AS o INNER JOIN ?:settings_sections AS s'
+            . ' ON s.section_id = o.section_id'
             . ' WHERE o.name = ?s AND s.name = ?s AND s.type = ?s',
             $name,
             self::ADDON,

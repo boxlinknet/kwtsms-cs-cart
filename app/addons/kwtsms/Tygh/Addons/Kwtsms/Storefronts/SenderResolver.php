@@ -113,7 +113,8 @@ class SenderResolver
     }
 
     /**
-     * The Sender ID stored for a storefront as it is ('' = none, use the global one), whether it is still usable or not.
+     * The Sender ID stored for a storefront as it is ('' = none, use the global one), whether it is still usable or
+     * not.
      * 2026-10-22 16:12 +03: added for the Settings page (stale values are shown, not hidden), Task A3, task 596.
      */
     public function storedSender(int $storefront_id): string

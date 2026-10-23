@@ -104,7 +104,8 @@ class LowStockCollector
 
     /**
      * True when a stock change crosses the threshold downwards: a decrease, the stock was above the threshold
-     * and is now at or below it. 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M6), task 596: core (fn.cart.php:1146-1148, 4.21.2) is looser, it
+     * and is now at or below it. 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M6), task 596: core (fn.cart.php:1146-1148,
+     * 4.21.2) is looser, it
      * mails on every sale at or below the threshold; this add-on deliberately alerts on the crossing only, so a product
      * that is already low when sold (or created low) never alerts here and the order editor is not the caller.
      */
@@ -186,7 +187,8 @@ class LowStockCollector
      * Dispatches one kwtsms.low_stock per receiver unit and empties the collector.
      *
      * @param callable $dispatch function (string $event_id, array $data, array $rules): void
-     * @param int      $storefront_id 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The storefront of the order whose status
+     * @param int      $storefront_id 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The storefront of the
+     * order whose status
      *                                change triggers the flush; 0 = none known, the dispatcher then uses the request's
      *
      * @return int Dispatches made

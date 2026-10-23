@@ -486,8 +486,10 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. The antibot gate as a service: the order notifier and
         // the Templates page both ask it (was an inline closure in the notifier wiring). Returns a callable.
         $app['kwtsms.antibot_gate'] = $app->protect(static function (string $scenario) use ($app): bool {
-            // 2026-10-23 13:18 +03: final review A, Minor 3, task 596. A core without Antibot::isValidationRequiredForScenario()
-            // (unverified below 4.21.2) keeps the gate closed (no SMS) and logs once instead of throwing on every registration.
+            // 2026-10-23 13:18 +03: final review A, Minor 3, task 596. A core without
+            // Antibot::isValidationRequiredForScenario()
+            // (unverified below 4.21.2) keeps the gate closed (no SMS) and logs once instead of throwing on every
+            // registration.
             if (!isset($app['antibot'])) {
                 return false;
             }
@@ -495,7 +497,8 @@ class ServiceProvider implements ServiceProviderInterface
                 static $logged = false;
                 if (!$logged) {
                     $logged = true;
-                    error_log('kwtsms: Antibot::isValidationRequiredForScenario() does not exist in this core: the antibot-gated SMS stay off');
+                    error_log('kwtsms: Antibot::isValidationRequiredForScenario() does not exist in this core: '
+                        . 'the antibot-gated SMS stay off');
                 }
 
                 return false;
@@ -561,7 +564,8 @@ class ServiceProvider implements ServiceProviderInterface
                         return $this->id;
                     }
                 };
-                // 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The order's storefront (set by the collector on a flush that
+                // 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M2), task 596. The order's storefront (set by the collector
+                // on a flush that
                 // follows an order status change) wins; the request's storefront is the fallback.
                 if ((int) ($data['storefront_id'] ?? 0) <= 0) {
                     $storefront = $app['storefront'] ?? null;
@@ -604,7 +608,8 @@ class ServiceProvider implements ServiceProviderInterface
                 null,
                 null,
                 $dispatch,
-                // 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596. Approved number and quota room, checked before a key is claimed.
+                // 2026-10-22 23:55 +03: Task A8 fix round 1 (M2), task 596. Approved number and quota room, checked
+                // before a key is claimed.
                 static function (int $company_id) use ($app): bool {
                     return $app['kwtsms.vendor_phones']->approvedPhone($company_id) !== ''
                         && $app['kwtsms.vendor_quota']->allows($company_id, 1);

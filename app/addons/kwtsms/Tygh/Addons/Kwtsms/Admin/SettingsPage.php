@@ -577,7 +577,8 @@ class SettingsPage
         string $lang_code,
         int $storefront_id = 0
     ): ?array {
-        // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M1), task 596. $storefront_id is the storefront the tested text belongs to (0 = All
+        // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M1), task 596. $storefront_id is the storefront the tested text
+        // belongs to (0 = All
         // storefronts); the send then goes out under that storefront's Sender ID, like the real SMS.
         $phone = trim($phone);
         if ($phone === '') {

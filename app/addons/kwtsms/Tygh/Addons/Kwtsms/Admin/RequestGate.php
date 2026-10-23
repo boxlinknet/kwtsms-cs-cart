@@ -81,8 +81,10 @@ final class RequestGate
         // 2026-10-21 05:16 +03: "Mark as done" of an optional Dashboard checklist step (ruling R36), Task 1.11 fix
         // round 1 item 3, task 596.
         'mark_step'              => [self::POST, 'manage_kwtsms'],
-        // 2026-10-22 16:12 +03: Task A3, task 596. The per-storefront switch of a Templates row (the controller also asks core's
-        // manage_notification_settings before it writes, like toggle_event) and the Sender ID per storefront on Settings.
+        // 2026-10-22 16:12 +03: Task A3, task 596. The per-storefront switch of a Templates row (the controller also
+        // asks core's
+        // manage_notification_settings before it writes, like toggle_event) and the Sender ID per storefront on
+        // Settings.
         'update_storefront_switch'  => [self::POST, 'manage_kwtsms'],
         'update_storefront_senders' => [self::POST, 'manage_kwtsms_gateway'],
         // 2026-10-22 22:22 +03: Task A8 (SafatMall F4), task 596. The Vendor SMS page (Multi-Vendor only; the

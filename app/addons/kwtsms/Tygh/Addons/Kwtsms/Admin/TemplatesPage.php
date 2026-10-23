@@ -41,8 +41,10 @@
  *            Tygh\Providers\EventDispatcherProvider (all through protected methods a test can replace).
  * CHANGED:   2026-10-21 08:37 +03: lines over 120 columns wrapped so phpcs is clean, no change of behaviour (cleanup
  *            batch, task 596).
- *            2026-10-22 16:13 +03: Task A3, task 596. A storefront selector: viewData() takes a storefront id (0 = All storefronts, the
- *            1.0.0 page), save/reset/preview/testTemplate read kwtsms_tpl[storefront_id] (an id that is not a storefront
+ *            2026-10-22 16:13 +03: Task A3, task 596. A storefront selector: viewData() takes a storefront id (0 = All
+ *            storefronts, the
+ *            1.0.0 page), save/reset/preview/testTemplate read kwtsms_tpl[storefront_id] (an id that is not a
+ *            storefront
  *            of the store is refused, reason unknown_storefront), a reset of a storefront text deletes only that
  *            storefront's description, and storefrontSwitch() writes the per-storefront OFF override (P2-1).
  */
@@ -156,8 +158,10 @@ class TemplatesPage
      * @param bool                      $can_toggle Whether the administrator may change the core switches
      * @param bool                      $can_test   Whether the administrator holds manage_kwtsms_gateway (test send)
      * @param array<string,mixed>|null  $test_result The panel of the test just sent (shown once, in its row's editor)
-     * @param int                       $storefront_id 2026-10-22 16:13 +03: Task A3, task 596. The storefront whose texts and switches
-     *                                  are shown; 0 (or an id that is not a storefront of a store with two or more) = All
+     * @param int                       $storefront_id 2026-10-22 16:13 +03: Task A3, task 596. The storefront whose
+     * texts and switches
+     *                                  are shown; 0 (or an id that is not a storefront of a store with two or more) =
+     *                                  All
      *
      * @return array<string,mixed>
      */
@@ -177,7 +181,8 @@ class TemplatesPage
             'draft' => $draft !== null,
             'storefront_id' => $storefront_id,
         ]);
-        // 2026-10-22 16:13 +03: Task A3, task 596. The picker needs two or more storefronts; one storefront is the 1.0.0 page.
+        // 2026-10-22 16:13 +03: Task A3, task 596. The picker needs two or more storefronts; one storefront is the
+        // 1.0.0 page.
         $known = $this->storefronts();
         $show_storefronts = count($known) >= 2;
         $sf = $show_storefronts && isset($known[$storefront_id]) ? $storefront_id : 0;
@@ -262,7 +267,8 @@ class TemplatesPage
     }
 
     /**
-     * The antibot scenario to name in the row's notice: $scenario while it is off, '' when it is on or the row has none.
+     * The antibot scenario to name in the row's notice: $scenario while it is off, '' when it is on or the row has
+     * none.
      * 2026-10-23 05:57 +03: added, Cleanup CA1-6 (A6 N2), task 596.
      */
     private function captchaNotice(string $scenario): string
@@ -282,7 +288,8 @@ class TemplatesPage
      *
      * @param array<string,mixed>                 $source   A row of TemplateRepository::rowsForUi()
      * @param array<string,array<string,bool>>    $switches event => receiver => on
-     * @param int                                 $sf       2026-10-22 16:13 +03: Task A3, task 596. The storefront shown (0 = All)
+     * @param int                                 $sf       2026-10-22 16:13 +03: Task A3, task 596. The storefront
+     * shown (0 = All)
      *
      * @return array<string,mixed>
      */
@@ -324,9 +331,12 @@ class TemplatesPage
         if ($kind === 'placed' || $kind === 'status' || $kind === 'declared') {
             if (isset($switches[$event_id][$receiver])) {
                 $switch = ['on' => $switches[$event_id][$receiver]];
-                // 2026-10-22 16:13 +03: Task A3, task 596. The storefront's own override under the master state shown above.
+                // 2026-10-22 16:13 +03: Task A3, task 596. The storefront's own override under the master state shown
+                // above.
                 if ($sf > 0) {
-                    $sf_switch = ['off' => $this->rules !== null && $this->rules->isSwitchedOff($sf, $event_id, $receiver)];
+                    $sf_switch = [
+                        'off' => $this->rules !== null && $this->rules->isSwitchedOff($sf, $event_id, $receiver),
+                    ];
                 }
             }
         } elseif ($kind === 'placed_multi') {
@@ -350,7 +360,8 @@ class TemplatesPage
             'group_key' => $kind === 'declared' ? (string) ($source['group'] ?? '') : '',
             'group_label' => $kind === 'declared' ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
             // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. A public-form row shows the CAPTCHA notice.
-            // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. Only while that scenario is off (the notice says to
+            // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. Only while that scenario is off (the notice says
+            // to
             // turn it on); a scenario that is on shows nothing. No gate, or a gate that throws: the notice shows.
             'public_form' => $kind === 'declared' ? $this->captchaNotice((string) ($source['public_form'] ?? '')) : '',
             'switch_note' => $note,
@@ -844,8 +855,17 @@ class TemplatesPage
             return $result;
         }
 
-        // 2026-10-23 08:28 +03: the storefront of the text goes along, so the test uses its Sender ID (cleanup CA2-2, A3 M1, task 596).
-        $panel = $this->settings->sendTestText($phone, $intl, $text, $admin_id, $ip, $input['lang'], max(0, $input['storefront_id']));
+        // 2026-10-23 08:28 +03: the storefront of the text goes along, so the test uses its Sender ID (cleanup CA2-2,
+        // A3 M1, task 596).
+        $panel = $this->settings->sendTestText(
+            $phone,
+            $intl,
+            $text,
+            $admin_id,
+            $ip,
+            $input['lang'],
+            max(0, $input['storefront_id'])
+        );
         if ($panel === null) {
             // The Settings page has said why (no number, the cap, the count failed).
             $this->trace('info', 'test', 'Test not sent', $input, $started, 'not_sent');
@@ -1037,7 +1057,8 @@ class TemplatesPage
     /**
      * 2026-10-22 16:13 +03: Task A3, task 596 (P2-1). The storefront's own switch of one row: state "off" turns the
      * event and receiver OFF for that storefront only (a row in kwtsms_storefront_switches), "inherit" removes the
-     * row so the storefront follows the master (core's switch, which this never touches). Only rows that have a master switch (the placed
+     * row so the storefront follows the master (core's switch, which this never touches). Only rows that have a master
+     * switch (the placed
      * row and the status rows), only a real storefront of a store with two or more, and only with core's
      * manage_notification_settings, like the master switch.
      *
@@ -1222,10 +1243,13 @@ class TemplatesPage
         $receiver = $text('receiver');
         $lang = $text('lang');
         // 2026-10-22 16:13 +03: Task A3, task 596. Digits only; anything else is -1, which storefrontKnown() refuses.
-        // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M4), task 596. A key that is present but not a string (an array posted by hand) is -1,
+        // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M4), task 596. A key that is present but not a string (an array
+        // posted by hand) is -1,
         // refused, not read as '' = All storefronts.
         $sf_raw = $text('storefront_id');
-        $storefront_id = isset($post['storefront_id']) && !is_string($post['storefront_id']) ? -1 : ($sf_raw === '' ? 0 : (ctype_digit($sf_raw) && strlen($sf_raw) <= 10 ? (int) $sf_raw : -1));
+        $storefront_id = isset($post['storefront_id']) && !is_string($post['storefront_id'])
+            ? -1
+            : ($sf_raw === '' ? 0 : (ctype_digit($sf_raw) && strlen($sf_raw) <= 10 ? (int) $sf_raw : -1));
 
         return [
             'key' => self::rowKey($event_id, $receiver),

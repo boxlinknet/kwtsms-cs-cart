@@ -174,7 +174,8 @@ try {
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url];
 
-            // 2026-10-22 16:15 +03: the Sender ID per storefront (Task A3, task 596). The page checks the storefront ids against the
+            // 2026-10-22 16:15 +03: the Sender ID per storefront (Task A3, task 596). The page checks the storefront
+            // ids against the
             // storefronts of the store and the Sender IDs against the synced list; KWT-SMS needs its acknowledgement.
             case 'update_storefront_senders':
                 $kwtsms_page->saveStorefrontSenders(
@@ -255,7 +256,8 @@ try {
                         ? '' : rtrim(rtrim(number_format((float) $kwtsms_sent['balance_after'], 2, '.', ''), '0'), '.'),
                     'test' => $kwtsms_sent['ok'] && Tygh::$app['kwtsms.config']->testMode(),
                 ];
-                // 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4), task 596. The notice carries the outcome and the reason (an
+                // 2026-10-23 08:36 +0300: cleanup CA2-6 (A11 minor 4), task 596. The notice carries the outcome and the
+                // reason (an
                 // administrator without view_kwtsms_logs reads it nowhere else), and the redirect lands on the SMS tab
                 // only when that tab exists for this administrator.
                 fn_set_notification(
@@ -391,7 +393,8 @@ try {
                 // Task 1.12 fix round 1 item 5, task 596.
                 $kwtsms_tpl = isset($_POST['kwtsms_tpl']) && is_array($_POST['kwtsms_tpl']) ? $_POST['kwtsms_tpl'] : [];
                 $kwtsms_templates_page = TemplatesPage::fromContainer(Tygh::$app);
-                // 2026-10-22 16:15 +03: the storefront stays selected after an action (Task A3, task 596). The page returns the
+                // 2026-10-22 16:15 +03: the storefront stays selected after an action (Task A3, task 596). The page
+                // returns the
                 // storefront id it accepted (0 for All storefronts or one it refused), never the posted text.
                 $kwtsms_templates_url = static function ($lang, $edit = '', $anchor = '', $sf = 0) {
                     $query = [];
@@ -443,12 +446,19 @@ try {
                     $kwtsms_event = isset($kwtsms_tpl['event_id']) ? $kwtsms_tpl['event_id'] : null;
                     $kwtsms_receiver = isset($kwtsms_tpl['receiver']) ? $kwtsms_tpl['receiver'] : null;
                     if (is_string($kwtsms_event) && is_string($kwtsms_receiver)) {
-                        $kwtsms_anchor = '#' . TemplatesPage::domId(TemplatesPage::rowKey($kwtsms_event, $kwtsms_receiver));
+                        $kwtsms_anchor = '#' . TemplatesPage::domId(
+                            TemplatesPage::rowKey($kwtsms_event, $kwtsms_receiver)
+                        );
                     }
 
                     return [
                         CONTROLLER_STATUS_REDIRECT,
-                        $kwtsms_templates_url($kwtsms_result['lang'], '', $kwtsms_anchor, $kwtsms_result['storefront_id']),
+                        $kwtsms_templates_url(
+                            $kwtsms_result['lang'],
+                            '',
+                            $kwtsms_anchor,
+                            $kwtsms_result['storefront_id']
+                        ),
                     ];
                 }
                 if ($mode === 'load_template_defaults') {
@@ -624,7 +634,8 @@ try {
             fn_check_current_user_access('manage_notification_settings') === true,
             fn_check_current_user_access('manage_kwtsms_gateway') === true,
             $kwtsms_test_result,
-            // 2026-10-22 16:15 +03: the storefront picked on the page (Task A3, task 596); the page ignores an id it does not know.
+            // 2026-10-22 16:15 +03: the storefront picked on the page (Task A3, task 596); the page ignores an id it
+            // does not know.
             isset($_REQUEST['storefront_id']) && is_string($_REQUEST['storefront_id'])
                 && ctype_digit($_REQUEST['storefront_id']) && strlen($_REQUEST['storefront_id']) <= 10
                 ? (int) $_REQUEST['storefront_id'] : 0

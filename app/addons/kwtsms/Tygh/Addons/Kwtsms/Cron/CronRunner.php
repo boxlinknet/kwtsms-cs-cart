@@ -173,7 +173,8 @@ class CronRunner
      * @param callable|null $clock        Returns the current Unix time (tests); null = time()
      * @param callable|null $microclock   Returns seconds as a float (tests); null = microtime(true)
      * @param callable|null $prune_outbox (int $before, int $limit): int, deletes one chunk of final outbox rows
-     * @param callable|null $prune_keys   (int $before, int $limit): int, deletes one chunk of expired windowed dispatch keys
+     * @param callable|null $prune_keys   (int $before, int $limit): int, deletes one chunk of expired windowed dispatch
+     * keys
      *                                    created before $before (2026-10-21 04:22 +03, ruling R32, task 596;
      *                                    2026-10-23 03:41 +03: was status keys only, Task A12 item 4)
      */
@@ -456,7 +457,8 @@ class CronRunner
             }
         }
         // 2026-10-21 04:22 +03: expired status dispatch keys, ruling R32 (Task 1.9 fix round 1 item 6), task 596.
-        // 2026-10-23 03:41 +03: every windowed prefix (status:, resend:, updated:, recover:, low_stock:), Task A12 item 4.
+        // 2026-10-23 03:41 +03: every windowed prefix (status:, resend:, updated:, recover:, low_stock:), Task A12 item
+        // 4.
         if (!$partial && $this->prune_keys !== null) {
             if ($this->micro() >= $deadline) {
                 $partial = true;

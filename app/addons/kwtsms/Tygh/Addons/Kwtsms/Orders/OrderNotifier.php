@@ -558,7 +558,8 @@ class OrderNotifier
                     $data_payload['kwtsms_lang'] = is_array($found) && isset($found['lang']) && $found['lang'] !== ''
                         ? (string) $found['lang'] : $requested;
                 } else {
-                    // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The same for A and V: the language deliver() resolves for
+                    // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The same for A and V: the language
+                    // deliver() resolves for
                     // them (admin alert language, the vendor's language, else the backend default), after the fallback.
                     $company_path = $decl->path('company_id');
                     $company_raw = $company_path === '' ? null : EventDeclaration::value($payload, $company_path);
@@ -656,7 +657,8 @@ class OrderNotifier
     }
 
     /**
-     * The language of a vendor company, or '' (Multi-Vendor functions absent or no company). 2026-10-23 08:32 +0300: split out of
+     * The language of a vendor company, or '' (Multi-Vendor functions absent or no company). 2026-10-23 08:32 +0300:
+     * split out of
      * deliver() so declaredSms() resolves the same language, cleanup CA2-3 (A7 M3), task 596.
      */
     private function vendorLang(int $company_id): string

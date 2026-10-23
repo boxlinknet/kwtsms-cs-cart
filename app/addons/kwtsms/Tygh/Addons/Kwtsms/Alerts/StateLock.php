@@ -11,7 +11,8 @@
  * WHY:       Cleanup CA1-3 (A9 M1): AdminAlerts::raise() (a web request) and LowBalanceSms::dispatchPending() (the
  *            cron) both read-modify-write one JSON key; a crossing recorded between the cron's read and its write was
  *            overwritten and never texted.
- * USAGE:     (new StateLock())->runLocked(function () { ...read, change, write... });  // false = busy, work did not run
+ * USAGE:     (new StateLock())->runLocked(function () { ...read, change, write... });  // false = busy, work did not
+ * run
  * DEPENDS:   Sms\CapLock.
  */
 

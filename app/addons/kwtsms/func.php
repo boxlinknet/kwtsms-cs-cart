@@ -148,8 +148,10 @@ function fn_kwtsms_change_order_status(
     $order_statuses = null,
     $place_order = null
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('change_order_status', func_num_args(), 6)) {
         return;
     }
@@ -187,8 +189,10 @@ function fn_kwtsms_change_order_status_post(
     $order_info = null,
     $edp_data = null
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('change_order_status_post', func_num_args(), 6)) {
         return;
     }
@@ -213,8 +217,10 @@ function fn_kwtsms_change_order_status_post(
  */
 function fn_kwtsms_edit_place_order($order_id = null)
 {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('edit_place_order', func_num_args(), 1)) {
         return;
     }
@@ -250,8 +256,10 @@ function fn_kwtsms_place_order_manually_post(
     $edp_data = null,
     $is_order_placed_notification_required = true
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('place_order_manually_post', func_num_args(), 6)) {
         return;
     }
@@ -287,8 +295,10 @@ function fn_kwtsms_place_order_post(
     $short_order_data = null,
     $notification_rules = null
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('place_order_post', func_num_args(), 8)) {
         return;
     }
@@ -327,8 +337,10 @@ function fn_kwtsms_change_order_status_child_order(
     $change_child_status = null,
     $child_status_from = null
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('change_order_status_child_order', func_num_args(), 8)) {
         return;
     }
@@ -367,8 +379,10 @@ function fn_kwtsms_update_shipment_before_send_notification(
     $order_info = null,
     $shipment = []
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('update_shipment_before_send_notification', func_num_args(), 6)) {
         return;
     }
@@ -395,8 +409,10 @@ function fn_kwtsms_update_shipment_before_send_notification(
  */
 function fn_kwtsms_update_profile($action = null, $user_data = null, $current_user_data = [])
 {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('update_profile', func_num_args(), 2)) {
         return;
     }
@@ -468,8 +484,10 @@ function fn_kwtsms_update_product_amount(
     $original_amount = null,
     $sign = null
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     // 2026-10-23 14:11 +03: task A15 small fix, task 596. Needs 9 of the 10 arguments: $original_amount (9th) is
     // unused, so a core passing 9 still runs the low-stock path.
     if (fn_kwtsms_hook_args_missing('update_product_amount', func_num_args(), 9)) {
@@ -497,8 +515,10 @@ function fn_kwtsms_update_product_amount(
         if ((string) $sign !== '-') {
             return;
         }
-        // The cheap test first (no service is built for the common case). 2026-10-23 08:33 +0300: cleanup CA2-3 (A7 M6), task 596: this is the
-        // threshold test of core (fn.cart.php:1146-1148) without its mail; the "was above" part is LowStockCollector::crosses().
+        // The cheap test first (no service is built for the common case). 2026-10-23 08:33 +0300: cleanup CA2-3 (A7
+        // M6), task 596: this is the
+        // threshold test of core (fn.cart.php:1146-1148) without its mail; the "was above" part is
+        // LowStockCollector::crosses().
         if ((int) $current_amount <= $threshold || (int) $new_amount > $threshold || defined('ORDER_MANAGEMENT')) {
             return;
         }
@@ -535,8 +555,10 @@ function fn_kwtsms_update_product_amount(
  */
 function fn_kwtsms_update_company($company_data = null, $company_id = null, $lang_code = null, $action = null)
 {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('update_company', func_num_args(), 4)) {
         return;
     }
@@ -560,8 +582,10 @@ function fn_kwtsms_update_company($company_data = null, $company_id = null, $lan
  */
 function fn_kwtsms_delete_company($company_id = null, $result = null, $storefronts = [])
 {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('delete_company', func_num_args(), 2)) {
         return;
     }
@@ -595,8 +619,10 @@ function fn_kwtsms_change_company_status_pre(
     $skip_query = false,
     $notify = true
 ) {
-    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is unverified) must not
-    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly (logged once).
+    // 2026-10-23 13:17 +03: final review A, Important 3 (I3), task 596. A core that passes fewer arguments (4.20.1 is
+    // unverified) must not
+    // throw ArgumentCountError into checkout: trailing parameters default, and a missing needed one skips quietly
+    // (logged once).
     if (fn_kwtsms_hook_args_missing('change_company_status_pre', func_num_args(), 2)) {
         return;
     }
@@ -611,7 +637,8 @@ function fn_kwtsms_change_company_status_pre(
 }
 
 /**
- * 2026-10-23 13:17 +03: final review A, Important 3, task 596. True (and one error-log line per hook and request) when a hook
+ * 2026-10-23 13:17 +03: final review A, Important 3, task 596. True (and one error-log line per hook and request) when
+ * a hook
  * handler was called with fewer arguments than it needs; the handler then returns without doing anything.
  *
  * @param string $hook   Hook name
@@ -626,7 +653,8 @@ function fn_kwtsms_hook_args_missing(string $hook, int $given, int $needed): boo
     static $logged = [];
     if (!isset($logged[$hook])) {
         $logged[$hook] = true;
-        error_log('kwtsms: hook ' . $hook . ' called with ' . $given . ' of the ' . $needed . ' arguments it needs: skipped (core version mismatch?)');
+        error_log('kwtsms: hook ' . $hook . ' called with ' . $given . ' of the ' . $needed
+            . ' arguments it needs: skipped (core version mismatch?)');
     }
 
     return true;

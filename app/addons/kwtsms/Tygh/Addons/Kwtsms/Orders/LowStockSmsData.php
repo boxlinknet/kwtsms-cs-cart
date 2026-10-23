@@ -36,8 +36,10 @@ class LowStockSmsData implements DeclaredSmsData
             return ['placeholders' => []];
         }
         $first = $products[0];
-        // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The language the template is rendered in (the notifier hands it over as
-        // kwtsms_lang); anything but a two-letter lowercase code leaves the old lookup (vendor language, backend default).
+        // 2026-10-23 08:32 +0300: cleanup CA2-3 (A7 M3), task 596. The language the template is rendered in (the
+        // notifier hands it over as
+        // kwtsms_lang); anything but a two-letter lowercase code leaves the old lookup (vendor language, backend
+        // default).
         $lang = isset($data['kwtsms_lang']) && is_string($data['kwtsms_lang'])
             && preg_match('/^[a-z]{2}$/D', $data['kwtsms_lang']) === 1 ? $data['kwtsms_lang'] : '';
         $info = $this->describe((int) ($first['product_id'] ?? 0), (int) ($data['company_id'] ?? 0), $lang);

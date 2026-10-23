@@ -187,7 +187,8 @@ class SmsService
         'company_id' => 0, 'storefront_id' => 0, 'user_id' => 0, 'actor_user_id' => 0, 'actor_company_id' => 0,
         'lang_code' => '', 'audience' => 'storefront', 'interactive' => false, 'ip' => '', 'secret_values' => [],
         'country_iso' => '', 'caller' => '', 'retry_of' => 0, 'outbox_id' => 0,
-        // 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 2), task 596. Outbox row a Logs resend closes (vendor gate).
+        // 2026-10-23 08:23 +03: Task CA1 fix round 1 (minor 2), task 596. Outbox row a Logs resend closes (vendor
+        // gate).
         'resend_outbox_id' => 0,
         // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. Seconds an outbox row stays valid (0 = the default
         // 1800).
@@ -648,7 +649,8 @@ class SmsService
 
     /**
      * 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. A row queued for after the response that expires with no
-     * attempt at all (attempts 0, reason after_response) means nothing drained the outbox before it expired (2026-10-23 04:14 +03,
+     * attempt at all (attempts 0, reason after_response) means nothing drained the outbox before it expired (2026-10-23
+     * 04:14 +03,
      * fix round 1: no fixed duration, a ttl row expires sooner than 30 minutes): bell and
      * e-mail, once per hour. Never throws.
      *

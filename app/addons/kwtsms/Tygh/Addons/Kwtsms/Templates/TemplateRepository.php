@@ -687,7 +687,8 @@ class TemplateRepository
     }
 
     /**
-     * Removes the description of one language of one template (a storefront text going back to the all-storefronts text).
+     * Removes the description of one language of one template (a storefront text going back to the all-storefronts
+     * text).
      * Only that one (template_id, lang_code) row; the template row and the other languages stay.
      * 2026-10-22 16:12 +03: added, Task A3, task 596.
      *
@@ -705,7 +706,11 @@ class TemplateRepository
             $lang
         );
         if ($had > 0) {
-            db_query('DELETE FROM ?:kwtsms_template_descriptions WHERE template_id = ?i AND lang_code = ?s', $id, $lang);
+            db_query(
+                'DELETE FROM ?:kwtsms_template_descriptions WHERE template_id = ?i AND lang_code = ?s',
+                $id,
+                $lang
+            );
             db_query('UPDATE ?:kwtsms_templates SET updated_at = ?i WHERE template_id = ?i', time(), $id);
         }
         $this->trace('info', 'delete_description', 'Template description deleted', [

@@ -172,7 +172,8 @@ class OrderHooks
         // 2026-10-22 21:27 +03: Task A7 (SafatMall F5 part, P2-10), task 596. The stock of this order has been
         // decreased by now (fn_change_order_status runs before this hook): the products that crossed the threshold
         // become one low-stock SMS per receiver. Never stops the order SMS below.
-        $this->flushLowStock((int) ($order_info['storefront_id'] ?? 0));  // 2026-10-23 08:33 +0300: the order's storefront, CA2-3 (A7 M2), task 596
+        // 2026-10-23 08:33 +0300: the order's storefront, CA2-3 (A7 M2), task 596
+        $this->flushLowStock((int) ($order_info['storefront_id'] ?? 0));
         $rules = self::rules($force_notification);
         if ($this->flags->has('new_order', $order_id)) {
             $this->flags->clear('new_order', $order_id);
@@ -340,8 +341,10 @@ class OrderHooks
         // new-order SMS (receiver V, kwtsms.order_placed.o<child id>) with the V Notify rule of $force_notification,
         // whatever the customer and admin units are. Only while the V switch is ON: a marketplace that never turned
         // vendor SMS on gets no new row per child (default OFF, PRD 6.5).
-        // 2026-10-22 22:43 +03: Task A8 (found by the store test), task 596. A checkout of ONE vendor is not split: the order itself
-        // belongs to the vendor (company_id > 0, no parent), so the test is the vendor, not the parent id. The parent of
+        // 2026-10-22 22:43 +03: Task A8 (found by the store test), task 596. A checkout of ONE vendor is not split: the
+        // order itself
+        // belongs to the vendor (company_id > 0, no parent), so the test is the vendor, not the parent id. The parent
+        // of
         // a split checkout has company 0 and never gets a vendor SMS.
         if (
             (int) ($order_info['company_id'] ?? 0) > 0

@@ -151,7 +151,8 @@ class ApiClient
 
     /**
      * @var bool 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. A person waits on this very call (admin area
-     *      only; the storefront and the command line are never "interactive" for the slot cap). 2026-10-23 08:38 +0300: cleanup CA2-7 (A12),
+     *      only; the storefront and the command line are never "interactive" for the slot cap). 2026-10-23 08:38 +0300:
+     *      cleanup CA2-7 (A12),
      *      task 596: derived from the context only (admin = true, admin_background = false), no constructor argument.
      */
     private $interactive;
@@ -163,8 +164,10 @@ class ApiClient
      * @param callable|null $request_guard Used only where fn_set_hook() does not exist: ($endpoint, $guard_view),
      *                                     must return exactly true to let the request go
      *                                     2026-10-23 03:45 +03: Task A12 item 5, task 596. Context admin: a human waits
-     *                                     on this call (slot wait up to 10 s); admin_background: a background call of an
-     *                                     admin page (up to 3 s, web-sized timeouts). 2026-10-23 08:38 +0300: the $interactive argument was
+     *                                     on this call (slot wait up to 10 s); admin_background: a background call of
+     *                                     an
+     *                                     admin page (up to 3 s, web-sized timeouts). 2026-10-23 08:38 +0300: the
+     *                                     $interactive argument was
      *                                     removed (cleanup CA2-7, A12), the context name says it.
      */
     public function __construct(
