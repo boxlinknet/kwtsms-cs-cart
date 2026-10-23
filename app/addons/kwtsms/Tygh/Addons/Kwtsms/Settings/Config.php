@@ -220,6 +220,8 @@ class Config implements ConfigInterface
     ];
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
+    /** 2026-10-23 17:13 +03: the one site key pattern, read and write side (fix round 1, I1, task 596). */
+    private const SITE_KEY_PATTERN = '/^[0-9A-Za-z_\-]{1,100}$/D';
     private const USERNAME_PATTERN = '/^[\x21-\x7E]{1,100}$/D';
     private const MAX_PASSWORD_LENGTH = 200;
     private const MAX_ADMIN_PHONES = 10;
@@ -567,15 +569,22 @@ class Config implements ConfigInterface
 
     public function trustedProxies(): array
     {
-        $proxies = [];
-        foreach ((array) preg_split('/[,;\s]+/', $this->raw('trusted_proxies'), -1, PREG_SPLIT_NO_EMPTY) as $entry) {
-            $entry = (string) $entry;
-            if ($this->isIpOrCidr($entry) && !in_array($entry, $proxies, true)) {
-                $proxies[] = $entry;
-            }
-        }
+        // 2026-10-23 17:13 +03: the split and the valid-entry filter are proxyEntries(), shared with normalize()
+        // (fix round 1, finding I1, Task M1.1a, task 596).
+        return array_values(array_filter($this->proxyEntries($this->raw('trusted_proxies')), [$this, 'isIpOrCidr']));
+    }
 
-        return $proxies;
+    /**
+     * 2026-10-23 17:13 +03: fix round 1, I1, task 596. The unique entries of a proxy list split on commas, semicolons
+     * and white space, valid or not.
+     *
+     * @return string[]
+     */
+    private function proxyEntries(string $text): array
+    {
+        $entries = (array) preg_split('/[,;\s]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+
+        return array_values(array_unique(array_map('strval', $entries)));
     }
 
     public function turnstileEnabled(): bool
@@ -587,7 +596,7 @@ class Config implements ConfigInterface
     {
         $key = $this->raw('turnstile_site_key');
 
-        return preg_match('/^[0-9A-Za-z_\-]{1,100}$/D', $key) === 1 ? $key : '';
+        return preg_match(self::SITE_KEY_PATTERN, $key) === 1 ? $key : '';
     }
 
     public function turnstileSecret(): string
@@ -813,6 +822,24 @@ class Config implements ConfigInterface
                 $text = is_string($value) ? strtolower(trim($value)) : null;
 
                 return ($text !== null && preg_match('/^(?:[a-z]{2})?$/D', $text) === 1) ? $text : null;
+            // 2026-10-23 17:13 +03: fix round 1, finding I1 (Task M1.1a, task 596). The write side of the three list
+            // specs, on the same checks the getters use: parseWaits(), isIpOrCidr() and SITE_KEY_PATTERN.
+            case 'waits':
+                $waits = is_string($value) ? $this->parseWaits(trim($value)) : null;
+
+                return $waits === null ? null : implode(',', $waits);
+            case 'proxies':
+                if (!is_string($value)) {
+                    return null;
+                }
+                $entries = $this->proxyEntries($value);
+
+                // One invalid entry refuses the whole list (like the calling-code list); an empty list is allowed.
+                return array_filter($entries, [$this, 'isIpOrCidr']) === $entries ? implode("\n", $entries) : null;
+            case 'sitekey':
+                $text = is_string($value) ? trim($value) : null;
+
+                return ($text !== null && ($text === '' || preg_match(self::SITE_KEY_PATTERN, $text) === 1)) ? $text : null;
         }
 
         return null;
