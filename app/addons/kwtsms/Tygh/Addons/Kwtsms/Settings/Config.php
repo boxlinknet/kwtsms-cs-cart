@@ -149,7 +149,9 @@ class Config implements ConfigInterface
         // 2026-10-23 15:12 +03: Task M1.1a (P3-23), task 596. The "Phone and codes" section of Settings. Only the
         // keys listed here are writable; each later task of Milestone 1 adds the keys of its own fields. The Turnstile
         // secret is first because the save rule for an empty post (keep the stored secret) is part of this task.
-        'update_codes' => ['turnstile_secret'],
+        // 2026-10-23 19:56 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. The per-IP request limits, the store hourly
+        // cap and the trusted proxy list.
+        'update_codes' => ['turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies'],
     ];
 
     /**

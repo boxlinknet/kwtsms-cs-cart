@@ -37,6 +37,8 @@ final class OutcomeGroups
         'blocked_not_configured', 'blocked_empty', 'blocked_too_long', 'blocked_placeholder', 'blocked_balance',
         'blocked_pilot', 'blocked_daily_cap', 'rate_limited', 'cancelled', 'switched_off', 'not_notified',
         'superseded', 'duplicate_event', 'no_template',
+        // 2026-10-23 19:55 +03: Task M1.2 (P3-26), task 596. The store hourly cap, next to blocked_daily_cap.
+        'blocked_hourly_cap',
     ];
 
     /** Skipped outcomes that are nothing to act on. */

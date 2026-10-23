@@ -103,6 +103,12 @@ class CronRunner
      */
     public const STATUS_KEY_DAYS = 2;
 
+    /** SMS code rows are kept this long (2026-10-23 19:56 +03: Task M1.2, task 596; codes live 15 minutes at most). */
+    public const CODE_ROW_DAYS = 1;
+
+    /** Rate-limit buckets idle this long (and not locked) are deleted (2026-10-23 19:56 +03: Task M1.2, task 596). */
+    public const BUCKET_DAYS = 2;
+
     /** A prune that failed is tried again after this many seconds. */
     private const RETRY_AFTER_FAILURE = 3600;
 
@@ -163,6 +169,12 @@ class CronRunner
     /** @var callable|null 2026-10-23 00:13 +03: Task A9, task 596. (): bool, LowBalanceSms::dispatchPending() */
     private $low_balance_sms;
 
+    /** @var callable|null 2026-10-23 19:56 +03: Task M1.2, task 596. (int $before, int $limit): int, RateLimiter::prune */
+    private $prune_buckets;
+
+    /** @var callable|null 2026-10-23 19:56 +03: Task M1.2, task 596. (int $before, int $limit): int, SMS code rows */
+    private $prune_codes;
+
     /**
      * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
@@ -193,8 +205,12 @@ class CronRunner
         ?callable $microclock = null,
         ?callable $prune_outbox = null,
         ?callable $prune_keys = null,
-        ?callable $low_balance_sms = null // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596
+        ?callable $low_balance_sms = null, // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596
+        ?callable $prune_buckets = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
+        ?callable $prune_codes = null // 2026-10-23 19:56 +03: Task M1.2, task 596
     ) {
+        $this->prune_buckets = $prune_buckets;
+        $this->prune_codes = $prune_codes;
         $this->config = $config;
         $this->state = $state;
         $this->sync = $sync;
@@ -472,6 +488,30 @@ class CronRunner
                     $errors[] = 'dispatch_keys: ' . $this->describe($e);
                     $this->noteThrowable('cron.prune_failed', $e, ['table' => 'dispatch_keys']);
                 }
+            }
+        }
+        // 2026-10-23 19:56 +03: Task M1.2 (P3-18, P3-26), task 596. SMS code rows older than a day and idle,
+        // unlocked rate-limit buckets older than two days, in the same 5,000-row chunks and 120 s budget.
+        $windows = [
+            'otp_codes' => [$this->prune_codes, self::CODE_ROW_DAYS],
+            'rate_limits' => [$this->prune_buckets, self::BUCKET_DAYS],
+        ];
+        foreach ($windows as $name => [$callback, $days]) {
+            if ($partial || $callback === null) {
+                continue;
+            }
+            if ($this->micro() >= $deadline) {
+                $partial = true;
+                break;
+            }
+            try {
+                $before = $now - $days * self::DAY;
+                $deleted[$name] = $this->pruneChunks(function (int $chunk) use ($callback, $before): int {
+                    return (int) call_user_func($callback, $before, $chunk);
+                }, $deadline, true, $partial);
+            } catch (\Throwable $e) {
+                $errors[] = $name . ': ' . $this->describe($e);
+                $this->noteThrowable('cron.prune_failed', $e, ['table' => $name]);
             }
         }
         if (!$partial) {

@@ -54,6 +54,9 @@ class AdminAlerts
         // 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. An after-response row expired with no attempt: nothing
         // drained the outbox for 30 minutes (cron stopped, no storefront traffic). Bell and e-mail, once per hour.
         'outbox_expired_unsent',
+        // 2026-10-23 19:55 +03: Task M1.2 (P3-26), task 596. The store hourly SMS cap was reached: bell and e-mail,
+        // once per clock hour (the instance is the hour).
+        'store_hour_cap',
     ];
 
     /**

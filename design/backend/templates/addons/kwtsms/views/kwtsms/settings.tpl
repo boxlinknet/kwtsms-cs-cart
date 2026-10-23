@@ -486,6 +486,31 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         <h4 class="subheader" id="kwtsms_codes_title">{__("kwtsms.settings.codes_title")}</h4>
         <p class="muted description" id="kwtsms_codes_help">{__("kwtsms.settings.codes_help")}</p>
         <form action="{""|fn_url}" method="post" name="kwtsms_codes_form" id="kwtsms_codes_form" class="form-horizontal form-edit" autocomplete="off">
+            {* 2026-10-23 19:58 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. Per-IP request limits, the store hourly cap and
+               the trusted proxy list. Values come from $kwtsms.codes (SettingsPage::codesViewData()). *}
+            {foreach ["cap_ip_hour" => 10000, "cap_ip_day" => 10000] as $cap => $cap_max}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_{$cap}">{__("kwtsms.settings.field.`$cap`")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_{$cap}" name="kwtsms_codes[{$cap}]" value="{$kwtsms.codes.$cap}" min="1" max="{$cap_max}" step="1" class="input-small" dir="ltr">
+                        {if $cap == "cap_ip_day"}<p class="muted description">{__("kwtsms.settings.cap_ip_help")}</p>{/if}
+                    </div>
+                </div>
+            {/foreach}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_cap_store_hour">{__("kwtsms.settings.field.cap_store_hour")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_cap_store_hour" name="kwtsms_codes[cap_store_hour]" value="{$kwtsms.codes.cap_store_hour}" min="0" max="100000" step="1" class="input-small" dir="ltr">
+                    <p class="muted description">{__("kwtsms.settings.cap_store_hour_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_trusted_proxies">{__("kwtsms.settings.field.trusted_proxies")}:</label>
+                <div class="controls">
+                    <textarea id="kwtsms_trusted_proxies" name="kwtsms_codes[trusted_proxies]" rows="4" class="input-large kwtsms-code" dir="ltr" spellcheck="false" placeholder="10.0.0.0/8">{$kwtsms.codes.trusted_proxies}</textarea>
+                    <p class="muted description">{__("kwtsms.settings.trusted_proxies_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

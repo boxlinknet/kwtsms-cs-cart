@@ -188,6 +188,25 @@ class SettingsPage
             'test_sms_per_hour' => self::TEST_SMS_PER_HOUR,
             'test_sms_suffix_max' => self::TEST_SMS_SUFFIX_MAX,
             'default_country_label' => $this->countryLabel($this->config->defaultCountryCode()),
+            // 2026-10-23 19:57 +03: Task M1.2, task 596. The fields of the "Phone and codes" section.
+            'codes' => $this->codesViewData(),
+        ];
+    }
+
+    /**
+     * 2026-10-23 19:57 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. The values of the "Phone and codes" fields this
+     * task owns: the per-IP request limits, the store hourly cap (0 = off) and the trusted proxies as one entry per
+     * line. Each later task of Milestone 1 adds its own fields here.
+     *
+     * @return array{cap_ip_hour: int, cap_ip_day: int, cap_store_hour: int, trusted_proxies: string}
+     */
+    public function codesViewData(): array
+    {
+        return [
+            'cap_ip_hour' => $this->config->capIpHour(),
+            'cap_ip_day' => $this->config->capIpDay(),
+            'cap_store_hour' => $this->config->capStoreHour(),
+            'trusted_proxies' => implode("\n", $this->config->trustedProxies()),
         ];
     }
 

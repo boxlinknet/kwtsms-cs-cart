@@ -5434,3 +5434,53 @@ msgstr "لا توجد تغييرات للحفظ."
 msgctxt "Languages::kwtsms.settings.field.turnstile_secret"
 msgid "Turnstile secret key"
 msgstr "المفتاح السري لـ Turnstile"
+
+# 2026-10-23 19:57 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. Fields of the "Phone and codes" section (per-IP limits,
+# store hourly cap, trusted proxies) and the texts of the hourly cap (outcome, Logs column, alert).
+msgctxt "Languages::kwtsms.settings.field.cap_ip_hour"
+msgid "Code requests per IP address and hour"
+msgstr "طلبات الرمز لكل عنوان IP في الساعة"
+
+msgctxt "Languages::kwtsms.settings.field.cap_ip_day"
+msgid "Code requests per IP address and day"
+msgstr "طلبات الرمز لكل عنوان IP في اليوم"
+
+msgctxt "Languages::kwtsms.settings.field.cap_store_hour"
+msgid "Store SMS per hour (0 = off)"
+msgstr "رسائل المتجر في الساعة (0 = معطل)"
+
+msgctxt "Languages::kwtsms.settings.field.trusted_proxies"
+msgid "Trusted proxies"
+msgstr "الوكلاء الموثوقون"
+
+msgctxt "Languages::kwtsms.settings.cap_ip_help"
+msgid "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends."
+msgstr "تُحسب الحدود لكل عنوان IP للزائر، سواء أُرسلت رسالة أم لا. تُرفض الطلبات التي تتجاوز الحد حتى تنتهي الساعة أو اليوم."
+
+msgctxt "Languages::kwtsms.settings.cap_store_hour_help"
+msgid "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
+msgstr "أقصى عدد من الرسائل يرسله المتجر في ساعة واحدة، بما فيها رموز التحقق. بعد هذا الحد يتوقف الإرسال حتى الساعة التالية ويصلك تنبيه. القيمة 0 تعطل الحد."
+
+msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
+msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
+msgstr "عنوان IP أو نطاق CIDR واحد في كل سطر، مثل موزع الأحمال أمام المتجر. اتركه فارغا إذا كان الزوار يصلون إلى المتجر مباشرة. خلف Cloudflare أدرج نطاقات عناوينه. لا يُعتمد العنوان المُمرَّر إلا من هذه الوكلاء."
+
+msgctxt "Languages::kwtsms.outcome.blocked_hourly_cap"
+msgid "The store reached its hourly SMS limit. Sending resumes in the next hour."
+msgstr "بلغ المتجر حد الرسائل في الساعة. يستأنف الإرسال في الساعة التالية."
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_hourly_cap"
+msgid "Hourly limit reached"
+msgstr "تم بلوغ حد الساعة"
+
+msgctxt "Languages::kwtsms.logs.reason.cap_store_hour"
+msgid "The store's hourly SMS limit was reached, so this SMS wasn't sent."
+msgstr "بلغ المتجر حد الرسائل في الساعة، لذلك لم تُرسل هذه الرسالة."
+
+msgctxt "Languages::kwtsms.alert.store_hour_cap.title"
+msgid "Hourly SMS limit reached"
+msgstr "تم بلوغ حد الرسائل في الساعة"
+
+msgctxt "Languages::kwtsms.alert.store_hour_cap.text"
+msgid "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."
+msgstr "بلغ المتجر حده في الساعة وهو [cap] رسالة. تُرفض الرسائل الأخرى حتى الساعة التالية."

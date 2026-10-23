@@ -5431,3 +5431,53 @@ msgstr "Nothing to save."
 msgctxt "Languages::kwtsms.settings.field.turnstile_secret"
 msgid "Turnstile secret key"
 msgstr "Turnstile secret key"
+
+# 2026-10-23 19:57 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. Fields of the "Phone and codes" section (per-IP limits,
+# store hourly cap, trusted proxies) and the texts of the hourly cap (outcome, Logs column, alert).
+msgctxt "Languages::kwtsms.settings.field.cap_ip_hour"
+msgid "Code requests per IP address and hour"
+msgstr "Code requests per IP address and hour"
+
+msgctxt "Languages::kwtsms.settings.field.cap_ip_day"
+msgid "Code requests per IP address and day"
+msgstr "Code requests per IP address and day"
+
+msgctxt "Languages::kwtsms.settings.field.cap_store_hour"
+msgid "Store SMS per hour (0 = off)"
+msgstr "Store SMS per hour (0 = off)"
+
+msgctxt "Languages::kwtsms.settings.field.trusted_proxies"
+msgid "Trusted proxies"
+msgstr "Trusted proxies"
+
+msgctxt "Languages::kwtsms.settings.cap_ip_help"
+msgid "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends."
+msgstr "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends."
+
+msgctxt "Languages::kwtsms.settings.cap_store_hour_help"
+msgid "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
+msgstr "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
+
+msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
+msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
+msgstr "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
+
+msgctxt "Languages::kwtsms.outcome.blocked_hourly_cap"
+msgid "The store reached its hourly SMS limit. Sending resumes in the next hour."
+msgstr "The store reached its hourly SMS limit. Sending resumes in the next hour."
+
+msgctxt "Languages::kwtsms.logs.outcome.blocked_hourly_cap"
+msgid "Hourly limit reached"
+msgstr "Hourly limit reached"
+
+msgctxt "Languages::kwtsms.logs.reason.cap_store_hour"
+msgid "The store's hourly SMS limit was reached, so this SMS wasn't sent."
+msgstr "The store's hourly SMS limit was reached, so this SMS wasn't sent."
+
+msgctxt "Languages::kwtsms.alert.store_hour_cap.title"
+msgid "Hourly SMS limit reached"
+msgstr "Hourly SMS limit reached"
+
+msgctxt "Languages::kwtsms.alert.store_hour_cap.text"
+msgid "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."
+msgstr "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."

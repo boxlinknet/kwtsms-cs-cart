@@ -58,6 +58,7 @@ use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
+use Tygh\Addons\Kwtsms\Security\RateLimiter; // 2026-10-23 19:55 +03: Task M1.2, task 596
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend;
 use Tygh\Addons\Kwtsms\Sms\ApiClient;
@@ -275,8 +276,16 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-10-23 03:41 +03: pruneWindowed (was pruneStatus), Task A12 item 4, task 596.
                 [$app['kwtsms.dispatch_keys'], 'pruneWindowed'],
                 // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596. The low-balance SMS, dispatched by the drain step.
-                [$app['kwtsms.low_balance_sms'], 'dispatchPending']
+                [$app['kwtsms.low_balance_sms'], 'dispatchPending'],
+                // 2026-10-23 19:55 +03: Task M1.2, task 596. prune_logs also deletes SMS code rows older than a day and
+                // idle unlocked rate-limit buckets older than two days.
+                [$app['kwtsms.rate_limiter'], 'prune'],
+                [$app['kwtsms.rate_limiter'], 'pruneCodes']
             );
+        };
+        // 2026-10-23 19:55 +03: Task M1.2 (P3-18, P3-19), task 596. The atomic rate-limit buckets (clock = time()).
+        $app['kwtsms.rate_limiter'] = function (Container $app): RateLimiter {
+            return new RateLimiter();
         };
         // 2026-10-23 00:13 +03: Task A9 (R8), task 596. One crossing of the low-balance threshold, one
         // kwtsms.low_balance event through event.dispatcher with the stored switches (default rules); the admin

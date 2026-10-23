@@ -115,6 +115,8 @@ class SmsService
         'blocked_too_long', 'blocked_placeholder', 'blocked_balance', 'blocked_pilot', 'blocked_daily_cap',
         'rate_limited', 'cancelled', 'deferred', 'expired', 'switched_off', 'not_notified', 'superseded',
         'duplicate_event', 'no_template',
+        // 2026-10-23 19:54 +03: Task M1.2 (P3-26), task 596. The store hourly cap (setting cap_store_hour).
+        'blocked_hourly_cap',
     ];
 
     /**
@@ -1516,7 +1518,7 @@ class SmsService
      */
     private function applyCaps(array &$rcpt, array $context): void
     {
-        $daily = ['blocked' => 0, 'used' => 0];
+        $daily = ['blocked' => 0, 'used' => 0, 'hour_blocked' => 0, 'hour_used' => 0];
         $ran = $this->cap_lock->runLocked(function () use (&$rcpt, $context, &$daily): void {
             $daily = $this->checkCaps($rcpt, $context);
             $this->reserve($rcpt, $context);
@@ -1533,6 +1535,17 @@ class SmsService
             $now = $this->now();
             $this->alert('daily_cap', ['[cap]' => $this->config->capStoreDay()], true, 172800, date('Y-m-d', $now));
         }
+        // 2026-10-23 19:54 +03: Task M1.2 (P3-26), task 596. The hourly cap alert, outside the cap lock like the daily
+        // one (R41): once per clock hour, bell and e-mail. Nothing is stored: no soft-disable, no "Resume now".
+        if ($daily['hour_blocked'] > 0) {
+            $this->note('warning', 'sms.hourly_cap', 'store hourly cap reached', [
+                'cap' => $this->config->capStoreHour(),
+                'used' => $daily['hour_used'],
+            ]);
+            $now = $this->now();
+            $hour_cap = $this->config->capStoreHour();
+            $this->alert('store_hour_cap', ['[cap]' => $hour_cap], true, 3600, date('Y-m-d H', $now));
+        }
     }
 
     /**
@@ -1543,7 +1556,9 @@ class SmsService
      * @param array<int,array<string,mixed>> $rcpt
      * @param array<string,mixed>            $context
      *
-     * @return array{blocked:int,used:int} Recipients the store daily cap stopped, and the count it read
+     * @return array{blocked:int,used:int,hour_blocked:int,hour_used:int} Recipients the store daily cap stopped, and
+     *                                the count it read; the same two for the store hourly cap (2026-10-23 19:54 +03,
+     *                                Task M1.2, task 596)
      *
      * @throws \RuntimeException When a count cannot be read
      */
@@ -1608,7 +1623,33 @@ class SmsService
             $passed[$rcpt[$i]['phone']] = true;
         }
 
-        return ['blocked' => $blocked, 'used' => $used];
+        // 2026-10-23 19:54 +03: Task M1.2 (P3-26), task 596. The store hourly cap, after the daily one: counted from
+        // the top of the current clock hour (store time zone) over the same SENT_OUTCOMES (reservations included),
+        // so the recipients beyond what is left are blocked_hourly_cap / cap_store_hour. 0 = off: no query at all.
+        // Nothing is stored, so every send above the cap in that hour is refused and the next hour starts clean.
+        $hour_cap = $this->config->capStoreHour();
+        $hour_blocked = 0;
+        $hour_used = 0;
+        if ($hour_cap > 0) {
+            $since_hour = $now - (int) date('i', $now) * 60 - (int) date('s', $now);
+            // At the top of the hour the window is 0 s, which countRecent() reads as "nothing": use 1 s (never fewer).
+            $hour_used = $this->attempts->countRecent('', '', max(1, $now - $since_hour), self::SENT_OUTCOMES);
+            $hour_left = $hour_cap - $hour_used;
+            $hour_passed = [];
+            foreach ($this->open($rcpt) as $i) {
+                if (!$rcpt[$i]['valid'] || isset($hour_passed[$rcpt[$i]['phone']])) {
+                    continue;
+                }
+                if (count($hour_passed) >= $hour_left) {
+                    $rcpt[$i] = $this->decided($rcpt[$i], 'blocked_hourly_cap', 'cap_store_hour');
+                    $hour_blocked++;
+                    continue;
+                }
+                $hour_passed[$rcpt[$i]['phone']] = true;
+            }
+        }
+
+        return ['blocked' => $blocked, 'used' => $used, 'hour_blocked' => $hour_blocked, 'hour_used' => $hour_used];
     }
 
     /**

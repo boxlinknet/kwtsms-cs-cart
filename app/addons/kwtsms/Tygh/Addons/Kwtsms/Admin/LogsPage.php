@@ -83,6 +83,8 @@ class LogsPage
         'vendor_quota',
         // 2026-10-23 00:56 +03: a customer who turned off order status SMS in their profile (P2-4), Task A10, task 596.
         'customer_opt_out',
+        // 2026-10-23 19:55 +03: Task M1.2 (P3-26), task 596. The store hourly cap stopped this number.
+        'cap_store_hour',
     ];
 
     /**
