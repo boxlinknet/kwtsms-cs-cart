@@ -273,7 +273,8 @@ class RateLimiter
         $sql = 'DELETE FROM ?:kwtsms_rate_limits WHERE last_at < ?i AND locked_until < ?i';
         $args = [max(0, $before), $this->now()];
         if ($prefix !== '') {
-            $sql .= ' AND bucket LIKE ?l';
+            // ?s, not ?l: ?l doubles a backslash, so the escape of _ and % here would turn into a literal backslash.
+            $sql .= ' AND bucket LIKE ?s';
             $args[] = addcslashes($prefix, '%_\\') . '%';
         }
 
