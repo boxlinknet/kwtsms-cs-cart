@@ -151,7 +151,8 @@ class ApiClient
 
     /**
      * @var bool 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. A person waits on this very call (admin area
-     *      only; the storefront and the command line are never "interactive" for the slot cap).
+     *      only; the storefront and the command line are never "interactive" for the slot cap). 2026-10-23 08:38 +0300: cleanup CA2-7 (A12),
+     *      task 596: derived from the context only (admin = true, admin_background = false), no constructor argument.
      */
     private $interactive;
 
@@ -161,10 +162,10 @@ class ApiClient
      * @param string        $context       web, admin or cli: picks the timeouts; anything else is web
      * @param callable|null $request_guard Used only where fn_set_hook() does not exist: ($endpoint, $guard_view),
      *                                     must return exactly true to let the request go
-     * @param bool          $interactive   2026-10-23 03:45 +03: Task A12 item 5, task 596. With context admin: true = a
-     *                                     human waits on this call (slot wait up to 10 s), false = a background call of
-     *                                     an admin page (up to 3 s, web-sized timeouts). The context name
-     *                                     "admin_background" means admin with $interactive false.
+     *                                     2026-10-23 03:45 +03: Task A12 item 5, task 596. Context admin: a human waits
+     *                                     on this call (slot wait up to 10 s); admin_background: a background call of an
+     *                                     admin page (up to 3 s, web-sized timeouts). 2026-10-23 08:38 +0300: the $interactive argument was
+     *                                     removed (cleanup CA2-7, A12), the context name says it.
      */
     public function __construct(
         string $user,
@@ -174,17 +175,16 @@ class ApiClient
         ApiGuard $guard,
         DebugLog $log,
         string $context,
-        ?callable $request_guard = null,
-        bool $interactive = true
+        ?callable $request_guard = null
     ) {
         $this->user = $user;
         $this->pass = $pass;
         $this->transport = $transport;
         $this->guard = $guard;
         $this->log = $log;
+        $interactive = $context === 'admin';
         if ($context === self::ADMIN_BACKGROUND) {
             $context = 'admin';
-            $interactive = false;
         }
         $this->context = isset(self::TIMEOUTS[$context]) ? $context : 'web';
         $this->interactive = $interactive;

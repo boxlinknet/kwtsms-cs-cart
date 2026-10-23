@@ -221,9 +221,33 @@ def load_allow(path):
         parts = line.split(':', 2)
         if len(parts) == 3: out.add(tuple(x.strip() for x in parts))
     return out
+# 2026-10-23 08:40 +0300, cleanup CA2-7 (A12), task 596: `function x(` inside a comment or a string is not a declaration. The source is
+# masked (comments and string bodies become spaces, same length, so every position stays valid) before the search.
+_MASKS = {}
+def mask_php(s):
+    out = list(s); i = 0; n = len(s)
+    while i < n:
+        c = s[i]; two = s[i:i + 2]
+        if two == '/*':
+            j = s.find('*/', i + 2); j = n if j < 0 else j + 2
+        elif two == '//' or (c == '#' and s[i + 1:i + 2] != '['):
+            j = i
+            while j < n and s[j] != '\n': j += 1
+        elif c == "'" or c == '"':
+            j = i + 1
+            while j < n and s[j] != c: j += 2 if s[j] == '\\' else 1
+            j = min(j + 1, n)
+        else:
+            i += 1; continue
+        for k in range(i, j):
+            if out[k] != '\n': out[k] = ' '
+        i = j
+    return ''.join(out)
 def func_at(s, pos):
+    key = (len(s), hash(s))
+    if key not in _MASKS: _MASKS[key] = mask_php(s)
     last = '{main}'
-    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', s[:pos]): last = m.group(1)
+    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', _MASKS[key][:pos]): last = m.group(1)
     return last
 root, listing, allowfile = sys.argv[1], sys.argv[2], sys.argv[3]
 ALLOW = load_allow(allowfile)
@@ -372,9 +396,33 @@ def load_allow(path):
         parts = line.split(':', 2)
         if len(parts) == 3: out.add(tuple(x.strip() for x in parts))
     return out
+# 2026-10-23 08:40 +0300, cleanup CA2-7 (A12), task 596: `function x(` inside a comment or a string is not a declaration. The source is
+# masked (comments and string bodies become spaces, same length, so every position stays valid) before the search.
+_MASKS = {}
+def mask_php(s):
+    out = list(s); i = 0; n = len(s)
+    while i < n:
+        c = s[i]; two = s[i:i + 2]
+        if two == '/*':
+            j = s.find('*/', i + 2); j = n if j < 0 else j + 2
+        elif two == '//' or (c == '#' and s[i + 1:i + 2] != '['):
+            j = i
+            while j < n and s[j] != '\n': j += 1
+        elif c == "'" or c == '"':
+            j = i + 1
+            while j < n and s[j] != c: j += 2 if s[j] == '\\' else 1
+            j = min(j + 1, n)
+        else:
+            i += 1; continue
+        for k in range(i, j):
+            if out[k] != '\n': out[k] = ' '
+        i = j
+    return ''.join(out)
 def func_at(s, pos):
+    key = (len(s), hash(s))
+    if key not in _MASKS: _MASKS[key] = mask_php(s)
     last = '{main}'
-    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', s[:pos]): last = m.group(1)
+    for m in re.finditer(r'\bfunction\s+&?(\w+)\s*\(', _MASKS[key][:pos]): last = m.group(1)
     return last
 root, listing, allowfile = sys.argv[1], sys.argv[2], sys.argv[3]
 ALLOW = load_allow(allowfile)
