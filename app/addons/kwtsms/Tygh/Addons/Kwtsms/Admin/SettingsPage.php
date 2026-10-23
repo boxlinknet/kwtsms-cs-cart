@@ -320,8 +320,9 @@ class SettingsPage
         array $posted
     ): array {
         $started = microtime(true);
-        $blank_secret = isset($posted['turnstile_secret']) && is_string($posted['turnstile_secret'])
-            && trim($posted['turnstile_secret']) === '';
+        // 2026-10-23 17:16 +03: the rule is Config::isBlankSecretPost(), shared with Config::save() (fix round 1, M7,
+        // task 596).
+        $blank_secret = isset($posted['turnstile_secret']) && Config::isBlankSecretPost($posted['turnstile_secret']);
         $requested = array_map('strval', array_keys($posted));
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
         $reasons = [];

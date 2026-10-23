@@ -266,6 +266,18 @@ class Config implements ConfigInterface
     }
 
     /**
+     * 2026-10-23 17:16 +03: fix round 1, finding M7, task 596. The one rule for "this posted secret field is empty, keep
+     * the stored secret": a string that is empty after trim(). Config::save() and SettingsPage::saveCodes() both call
+     * it, so they cannot disagree about what was saved.
+     *
+     * @param mixed $value
+     */
+    public static function isBlankSecretPost($value): bool
+    {
+        return is_string($value) && trim($value) === '';
+    }
+
+    /**
      * @return array<string, string> Every setting id and its default
      */
     public static function defaults(): array
@@ -631,7 +643,7 @@ class Config implements ConfigInterface
                 // (prefix kwtsms1:, encrypted). The settings form never shows it, so an empty post means "keep the
                 // stored one" (not a write and not a rejection); only a new non-empty value replaces it.
                 if ($mode === 'update_codes' && $key === 'turnstile_secret') {
-                    if (is_string($values[$key]) && trim($values[$key]) === '') {
+                    if (self::isBlankSecretPost($values[$key])) {
                         continue;
                     }
                     $stored = $this->encryptPassword($values[$key]);
