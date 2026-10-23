@@ -619,7 +619,8 @@ class SmsService
 
     /**
      * 2026-10-23 03:31 +03: Task A12 item 1 (R53), task 596. A row queued for after the response that expires with no
-     * attempt at all (attempts 0, reason after_response) means nothing drained the outbox for 30 minutes: bell and
+     * attempt at all (attempts 0, reason after_response) means nothing drained the outbox before it expired (2026-10-23 04:14 +03,
+     * fix round 1: no fixed duration, a ttl row expires sooner than 30 minutes): bell and
      * e-mail, once per hour. Never throws.
      *
      * @param array<string,mixed> $row The decoded outbox row

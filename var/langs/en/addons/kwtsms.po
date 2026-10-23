@@ -5124,5 +5124,5 @@ msgid "An SMS expired without being sent"
 msgstr "An SMS expired without being sent"
 
 msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.text"
-msgid "An SMS waited 30 minutes in the queue and expired before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
-msgstr "An SMS waited 30 minutes in the queue and expired before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
+msgid "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
+msgstr "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."

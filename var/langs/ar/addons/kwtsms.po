@@ -5127,5 +5127,5 @@ msgid "An SMS expired without being sent"
 msgstr "انتهت صلاحية رسالة نصية دون إرسالها"
 
 msgctxt "Languages::kwtsms.alert.outbox_expired_unsent.text"
-msgid "An SMS waited 30 minutes in the queue and expired before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
-msgstr "انتظرت رسالة نصية 30 دقيقة في قائمة الانتظار وانتهت صلاحيتها قبل أي محاولة لإرسالها، لأن لا شيء أخذها من القائمة. تأكد من أن مهمة cron الخاصة بـ kwtSMS تعمل كل دقيقة: تعرض لوحة المعلومات آخر تشغيل."
+msgid "An SMS waited in the queue until it expired, before any attempt to send it, because nothing took it from the queue. Check that the kwtSMS cron job runs every minute: the Dashboard shows the last run."
+msgstr "انتظرت رسالة نصية في قائمة الانتظار حتى انتهت صلاحيتها قبل أي محاولة لإرسالها، لأن لا شيء أخذها من القائمة. تأكد من أن مهمة cron الخاصة بـ kwtSMS تعمل كل دقيقة: تعرض لوحة المعلومات آخر تشغيل."
