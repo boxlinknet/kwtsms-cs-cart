@@ -3103,7 +3103,7 @@ msgid "Other add-ons"
 msgstr "إضافات أخرى"
 
 msgctxt "Languages::kwtsms.integrations.later.help"
-msgid "Available in a later version."
+msgid "Coming in 1.2."
 msgstr "قريبا في الإصدار 1.2."
 
 msgctxt "Languages::kwtsms.integrations.later.installed"
@@ -3123,7 +3123,7 @@ msgid "Gift certificates"
 msgstr "شهادات الهدايا"
 
 msgctxt "Languages::kwtsms.integrations.later.discussion"
-msgid "Reviews and comments"
+msgid "Comments and discussion"
 msgstr "التعليقات والنقاش"
 
 msgctxt "Languages::kwtsms.integrations.later.vendor_communication"
