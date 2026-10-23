@@ -1,0 +1,17 @@
+# FILE:      tools/released-zips.txt
+# CREATED:   2026-10-23 18:29 +03
+# TASK:      596
+# AUTHOR:    kwtSMS
+# WHAT:      One line per released add-on version: <version> <sha256 of the release zip> <git commit the release was
+#            built from> <tree hash> (columns separated by one space). The tree hash is the sha256 of the sorted lines
+#            "<path> <md5>" of every file in the release zip.
+# WHY:       Ruling P3-R3 (M1.1b fix round 1, risk 5). An upgrade package lists "changed" files with the md5 of the
+#            OLD file and the Upgrade Center's Collisions check compares them with what the merchant has installed.
+#            So the old tree the builder takes from git must be byte for byte what was released.
+#            tools/build-upgrade-package.sh checks the tree it builds from the tag against this file and refuses a
+#            local dist/kwtsms-<from>.zip whose sha256 differs. A new release adds its line here.
+# USAGE:     Read by tools/build-upgrade-package.sh. To add a release: unzip the release zip into a directory and
+#            hash it the way the builder does (see old_release_check in the builder).
+# DEPENDS:   Nothing.
+1.0.0 7a039e705ee69800d7eaea9a2da8f86b770ffd1d6786964ef431b7f3fdfa8878 da3f7ba065030ac5171165fa9da4cd89dac49ee7 0f9b06cc558d49f97a79bc70cfb5ecdb681106c95dc32ba269330d74270d6ac5
+1.1.0 de13bf4fee42197da98b4738eeec87add8e5dc8829a99c533461f494c20e60e4 e3000f53f7c0e5f60e8fd02b1f9df53065923acf 87ee8346289487cdb1d676c5051b0e559468a288f9e6ed4804d9d0dd4fbb27f3

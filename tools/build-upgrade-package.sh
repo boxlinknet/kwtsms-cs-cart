@@ -187,6 +187,39 @@ old_tree_check() {
 }
 gate "the old release ($ref) holds version $from" old_tree_check
 
+# 2026-10-23 18:30 +03: M1.1b fix round 1, risk 5 (ruling P3-R3), task 596. The old tree must be what was released: the
+# commit the ref points to, the hash of every file of the tree, and (when a local dist/kwtsms-<from>.zip exists) the sha256
+# of that zip must equal the line of tools/released-zips.txt. A stale local zip is refused, nothing is downloaded.
+old_release_check() {
+  py "$oldtree" "$here/tools/released-zips.txt" "$from" "$src/dist/kwtsms-$from.zip" "$(git -C "$here" rev-parse -q --verify "$ref^{commit}" 2>/dev/null)" <<'PY'
+import hashlib, os, sys
+old, manifest, frm, zipf, commit = sys.argv[1:6]
+line = [l.split() for l in open(manifest) if l.strip() and not l.startswith('#') and l.split()[0] == frm]
+if not line:
+    print('no line for version %s in tools/released-zips.txt (add the release there)' % frm); print('CHECKED 1'); sys.exit(0)
+_, zsha, zcommit, ztree = line[0]
+bad = []
+if commit != zcommit:
+    bad.append('the old ref is commit %s, the release was built from %s' % (commit or '(unknown)', zcommit))
+lines = []
+for d, _, fs in os.walk(old):
+    for f in fs:
+        p = os.path.join(d, f)
+        lines.append(os.path.relpath(p, old).replace(os.sep, '/') + ' ' + hashlib.md5(open(p, 'rb').read()).hexdigest())
+lines.sort()
+tree = hashlib.sha256(('\n'.join(lines) + '\n').encode()).hexdigest()
+if tree != ztree:
+    bad.append('the old tree (%d files) does not hash-match the released zip contents (tree %s, expected %s)' % (len(lines), tree, ztree))
+if os.path.isfile(zipf):
+    got = hashlib.sha256(open(zipf, 'rb').read()).hexdigest()
+    if got != zsha:
+        bad.append('stale local %s: sha256 %s, the release is %s (delete it or rebuild from the release tag)' % (zipf, got, zsha))
+print('\n'.join(bad)) if bad else None
+print('CHECKED', len(lines) + 1)
+PY
+}
+gate "the old release tree hash-matches the released $from zip (tools/released-zips.txt), no stale dist zip" old_release_check
+
 if [ "$fail" != 0 ]; then echo "== GATES FAILED ($failed failed, $passed passed): no upgrade package written =="; exit 1; fi
 
 # ---------------------------------------------------------------------------------------------------------------
