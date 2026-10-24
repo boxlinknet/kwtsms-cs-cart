@@ -52,6 +52,9 @@ fn_register_hooks(
     'change_company_status_pre',
     // 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. The retry of a failed 1.2.0 post-upgrade step (admin area
     // only, handler fn_kwtsms_before_dispatch).
-    'before_dispatch'
+    'before_dispatch',
+    // 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. A deleted account takes its phone index row and code rows
+    // with it, while a code feature is ON.
+    'delete_user'
 );
 ServiceProvider::extendNotifications(Tygh::$app);

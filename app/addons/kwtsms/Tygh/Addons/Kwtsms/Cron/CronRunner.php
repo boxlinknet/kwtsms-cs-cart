@@ -48,6 +48,9 @@
  *            2026-10-23 03:41 +03, Task A12 item 4, task 596: was pruneStatus, now the status:, resend:, updated:,
  *            recover: and low_stock: keys, never the permanent ones),
  *            after the outbox, in the same 5,000-row chunks and 120 s budget; order_placed:* keys are never pruned.
+ *            2026-10-24 17:17 +03, Task M1.6 (P3-31), task 596: job index_phones (the phone index backfill), see
+ *            self::JOBS and indexPhones(). Its callable is (int $batch, float $budget_s): array
+ *            (PhoneIndexBackfill::run).
  */
 
 namespace Tygh\Addons\Kwtsms\Cron;
@@ -59,12 +62,16 @@ use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\LogStoreInterface;
 use Tygh\Addons\Kwtsms\Log\PrunableLogStoreInterface;
 use Tygh\Addons\Kwtsms\Log\Schema;
+use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:16 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
 
 class CronRunner
 {
-    public const JOBS = ['drain_outbox', 'sync', 'prune_logs', 'health'];
+    // 2026-10-24 17:16 +03: Task M1.6 (P3-31), task 596. index_phones: the phone index backfill, every run while a
+    // feature that needs the index is ON (phone_unique, register_code, phone_change_code; all OFF = nothing happens)
+    // and the backfill is not done. It runs last and gets what is left of the 50 s budget (at least one batch).
+    public const JOBS = ['drain_outbox', 'sync', 'prune_logs', 'health', 'index_phones'];
 
     public const LOCK_NAME = 'kwtsms.cron';
 
@@ -176,6 +183,12 @@ class CronRunner
     private $prune_codes;
 
     /**
+     * @var callable|null 2026-10-24 17:16 +03: Task M1.6, task 596. (int $batch, float $budget_s): array{done: bool,
+     *                    indexed: int}, PhoneIndexBackfill::run
+     */
+    private $index_phones;
+
+    /**
      * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
      *                                    (2026-10-21 01:54 +03, fix round 1 item 7, task 596; said 02:30 until
@@ -207,8 +220,10 @@ class CronRunner
         ?callable $prune_keys = null,
         ?callable $low_balance_sms = null, // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596
         ?callable $prune_buckets = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
-        ?callable $prune_codes = null // 2026-10-23 19:56 +03: Task M1.2, task 596
+        ?callable $prune_codes = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
+        ?callable $index_phones = null // 2026-10-24 17:16 +03: Task M1.6 (R8), task 596
     ) {
+        $this->index_phones = $index_phones;
         $this->prune_buckets = $prune_buckets;
         $this->prune_codes = $prune_codes;
         $this->config = $config;
@@ -295,6 +310,8 @@ class CronRunner
                     return $this->syncJob();
                 case 'prune_logs':
                     return $this->pruneLogs();
+                case 'index_phones':
+                    return $this->indexPhones($run_started);
                 default:
                     return $this->health();
             }
@@ -560,6 +577,29 @@ class CronRunner
         }
 
         return $total;
+    }
+
+    /**
+     * 2026-10-24 17:16 +03: Task M1.6 (P3-31), task 596. The phone index backfill: one or more batches while a feature
+     * that needs the index is ON (kill-switch keys phone_unique, register_code, phone_change_code, all N = nothing
+     * happens). Schedule: every cron run until the backfill is done. Sends nothing.
+     *
+     * @return array<string,mixed>
+     */
+    private function indexPhones(float $run_started): array
+    {
+        if ($this->index_phones === null || !PhoneIndex::anyFeatureOn($this->config)) {
+            return ['ok' => true, 'ran' => false, 'reason' => 'inactive'];
+        }
+        $left = max(1.0, min(20.0, self::BUDGET_SECONDS - ($this->micro() - $run_started)));
+        $done = call_user_func($this->index_phones, 2000, $left);
+
+        return [
+            'ok' => true,
+            'ran' => true,
+            'done' => (bool) ($done['done'] ?? false),
+            'indexed' => (int) ($done['indexed'] ?? 0),
+        ];
     }
 
     /**

@@ -345,6 +345,15 @@ class OtpService
         return (int) db_query($sql . ' LIMIT ?i', ...array_merge($args, [max(1, $limit)]));
     }
 
+    /**
+     * 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. Deletes every code row of one account (the delete_user hook,
+     * while a code feature is ON). Our own table, by the exact user id; user 0 (a guest) is never a key.
+     */
+    public static function deleteUserCodes(int $user_id): int
+    {
+        return $user_id > 0 ? (int) db_query('DELETE FROM ?:kwtsms_otp_codes WHERE user_id = ?i', $user_id) : 0;
+    }
+
     // 2026-10-24 05:47 +03: the parameter $ip_key was renamed $ip_part (the release gate reads "key" in a name as a
     // secret), Task M1.3, task 596.
     public static function sendBucket(string $purpose, string $subject): string

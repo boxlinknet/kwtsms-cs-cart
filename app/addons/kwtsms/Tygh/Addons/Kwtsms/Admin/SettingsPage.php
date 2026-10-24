@@ -32,6 +32,8 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 // 2026-10-23 15:14 +03: Config::MODE_KEYS for saveCodes() (Task M1.1a, task 596).
 // 2026-10-24 15:28 +03: PhoneRules::GCC for the "Add GCC countries" button (Task M1.5, task 596).
+use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:20 +03: Task M1.6, task 596
+use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:20 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneRules;
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
@@ -99,6 +101,9 @@ class SettingsPage
     /** @var StorefrontRules|null 2026-10-22 16:14 +03: the storefront list, Task A3, task 596 */
     private $rules;
 
+    /** @var PhoneIndexBackfill|null 2026-10-24 17:20 +03: the phone index state and its reset, Task M1.6, task 596 */
+    private $backfill;
+
     public function __construct(
         ConfigInterface $config,
         GatewayState $state,
@@ -107,8 +112,10 @@ class SettingsPage
         AttemptLog $attempts,
         DebugLog $log,
         ?SenderResolver $senders = null,
-        ?StorefrontRules $rules = null
+        ?StorefrontRules $rules = null,
+        ?PhoneIndexBackfill $backfill = null // 2026-10-24 17:20 +03: Task M1.6 (R8), task 596
     ) {
+        $this->backfill = $backfill;
         $this->config = $config;
         $this->state = $state;
         $this->sync = $sync;
@@ -132,7 +139,8 @@ class SettingsPage
             $app['kwtsms.logs.attempts'],
             $app['kwtsms.logs.debug'],
             $app['kwtsms.sender_resolver'],
-            $app['kwtsms.storefront_rules']
+            $app['kwtsms.storefront_rules'],
+            $app['kwtsms.phone_index_backfill']
         );
     }
 
@@ -224,7 +232,31 @@ class SettingsPage
             // codes the "Add GCC countries" button ticks, comma separated.
             'phone_country_check' => $this->config->phoneCountryCheck() ? 'Y' : 'N',
             'gcc' => implode(',', PhoneRules::GCC),
+            // 2026-10-24 17:21 +03: Task M1.6 (C4, P3-31), task 596. The C4 switch and, while it is ON but the index is
+            // still being built, the text "starts after indexing: n of m" (empty otherwise).
+            'phone_unique' => $this->config->phoneUnique() ? 'Y' : 'N',
+            'phone_unique_note' => $this->phoneUniqueNote(),
         ];
+    }
+
+    /**
+     * 2026-10-24 17:21 +03: Task M1.6 (P3-31), task 596. The state line of the C4 field: nothing while C4 is OFF,
+     * "starts after indexing: n of m" while the backfill is running, "active" once it is done.
+     */
+    private function phoneUniqueNote(): string
+    {
+        if ($this->backfill === null || !$this->config->phoneUnique()) {
+            return '';
+        }
+        $state = $this->backfill->state();
+        if ($state['done'] === 1) {
+            return (string) __('kwtsms.settings.phone_unique_active');
+        }
+
+        return (string) __('kwtsms.settings.phone_unique_indexing', [
+            '[done]' => (int) min($state['indexed'], $state['total']),
+            '[total]' => (int) $state['total'],
+        ]);
     }
 
     // ================================================================== Sender ID per storefront (Task A3)
@@ -360,7 +392,9 @@ class SettingsPage
         // task 596).
         $blank_secret = isset($posted['turnstile_secret']) && Config::isBlankSecretPost($posted['turnstile_secret']);
         $requested = array_map('strval', array_keys($posted));
+        $was_on = PhoneIndex::anyFeatureOn($this->config);
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
+        $this->startBackfillWhenFirstOn($was_on);
         $reasons = [];
         foreach ($rejected_keys as $key) {
             $reasons[$key] = $this->rejectionReason($key);
@@ -390,6 +424,26 @@ class SettingsPage
         }
 
         return ['saved' => $saved, 'rejected' => $reasons];
+    }
+
+    /**
+     * 2026-10-24 17:21 +03: Task M1.6 (P3-31), task 596. Turning the first of phone_unique, register_code and
+     * phone_change_code ON (from all OFF) restarts the phone index backfill from the beginning. Nothing happens when
+     * one of them was already ON, or none is ON now. A failure is logged and never fails the save.
+     */
+    private function startBackfillWhenFirstOn(bool $was_on): void
+    {
+        if ($this->backfill === null || $was_on || !PhoneIndex::anyFeatureOn($this->config)) {
+            return;
+        }
+        try {
+            $this->backfill->start();
+            $this->log->log('info', 'phone_index.backfill', 'phone index backfill started (first switch on)');
+        } catch (\Throwable $e) {
+            $this->log->log('error', 'phone_index.backfill', 'phone index backfill could not start', [
+                'error' => get_class($e) . ': ' . $e->getMessage(),
+            ]);
+        }
     }
 
     // ================================================================== POST actions

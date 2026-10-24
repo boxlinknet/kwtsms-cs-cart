@@ -5675,3 +5675,24 @@ msgstr "Enter a valid mobile number."
 msgctxt "Languages::kwtsms.phone.error_country"
 msgid "Enter a mobile number from: [countries]."
 msgstr "Enter a mobile number from: [countries]."
+
+# 2026-10-24 17:15 +03: Task M1.6 (SafatMall C4, P3-31), task 596. The one-account-per-phone switch and its indexing state.
+msgctxt "Languages::kwtsms.settings.field.phone_unique"
+msgid "One account per phone number"
+msgstr "One account per phone number"
+
+msgctxt "Languages::kwtsms.settings.phone_unique_label"
+msgid "Refuse a phone number that another account already uses"
+msgstr "Refuse a phone number that another account already uses"
+
+msgctxt "Languages::kwtsms.settings.phone_unique_help"
+msgid "When on, a new or changed phone number that another account already has is refused. Existing duplicates are left alone. The check starts once every existing customer phone is indexed; the cron job does that in batches."
+msgstr "When on, a new or changed phone number that another account already has is refused. Existing duplicates are left alone. The check starts once every existing customer phone is indexed; the cron job does that in batches."
+
+msgctxt "Languages::kwtsms.settings.phone_unique_indexing"
+msgid "Starts after indexing: [done] of [total] customers"
+msgstr "Starts after indexing: [done] of [total] customers"
+
+msgctxt "Languages::kwtsms.settings.phone_unique_active"
+msgid "Active: every customer phone is indexed"
+msgstr "Active: every customer phone is indexed"

@@ -157,10 +157,12 @@ class Config implements ConfigInterface
         // sent.
         // 2026-10-24 15:28 +03: Task M1.5 (C3, P3-15), task 596. phone_country_check: the server-side phone rule
         // switch.
+        // 2026-10-24 17:14 +03: Task M1.6 (C4, P3-31), task 596. phone_unique: one account per phone (starts after the
+        // phone index is built).
         'update_codes' => [
             'turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
-            'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check',
+            'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check', 'phone_unique',
         ],
     ];
 

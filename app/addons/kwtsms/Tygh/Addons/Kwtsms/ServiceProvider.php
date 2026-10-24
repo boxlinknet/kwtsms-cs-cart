@@ -58,7 +58,10 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DbLogStore;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
+use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:18 +03: Task M1.6, task 596
+use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:18 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
+use Tygh\Addons\Kwtsms\Profiles\NoCodeCheck; // 2026-10-24 17:18 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
@@ -287,8 +290,21 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-10-23 21:28 +03: Task M1.3, task 596. pruneCodes() moved from the rate limiter to the code
                 // store (OtpService). 2026-10-24 06:00 +03: static since fix round 1 (minor 9): no hasher, so no
                 // crypt_key is needed to prune.
-                [OtpService::class, 'pruneCodes']
+                [OtpService::class, 'pruneCodes'],
+                // 2026-10-24 17:18 +03: Task M1.6 (P3-31), task 596. The job index_phones.
+                [$app['kwtsms.phone_index_backfill'], 'run']
             );
+        };
+        // 2026-10-24 17:18 +03: Task M1.6 (P3-27, P3-31, P3-33), task 596. The phone index, its backfill and the code
+        // check seam of the profile hooks (NoCodeCheck until M1.9 to M1.10b).
+        $app['kwtsms.phone_index'] = function (Container $app): PhoneIndex {
+            return new PhoneIndex($app['kwtsms.config'], $app['kwtsms.storage'], $app['kwtsms.logs.debug']);
+        };
+        $app['kwtsms.phone_index_backfill'] = function (Container $app): PhoneIndexBackfill {
+            return new PhoneIndexBackfill($app['kwtsms.config'], $app['kwtsms.storage'], $app['kwtsms.logs.debug']);
+        };
+        $app['kwtsms.code_checks'] = function (): NoCodeCheck {
+            return new NoCodeCheck();
         };
         // 2026-10-23 19:55 +03: Task M1.2 (P3-18, P3-19), task 596. The atomic rate-limit buckets (clock = time()).
         $app['kwtsms.rate_limiter'] = function (Container $app): RateLimiter {
@@ -733,6 +749,22 @@ class ServiceProvider implements ServiceProviderInterface
                     $session = $app['session'] ?? null;
 
                     return is_object($session) || is_array($session) ? (int) ($session['auth']['user_id'] ?? 0) : 0;
+                },
+                // 2026-10-24 17:18 +03: Task M1.6 (P3-33), task 596. The phone index, the code checks, the store
+                // default
+                // calling code and the request facts of the code-check context.
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.code_checks'],
+                [$app['kwtsms.config'], 'defaultCountryCode'],
+                static function () use ($app): array {
+                    $session = $app['session'] ?? null;
+                    $sid = is_object($session) && method_exists($session, 'getID') ? (string) $session->getID() : '';
+
+                    return [
+                        'session_hash' => $sid === '' ? '' : hash('sha256', $sid),
+                        'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
+                        'lang' => defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : '',
+                    ];
                 }
             );
         };

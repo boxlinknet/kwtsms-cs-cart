@@ -39,6 +39,26 @@ final class AccountPhone
     }
 
     /**
+     * 2026-10-24 17:12 +03: Task M1.6 (P3-27, P3-31), task 596. The canonical form of the account phone of $user_data,
+     * or '' (no phone, or not a mobile): the field() value read with the calling code of its country field
+     * (hint()), $stored being the user data the country may also come from. The profile save (the one index writer)
+     * and the backfill both use this, so the same account gets the same index value either way.
+     *
+     * @param array<string,mixed> $user_data
+     * @param array<string,mixed> $stored
+     */
+    public static function canonicalOf(array $user_data, array $stored, string $default_cc): string
+    {
+        $raw = self::field($user_data);
+        if ($raw === '') {
+            return '';
+        }
+        $field = isset($user_data['phone']) && trim((string) $user_data['phone']) !== '' ? 'phone' : 'b_phone';
+
+        return PhoneFormat::fromRaw($raw, self::hint($field, $user_data, $stored, $default_cc));
+    }
+
+    /**
      * True when $posted is a different phone from $stored. Both are compared in canonical form
      * (50123401 and +96550123401 are the same phone); a value that is not a valid mobile compares as its raw
      * trimmed string, so a legacy value that is posted back unchanged is not a change.

@@ -26,6 +26,7 @@
  *            Tygh::$app['kwtsms.cron'].
  */
 
+use Tygh\Addons\Kwtsms\Codes\OtpService; // 2026-10-24 17:13 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Cron\CronKey;
 use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
@@ -424,6 +425,32 @@ function fn_kwtsms_update_profile($action = null, $user_data = null, $current_us
         );
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('update_profile', $e);
+    }
+}
+
+/**
+ * 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. Hook delete_user (fn.users.php, fn_delete_user): a user account
+ * was deleted. While a feature that needs the phone index is ON (phone_unique, register_code, phone_change_code) the
+ * account's index row and its SMS code rows go with it; while all are OFF nothing is read or written (the backfill
+ * sweep removes the rest when it next runs). Never throws; user ids below 1 are ignored.
+ *
+ * @param int|string $user_id
+ * @param mixed      $user_data The deleted account's data (unused)
+ */
+function fn_kwtsms_delete_user($user_id = null, $user_data = [])
+{
+    if (fn_kwtsms_hook_args_missing('delete_user', func_num_args(), 1)) {
+        return;
+    }
+    try {
+        $id = (int) $user_id;
+        $index = Tygh::$app['kwtsms.phone_index'];
+        if ($id > 0 && $index->active()) {
+            $index->delete($id);
+            OtpService::deleteUserCodes($id);
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('delete_user', $e);
     }
 }
 

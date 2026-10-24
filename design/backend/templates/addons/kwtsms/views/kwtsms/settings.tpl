@@ -564,6 +564,16 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description" id="kwtsms_phone_country_check_help">{__("kwtsms.settings.phone_country_check_help")}</p>
                 </div>
             </div>
+            {* 2026-10-24 17:15 +03: Task M1.6 (SafatMall C4, P3-31), task 596. One account per phone (default OFF). While the phone index is being built the state line reads "Starts after indexing: n of m customers". *}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.phone_unique")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[phone_unique]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_unique" name="kwtsms_codes[phone_unique]" value="Y"{if $kwtsms.codes.phone_unique == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_unique_help kwtsms_phone_unique_state"> {__("kwtsms.settings.phone_unique_label")}</label>
+                    <p class="muted description" id="kwtsms_phone_unique_help">{__("kwtsms.settings.phone_unique_help")}</p>
+                    {if $kwtsms.codes.phone_unique_note}<p class="description" id="kwtsms_phone_unique_state" role="status">{$kwtsms.codes.phone_unique_note}</p>{/if}
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

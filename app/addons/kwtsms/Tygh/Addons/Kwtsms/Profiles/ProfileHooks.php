@@ -20,11 +20,19 @@
  *            order-status SMS (form field user_data[kwtsms_order_sms], Y or N) into Profiles\CustomerPrefs. Only a
  *            storefront request (AREA C) of the customer themself writes it: an administrator editing the profile
  *            in the backend, or a request whose logged-in user is another account, never flips it.
+ *            2026-10-24 17:13 +03, Task M1.6 (P3-31, P3-33), task 596: the same hook is the ONE writer of the phone
+ *            index (kwtsms_phone_index): while PhoneIndex::active() it upserts the saved canonical account phone of a
+ *            customer
+ *            once per save, verified only when $code_checks->afterSave() returns that very phone. M1.9, M1.10a and
+ *            M1.10b never write the index. An internal error here never breaks the core save (logged).
  * DEPENDS:   Container wiring in ServiceProvider ('kwtsms.profile_hooks'), func.php fn_kwtsms_update_profile(),
- *            Profiles\CustomerPrefs.
+ *            Profiles\CustomerPrefs, Phones\{PhoneIndex,AccountPhone}, Profiles\CodeCheckInterface.
  */
 
 namespace Tygh\Addons\Kwtsms\Profiles;
+
+use Tygh\Addons\Kwtsms\Phones\AccountPhone;
+use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
 
 final class ProfileHooks
 {
@@ -48,13 +56,36 @@ final class ProfileHooks
     /** @var callable|null 2026-10-23 00:52 +03: Task A10, task 596. fn(): int, the logged-in user id of the request. */
     private $actor;
 
+    /** @var PhoneIndex|null 2026-10-24 17:13 +03: Task M1.6 (P3-33), task 596. Null = no index (unit rigs). */
+    private $index;
+
+    /** @var CodeCheckInterface|null 2026-10-24 17:13 +03: Task M1.6, task 596. Null = NoCodeCheck. */
+    private $code_checks;
+
+    /** @var callable|null 2026-10-24 17:13 +03: Task M1.6, task 596. fn(): string, the store default calling code. */
+    private $default_cc;
+
+    /**
+     * @var callable|null 2026-10-24 17:13 +03: Task M1.6, task 596.
+     *                    fn(): array{session_hash:string,ip:string,lang:string}
+     */
+    private $request_context;
+
     public function __construct(
         callable $dispatch,
         callable $storefront_id,
         callable $area,
         ?CustomerPrefs $prefs = null,
-        ?callable $actor = null
+        ?callable $actor = null,
+        ?PhoneIndex $index = null, // 2026-10-24 17:13 +03: Task M1.6 (R8), task 596
+        ?CodeCheckInterface $code_checks = null,
+        ?callable $default_cc = null,
+        ?callable $request_context = null
     ) {
+        $this->index = $index;
+        $this->code_checks = $code_checks ?? new NoCodeCheck();
+        $this->default_cc = $default_cc;
+        $this->request_context = $request_context;
         $this->prefs = $prefs;
         $this->actor = $actor;
         $this->dispatch = $dispatch;
@@ -70,6 +101,7 @@ final class ProfileHooks
     public function onUpdateProfile(string $action, array $user_data, array $current_user_data): void
     {
         $this->saveOrderSmsChoice($action, $user_data);
+        $this->writePhoneIndex($action, $user_data, $current_user_data);
         if ($action !== 'add' || (string) call_user_func($this->area) !== 'C') {
             return;
         }
@@ -93,6 +125,48 @@ final class ProfileHooks
             );
         } catch (\Throwable $e) {
             error_log('kwtsms: registration alert failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
+    }
+
+    /**
+     * 2026-10-24 17:13 +03: Task M1.6 (P3-31, P3-33), task 596. The ONE write of kwtsms_phone_index on a profile save:
+     * only while PhoneIndex::active(), only for a customer account (user_type C), in any area (an administrator
+     * who edits the phone moves the index too). The row is the canonical account phone of the saved data ('' when it
+     * is not a mobile), verified only when the code step reports that same phone. Never throws.
+     *
+     * @param array<string,mixed> $user_data         The saved data (core merges the stored profile into it)
+     * @param array<string,mixed> $current_user_data
+     */
+    private function writePhoneIndex(string $action, array $user_data, array $current_user_data): void
+    {
+        if ($this->index === null) {
+            return;
+        }
+        try {
+            if (!$this->index->active()) {
+                return;
+            }
+            $user_id = (int) ($user_data['user_id'] ?? 0);
+            if ($user_id <= 0 || (string) ($user_data['user_type'] ?? $current_user_data['user_type'] ?? '') !== 'C') {
+                return;
+            }
+            $default_cc = $this->default_cc === null ? '965' : (string) call_user_func($this->default_cc);
+            $phone = AccountPhone::canonicalOf($user_data, $current_user_data, $default_cc);
+            $request = $this->request_context === null ? [] : (array) call_user_func($this->request_context);
+            $ctx = [
+                'action' => $action,
+                'user_id' => $user_id,
+                'stored' => AccountPhone::field($current_user_data),
+                'session_hash' => (string) ($request['session_hash'] ?? ''),
+                'ip' => (string) ($request['ip'] ?? ''),
+                'storefront_id' => max(0, (int) call_user_func($this->storefront_id)),
+                'lang' => (string) ($request['lang'] ?? ''),
+            ];
+            $verified = $this->code_checks->afterSave($ctx, $user_data);
+            $this->index->upsert($user_id, $phone, $phone !== '' && $verified === $phone);
+        } catch (\Throwable $e) {
+            error_log('kwtsms: phone index write failed: ' . get_class($e) . ': ' . $e->getMessage()
                 . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
         }
     }
