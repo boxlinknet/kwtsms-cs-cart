@@ -5541,9 +5541,10 @@ msgctxt "Languages::kwtsms.tpl.otp.code.C"
 msgid "{store_name}: your code is {code}. It expires in {minutes} min. Never share it."
 msgstr "رمزك من {store_name}: {code}. صالح {minutes} دقيقة. لا تشاركه."
 
+# 2026-10-24 14:38 +03: Task M1.4 fix round 1 (minor 6), task 596. The Arabic notice carries {date}: 70 of 70 units in the worst case (20-character brand, longest date), 1 page.
 msgctxt "Languages::kwtsms.tpl.security.phone_changed.C"
 msgid "{store_name}: the mobile number on your account changed on {date}. Not you? Contact us now."
-msgstr "تم تغيير رقم جوالك في {store_name}. إن لم تكن أنت، اتصل بنا."
+msgstr "تغير رقمك في {store_name} {date}. لست أنت؟ اتصل بنا."
 
 msgctxt "Languages::kwtsms.templates.group_codes"
 msgid "Codes and security"
