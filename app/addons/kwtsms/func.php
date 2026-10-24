@@ -114,6 +114,13 @@ function fn_kwtsms_uninstall(): void
 {
     // 2026-10-20 20:28 +03: the table sweep was removed, addon.xml drops exactly the nine tables (review
     // finding: the sweep was broader than "our tables" and duplicated addon.xml), task 596.
+    // 2026-10-24 23:01 +03: M1.7b fix round 1 (review M3), task 596. The Image verification scenario this add-on added
+    // leaves every list it was added to. A failure never blocks the uninstall.
+    try {
+        fn_kwtsms_untick_sms_code_scenario();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('uninstall.untick_scenario', $e);
+    }
 }
 
 /**
@@ -781,22 +788,66 @@ function fn_kwtsms_settings_variants_image_verification_use_for(&$objects = null
  * Settings > Image verification (the mode is then "always" by default: no SMS code is sent before the CAPTCHA). Adds
  * the one scenario to the ticked list and leaves every other as it is; returns true when the scenario is ticked
  * afterwards (read back). Called by the install handler and the 1.2.0 post-upgrade script, never by a request.
+ * 2026-10-24 23:01 +03: M1.7b fix round 1 (review M1, M2), task 596. The global list is written with company 0 and
+ * storefront 0 pinned (like cron_key), and so is the list of every storefront that has its own value.
  */
 function fn_kwtsms_tick_sms_code_scenario(): bool
 {
-    $settings = Settings::instance();
-    $now = (array) $settings->getValue('use_for', 'Image_verification');
-    $ticked = array_values(array_keys(array_filter($now, static function ($value): bool {
-        return $value === 'Y';
-    })));
-    if (!in_array('kwtsms_sms_code', $ticked, true)) {
-        $ticked[] = 'kwtsms_sms_code';
-        $settings->updateValue('use_for', $ticked, 'Image_verification');
-        fn_clear_cache('registry');
-    }
-    $after = (array) Settings::instance()->getValue('use_for', 'Image_verification');
+    return fn_kwtsms_set_sms_code_scenario(true);
+}
 
-    return isset($after['kwtsms_sms_code']) && $after['kwtsms_sms_code'] === 'Y';
+/**
+ * 2026-10-24 23:01 +03: M1.7b fix round 1 (review M3), task 596. The reverse, for the uninstall handler: the scenario
+ * leaves the global list and every storefront list it is in; nothing else changes. True when it is in none afterwards.
+ */
+function fn_kwtsms_untick_sms_code_scenario(): bool
+{
+    return fn_kwtsms_set_sms_code_scenario(false);
+}
+
+/**
+ * 2026-10-24 23:01 +03: M1.7b fix round 1 (review M1, M2, M3), task 596. Puts kwtsms_sms_code in ($on) or out of the
+ * Image verification list of the global instance (company 0, storefront 0) and of each storefront (the list it
+ * sees, own value or inherited; a storefront whose list is already right is not written, so no override is created).
+ *
+ * @return bool True when every list reads back as asked
+ */
+function fn_kwtsms_set_sms_code_scenario(bool $on): bool
+{
+    $scenario = 'kwtsms_sms_code';
+    $read = static function (Settings $settings, $storefront_id = null) {
+        $now = (array) $settings->getValue('use_for', 'Image_verification', null, $storefront_id);
+
+        return array_values(array_keys(array_filter($now, static function ($value): bool {
+            return $value === 'Y';
+        })));
+    };
+    $apply = static function (Settings $settings, $storefront_id = null) use ($on, $scenario, $read): bool {
+        $ticked = $read($settings, $storefront_id);
+        if (in_array($scenario, $ticked, true) !== $on) {
+            $ticked = $on ? array_merge($ticked, [$scenario]) : array_values(array_diff($ticked, [$scenario]));
+            $settings->updateValue('use_for', $ticked, 'Image_verification', false, null, true, $storefront_id);
+        }
+
+        return in_array($scenario, $read($settings, $storefront_id), true) === $on;
+    };
+
+    $ok = $apply(Settings::instance(['company_id' => 0, 'storefront_id' => 0]));
+    try {
+        [$storefronts] = Tygh::$app['storefront.repository']->find([]);
+        if (count((array) $storefronts) > 1) {
+            foreach ((array) $storefronts as $storefront) {
+                $id = (int) $storefront->storefront_id;
+                $ok = $apply(Settings::instance(['storefront_id' => $id]), $id) && $ok;
+            }
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('sms_code_scenario.storefronts', $e);
+        $ok = false;
+    }
+    fn_clear_cache('registry');
+
+    return $ok;
 }
 
 /**

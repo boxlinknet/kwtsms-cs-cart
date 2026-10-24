@@ -350,9 +350,11 @@ class SettingsPage
         }
         $probe = $this->newVerifier($site, $secret)->probe();
         if ($probe['result'] === 'secret_wrong') {
-            $this->config->save('update_codes', ['turnstile_enabled' => 'N']);
+            // 2026-10-24 23:03 +03: M1.7b fix round 1 (review M5b), task 596. A refused write is not "stays off":
+            // the refusal reason is then the generic one and the notice does not claim it.
+            $refused = $this->config->save('update_codes', ['turnstile_enabled' => 'N']);
 
-            return 'secret_wrong';
+            return $refused === [] ? 'secret_wrong' : 'invalid';
         }
         if ($probe['result'] !== 'accepted') {
             $this->turnstileResultNotice($probe);

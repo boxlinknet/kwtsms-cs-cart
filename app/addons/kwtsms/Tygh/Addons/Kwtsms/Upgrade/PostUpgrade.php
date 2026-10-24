@@ -16,6 +16,9 @@
  *            no edited template, switch, setting or credential, writes no notification_settings row, turns no
  *            feature on, writes no phone-index row and no kwtsms_phone_index_state key (P3-31): the index backfill
  *            starts only when an admin turns a phone feature on. Every step is idempotent.
+ *            2026-10-24 23:03 +03: M1.7b fix round 1 (review M4), task 596. The one setting it does change: the Image
+ *            verification scenario kwtsms_sms_code is ticked (P3-36), in the global list and in every storefront
+ *            list; a retry after a failed step ticks it again.
  *            2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Uploading the package again is NOT a retry: the
  *            Upgrade Center refuses a package whose from_version differs from the addon.xml on disk, and by the time
  *            post.php runs the 1.2.0 files are on disk. So selfHeal() (called on the admin-area before_dispatch hook)
