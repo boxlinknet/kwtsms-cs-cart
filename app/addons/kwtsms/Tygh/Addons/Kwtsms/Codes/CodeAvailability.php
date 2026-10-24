@@ -14,7 +14,9 @@
  *            CodeRequest (M1.8a) and the forms decide from one answer.
  * USAGE:     $av = Tygh::$app['kwtsms.code_availability'];
  *            $av->state(1);   // 'ok' | 'off' | 'gateway' | 'balance' | 'pilot' | 'sender'
- *              off      global sending is OFF (enabled = N): every code feature is inactive, forms behave like core
+ *              off      global sending is OFF (enabled = N) and no code feature is ON: forms behave like core
+ *              sending_off  sending is OFF while a code feature is ON (2026-10-24 14:36 +03, fix round 1, P3-R5): not
+ *                       sendable, follows otp_unreachable and raises the alert; gate() gives the action
  *              gateway  the breaker is open, sending is suspended, or the add-on is not configured
  *              balance  the cached balance is under 1 credit (a known balance; an unknown one is "not configured")
  *              pilot    pilot mode (only the admin numbers receive SMS)
@@ -40,9 +42,11 @@ class CodeAvailability
     public const BALANCE = 'balance';
     public const PILOT = 'pilot';
     public const SENDER = 'sender';
+    /** 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, P3-R5), task 596. Sending OFF while a code feature is ON. */
+    public const SENDING_OFF = 'sending_off';
 
     /** The reasons alert() names; any other value is raised as "other". */
-    public const ALERT_REASONS = ['gateway', 'balance', 'pilot', 'sender', 'daily_cap', 'other'];
+    public const ALERT_REASONS = ['gateway', 'balance', 'pilot', 'sender', 'sending_off', 'daily_cap', 'other'];
 
     public const SENT = 'sent';
     public const NUMBER = 'number';
@@ -88,7 +92,10 @@ class CodeAvailability
     public function state(int $storefront_id): string
     {
         if (!$this->config->enabled()) {
-            return self::OFF;
+            // 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, ruling P3-R5: P3-24 wins over P3-13). With a code feature
+            // ON, sending OFF is "not sendable" (never a silent skip of the verification); with none ON the forms
+            // behave like core.
+            return $this->config->registerCode() || $this->config->phoneChangeCode() ? self::SENDING_OFF : self::OFF;
         }
         if ($this->state->suspendedCode() !== null || $this->state->breaker()['open']) {
             return self::GATEWAY;
@@ -112,6 +119,28 @@ class CodeAvailability
         }
 
         return self::OK;
+    }
+
+    /**
+     * 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2), task 596. What a code feature does now: 'send' (ok), 'inactive'
+     * (sending OFF and no code feature ON: forms behave like core), 'refuse' (not sendable, otp_unreachable = pause, the
+     * default) or 'bypass' (not sendable, otp_unreachable = continue). Refuse and bypass raise the admin alert with the
+     * state as the reason.
+     *
+     * @return array{action:string,state:string}
+     */
+    public function gate(int $storefront_id): array
+    {
+        $state = $this->state($storefront_id);
+        if ($state === self::OK) {
+            return ['action' => 'send', 'state' => $state];
+        }
+        if ($state === self::OFF) {
+            return ['action' => 'inactive', 'state' => $state];
+        }
+        $this->alert($state);
+
+        return ['action' => $this->config->otpUnreachable() === 'continue' ? 'bypass' : 'refuse', 'state' => $state];
     }
 
     /**

@@ -5641,3 +5641,8 @@ msgstr "Continue: save without a verified phone"
 msgctxt "Languages::kwtsms.settings.otp_unreachable_help"
 msgid "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."
 msgstr "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."
+
+# 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, P3-R5), task 596. Reason of the otp_unavailable alert: sending OFF while a code feature is ON.
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sending_off"
+msgid "SMS sending is switched off while a code feature is on"
+msgstr "SMS sending is switched off while a code feature is on"
