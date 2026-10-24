@@ -455,6 +455,8 @@ function fn_kwtsms_update_user_profile_post($user_id = null, $user_data = null, 
 }
 
 /**
+ * 2026-10-24 18:50 +03: M1.6 fix round 1 (M1), task 596: now the hook post_delete_user (after core's DELETE), so a
+ * backfill batch cannot write the row between the cleanup and the delete; was fn_kwtsms_delete_user on delete_user.
  * 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. Hook delete_user (fn.users.php, fn_delete_user): a user account
  * was deleted. While a feature that needs the phone index is ON (phone_unique, register_code, phone_change_code) the
  * account's index row and its SMS code rows go with it; while all are OFF nothing is read or written (the backfill
@@ -463,9 +465,9 @@ function fn_kwtsms_update_user_profile_post($user_id = null, $user_data = null, 
  * @param int|string $user_id
  * @param mixed      $user_data The deleted account's data (unused)
  */
-function fn_kwtsms_delete_user($user_id = null, $user_data = [])
+function fn_kwtsms_post_delete_user($user_id = null, $user_data = [], $result = null)
 {
-    if (fn_kwtsms_hook_args_missing('delete_user', func_num_args(), 1)) {
+    if (fn_kwtsms_hook_args_missing('post_delete_user', func_num_args(), 1)) {
         return;
     }
     try {
@@ -476,7 +478,7 @@ function fn_kwtsms_delete_user($user_id = null, $user_data = [])
             OtpService::deleteUserCodes($id);
         }
     } catch (\Throwable $e) {
-        fn_kwtsms_log_hook_error('delete_user', $e);
+        fn_kwtsms_log_hook_error('post_delete_user', $e);
     }
 }
 

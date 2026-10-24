@@ -54,8 +54,9 @@ fn_register_hooks(
     // only, handler fn_kwtsms_before_dispatch).
     'before_dispatch',
     // 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. A deleted account takes its phone index row and code rows
-    // with it, while a code feature is ON.
-    'delete_user',
+    // with it, while a code feature is ON. 2026-10-24 18:50 +03: M1.6 fix round 1 (M1): post_delete_user, after core's
+    // DELETE (was delete_user).
+    'post_delete_user',
     // 2026-10-24 18:46 +03: M1.6 fix round 1 (I2, ruling P3-R6), task 596. The checkout profile editor saves a profile
     // without update_profile; the phone index follows (same writer function, same switches).
     'update_user_profile_post'
