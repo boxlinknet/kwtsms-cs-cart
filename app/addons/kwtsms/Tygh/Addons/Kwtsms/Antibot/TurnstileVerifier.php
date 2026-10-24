@@ -125,8 +125,14 @@ class TurnstileVerifier
             return $this->unavailable('transport_' . $reply['error']);
         }
         $data = json_decode($reply['body'], true);
-        if ($reply['http_status'] >= 500 || !is_array($data) || !array_key_exists('success', $data)) {
-            return $this->unavailable('unreadable_answer');
+        if ($reply['http_status'] >= 500) {
+            return $this->unavailable('server_error');
+        }
+        // 2026-10-24 20:30 +03: M1.7a fix round 1 (M1), task 596. Not Cloudflare's JSON and not a 5xx (a proxy's 403
+        // page, an empty 200): nothing says the visitor is fine, so it is a refusal. Only a transport failure, a
+        // 5xx and internal-error fail open.
+        if (!is_array($data) || !array_key_exists('success', $data)) {
+            return $this->verdict(false, 'unreadable-answer');
         }
 
         $codes = isset($data['error-codes']) && is_array($data['error-codes']) ? $data['error-codes'] : [];
