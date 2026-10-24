@@ -162,6 +162,27 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
     }
 
     /**
+     * 2026-10-24 23:50 +03: Task M1.8a (M1.7b re-review minor), task 596. True for a local address only: no scheme, not
+     * protocol-relative ("//host"), no backslash anywhere ("/\host" is "//host" for a browser), and no whitespace or
+     * control character anywhere (browsers drop tabs and line breaks inside a URL, so "/<tab>/host" is "//host"). An
+     * empty string, invalid UTF-8 and a non-string-safe value are refused. The caller trims the posted value first.
+     * Used by the P3-R9 login redirect (schemas/security/antibot_rules.post.php).
+     */
+    public static function isLocalRedirect(string $url): bool
+    {
+        if ($url === '') {
+            return false;
+        }
+        // /u fails (false) on invalid UTF-8, and \p{Z} \p{C} cover every unicode space, separator and control.
+        $odd = preg_match('/[\\\\]|[\x00-\x20\x7f]|[\p{Z}\p{C}]/u', $url);
+        if ($odd !== 0) {
+            return false;
+        }
+
+        return preg_match('#^([a-z][a-z0-9+.-]*:|//)#i', $url) !== 1;
+    }
+
+    /**
      * 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. The action for a controller and mode ('core' when the
      * dispatch is not one of the protected forms; every mode of the kwtsms_code controller is the SMS-code request).
      */

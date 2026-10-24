@@ -32,7 +32,9 @@ try {
                     ? trim($_REQUEST['redirect_url']) : '';
 
                 // A local address only (no scheme, no host, no protocol-relative form).
-                return $url !== '' && !preg_match('#^([a-z][a-z0-9+.-]*:|//|\\\\)#i', $url) ? $url : 'auth.login_form';
+                // 2026-10-24 23:50 +03: Task M1.8a (M1.7b re-review minor), task 596. The rule moved to
+                // TurnstileDriver::isLocalRedirect(): it also refuses "/\host" and any inner whitespace.
+                return \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::isLocalRedirect($url) ? $url : 'auth.login_form';
             },
         ];
     }
