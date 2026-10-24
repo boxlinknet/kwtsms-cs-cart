@@ -27,8 +27,11 @@ final class CodeInput
     /**
      * @return string|null The 6 ASCII digits, or null when the entry is not a code
      */
-    public static function normalize(string $raw): ?string
-    {
+    // 2026-10-24 05:59 +03: #[\SensitiveParameter] on the typed code, Task M1.3 fix round 1 (minor 6), task 596.
+    public static function normalize(
+        #[\SensitiveParameter]
+        string $raw
+    ): ?string {
         $text = strtr($raw, PhoneNormalizer::DIGITS_MAP);
         // Only the three separators a person types or a paste adds: space, hyphen and the no-break space (U+00A0).
         $text = str_replace([' ', '-', "\u{00A0}"], '', $text);

@@ -191,6 +191,7 @@ class OtpService
     public function verify(
         string $purpose,
         string $subject,
+        #[\SensitiveParameter]
         string $raw_code,
         int $user_id,
         string $session_hash,
@@ -245,7 +246,11 @@ class OtpService
         if ($n > $max || $m > $ceiling) {
             // Refused without a comparison. 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I2), task 596: no re-lock
             // here, the ceiling lock below lasts otp_lockout_seconds and clears the count.
-            return OtpResult::locked(max($this->lockRemaining($purpose, $subject, $ip_part, $now), 1));
+            // 2026-10-24 06:00 +03: Task M1.3 fix round 1 (review minor 10), task 596. In a burst this request can come
+            // before the attempt that writes the lock: no lock yet answers the lockout seconds, not 1.
+            $left = $this->lockRemaining($purpose, $subject, $ip_part, $now);
+
+            return OtpResult::locked($left > 0 ? $left : $lockout);
         }
 
         $match = $this->hasher->matches(
@@ -326,7 +331,9 @@ class OtpService
      *
      * @return int Rows deleted; fewer than $limit means none are left
      */
-    public function pruneCodes(int $before, int $limit, string $subject = ''): int
+    // 2026-10-24 06:00 +03: static since Task M1.3 fix round 1 (review minor 9), task 596: the cron prune needs no code
+    // hasher, so a store with an empty crypt_key still prunes.
+    public static function pruneCodes(int $before, int $limit, string $subject = ''): int
     {
         $sql = 'DELETE FROM ?:kwtsms_otp_codes WHERE created_at < ?i';
         $args = [max(0, $before)];
@@ -335,7 +342,7 @@ class OtpService
             $args[] = $subject;
         }
 
-        return $this->run($sql . ' LIMIT ?i', array_merge($args, [max(1, $limit)]));
+        return (int) db_query($sql . ' LIMIT ?i', ...array_merge($args, [max(1, $limit)]));
     }
 
     // 2026-10-24 05:47 +03: the parameter $ip_key was renamed $ip_part (the release gate reads "key" in a name as a

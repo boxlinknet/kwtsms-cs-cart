@@ -283,10 +283,9 @@ class ServiceProvider implements ServiceProviderInterface
                 // idle unlocked rate-limit buckets older than two days.
                 [$app['kwtsms.rate_limiter'], 'prune'],
                 // 2026-10-23 21:28 +03: Task M1.3, task 596. pruneCodes() moved from the rate limiter to the code
-                // store (OtpService); built on first use, so the cron needs no crypt_key until it prunes.
-                function (int $before, int $limit) use ($app): int {
-                    return $app['kwtsms.otp']->pruneCodes($before, $limit);
-                }
+                // store (OtpService). 2026-10-24 06:00 +03: static since fix round 1 (minor 9): no hasher, so no
+                // crypt_key is needed to prune.
+                [OtpService::class, 'pruneCodes']
             );
         };
         // 2026-10-23 19:55 +03: Task M1.2 (P3-18, P3-19), task 596. The atomic rate-limit buckets (clock = time()).
