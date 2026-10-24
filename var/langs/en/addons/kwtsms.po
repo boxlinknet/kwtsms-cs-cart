@@ -5814,3 +5814,13 @@ msgstr "The secret key is wrong. Turnstile stays off."
 msgctxt "Languages::kwtsms.turnstile.use_for_sms_code"
 msgid "SMS code request"
 msgstr "SMS code request"
+
+# 2026-10-24 22:57 +03: Task M1.7b fix round 1 (review I1), task 596. The admin alert when the Turnstile widget template
+# could not replace the reCAPTCHA add-on's template.
+msgctxt "Languages::kwtsms.alert.captcha_template.title"
+msgid "Turnstile is not shown"
+msgstr "Turnstile is not shown"
+
+msgctxt "Languages::kwtsms.alert.captcha_template.text"
+msgid "The Turnstile CAPTCHA could not replace the reCAPTCHA add-on's form template, so the storefront kept its previous CAPTCHA setting. Copy the add-on's storefront templates to the theme again (upgrade or reinstall), then check Settings > CAPTCHA."
+msgstr "The Turnstile CAPTCHA could not replace the reCAPTCHA add-on's form template, so the storefront kept its previous CAPTCHA setting. Copy the add-on's storefront templates to the theme again (upgrade or reinstall), then check Settings > CAPTCHA."

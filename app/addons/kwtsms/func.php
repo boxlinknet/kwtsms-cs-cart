@@ -844,32 +844,86 @@ function fn_kwtsms_turnstile_widget($option = '')
  */
 function fn_kwtsms_init_templater_post($view = null)
 {
-    if (fn_kwtsms_hook_args_missing('init_templater_post', func_num_args(), 1)) {
-        return;
-    }
     try {
-        if (!defined('AREA') || AREA !== 'C' || !is_object($view) || !isset(Tygh::$app['antibot'])) {
-            return;
-        }
         if (
-            (string) Registry::get('addons.recaptcha.status') !== 'A'
+            !defined('AREA') || AREA !== 'C' || !isset(Tygh::$app['antibot'])
+            || (string) Registry::get('addons.recaptcha.status') !== 'A'
             || !(Tygh::$app['antibot']->getDriver() instanceof \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver)
         ) {
             return;
         }
-        // Builds core's map (or loads it from the cache) and returns the key it lives under, exactly as core does.
-        fn_addon_template_overrides('common/image_verification.tpl', $view);
-        $key = md5(rtrim(rtrim($view->getTemplateDir(0), '/') . '/', '/'));
-        $map = Registry::get($key);
-        if (!is_array($map)) {
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('init_templater_post', $e);
+
+        return;
+    }
+    // 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. From here on Turnstile is the driver and
+    // reCAPTCHA's template would render a native image the driver cannot check: unless the swap is done AND read back,
+    // the previous driver is put back for this request (never a widget that does not match the driver).
+    $reason = 'swap_failed';
+    try {
+        if (fn_kwtsms_hook_args_missing('init_templater_post', func_num_args(), 1)) {
+            $reason = 'hook_args_missing';
+        } elseif (is_object($view) && fn_kwtsms_swap_image_verification($view, 'file_exists')) {
             return;
-        }
-        $swapped = \Tygh\Addons\Kwtsms\Antibot\ImageVerificationTemplate::prefer($map, 'file_exists');
-        if ($swapped !== $map) {
-            Registry::set($key, $swapped, true);
         }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('init_templater_post', $e);
+        $reason = 'exception';
+    }
+    fn_kwtsms_antibot_fallback($reason);
+}
+
+/**
+ * 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. Swaps core's override map entry (see above) and
+ * reads the map back. True when no entry points at the reCAPTCHA add-on's override any more.
+ *
+ * @param mixed    $view
+ * @param callable $file_exists (string $path): bool
+ */
+function fn_kwtsms_swap_image_verification($view, callable $file_exists): bool
+{
+    // Builds core's map (or loads it from the cache) and returns the key it lives under, exactly as core does.
+    fn_addon_template_overrides('common/image_verification.tpl', $view);
+    $key = md5(rtrim(rtrim($view->getTemplateDir(0), '/') . '/', '/'));
+    $map = Registry::get($key);
+    if (!is_array($map)) {
+        return false;
+    }
+    $swapped = \Tygh\Addons\Kwtsms\Antibot\ImageVerificationTemplate::prefer($map, $file_exists);
+    if ($swapped !== $map) {
+        Registry::set($key, $swapped, true);
+    }
+    $after = Registry::get($key);
+
+    return is_array($after) && !\Tygh\Addons\Kwtsms\Antibot\ImageVerificationTemplate::stillTheirs($after);
+}
+
+/**
+ * 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. The swap could not be done: the driver that was
+ * active before ours (reCAPTCHA's, the native image, or the null driver) is put back for this request, so the form and
+ * its check stay a pair; with none known the antibot is switched off for the request. One debug row `platform_missing`
+ * and one admin bell notice per day (alert captcha_template). Never throws.
+ */
+function fn_kwtsms_antibot_fallback(string $reason): void
+{
+    try {
+        $previous = \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::replaced();
+        if ($previous !== null) {
+            Tygh::$app['antibot']->setDriver($previous);
+        } else {
+            Tygh::$app['antibot']->disable();
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('antibot_fallback', $e);
+    }
+    try {
+        Tygh::$app['kwtsms.logs.debug']->log('warning', 'antibot.template_swap', 'platform_missing', [
+            'reason' => $reason,
+        ]);
+        Tygh::$app['kwtsms.alerts']->raise('captcha_template', [], false, 86400);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('antibot_fallback.note', $e);
     }
 }
 

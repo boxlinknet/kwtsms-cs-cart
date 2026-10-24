@@ -54,6 +54,9 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         'auth.recover_password' => 'recover',
     ];
 
+    /** @var IAntibotDriver|null 2026-10-24 22:56 +03: M1.7b fix round 1 (I1), task 596. What init.php replaced. */
+    private static $replaced = null;
+
     /** @var ConfigInterface */
     private $config;
 
@@ -91,6 +94,20 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         $this->remote_ip = $remote_ip;
         $this->log = $log;
         $this->action = $action;
+    }
+
+    /**
+     * 2026-10-24 22:56 +03: M1.7b fix round 1 (review I1), task 596. init.php hands over the driver this one replaces,
+     * so the template swap can put it back for a request when the swap fails.
+     */
+    public static function rememberReplaced(?IAntibotDriver $driver): void
+    {
+        self::$replaced = $driver;
+    }
+
+    public static function replaced(): ?IAntibotDriver
+    {
+        return self::$replaced;
     }
 
     /**

@@ -78,6 +78,8 @@ if (interface_exists('Tygh\\Web\\Antibot\\IAntibotDriver') && isset(Tygh::$app['
             try {
                 $driver = $app['kwtsms.turnstile_driver'];
                 if ($driver->isSetUp()) {
+                    // 2026-10-24 22:56 +03: M1.7b fix round 1 (I1), task 596. Kept for the swap fallback.
+                    \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::rememberReplaced($antibot->getDriver());
                     $antibot->setDriver($driver);
                 }
             } catch (\Throwable $e) {

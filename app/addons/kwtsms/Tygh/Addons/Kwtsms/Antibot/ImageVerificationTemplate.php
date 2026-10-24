@@ -66,4 +66,21 @@ class ImageVerificationTemplate
 
         return $map;
     }
+
+    /**
+     * 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. True while any entry of the map still points
+     * at the reCAPTCHA add-on's override, that is, while a swap that was meant to happen did not.
+     *
+     * @param array<string,mixed> $map
+     */
+    public static function stillTheirs(array $map): bool
+    {
+        foreach ($map as $path) {
+            if (is_string($path) && substr($path, -strlen(self::THEIRS)) === self::THEIRS) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

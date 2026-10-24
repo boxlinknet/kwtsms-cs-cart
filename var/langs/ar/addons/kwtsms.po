@@ -5820,3 +5820,13 @@ msgstr "المفتاح السري غير صحيح. يبقى Turnstile متوقف
 msgctxt "Languages::kwtsms.turnstile.use_for_sms_code"
 msgid "SMS code request"
 msgstr "طلب رمز التحقق بالرسالة"
+
+# 2026-10-24 22:57 +03: Task M1.7b fix round 1 (review I1), task 596. The admin alert when the Turnstile widget template
+# could not replace the reCAPTCHA add-on's template.
+msgctxt "Languages::kwtsms.alert.captcha_template.title"
+msgid "Turnstile is not shown"
+msgstr "لا يظهر Turnstile"
+
+msgctxt "Languages::kwtsms.alert.captcha_template.text"
+msgid "The Turnstile CAPTCHA could not replace the reCAPTCHA add-on's form template, so the storefront kept its previous CAPTCHA setting. Copy the add-on's storefront templates to the theme again (upgrade or reinstall), then check Settings > CAPTCHA."
+msgstr "تعذر على Turnstile أن يحل محل قالب نموذج إضافة reCAPTCHA، لذلك أبقى المتجر إعداد التحقق الأمني السابق. انسخ قوالب واجهة الإضافة إلى القالب من جديد (ترقية أو إعادة تثبيت) ثم راجع الإعدادات > التحقق الأمني."

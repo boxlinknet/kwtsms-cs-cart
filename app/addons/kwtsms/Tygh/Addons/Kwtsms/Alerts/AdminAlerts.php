@@ -61,6 +61,9 @@ class AdminAlerts
         // mode, sender, daily cap): bell and e-mail, once per reason per 24 h (the instance is the reason). The text
         // names the reason through kwtsms.alert.otp_unavailable.reason.<reason>.
         'otp_unavailable',
+        // 2026-10-24 22:56 +03: Task M1.7b fix round 1 (I1), task 596. The Turnstile widget template could not be
+        // put in place of the reCAPTCHA add-on's, so the previous CAPTCHA driver was kept: bell only, once per day.
+        'captcha_template',
     ];
 
     /**
