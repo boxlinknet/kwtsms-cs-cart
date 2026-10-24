@@ -214,7 +214,20 @@ class CodeRequest
 
         // 7. Per-phone cap (P3-34), read only: a code that goes out is counted below.
         $cap = $this->config->capPhoneHour();
-        $stat = $this->limiter->peek('phone_h:' . $phone);
+        // 2026-10-25 01:59 +03: Task M1.8a fix round 2 (review M4), task 596. A failed read of the counter fails closed
+        // like RateLimiter::hit(): wait for the whole window and a log row (no phone), never a code.
+        try {
+            $stat = $this->limiter->peek('phone_h:' . $phone);
+        } catch (\Throwable $e) {
+            if ($this->log !== null) {
+                $this->log->log('error', 'otp.phone_cap_unreadable', 'the per-phone cap could not be read', [
+                    'purpose' => $purpose,
+                    'error' => get_class($e),
+                ]);
+            }
+
+            return $this->wait(self::HOUR, $lang);
+        }
         $left = (int) $stat['window_start'] + self::HOUR - $this->now();
         if ((int) $stat['hits'] >= $cap && $left > 0) {
             $this->debug('otp.phone_limited', ['purpose' => $purpose]);
