@@ -122,6 +122,9 @@ class PhoneIndexBackfill
         $batches = 0;
         do {
             $previous = $state['cursor'];
+            // 2026-10-24 18:41 +03: M1.6 fix round 1 (I1), task 596. The time BEFORE the read: a row a live save
+            // wrote at or after it is newer than what this batch read and is never changed by the batch write.
+            $read_at = $this->now();
             $users = $this->readBatch($previous, $batch);
             $rows = [];
             foreach ($users as $user) {
@@ -129,7 +132,7 @@ class PhoneIndexBackfill
             }
             $last = $rows === [] ? $previous : $rows[count($rows) - 1]['user_id'];
             $final = count($users) < $batch;
-            $this->writeBatch($rows, $this->now());
+            $this->writeBatch($rows, $this->now(), $read_at);
             // The id range this batch passed; at the end the whole tail above the cursor.
             $this->sweep($previous, $final ? 0 : $last);
             $handled += count($rows);
@@ -191,10 +194,13 @@ class PhoneIndexBackfill
 
     /**
      * Inserts the rows; an existing row keeps its verification when the phone is the same (see PhoneIndex).
+     * 2026-10-24 18:41 +03: M1.6 fix round 1 (I1), task 596. A row whose updated_at is at or after $read_at (the time
+     * before the batch was read) was written by a live save after the read and is left exactly as it is: every
+     * assignment keeps its own value for such a row, and updated_at is assigned last.
      *
      * @param array<int,array{user_id:int,phone:string}> $rows
      */
-    protected function writeBatch(array $rows, int $now): void
+    protected function writeBatch(array $rows, int $now, int $read_at = 0): void
     {
         if ($rows === []) {
             return;
@@ -208,10 +214,15 @@ class PhoneIndexBackfill
         }
         db_query(
             'INSERT INTO ?:kwtsms_phone_index ?m ON DUPLICATE KEY UPDATE'
-            . ' verified_phone = IF(phone = VALUES(phone), verified_phone, NULL),'
-            . ' verified_at = IF(phone = VALUES(phone), verified_at, 0),'
-            . ' phone = VALUES(phone), updated_at = VALUES(updated_at)',
-            $values
+            . ' verified_phone = IF(updated_at >= ?i, verified_phone, IF(phone = VALUES(phone), verified_phone, NULL)),'
+            . ' verified_at = IF(updated_at >= ?i, verified_at, IF(phone = VALUES(phone), verified_at, 0)),'
+            . ' phone = IF(updated_at >= ?i, phone, VALUES(phone)),'
+            . ' updated_at = IF(updated_at >= ?i, updated_at, VALUES(updated_at))',
+            $values,
+            $read_at,
+            $read_at,
+            $read_at,
+            $read_at
         );
     }
 
