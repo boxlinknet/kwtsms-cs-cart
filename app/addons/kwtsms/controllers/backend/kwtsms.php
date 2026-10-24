@@ -199,7 +199,26 @@ try {
                 $kwtsms_page->saveCodes($kwtsms_codes);
                 unset($kwtsms_codes);
 
-                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_codes'];
+                // 2026-10-24 21:11 +03: Task M1.7b, task 596. The Turnstile section posts to this mode too and names
+                // its own anchor; any other value goes back to the "Phone and codes" section.
+                $kwtsms_anchor = isset($_POST['kwtsms_anchor']) && $_POST['kwtsms_anchor'] === 'kwtsms_turnstile'
+                    ? 'kwtsms_turnstile' : 'kwtsms_codes';
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#' . $kwtsms_anchor];
+
+            // 2026-10-24 21:11 +03: "Check keys" of the Turnstile section (Task M1.7b, task 596). The gate has asked
+            // for POST, manage_kwtsms_gateway and the security hash. One siteverify call with the dummy token,
+            // against the typed keys or the saved ones; nothing is stored. The fields are dropped from both request
+            // arrays right after, like update_codes.
+            case 'turnstile_check':
+                $kwtsms_codes = isset($_POST['kwtsms_codes']) && is_array($_POST['kwtsms_codes'])
+                    ? $_POST['kwtsms_codes']
+                    : [];
+                unset($_POST['kwtsms_codes'], $_REQUEST['kwtsms_codes']);
+                $kwtsms_page->checkTurnstile($kwtsms_codes);
+                unset($kwtsms_codes);
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_turnstile'];
 
             case 'test_sms':
                 $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';

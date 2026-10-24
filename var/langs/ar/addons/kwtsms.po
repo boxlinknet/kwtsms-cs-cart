@@ -5704,3 +5704,119 @@ msgstr "فعال: تمت فهرسة أرقام جميع العملاء"
 msgctxt "Languages::kwtsms.turnstile.error"
 msgid "The security check failed. Reload the page and try again."
 msgstr "فشل التحقق الأمني. أعد تحميل الصفحة وحاول مرة أخرى."
+
+# 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. The "CAPTCHA (Cloudflare Turnstile)" section of
+# Settings, its notices, and the new Image verification scenario.
+# 2026-10-24 21:50 +03: Task M1.7b, task 596. Short on purpose: a two-line label in the narrow RTL label column let the
+# checkbox cover its first letters (seen in the 1280 px screenshot).
+msgctxt "Languages::kwtsms.settings.field.turnstile_enabled"
+msgid "Cloudflare Turnstile"
+msgstr "حماية Turnstile"
+
+msgctxt "Languages::kwtsms.settings.field.turnstile_site_key"
+msgid "Turnstile site key"
+msgstr "مفتاح موقع Turnstile"
+
+msgctxt "Languages::kwtsms.turnstile.title"
+msgid "CAPTCHA (Cloudflare Turnstile)"
+msgstr "التحقق الأمني (Cloudflare Turnstile)"
+
+msgctxt "Languages::kwtsms.turnstile.help"
+msgid "Turnstile checks that a visitor is a person before login, registration, checkout and SMS code requests. Create a widget in the Cloudflare dashboard (Turnstile) and paste its site key and secret key here. Add your storefront domain to the widget's hostnames: the hostname must match the storefront address exactly, so add the form with www and the form without it if you use both. Choose the protected forms in Settings > Image verification."
+msgstr "يتحقق Turnstile من أن الزائر شخص حقيقي قبل تسجيل الدخول والتسجيل والدفع وطلبات رمز الرسالة. أنشئ أداة في لوحة Cloudflare (Turnstile) والصق هنا مفتاح الموقع والمفتاح السري. أضف نطاق متجرك إلى أسماء المضيفين في الأداة: يجب أن يطابق اسم المضيف عنوان المتجر تماما، لذلك أضف الصيغة مع www والصيغة بدونها إن كنت تستخدمهما معا. اختر النماذج المحمية من الإعدادات > التحقق بالصورة."
+
+msgctxt "Languages::kwtsms.turnstile.enabled_label"
+msgid "Use Cloudflare Turnstile as the CAPTCHA"
+msgstr "استخدام Cloudflare Turnstile للتحقق الأمني"
+
+msgctxt "Languages::kwtsms.turnstile.enabled_help"
+msgid "Only one CAPTCHA provider is active at a time. The core reCAPTCHA add-on comes installed without keys; Turnstile replaces it while it has none."
+msgstr "يعمل مزود تحقق أمني واحد فقط في كل مرة. إضافة reCAPTCHA الأساسية تأتي مثبتة بدون مفاتيح، ويحل Turnstile محلها ما دامت بلا مفاتيح."
+
+msgctxt "Languages::kwtsms.turnstile.site_key"
+msgid "Site key"
+msgstr "مفتاح الموقع"
+
+msgctxt "Languages::kwtsms.turnstile.site_key_help"
+msgid "Public. Shown in the page source of the protected forms."
+msgstr "علني. يظهر في مصدر صفحات النماذج المحمية."
+
+msgctxt "Languages::kwtsms.turnstile.secret"
+msgid "Secret key"
+msgstr "المفتاح السري"
+
+msgctxt "Languages::kwtsms.turnstile.secret_help"
+msgid "Never shown again after saving. Leave the field empty to keep the saved key."
+msgstr "لا يظهر مرة أخرى بعد الحفظ. اترك الحقل فارغا للإبقاء على المفتاح المحفوظ."
+
+msgctxt "Languages::kwtsms.turnstile.secret_saved"
+msgid "A secret key is saved. Type a new one to replace it."
+msgstr "يوجد مفتاح سري محفوظ. اكتب مفتاحا جديدا لاستبداله."
+
+msgctxt "Languages::kwtsms.turnstile.save"
+msgid "Save CAPTCHA settings"
+msgstr "حفظ إعدادات التحقق الأمني"
+
+msgctxt "Languages::kwtsms.turnstile.check"
+msgid "Check keys"
+msgstr "فحص المفاتيح"
+
+msgctxt "Languages::kwtsms.turnstile.check_help"
+msgid "Check keys sends Cloudflare a test token. A secret key typed in the field is checked without being saved."
+msgstr "يرسل فحص المفاتيح رمزا تجريبيا إلى Cloudflare. المفتاح السري المكتوب في الحقل يفحص دون حفظه."
+
+msgctxt "Languages::kwtsms.turnstile.status_on"
+msgid "Turnstile is active."
+msgstr "Turnstile فعال."
+
+msgctxt "Languages::kwtsms.turnstile.status_off"
+msgid "Turnstile is not active."
+msgstr "Turnstile غير فعال."
+
+msgctxt "Languages::kwtsms.turnstile.recaptcha_unconfigured"
+msgid "The reCAPTCHA add-on is active but has no keys, so Turnstile takes its place."
+msgstr "إضافة reCAPTCHA فعالة لكنها بلا مفاتيح، لذلك يحل Turnstile محلها."
+
+msgctxt "Languages::kwtsms.turnstile.recaptcha_blocks"
+msgid "The reCAPTCHA add-on is active with its keys saved. Turn it off before you switch Turnstile on."
+msgstr "إضافة reCAPTCHA فعالة ومفاتيحها محفوظة. أوقفها قبل تشغيل Turnstile."
+
+msgctxt "Languages::kwtsms.turnstile.test_keys"
+msgid "Cloudflare test keys: the CAPTCHA always passes or always fails"
+msgstr "مفاتيح اختبار Cloudflare: ينجح التحقق الأمني دائما أو يفشل دائما"
+
+msgctxt "Languages::kwtsms.turnstile.keys_missing"
+msgid "Turnstile is on but a key is missing. Nothing changes until both keys are saved."
+msgstr "Turnstile مشغل لكن أحد المفتاحين ناقص. لا يتغير شيء حتى يحفظ المفتاحان."
+
+msgctxt "Languages::kwtsms.turnstile.check_ok"
+msgid "Keys accepted"
+msgstr "تم قبول المفاتيح"
+
+msgctxt "Languages::kwtsms.turnstile.check_secret_wrong"
+msgid "The secret key is wrong"
+msgstr "المفتاح السري غير صحيح"
+
+msgctxt "Languages::kwtsms.turnstile.check_unreachable"
+msgid "Cloudflare could not be reached"
+msgstr "تعذر الوصول إلى Cloudflare"
+
+msgctxt "Languages::kwtsms.turnstile.check_no_secret"
+msgid "Save the secret key first, then check it."
+msgstr "احفظ المفتاح السري أولا ثم افحصه."
+
+msgctxt "Languages::kwtsms.turnstile.check_other"
+msgid "Cloudflare answered with an unexpected code: [code]"
+msgstr "ردت Cloudflare برمز غير متوقع: [code]"
+
+msgctxt "Languages::kwtsms.turnstile.refuse_recaptcha"
+msgid "Turn off the reCAPTCHA add-on first: only one CAPTCHA provider can be active."
+msgstr "أوقف إضافة reCAPTCHA أولا: يمكن تفعيل مزود تحقق أمني واحد فقط."
+
+msgctxt "Languages::kwtsms.turnstile.secret_wrong_off"
+msgid "The secret key is wrong. Turnstile stays off."
+msgstr "المفتاح السري غير صحيح. يبقى Turnstile متوقفا."
+
+msgctxt "Languages::kwtsms.turnstile.use_for_sms_code"
+msgid "SMS code request"
+msgstr "طلب رمز التحقق بالرسالة"

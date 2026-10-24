@@ -582,6 +582,54 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </form>
     </section>
 
+    {* 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. The "CAPTCHA (Cloudflare Turnstile)" section: its own
+       form (Config mode update_codes; Check keys is the POST mode turnstile_check), redirect back to #kwtsms_turnstile. The
+       secret key is never rendered back: its field is empty, autocomplete="new-password", and an empty post keeps the saved
+       key. *}
+    <section class="kwtsms-section" id="kwtsms_turnstile" aria-labelledby="kwtsms_turnstile_title">
+        <h4 class="subheader" id="kwtsms_turnstile_title">{__("kwtsms.turnstile.title")}</h4>
+        <p class="muted description" id="kwtsms_turnstile_help">{__("kwtsms.turnstile.help")}</p>
+        {$ts = $kwtsms.turnstile}
+        <p class="description" id="kwtsms_turnstile_status" role="status">
+            {if $ts.driver_active}{__("kwtsms.turnstile.status_on")}{else}{__("kwtsms.turnstile.status_off")}{/if}
+            {if $ts.recaptcha_blocks}{__("kwtsms.turnstile.recaptcha_blocks")}{elseif $ts.recaptcha_active}{__("kwtsms.turnstile.recaptcha_unconfigured")}{/if}
+        </p>
+        {if $ts.test_keys}<p class="alert alert-warning" id="kwtsms_turnstile_test_keys" role="alert">{__("kwtsms.turnstile.test_keys")}</p>{/if}
+        <form action="{""|fn_url}" method="post" name="kwtsms_turnstile_form" id="kwtsms_turnstile_form" class="form-horizontal form-edit" autocomplete="off">
+            <input type="hidden" name="kwtsms_anchor" value="kwtsms_turnstile">
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.turnstile_enabled")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[turnstile_enabled]" value="N">
+                    {* 2026-10-24 22:31 +03: Task M1.7b, task 596. A plain label with an inline checkbox (not Bootstrap's .checkbox, whose negative margin put the box over the first letters of the right-to-left field label). *}
+                    <label for="kwtsms_turnstile_enabled"><input type="checkbox" id="kwtsms_turnstile_enabled" name="kwtsms_codes[turnstile_enabled]" value="Y"{if $ts.enabled == "Y"} checked="checked"{/if} aria-describedby="kwtsms_turnstile_enabled_help" style="margin: 0 0.5em; margin-inline: 0 0.5em;"> {__("kwtsms.turnstile.enabled_label")}</label>
+                    <p class="muted description" id="kwtsms_turnstile_enabled_help">{__("kwtsms.turnstile.enabled_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_turnstile_site_key">{__("kwtsms.turnstile.site_key")}:</label>
+                <div class="controls">
+                    <input type="text" id="kwtsms_turnstile_site_key" name="kwtsms_codes[turnstile_site_key]" value="{$ts.site_key}" maxlength="64" class="input-large kwtsms-code" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="kwtsms_turnstile_site_key_help">
+                    <p class="muted description" id="kwtsms_turnstile_site_key_help">{__("kwtsms.turnstile.site_key_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_turnstile_secret">{__("kwtsms.turnstile.secret")}:</label>
+                <div class="controls">
+                    <input type="password" name="kwtsms_codes[turnstile_secret]" id="kwtsms_turnstile_secret" autocomplete="new-password" maxlength="128" class="input-large kwtsms-code" dir="ltr" spellcheck="false" aria-describedby="kwtsms_turnstile_secret_help">
+                    <p class="muted description" id="kwtsms_turnstile_secret_help">{__("kwtsms.turnstile.secret_help")}{if $ts.secret_saved} <strong>{__("kwtsms.turnstile.secret_saved")}</strong>{/if}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls kwtsms-actions">
+                    <input type="submit" class="btn btn-primary" id="kwtsms_turnstile_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.turnstile.save")}">
+                    <input type="submit" class="btn" id="kwtsms_turnstile_check" name="dispatch[kwtsms.turnstile_check]" value="{__("kwtsms.turnstile.check")}" formnovalidate="formnovalidate">
+                    <p class="muted description">{__("kwtsms.turnstile.check_help")}</p>
+                </div>
+            </div>
+        </form>
+    </section>
+
     {* ---- test SMS ----------------------------------------------------------------------------------------------- *}
     <section class="kwtsms-section" id="kwtsms_test_sms" aria-labelledby="kwtsms_test_sms_title">
         <h4 class="subheader" id="kwtsms_test_sms_title">{__("kwtsms.test_sms.title")}</h4>

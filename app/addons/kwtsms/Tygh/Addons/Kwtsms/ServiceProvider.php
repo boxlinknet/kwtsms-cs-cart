@@ -44,6 +44,7 @@ use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 19:42 +03: Task M1.7a, task 596
+use Tygh\Addons\Kwtsms\Antibot\TurnstileWidget; // 2026-10-24 21:14 +03: Task M1.7b, task 596
 use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
@@ -378,6 +379,11 @@ class ServiceProvider implements ServiceProviderInterface
                 null,
                 $app['kwtsms.logs.debug']
             );
+        };
+        // 2026-10-24 21:14 +03: Task M1.7b (PRD 6.15), task 596. The data of the storefront Turnstile widget (site key,
+        // action, language; never the secret).
+        $app['kwtsms.turnstile_widget'] = function (Container $app): TurnstileWidget {
+            return new TurnstileWidget($app['kwtsms.config']);
         };
         $app['kwtsms.code_availability'] = function (Container $app): CodeAvailability {
             return new CodeAvailability(

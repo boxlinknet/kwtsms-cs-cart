@@ -59,7 +59,12 @@ fn_register_hooks(
     'post_delete_user',
     // 2026-10-24 18:46 +03: M1.6 fix round 1 (I2, ruling P3-R6), task 596. The checkout profile editor saves a profile
     // without update_profile; the phone index follows (same writer function, same switches).
-    'update_user_profile_post'
+    'update_user_profile_post',
+    // 2026-10-24 21:14 +03: Task M1.7b (P3-R7, P3-36), task 596. The scenario "SMS code request" in Settings > Image
+    // verification; and, while Turnstile is the active driver, core's template override map points
+    // common/image_verification.tpl at our template instead of the reCAPTCHA add-on's native image.
+    'settings_variants_image_verification_use_for',
+    'init_templater_post'
 );
 ServiceProvider::extendNotifications(Tygh::$app);
 

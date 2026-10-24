@@ -103,6 +103,10 @@ gate "Tygh\\Http (use or call)" scan "$A" '' -nE 'use[[:space:]]+Tygh\\Http\b|Ty
 # 2026-10-24 19:42 +03: Task M1.7a, task 596. The outbound host list: the only hosts a PHP file of the add-on names in a
 # URL are the kwtSMS API and Cloudflare Turnstile (siteverify), plus documentation example domains.
 gate "outbound hosts: only www.kwtsms.com and challenges.cloudflare.com" scan "$A" ':\d+:https?://(www\.kwtsms\.com|challenges\.cloudflare\.com|([a-z0-9-]+\.)?example\.(com|org|test))$' -noE --include=*.php 'https?://[A-Za-z0-9.-]+'
+# 2026-10-24 21:28 +03: Task M1.7b (review minor M4), task 596. The same host list for the storefront and admin templates
+# and the scripts (the Turnstile api.js URL lives in a .tpl): a literal http(s):// host, or a protocol-relative //host, must
+# be Cloudflare's challenge host (or an example domain). Concatenated hosts stay out of reach of any text gate.
+gate "outbound hosts in templates and scripts: only challenges.cloudflare.com" scan "$src/design/themes/responsive/templates/addons/kwtsms $src/var/themes_repository/responsive/templates/addons/kwtsms $T $J" ':\d+:(https?:)?//(challenges\.cloudflare\.com|www\.kwtsms\.com|([a-z0-9-]+\.)?example\.(com|org|test))$' -noE --include=*.tpl --include=*.js '(https?:)?//[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+'
 gate "CURLOPT_SSL_VERIFYPEER 0 / VERIFYHOST 0/1" scan "$A" '' -nE 'SSL_VERIFYPEER, ?(0|false)|SSL_VERIFYHOST, ?(0|1|false)'
 gate "OVERRIDE / API_BASE constant" scan "$A" '' -nE "define\(['\"][A-Z_]*(OVERRIDE|API_BASE)|const[[:space:]]+[A-Z_]*(OVERRIDE|API_BASE)\b"
 gate "secret-like variable compared with ==/=== to a variable" scan "$A" ':\d+:\s*(\*|//)' -nPi --include=*.php '\$\w*(hash|secret|cron_?key|token|passw\w*)\w*\s*[!=]==?\s*\$|[!=]==?\s*\$\w*(hash|secret|cron_?key|token|passw\w*)\b'

@@ -10,7 +10,10 @@
  *            reads the token field `cf-turnstile-response`, takes the expected action from the dispatch the server
  *            runs (never from a posted field) and hands both to TurnstileVerifier with the storefront hosts and the
  *            visitor's address from ClientIp.
- * WHY:       Task M1.7a (PRD 6.15): the core antibot service takes one driver; with Turnstile configured it replaces
+ *            2026-10-24 21:10 +03: Task M1.7b (P3-R7, P3-R8), task 596. "No active recaptcha" became "no active AND
+ *            configured recaptcha"; the SMS code request needs exactly its own action, core scenarios take any
+ *            allow-listed one.
+ * WHY:      Task M1.7a (PRD 6.15): the core antibot service takes one driver; with Turnstile configured it replaces
  *            the null driver, so every core scenario (register, login, checkout, ...) and our own `kwtsms_sms_code`
  *            scenario are checked by Cloudflare. init.php installs it only when isSetUp() is true.
  * USAGE:     new TurnstileDriver($config, new HttpTransport([TurnstileVerifier::HOST]));
@@ -113,8 +116,12 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
             return false;
         }
         // 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. The action comes from the dispatch the server is
-        // running, not from a posted field: a token solved on one form is refused on another.
+        // running, not from a posted field.
+        // 2026-10-24 21:10 +03: Task M1.7b (ruling P3-R8), task 596. The SMS code request (it spends credits) needs
+        // exactly its own action; a core scenario takes any action of the allow-list (a single-use token of 300 s is
+        // low risk across core forms); an action outside the list is refused.
         $action = $this->expectedAction();
+        $accepted = $action === 'kwtsms_sms_code' ? $action : self::ACTIONS;
 
         $verifier = new TurnstileVerifier(
             $this->http,
@@ -122,7 +129,7 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
             $this->config->turnstileSiteKey(),
             $this->log
         );
-        $result = $verifier->verify($token, $this->remoteIp(), $action, $this->allowedHosts());
+        $result = $verifier->verify($token, $this->remoteIp(), $accepted, $this->allowedHosts());
 
         return $result['ok'];
     }
@@ -162,13 +169,38 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         );
     }
 
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (ruling P3-R7), task 596. The core reCAPTCHA add-on is active on every stock
+     * install, with no keys. It only stands in Turnstile's way while it is ACTIVE and has a key pair saved (v2 site key
+     * and secret, or v3 site key and secret); an active but unconfigured one is replaced (the add-on's template for
+     * common/image_verification.tpl yields to ours, see func.php).
+     *
+     * @param string               $status   addons.recaptcha.status ('A' active)
+     * @param array<string,mixed>  $settings addons.recaptcha settings
+     */
+    public static function recaptchaBlocks(string $status, array $settings): bool
+    {
+        if ($status !== 'A') {
+            return false;
+        }
+        $has = static function (string $key) use ($settings): bool {
+            return isset($settings[$key]) && is_string($settings[$key]) && trim($settings[$key]) !== '';
+        };
+
+        return ($has('recaptcha_site_key') && $has('recaptcha_secret'))
+            || ($has('recaptcha_v3_site_key') && $has('recaptcha_v3_secret'));
+    }
+
     private function recaptchaActive(): bool
     {
         if ($this->recaptcha_active !== null) {
             return (bool) call_user_func($this->recaptcha_active);
         }
 
-        return (string) \Tygh\Registry::get('addons.recaptcha.status') === 'A';
+        return self::recaptchaBlocks(
+            (string) \Tygh\Registry::get('addons.recaptcha.status'),
+            (array) \Tygh\Registry::get('addons.recaptcha')
+        );
     }
 
     private function remoteIp(): string

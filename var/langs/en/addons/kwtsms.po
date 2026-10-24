@@ -5700,3 +5700,117 @@ msgstr "Active: every customer phone is indexed"
 msgctxt "Languages::kwtsms.turnstile.error"
 msgid "The security check failed. Reload the page and try again."
 msgstr "The security check failed. Reload the page and try again."
+
+# 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. The "CAPTCHA (Cloudflare Turnstile)" section of
+# Settings, its notices, and the new Image verification scenario.
+msgctxt "Languages::kwtsms.settings.field.turnstile_enabled"
+msgid "Cloudflare Turnstile"
+msgstr "Cloudflare Turnstile"
+
+msgctxt "Languages::kwtsms.settings.field.turnstile_site_key"
+msgid "Turnstile site key"
+msgstr "Turnstile site key"
+
+msgctxt "Languages::kwtsms.turnstile.title"
+msgid "CAPTCHA (Cloudflare Turnstile)"
+msgstr "CAPTCHA (Cloudflare Turnstile)"
+
+msgctxt "Languages::kwtsms.turnstile.help"
+msgid "Turnstile checks that a visitor is a person before login, registration, checkout and SMS code requests. Create a widget in the Cloudflare dashboard (Turnstile) and paste its site key and secret key here. Add your storefront domain to the widget's hostnames: the hostname must match the storefront address exactly, so add the form with www and the form without it if you use both. Choose the protected forms in Settings > Image verification."
+msgstr "Turnstile checks that a visitor is a person before login, registration, checkout and SMS code requests. Create a widget in the Cloudflare dashboard (Turnstile) and paste its site key and secret key here. Add your storefront domain to the widget's hostnames: the hostname must match the storefront address exactly, so add the form with www and the form without it if you use both. Choose the protected forms in Settings > Image verification."
+
+msgctxt "Languages::kwtsms.turnstile.enabled_label"
+msgid "Use Cloudflare Turnstile as the CAPTCHA"
+msgstr "Use Cloudflare Turnstile as the CAPTCHA"
+
+msgctxt "Languages::kwtsms.turnstile.enabled_help"
+msgid "Only one CAPTCHA provider is active at a time. The core reCAPTCHA add-on comes installed without keys; Turnstile replaces it while it has none."
+msgstr "Only one CAPTCHA provider is active at a time. The core reCAPTCHA add-on comes installed without keys; Turnstile replaces it while it has none."
+
+msgctxt "Languages::kwtsms.turnstile.site_key"
+msgid "Site key"
+msgstr "Site key"
+
+msgctxt "Languages::kwtsms.turnstile.site_key_help"
+msgid "Public. Shown in the page source of the protected forms."
+msgstr "Public. Shown in the page source of the protected forms."
+
+msgctxt "Languages::kwtsms.turnstile.secret"
+msgid "Secret key"
+msgstr "Secret key"
+
+msgctxt "Languages::kwtsms.turnstile.secret_help"
+msgid "Never shown again after saving. Leave the field empty to keep the saved key."
+msgstr "Never shown again after saving. Leave the field empty to keep the saved key."
+
+msgctxt "Languages::kwtsms.turnstile.secret_saved"
+msgid "A secret key is saved. Type a new one to replace it."
+msgstr "A secret key is saved. Type a new one to replace it."
+
+msgctxt "Languages::kwtsms.turnstile.save"
+msgid "Save CAPTCHA settings"
+msgstr "Save CAPTCHA settings"
+
+msgctxt "Languages::kwtsms.turnstile.check"
+msgid "Check keys"
+msgstr "Check keys"
+
+msgctxt "Languages::kwtsms.turnstile.check_help"
+msgid "Check keys sends Cloudflare a test token. A secret key typed in the field is checked without being saved."
+msgstr "Check keys sends Cloudflare a test token. A secret key typed in the field is checked without being saved."
+
+msgctxt "Languages::kwtsms.turnstile.status_on"
+msgid "Turnstile is active."
+msgstr "Turnstile is active."
+
+msgctxt "Languages::kwtsms.turnstile.status_off"
+msgid "Turnstile is not active."
+msgstr "Turnstile is not active."
+
+msgctxt "Languages::kwtsms.turnstile.recaptcha_unconfigured"
+msgid "The reCAPTCHA add-on is active but has no keys, so Turnstile takes its place."
+msgstr "The reCAPTCHA add-on is active but has no keys, so Turnstile takes its place."
+
+msgctxt "Languages::kwtsms.turnstile.recaptcha_blocks"
+msgid "The reCAPTCHA add-on is active with its keys saved. Turn it off before you switch Turnstile on."
+msgstr "The reCAPTCHA add-on is active with its keys saved. Turn it off before you switch Turnstile on."
+
+msgctxt "Languages::kwtsms.turnstile.test_keys"
+msgid "Cloudflare test keys: the CAPTCHA always passes or always fails"
+msgstr "Cloudflare test keys: the CAPTCHA always passes or always fails"
+
+msgctxt "Languages::kwtsms.turnstile.keys_missing"
+msgid "Turnstile is on but a key is missing. Nothing changes until both keys are saved."
+msgstr "Turnstile is on but a key is missing. Nothing changes until both keys are saved."
+
+msgctxt "Languages::kwtsms.turnstile.check_ok"
+msgid "Keys accepted"
+msgstr "Keys accepted"
+
+msgctxt "Languages::kwtsms.turnstile.check_secret_wrong"
+msgid "The secret key is wrong"
+msgstr "The secret key is wrong"
+
+msgctxt "Languages::kwtsms.turnstile.check_unreachable"
+msgid "Cloudflare could not be reached"
+msgstr "Cloudflare could not be reached"
+
+msgctxt "Languages::kwtsms.turnstile.check_no_secret"
+msgid "Save the secret key first, then check it."
+msgstr "Save the secret key first, then check it."
+
+msgctxt "Languages::kwtsms.turnstile.check_other"
+msgid "Cloudflare answered with an unexpected code: [code]"
+msgstr "Cloudflare answered with an unexpected code: [code]"
+
+msgctxt "Languages::kwtsms.turnstile.refuse_recaptcha"
+msgid "Turn off the reCAPTCHA add-on first: only one CAPTCHA provider can be active."
+msgstr "Turn off the reCAPTCHA add-on first: only one CAPTCHA provider can be active."
+
+msgctxt "Languages::kwtsms.turnstile.secret_wrong_off"
+msgid "The secret key is wrong. Turnstile stays off."
+msgstr "The secret key is wrong. Turnstile stays off."
+
+msgctxt "Languages::kwtsms.turnstile.use_for_sms_code"
+msgid "SMS code request"
+msgstr "SMS code request"

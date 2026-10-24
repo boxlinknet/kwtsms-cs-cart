@@ -140,6 +140,17 @@ class PostUpgrade
 
         self::languageValues($scheme);
 
+        // 2026-10-24 21:13 +03: Task M1.7b (P3-36), task 596. The CAPTCHA scenario of the SMS code request is
+        // ticked, so the mode is "always" by default. It adds one entry to the ticked list and changes nothing else;
+        // no customer data is processed and no form of the 1.1.0 store changes (the scenario has no form yet).
+        if (function_exists('fn_kwtsms_tick_sms_code_scenario')) {
+            if (!\fn_kwtsms_tick_sms_code_scenario()) {
+                throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
+            }
+        } else {
+            throw new \RuntimeException('fn_kwtsms_tick_sms_code_scenario() does not exist');
+        }
+
         fn_update_addon_version(self::ADDON, self::VERSION);
     }
 

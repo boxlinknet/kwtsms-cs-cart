@@ -101,6 +101,10 @@ final class RequestGate
         // 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596. The "Phone and codes" section of Settings. It changes
         // what customers can do and which SMS the store pays for, so it needs the gateway privilege like Settings.
         'update_codes'              => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15), task 596. "Check keys" of the Turnstile section of Settings: one
+        // Cloudflare call, so it needs the gateway privilege like Settings, and it is POST only (a typed secret key
+        // travels in the body).
+        'turnstile_check'           => [self::POST, 'manage_kwtsms_gateway'],
     ];
 
     /**

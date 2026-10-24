@@ -89,7 +89,17 @@ class TurnstileVerifier
     }
 
     /**
-     * @param string[] $allowed_hosts Storefront host names a production token may have been solved on
+     * 2026-10-24 21:10 +03: Task M1.7b (Settings "Check keys", review minor M8), task 596. Cloudflare's documented
+     * dummy token: the test secret keys accept it; a production secret answers invalid-input-response for it.
+     */
+    public const DUMMY_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (ruling P3-R8), task 596. $expected_action is one action (exact) or a list of
+     * accepted actions (core scenarios accept any action of the allow-list).
+     *
+     * @param string|string[] $expected_action
+     * @param string[]        $allowed_hosts   Storefront host names a production token may have been solved on
      *
      * @return array{ok: bool, code: string} code: 'ok', 'unavailable' (fail open), or the reason
      */
@@ -97,7 +107,7 @@ class TurnstileVerifier
         #[\SensitiveParameter]
         string $token,
         string $remote_ip,
-        string $expected_action,
+        $expected_action,
         array $allowed_hosts
     ): array {
         if ($token === '' || strlen($token) > self::MAX_TOKEN_LENGTH) {
@@ -155,18 +165,63 @@ class TurnstileVerifier
             return $this->verdict(false, 'hostname-mismatch');
         }
         $action = isset($data['action']) && is_string($data['action']) ? $data['action'] : '';
-        if ($action !== $expected_action) {
+        if (!in_array($action, array_map('strval', (array) $expected_action), true)) {
             return $this->verdict(false, 'action-mismatch');
         }
 
         return $this->verdict(true, 'ok');
     }
 
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (Settings "Check keys", review minor M8), task 596. One siteverify call with
+     * the documented dummy token, to tell a wrong secret from a good one without a visitor:
+     * 'accepted' (a success, invalid-input-response or timeout-or-duplicate: Cloudflare knows the secret),
+     * 'secret_wrong' (invalid-input-secret, missing-input-secret), 'unreachable' (transport failure, 5xx,
+     * internal-error, an answer that is not Cloudflare's), 'other' (any other code, named in 'code').
+     *
+     * @return array{result: string, code: string}
+     */
+    public function probe(): array
+    {
+        $verdict = $this->verify(self::DUMMY_TOKEN, '', 'probe', []);
+        $code = $verdict['code'];
+        if (in_array($code, ['unavailable', 'unreadable-answer'], true)) {
+            $result = 'unreachable';
+        } elseif (in_array($code, ['invalid-input-secret', 'missing-input-secret'], true)) {
+            $result = 'secret_wrong';
+        } elseif (
+            $verdict['ok']
+            || in_array(
+                $code,
+                ['invalid-input-response', 'timeout-or-duplicate', 'hostname-mismatch', 'action-mismatch'],
+                true
+            )
+        ) {
+            $result = 'accepted';
+        } else {
+            $result = 'other';
+        }
+
+        return ['result' => $result, 'code' => $code];
+    }
+
     /** True while a documented Cloudflare test key is configured (P3-32). */
     public function usesTestKey(): bool
     {
-        return in_array($this->site_key, self::TEST_SITE_KEYS, true)
-            || in_array($this->secret(), self::TEST_SECRET_KEYS, true);
+        return self::isTestKey($this->site_key, $this->secret());
+    }
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (P3-32), task 596. The same test-key rule for the Settings page, which has the
+     * keys but no verifier.
+     */
+    public static function isTestKey(
+        #[\SensitiveParameter]
+        string $site_key,
+        #[\SensitiveParameter]
+        string $secret
+    ): bool {
+        return in_array($site_key, self::TEST_SITE_KEYS, true) || in_array($secret, self::TEST_SECRET_KEYS, true);
     }
 
     public function __destruct()

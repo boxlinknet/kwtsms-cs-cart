@@ -60,6 +60,15 @@ function fn_kwtsms_install(): void
     // undo the install: the admin can load the defaults from the Templates page. Task 1.8, task 596.
     // 2026-10-21 00:05 +03: moved into fn_kwtsms_seed_default_templates(), which also tells the admin.
     fn_kwtsms_seed_default_templates();
+
+    // 2026-10-24 21:13 +03: Task M1.7b (P3-36), task 596. The CAPTCHA scenario of the SMS code request is ticked on
+    // install, so the mode is "always" by default. A failure here never undoes the install: the admin can tick it in
+    // Settings > Image verification.
+    try {
+        fn_kwtsms_tick_sms_code_scenario();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('install.tick_scenario', $e);
+    }
 }
 
 /**
@@ -743,6 +752,124 @@ function fn_kwtsms_before_dispatch()
         \Tygh\Addons\Kwtsms\Upgrade\PostUpgrade::selfHeal();
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('before_dispatch', $e);
+    }
+}
+
+/**
+ * 2026-10-24 21:13 +03: Task M1.7b (P3-8, P3-25), task 596. Hook settings_variants_image_verification_use_for
+ * (app/schemas/settings/variants.functions.php:183): adds the scenario "SMS code request" (kwtsms_sms_code) to the
+ * list of forms Settings > Image verification protects. Install and the 1.2.0 upgrade tick it (P3-36).
+ *
+ * @param array<string,string>|null $objects Scenario => label (by reference)
+ */
+function fn_kwtsms_settings_variants_image_verification_use_for(&$objects = null)
+{
+    if (fn_kwtsms_hook_args_missing('settings_variants_image_verification_use_for', func_num_args(), 1)) {
+        return;
+    }
+    try {
+        if (is_array($objects)) {
+            $objects['kwtsms_sms_code'] = (string) __('kwtsms.turnstile.use_for_sms_code');
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('settings_variants_image_verification_use_for', $e);
+    }
+}
+
+/**
+ * 2026-10-24 21:13 +03: Task M1.7b (P3-36), task 596. Ticks the core image-verification scenario kwtsms_sms_code in
+ * Settings > Image verification (the mode is then "always" by default: no SMS code is sent before the CAPTCHA). Adds
+ * the one scenario to the ticked list and leaves every other as it is; returns true when the scenario is ticked
+ * afterwards (read back). Called by the install handler and the 1.2.0 post-upgrade script, never by a request.
+ */
+function fn_kwtsms_tick_sms_code_scenario(): bool
+{
+    $settings = Settings::instance();
+    $now = (array) $settings->getValue('use_for', 'Image_verification');
+    $ticked = array_values(array_keys(array_filter($now, static function ($value): bool {
+        return $value === 'Y';
+    })));
+    if (!in_array('kwtsms_sms_code', $ticked, true)) {
+        $ticked[] = 'kwtsms_sms_code';
+        $settings->updateValue('use_for', $ticked, 'Image_verification');
+        fn_clear_cache('registry');
+    }
+    $after = (array) Settings::instance()->getValue('use_for', 'Image_verification');
+
+    return isset($after['kwtsms_sms_code']) && $after['kwtsms_sms_code'] === 'Y';
+}
+
+/**
+ * 2026-10-24 21:13 +03: Task M1.7b (PRD 6.15), task 596. For the storefront templates (modifier
+ * |fn_kwtsms_turnstile_widget): the data of the Turnstile widget of one image-verification scenario (site key,
+ * Cloudflare action, widget language), or an empty array when Turnstile is not the active antibot driver. Never the
+ * secret.
+ * Never throws.
+ *
+ * @param string $option The scenario ($option of common/image_verification.tpl)
+ *
+ * @return array<string,string>
+ */
+function fn_kwtsms_turnstile_widget($option = '')
+{
+    try {
+        if (
+            !isset(Tygh::$app['antibot'])
+            || !(Tygh::$app['antibot']->getDriver() instanceof \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver)
+        ) {
+            return [];
+        }
+
+        return Tygh::$app['kwtsms.turnstile_widget']->data(
+            is_string($option) ? $option : '',
+            defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en'
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('turnstile_widget', $e);
+
+        return [];
+    }
+}
+
+/**
+ * 2026-10-24 21:13 +03: Task M1.7b (ruling P3-R7), task 596. Hook init_templater_post (fn.init.php:143): in the
+ * storefront,
+ * while Turnstile is the active antibot driver and the reCAPTCHA add-on is active (without keys, or its driver would
+ * be the active one), core's map of template overrides sends common/image_verification.tpl to the reCAPTCHA add-on's
+ * native-image template. The map is swapped, in memory for this request only, for the add-on's template, which renders
+ * Turnstile and includes the reCAPTCHA template for any other driver. Nothing is written to the cache. With
+ * Turnstile not configured nothing happens. Never throws.
+ *
+ * @param mixed $view The Smarty view (Tygh\SmartyEngine\Core)
+ */
+function fn_kwtsms_init_templater_post($view = null)
+{
+    if (fn_kwtsms_hook_args_missing('init_templater_post', func_num_args(), 1)) {
+        return;
+    }
+    try {
+        if (!defined('AREA') || AREA !== 'C' || !is_object($view) || !isset(Tygh::$app['antibot'])) {
+            return;
+        }
+        if (
+            (string) Registry::get('addons.recaptcha.status') !== 'A'
+            || !(Tygh::$app['antibot']->getDriver() instanceof \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver)
+        ) {
+            return;
+        }
+        // Builds core's map (or loads it from the cache) and returns the key it lives under, exactly as core does.
+        fn_addon_template_overrides('common/image_verification.tpl', $view);
+        $key = md5(rtrim(rtrim($view->getTemplateDir(0), '/') . '/', '/'));
+        $map = Registry::get($key);
+        if (!is_array($map)) {
+            return;
+        }
+        $swapped = \Tygh\Addons\Kwtsms\Antibot\ImageVerificationTemplate::prefer($map, 'file_exists');
+        if ($swapped !== $map) {
+            Registry::set($key, $swapped, true);
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('init_templater_post', $e);
     }
 }
 

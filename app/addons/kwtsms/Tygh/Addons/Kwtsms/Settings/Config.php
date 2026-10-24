@@ -159,8 +159,11 @@ class Config implements ConfigInterface
         // switch.
         // 2026-10-24 17:14 +03: Task M1.6 (C4, P3-31), task 596. phone_unique: one account per phone (starts after the
         // phone index is built).
+        // 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15), task 596. turnstile_enabled and turnstile_site_key: the other
+        // two fields of the "CAPTCHA (Cloudflare Turnstile)" section.
         'update_codes' => [
-            'turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies',
+            'turnstile_enabled', 'turnstile_site_key', 'turnstile_secret', 'cap_ip_hour', 'cap_ip_day',
+            'cap_store_hour', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
             'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check', 'phone_unique',
         ],

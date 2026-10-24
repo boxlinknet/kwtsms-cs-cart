@@ -76,6 +76,9 @@ $schema['kwtsms'] = [
         'send_order_sms'            => ['permissions' => 'manage_kwtsms_gateway'],
         // 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596 (same privilege as Admin\RequestGate::MODES).
         'update_codes'              => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15), task 596. "Check keys" of the Turnstile section: one Cloudflare
+        // call with the dummy token (same privilege as Admin\RequestGate::MODES).
+        'turnstile_check'           => ['permissions' => 'manage_kwtsms_gateway'],
     ],
 ];
 

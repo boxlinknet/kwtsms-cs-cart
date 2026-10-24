@@ -26,8 +26,11 @@
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
+use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 21:10 +03: Task M1.7b, task 596
+use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 21:10 +03: Task M1.7b, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
+use Tygh\Addons\Kwtsms\Http\HttpTransport; // 2026-10-24 21:10 +03: Task M1.7b (Check keys), task 596
 use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 // 2026-10-23 15:14 +03: Config::MODE_KEYS for saveCodes() (Task M1.1a, task 596).
@@ -200,7 +203,162 @@ class SettingsPage
             'default_country_label' => $this->countryLabel($this->config->defaultCountryCode()),
             // 2026-10-23 19:57 +03: Task M1.2, task 596. The fields of the "Phone and codes" section.
             'codes' => $this->codesViewData(),
+            // 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15), task 596. The "CAPTCHA (Cloudflare Turnstile)" section.
+            'turnstile' => $this->turnstileViewData(),
         ];
+    }
+
+    // ================================================================== "CAPTCHA (Cloudflare Turnstile)" (Task M1.7b)
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. What the Turnstile section shows. The secret
+     * key is never part of it: only whether one is saved.
+     *
+     * @return array{enabled:string,site_key:string,secret_saved:bool,test_keys:bool,recaptcha_blocks:bool,
+     *               recaptcha_active:bool,driver_active:bool}
+     */
+    public function turnstileViewData(): array
+    {
+        $recaptcha = $this->recaptchaState();
+        $blocks = TurnstileDriver::recaptchaBlocks($recaptcha['status'], $recaptcha['settings']);
+        $site = $this->config->turnstileSiteKey();
+        $secret = $this->config->turnstileSecret();
+        $enabled = $this->config->turnstileEnabled();
+
+        return [
+            'enabled' => $enabled ? 'Y' : 'N',
+            'site_key' => $site,
+            'secret_saved' => $secret !== '',
+            'test_keys' => TurnstileVerifier::isTestKey($site, $secret),
+            'recaptcha_blocks' => $blocks,
+            'recaptcha_active' => $recaptcha['status'] === 'A',
+            'driver_active' => $enabled && $site !== '' && $secret !== '' && !$blocks,
+        ];
+    }
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (P3-R7), task 596. Status and settings of the core reCAPTCHA add-on (overridable
+     * in a test).
+     *
+     * @return array{status: string, settings: array<string,mixed>}
+     */
+    protected function recaptchaState(): array
+    {
+        return [
+            'status' => (string) \Tygh\Registry::get('addons.recaptcha.status'),
+            'settings' => (array) \Tygh\Registry::get('addons.recaptcha'),
+        ];
+    }
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b, task 596. A verifier on its own Cloudflare-only transport (overridable in a
+     * test).
+     */
+    protected function newVerifier(
+        #[\SensitiveParameter]
+        string $site_key,
+        #[\SensitiveParameter]
+        string $secret
+    ): TurnstileVerifier {
+        return new TurnstileVerifier(new HttpTransport([TurnstileVerifier::HOST]), $secret, $site_key, $this->log);
+    }
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b ("Check keys"), task 596. One siteverify call with the dummy token against the
+     * keys typed in the form, or the saved ones where a field is empty (the secret is never rendered back, so an
+     * empty field means the saved one). Nothing is stored. The notice names the result; no key is ever in it.
+     *
+     * @param array<string,mixed> $posted kwtsms_codes of the request
+     *
+     * @return string accepted | secret_wrong | unreachable | other | no_secret
+     */
+    public function checkTurnstile(
+        #[\SensitiveParameter]
+        array $posted
+    ): string {
+        $typed_secret = isset($posted['turnstile_secret']) && is_string($posted['turnstile_secret'])
+            && !Config::isBlankSecretPost($posted['turnstile_secret']) ? trim($posted['turnstile_secret']) : '';
+        $typed_site = isset($posted['turnstile_site_key']) && is_string($posted['turnstile_site_key'])
+            ? trim($posted['turnstile_site_key']) : '';
+        $secret = $typed_secret !== '' ? $typed_secret : $this->config->turnstileSecret();
+        $site = $typed_site !== '' ? $typed_site : $this->config->turnstileSiteKey();
+        if ($secret === '') {
+            $this->say('E', 'kwtsms.turnstile.check_no_secret');
+
+            return 'no_secret';
+        }
+        $started = microtime(true);
+        $probe = $this->newVerifier($site, $secret)->probe();
+        $this->turnstileResultNotice($probe);
+        if (TurnstileVerifier::isTestKey($site, $secret)) {
+            $this->say('W', 'kwtsms.turnstile.test_keys');
+        }
+        $this->log->log('info', 'settings.turnstile.check', 'Turnstile keys checked', [
+            'result' => $probe['result'],
+            'code' => $probe['code'],
+        ], (int) round((microtime(true) - $started) * 1000));
+
+        return $probe['result'];
+    }
+
+    /**
+     * @param array{result: string, code: string} $probe
+     */
+    private function turnstileResultNotice(array $probe): void
+    {
+        switch ($probe['result']) {
+            case 'accepted':
+                $this->say('N', 'kwtsms.turnstile.check_ok');
+                break;
+            case 'secret_wrong':
+                $this->say('E', 'kwtsms.turnstile.check_secret_wrong');
+                break;
+            case 'unreachable':
+                $this->say('W', 'kwtsms.turnstile.check_unreachable');
+                break;
+            default:
+                $this->say('W', 'kwtsms.turnstile.check_other', ['[code]' => $probe['code']]);
+        }
+    }
+
+    /**
+     * 2026-10-24 21:10 +03: Task M1.7b (review minor M8, P3-32), task 596. After a save that leaves Turnstile ON with
+     * both keys: one dummy-token call. A wrong secret would fail every login, registration and checkout, so the switch
+     * goes back OFF; an unreachable Cloudflare only warns (the keys may be right). The test-key warning follows any
+     * save that touched a key. Returns the rejection reason to add for the switch, or ''.
+     *
+     * @param string[] $requested The keys of the post
+     */
+    private function afterTurnstileSave(array $requested): string
+    {
+        $touched = array_intersect($requested, ['turnstile_enabled', 'turnstile_site_key', 'turnstile_secret']);
+        if ($touched === []) {
+            return '';
+        }
+        $site = $this->config->turnstileSiteKey();
+        $secret = $this->config->turnstileSecret();
+        if (TurnstileVerifier::isTestKey($site, $secret)) {
+            $this->say('W', 'kwtsms.turnstile.test_keys');
+        }
+        if (!$this->config->turnstileEnabled()) {
+            return '';
+        }
+        if ($site === '' || $secret === '') {
+            $this->say('W', 'kwtsms.turnstile.keys_missing');
+
+            return '';
+        }
+        $probe = $this->newVerifier($site, $secret)->probe();
+        if ($probe['result'] === 'secret_wrong') {
+            $this->config->save('update_codes', ['turnstile_enabled' => 'N']);
+
+            return 'secret_wrong';
+        }
+        if ($probe['result'] !== 'accepted') {
+            $this->turnstileResultNotice($probe);
+        }
+
+        return '';
     }
 
     /**
@@ -393,11 +551,27 @@ class SettingsPage
         $blank_secret = isset($posted['turnstile_secret']) && Config::isBlankSecretPost($posted['turnstile_secret']);
         $requested = array_map('strval', array_keys($posted));
         $was_on = PhoneIndex::anyFeatureOn($this->config);
+        // 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15, ruling P3-R7), task 596. Turnstile cannot be switched ON while
+        // the reCAPTCHA add-on is active with its keys saved: only one CAPTCHA provider can be active. (An active but
+        // unconfigured reCAPTCHA, the stock state, does not stand in the way.) The other posted keys are still saved.
+        $reasons = [];
+        if (isset($posted['turnstile_enabled']) && $posted['turnstile_enabled'] === 'Y') {
+            $recaptcha = $this->recaptchaState();
+            if (TurnstileDriver::recaptchaBlocks($recaptcha['status'], $recaptcha['settings'])) {
+                unset($posted['turnstile_enabled']);
+                $reasons['turnstile_enabled'] = 'recaptcha_active';
+            }
+        }
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
         $this->startBackfillWhenFirstOn($was_on);
-        $reasons = [];
         foreach ($rejected_keys as $key) {
             $reasons[$key] = $this->rejectionReason($key);
+        }
+        // 2026-10-24 21:10 +03: Task M1.7b (review minor M8, P3-32), task 596. The test-key warning and the dummy-token
+        // check after a save that left Turnstile ON.
+        $turnstile_reason = $this->afterTurnstileSave(array_keys($posted));
+        if ($turnstile_reason !== '') {
+            $reasons['turnstile_enabled'] = $turnstile_reason;
         }
         $saved = array_values(array_filter(
             $requested,
@@ -945,6 +1119,13 @@ class SettingsPage
 
     private function rejectionText(string $key, string $reason): string
     {
+        // 2026-10-24 21:10 +03: Task M1.7b (P3-R7, M8), task 596. The two Turnstile refusals have their own texts.
+        if ($reason === 'recaptcha_active') {
+            return $this->text('kwtsms.turnstile.refuse_recaptcha');
+        }
+        if ($reason === 'secret_wrong') {
+            return $this->text('kwtsms.turnstile.secret_wrong_off');
+        }
         if ($reason === 'kwtsms_ack') {
             return $this->text('kwtsms.settings.ack_required');
         }
