@@ -149,7 +149,10 @@ class CodeSender
             ]);
             // The Web OTP line: "@host #code", always the last line, never editable.
             $host = self::hostOf((string) call_user_func($this->storefront_url, $storefront_id));
-            $text .= "\n@" . $host . ' #' . $code;
+            // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 5), task 596. No host, no line (never "@ #code").
+            if ($host !== '') {
+                $text .= "\n@" . $host . ' #' . $code;
+            }
 
             $result = call_user_func($this->send, [$phone], $text, [
                 'source' => 'otp',
