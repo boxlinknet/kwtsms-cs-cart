@@ -46,7 +46,9 @@ use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
+use Tygh\Addons\Kwtsms\Codes\CodeAvailability; // 2026-10-24 12:37 +03: Task M1.4, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeHasher; // 2026-10-23 21:28 +03: Task M1.3, task 596
+use Tygh\Addons\Kwtsms\Codes\CodeSender; // 2026-10-24 12:37 +03: Task M1.4, task 596
 use Tygh\Addons\Kwtsms\Codes\OtpService; // 2026-10-23 21:28 +03: Task M1.3, task 596
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
@@ -311,6 +313,46 @@ class ServiceProvider implements ServiceProviderInterface
                 null,
                 null,
                 $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-10-24 12:37 +03: Task M1.4 (SafatMall G2, H2, I3), task 596. The code SMS sender (send callable = the
+        // one SmsService, built on first use) and the availability states of the code features. The storefront URL is
+        // the storefront's own (its host becomes the Web OTP line), the default storefront's when the id is unknown.
+        $app['kwtsms.code_sender'] = function (Container $app): CodeSender {
+            return new CodeSender(
+                static function (array $phones, string $text, array $context) use ($app) {
+                    return $app['kwtsms.sms']->send($phones, $text, $context);
+                },
+                $app['kwtsms.templates'],
+                $app['kwtsms.config'],
+                static function (int $storefront_id) use ($app): string {
+                    try {
+                        if (isset($app['storefront.repository'])) {
+                            $repository = $app['storefront.repository'];
+                            $storefront = $storefront_id > 0 ? $repository->findById($storefront_id) : null;
+                            $storefront = $storefront ?: $repository->findDefault();
+                            if ($storefront && (string) $storefront->url !== '') {
+                                return (string) $storefront->url;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        return (string) \Tygh\Registry::get('config.http_host');
+                    }
+
+                    return (string) \Tygh\Registry::get('config.http_host');
+                },
+                static function (int $storefront_id, string $lang): string {
+                    return \Tygh\Addons\Kwtsms\Templates\BrandNames::get($storefront_id, $lang);
+                },
+                $app['kwtsms.logs.debug']
+            );
+        };
+        $app['kwtsms.code_availability'] = function (Container $app): CodeAvailability {
+            return new CodeAvailability(
+                $app['kwtsms.config'],
+                $app['kwtsms.state'],
+                $app['kwtsms.sender_resolver'],
+                $app['kwtsms.alerts']
             );
         };
         // 2026-10-23 00:13 +03: Task A9 (R8), task 596. One crossing of the low-balance threshold, one

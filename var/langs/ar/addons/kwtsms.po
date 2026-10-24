@@ -5533,3 +5533,114 @@ msgstr "تم بلوغ حد الرسائل في الساعة"
 msgctxt "Languages::kwtsms.alert.store_hour_cap.text"
 msgid "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."
 msgstr "بلغ المتجر حده في الساعة وهو [cap] رسالة. تُرفض الرسائل الأخرى حتى الساعة التالية."
+
+# 2026-10-24 12:39 +03: Task M1.4 (SafatMall G2, H2, I3; P3-9, P3-13, P3-24, P3-37), task 596. The code SMS and the
+# phone-changed notice: default texts, Templates page names, errors, placeholder names, the otp_unavailable alert and the
+# otp_unreachable setting. Codes go through Codes\CodeSender; the Web OTP last line is added by code, never edited.
+msgctxt "Languages::kwtsms.tpl.otp.code.C"
+msgid "{store_name}: your code is {code}. It expires in {minutes} min. Never share it."
+msgstr "رمزك من {store_name}: {code}. صالح {minutes} دقيقة. لا تشاركه."
+
+msgctxt "Languages::kwtsms.tpl.security.phone_changed.C"
+msgid "{store_name}: the mobile number on your account changed on {date}. Not you? Contact us now."
+msgstr "تم تغيير رقم جوالك في {store_name}. إن لم تكن أنت، اتصل بنا."
+
+msgctxt "Languages::kwtsms.templates.group_codes"
+msgid "Codes and security"
+msgstr "الرموز والأمان"
+
+msgctxt "Languages::kwtsms.templates.event.otp.code"
+msgid "SMS code"
+msgstr "رمز التحقق عبر الرسائل"
+
+msgctxt "Languages::kwtsms.templates.event.security.phone_changed"
+msgid "Phone number changed notice"
+msgstr "إشعار تغيير رقم الجوال"
+
+msgctxt "Languages::kwtsms.templates.code_state_link"
+msgid "Change in Settings"
+msgstr "التغيير من الإعدادات"
+
+msgctxt "Languages::kwtsms.templates.editor_help_code"
+msgid "The add-on adds a last line with your shop address and the code, so phones can fill the code in. You can't edit that line. Keep {store_name} and {code}; no links."
+msgstr "تضيف الإضافة سطرا أخيرا فيه عنوان متجرك والرمز ليملأ الهاتف الرمز تلقائيا، ولا يمكن تعديله. أبق {store_name} و{code} في النص، ولا تضف روابط."
+
+msgctxt "Languages::kwtsms.templates.editor_help_phone_changed"
+msgid "Sent to the old number after a customer changes the phone number of the account. Keep {store_name}; no links."
+msgstr "يُرسل إلى الرقم القديم بعد أن يغير العميل رقم الجوال في حسابه. أبق {store_name} في النص، ولا تضف روابط."
+
+msgctxt "Languages::kwtsms.templates.warn_code_template"
+msgid "Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+msgstr "غير مسموح أو ناقص في نص الرمز: [found]. لا روابط في نصوص الرموز، ولا متغيرات غير المعروضة، ورسالة الرمز تحتاج {code}."
+
+msgctxt "Languages::kwtsms.templates.error_code_template"
+msgid "Not saved. Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+msgstr "لم يُحفظ. غير مسموح أو ناقص في نص الرمز: [found]. لا روابط في نصوص الرموز، ولا متغيرات غير المعروضة، ورسالة الرمز تحتاج {code}."
+
+msgctxt "Languages::kwtsms.templates.warn_code_store_name"
+msgid "Code texts need {store_name}, so customers know which shop sent the code. This text can't be saved without it."
+msgstr "نصوص الرموز تحتاج {store_name} ليعرف العميل أي متجر أرسل الرمز. لا يمكن حفظ هذا النص بدونه."
+
+msgctxt "Languages::kwtsms.templates.error_code_store_name"
+msgid "Not saved. Code texts must include {store_name}, so customers know which shop sent the code."
+msgstr "لم يُحفظ. يجب أن تتضمن نصوص الرموز {store_name} ليعرف العميل أي متجر أرسل الرمز."
+
+msgctxt "Languages::kwtsms.templates.ph_code"
+msgid "One-time code"
+msgstr "رمز التحقق لمرة واحدة"
+
+msgctxt "Languages::kwtsms.templates.ph_minutes"
+msgid "Minutes the code stays valid"
+msgstr "عدد الدقائق التي يبقى فيها الرمز صالحا"
+
+msgctxt "Languages::kwtsms.templates.ph_date"
+msgid "Date and time of the change"
+msgstr "تاريخ التغيير ووقته"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.title"
+msgid "SMS codes can't be sent"
+msgstr "تعذر إرسال رموز التحقق"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.text"
+msgid "SMS codes can't be sent now: [reason]. Settings > Phone and codes sets what customers see meanwhile."
+msgstr "تعذر إرسال رموز التحقق الآن: [reason]. من الإعدادات > الهاتف ورموز التحقق تحدد ما يظهر للعملاء في هذه الأثناء."
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.gateway"
+msgid "kwtSMS is unreachable, suspended or not set up"
+msgstr "تعذر الوصول إلى kwtSMS أو أنه موقوف أو غير مهيأ"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.balance"
+msgid "the balance is under 1 credit"
+msgstr "الرصيد أقل من رصيد واحد"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.pilot"
+msgid "pilot mode is on"
+msgstr "الوضع التجريبي مفعل"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sender"
+msgid "the Sender ID is KWT-SMS and test mode is off"
+msgstr "معرف المرسل هو KWT-SMS ووضع الاختبار معطل"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.daily_cap"
+msgid "the daily SMS limit was reached"
+msgstr "تم بلوغ حد الرسائل اليومي"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.other"
+msgid "the cause is unknown"
+msgstr "السبب غير معروف"
+
+msgctxt "Languages::kwtsms.settings.field.otp_unreachable"
+msgid "When SMS codes can't be sent"
+msgstr "عند تعذر إرسال رموز التحقق"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_pause"
+msgid "Pause: refuse the request and the form"
+msgstr "إيقاف: رفض الطلب والنموذج"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_continue"
+msgid "Continue: save without a verified phone"
+msgstr "متابعة: الحفظ دون رقم جوال موثق"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_help"
+msgid "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."
+msgstr "تُطبق عند تعذر إرسال الرسائل: تعذر الوصول إلى kwtSMS أو إيقافه، أو رصيد أقل من رصيد واحد، أو الوضع التجريبي، أو معرف المرسل KWT-SMS مع تعطيل وضع الاختبار. الإيقاف يخبر العميل أن رموز التحقق غير متاحة ويطلب منه المحاولة بعد دقائق. المتابعة تسمح بإتمام النموذج بلا توثيق الجوال. كلاهما ينشئ تنبيها. ولا تتم المتابعة أبدا بسبب مشكلة في رقم واحد."

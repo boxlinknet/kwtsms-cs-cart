@@ -60,6 +60,10 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 {elseif $e.origin == "none"}
                     <p class="muted kwtsms-editor__help" id="kwtsms_editor_help">{__("kwtsms.templates.editor_help_none")}</p>
                 {/if}
+                {* 2026-10-24 12:35 +03: Task M1.4 (P3-9), task 596. The Web OTP line is added by the add-on, never edited. *}
+                {if $e.kind == "code"}
+                    <p class="muted kwtsms-editor__help" id="kwtsms_editor_help_code">{if $e.event_id == "otp.code"}{__("kwtsms.templates.editor_help_code")}{else}{__("kwtsms.templates.editor_help_phone_changed")}{/if}</p>
+                {/if}
                 <textarea id="kwtsms_body" name="kwtsms_tpl[body]" class="kwtsms-body" rows="5" maxlength="{$t.max_chars}"
                           dir="{$e.direction}" lang="{$e.lang}" spellcheck="false"{if $e.origin != "own"} data-kwtsms-origin="{$e.origin}"{/if}>{$e.body}</textarea>
 
@@ -73,9 +77,10 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                 </div>
 
                 <ul class="kwtsms-advice" id="kwtsms_advice" aria-live="polite">
-                    {foreach ["store_name_missing", "unknown", "html_span", "adjacent", "entity_fragment", "promotional"] as $code}
+                    {* 2026-10-24 12:35 +03: Task M1.4 (P3-9, P3-37), task 596. code_template and code_store_name are errors of a code text: the save is refused. *}
+                    {foreach ["store_name_missing", "code_template", "code_store_name", "unknown", "html_span", "adjacent", "entity_fragment", "promotional"] as $code}
                         {$show = isset($e.advice[$code])}
-                        <li class="kwtsms-advice__item kwtsms-advice__item--{if $code == "store_name_missing" || $code == "unknown"}stop{else}warn{/if}{if !$show} hidden{/if}"
+                        <li class="kwtsms-advice__item kwtsms-advice__item--{if $code == "store_name_missing" || $code == "unknown" || $code == "code_template" || $code == "code_store_name"}stop{else}warn{/if}{if !$show} hidden{/if}"
                             data-code="{$code}" data-text="{__("kwtsms.templates.warn_`$code`")}"><span class="kwtsms-advice__text">{if $show}{__("kwtsms.templates.warn_`$code`", ["[found]" => $e.advice[$code]|fn_html_escape])}{/if}</span></li>
                     {/foreach}
                 </ul>

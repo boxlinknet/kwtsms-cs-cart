@@ -541,6 +541,17 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description">{__("kwtsms.settings.cap_ip_verify_help")}</p>
                 </div>
             </div>
+            {* 2026-10-24 12:38 +03: Task M1.4 (SafatMall I3; P3-13, P3-24), task 596. What a code feature does when SMS codes cannot be sent (gateway down, balance, pilot mode, sender): pause (refuse) or continue (let the form through, unverified, and alert). *}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_otp_unreachable">{__("kwtsms.settings.field.otp_unreachable")}:</label>
+                <div class="controls">
+                    <select name="kwtsms_codes[otp_unreachable]" id="kwtsms_otp_unreachable" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_otp_unreachable_help">
+                        <option value="pause"{if $kwtsms.codes.otp_unreachable != "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_pause")}</option>
+                        <option value="continue"{if $kwtsms.codes.otp_unreachable == "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_continue")}</option>
+                    </select>
+                    <p class="muted description" id="kwtsms_otp_unreachable_help">{__("kwtsms.settings.otp_unreachable_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

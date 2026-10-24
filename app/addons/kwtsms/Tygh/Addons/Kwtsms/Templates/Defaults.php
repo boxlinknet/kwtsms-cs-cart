@@ -67,6 +67,28 @@ class Defaults
     /** 2026-10-23 00:14 +03: Task A9, task 596. The add-on's own low-balance event (A only). */
     public const EVENT_LOW_BALANCE = 'kwtsms.low_balance';
 
+    /**
+     * 2026-10-24 12:33 +03: Task M1.4 (SafatMall G2, H2, I3; P3-9, P3-37), task 596. The two code and security
+     * texts. They are not notification events (not in schemas/kwtsms/events.php, no core switch row); only
+     * Codes\CodeSender sends them. Customer receiver only. Their language variables are kwtsms.tpl.otp.code.C and
+     * kwtsms.tpl.security.phone_changed.C (the id never starts with "kwtsms.", so core reads no language key of it).
+     */
+    public const EVENT_OTP_CODE = 'otp.code';
+    public const EVENT_PHONE_CHANGED = 'security.phone_changed';
+    public const CODE_EVENTS = ['otp.code', 'security.phone_changed'];
+
+    /** The heading of the code rows on the Templates page. */
+    public const GROUP_CODES = 'kwtsms.templates.group_codes';
+
+    /**
+     * 2026-10-24 12:33 +03: Task M1.4 (P3-9), task 596. The only placeholders a code text may use (a code text is
+     * a security text: no order, customer or link value). {code} is secret (masked in every log copy, D7).
+     */
+    public const CODE_PLACEHOLDERS = [
+        self::EVENT_OTP_CODE => ['store_name', 'code', 'minutes'],
+        self::EVENT_PHONE_CHANGED => ['store_name', 'date'],
+    ];
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -105,6 +127,8 @@ class Defaults
      */
     public const EVENT_SECRETS = [
         self::EVENT_RECOVER => ['reset_url'],
+        // 2026-10-24 12:33 +03: Task M1.4 (D7), task 596. The one-time code.
+        self::EVENT_OTP_CODE => ['code'],
     ];
 
     /**
@@ -167,8 +191,20 @@ class Defaults
         $rows[] = self::row(self::EVENT_PLACED, self::RECEIVER_VENDOR, '', '', true);
         // 2026-10-23 00:16 +03: Task A9, task 596. Low kwtSMS balance: admin.
         $rows[] = self::row(self::EVENT_LOW_BALANCE, self::RECEIVER_ADMIN);
+        // 2026-10-24 12:33 +03: Task M1.4 (SafatMall G2, H2), task 596. The code SMS and the phone-changed notice
+        // (customer only).
+        $rows[] = self::row(self::EVENT_OTP_CODE, self::RECEIVER_CUSTOMER);
+        $rows[] = self::row(self::EVENT_PHONE_CHANGED, self::RECEIVER_CUSTOMER);
 
         return $rows;
+    }
+
+    /**
+     * 2026-10-24 12:33 +03: Task M1.4, task 596. True for the code and security texts (CODE_EVENTS).
+     */
+    public static function isCodeEvent(string $event_id): bool
+    {
+        return in_array($event_id, self::CODE_EVENTS, true);
     }
 
     /**
@@ -205,6 +241,11 @@ class Defaults
      */
     public static function allowedPlaceholders(string $event_id, string $receiver): array
     {
+        // 2026-10-24 12:33 +03: Task M1.4 (P3-9), task 596. A code text knows its own few names only.
+        if (isset(self::CODE_PLACEHOLDERS[$event_id])) {
+            return self::CODE_PLACEHOLDERS[$event_id];
+        }
+
         // 2026-10-22 17:12 +03: Task A4, task 596. A declared event adds the placeholder names of its declaration.
         // 2026-10-22 17:59 +03: Task A5, task 596. A shipped event (order.shipment_updated) knows its own names even
         // before the declarations are registered (seeding, unit tests).

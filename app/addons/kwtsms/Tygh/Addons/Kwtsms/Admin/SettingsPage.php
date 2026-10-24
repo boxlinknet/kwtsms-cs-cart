@@ -216,6 +216,8 @@ class SettingsPage
             'otp_phone_fail_ceiling' => $this->config->otpPhoneFailCeiling(),
             'otp_resend_waits' => implode(',', $this->config->otpResendWaits()),
             'cap_ip_verify_hour' => $this->config->capIpVerifyHour(),
+            // 2026-10-24 12:38 +03: Task M1.4 (P3-13), task 596. 'pause' or 'continue'.
+            'otp_unreachable' => $this->config->otpUnreachable(),
         ];
     }
 

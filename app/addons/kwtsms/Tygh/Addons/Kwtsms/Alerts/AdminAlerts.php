@@ -57,6 +57,10 @@ class AdminAlerts
         // 2026-10-23 19:55 +03: Task M1.2 (P3-26), task 596. The store hourly SMS cap was reached: bell and e-mail,
         // once per clock hour (the instance is the hour).
         'store_hour_cap',
+        // 2026-10-24 12:36 +03: Task M1.4 (P3-13, P3-24), task 596. SMS codes cannot be sent (gateway, balance, pilot
+        // mode, sender, daily cap): bell and e-mail, once per reason per 24 h (the instance is the reason). The text
+        // names the reason through kwtsms.alert.otp_unavailable.reason.<reason>.
+        'otp_unavailable',
     ];
 
     /**
@@ -171,6 +175,12 @@ class AdminAlerts
                     [0 => htmlspecialchars((string) $params['[credits]'], ENT_QUOTES, 'UTF-8')],
                     $lang
                 );
+            }
+            // 2026-10-24 12:36 +03: Task M1.4 (P3-24), task 596. The reason key becomes its name in the alert's
+            // language.
+            if ($condition === 'otp_unavailable' && isset($params['[reason]'])) {
+                $reason_key = (string) preg_replace('/[^a-z_]/', '', (string) $params['[reason]']);
+                $params['[reason]'] = (string) __('kwtsms.alert.otp_unavailable.reason.' . $reason_key, [], $lang);
             }
             $safe = [];
             foreach ($params as $name => $value) {

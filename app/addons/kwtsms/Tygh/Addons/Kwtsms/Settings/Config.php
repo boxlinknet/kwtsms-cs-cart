@@ -153,10 +153,12 @@ class Config implements ConfigInterface
         // cap and the trusted proxy list.
         // 2026-10-23 21:32 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. The code lifetime, the wrong-attempt limits,
         // the resend waits and the per-IP verify limit.
+        // 2026-10-24 12:38 +03: Task M1.4 (P3-13), task 596. otp_unreachable: pause or continue when codes cannot be
+        // sent.
         'update_codes' => [
             'turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
-            'otp_resend_waits', 'cap_ip_verify_hour',
+            'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable',
         ],
     ];
 

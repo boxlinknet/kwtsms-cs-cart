@@ -131,8 +131,12 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
             var text = counter.storedForm(body.value);
             var counts = counter.count(counter.clean(counter.render(text, reference)));
             var worstCounts = counter.count(counter.clean(counter.render(text, worst)));
-            var found = counter.analyze(text, receiver, config);
-            var unknown = counter.unknownPlaceholders(text, allowed);
+            // 2026-10-24 12:36 +03: Task M1.4, task 596. The event id selects the code rules; a code text reports a
+            // foreign placeholder as code_template (an error, no "Save anyway"), so "unknown" stays empty for it.
+            var eventId = root.getAttribute('data-kwtsms-event') || '';
+            var found = counter.analyze(text, receiver, config, eventId);
+            var unknown = Array.isArray(config.code_events) && config.code_events.indexOf(eventId) !== -1
+                ? [] : counter.unknownPlaceholders(text, allowed);
             var i;
             var code;
             var detail;

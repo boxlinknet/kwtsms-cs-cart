@@ -303,7 +303,8 @@ class TemplateRepository
      * Multi-Vendor), then the generic status rows, then one row per order status of the store and receiver
      * (C, then A), custom statuses included. A status row with no text of its own "uses the generic text".
      *
-     * Row: event_id, receiver, kind (placed|placed_multi|generic|status), status ('' or the code), status_name,
+     * Row: event_id, receiver, kind (placed|placed_multi|generic|status|declared|code), status ('' or the code),
+     * status_name,
      * template_id (0 = no template row yet; call ensureTemplate() before save()), uses_generic, updated_at, and
      * bodies: lang => ['body' => ..., 'is_edited' => 'Y'|'N'] for every language that has a row.
      *
@@ -421,6 +422,14 @@ class TemplateRepository
                 $declared_row['public_form'] = $decl->publicForm();
                 $rows[] = $declared_row;
             }
+        }
+        // 2026-10-24 12:33 +03: Task M1.4 (SafatMall G2, H2), task 596. The two code and security texts, last, kind
+        // code, under the heading "Codes and security". They have no notification switch (CodeSender sends them,
+        // the Settings of the code features decide), so the page shows their state read-only.
+        foreach (Defaults::CODE_EVENTS as $event_id) {
+            $code_row = $row($event_id, Defaults::RECEIVER_CUSTOMER, 'code', '', $this->eventLabel($event_id, $lang));
+            $code_row['group'] = Defaults::GROUP_CODES;
+            $rows[] = $code_row;
         }
         $this->trace('debug', 'rows', 'rowsForUi()', ['rows' => count($rows)], $started);
 

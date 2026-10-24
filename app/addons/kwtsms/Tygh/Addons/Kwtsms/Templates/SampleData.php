@@ -208,6 +208,20 @@ final class SampleData
     }
 
     /**
+     * 2026-10-24 12:34 +03: Task M1.4 (code SMS), task 596. The values of the code placeholders: a reference code,
+     * lifetime and date, or the worst case (a 6-digit code, 2 digits of minutes, the date at its longest). The code is
+     * a made-up one; a real code is never shown on the page.
+     *
+     * @return array<string,string>
+     */
+    public static function codes(bool $worst = false): array
+    {
+        return $worst
+            ? ['code' => '999999', 'minutes' => '15', 'date' => '2026-12-31 23:59']
+            : ['code' => '048213', 'minutes' => '5', 'date' => '2026-10-24 12:30'];
+    }
+
+    /**
      * @param array<int,string> $names
      */
     private static function longest(array $names, string $fallback): string

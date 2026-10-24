@@ -260,6 +260,10 @@ class TemplatesPage
                 'promo_en' => TemplateChecks::PROMO_WORDS_EN,
                 'promo_ar' => TemplateChecks::PROMO_WORDS_AR,
                 'tlds' => MessageCleaner::URL_TLDS,
+                // 2026-10-24 12:36 +03: Task M1.4 (P3-9), task 596. The code events and their placeholder sets, for the
+                // live code rules of the editor script.
+                'code_events' => Defaults::CODE_EVENTS,
+                'code_placeholders' => Defaults::CODE_PLACEHOLDERS,
             ],
             'max_pages' => MessageCleaner::MAX_PAGES,
             'max_chars' => TemplateRepository::MAX_BODY_CHARS,
@@ -326,6 +330,7 @@ class TemplatesPage
         $switch = null;
         $sf_switch = null;
         $note = '';
+        $code_switch = null; // 2026-10-24 12:34 +03: Task M1.4, task 596. Only a code row has one.
         // 2026-10-22 17:13 +03: Task A4, task 596. A declared event has a switch of its own (V rows too, OFF until
         // stored).
         if ($kind === 'placed' || $kind === 'status' || $kind === 'declared') {
@@ -341,6 +346,11 @@ class TemplatesPage
             }
         } elseif ($kind === 'placed_multi') {
             $note = 'follows_placed';
+        } elseif ($kind === 'code') {
+            // 2026-10-24 12:34 +03: Task M1.4 (SafatMall G2, H2), task 596. No switch: CodeSender sends these texts and
+            // the code features in Settings decide. The row shows that state, read-only, with a link to it.
+            $note = 'code';
+            $code_switch = $this->codeSwitch($event_id);
         } else {
             $note = 'generic';
         }
@@ -365,6 +375,8 @@ class TemplatesPage
             // turn it on); a scenario that is on shows nothing. No gate, or a gate that throws: the notice shows.
             'public_form' => $kind === 'declared' ? $this->captchaNotice((string) ($source['public_form'] ?? '')) : '',
             'switch_note' => $note,
+            // 2026-10-24 12:34 +03: Task M1.4, task 596. Code rows: ['on' => bool, 'link' => settings URL]; else null.
+            'code_switch' => $code_switch,
             'badge' => $badge,
             'has_text' => $effective !== '',
             'snippet' => $effective === '' ? '' : self::snippet($effective),
@@ -373,6 +385,23 @@ class TemplatesPage
             'unicode' => MessageCleaner::isUnicode($sent),
             'editing' => false,
         ];
+    }
+
+    /**
+     * 2026-10-24 12:34 +03: Task M1.4 (SafatMall G2, H2), task 596. The state shown for a code row: the code text
+     * is sent while any feature that sends it is ON in Settings (read from Config): otp.code by "register_code" or
+     * "phone_change_code", security.phone_changed by "phone_change_notice". Not a switch: the link leads to the
+     * Settings section where the features are.
+     *
+     * @return array{on:bool,link:string}
+     */
+    private function codeSwitch(string $event_id): array
+    {
+        $on = $event_id === Defaults::EVENT_PHONE_CHANGED
+            ? $this->config->phoneChangeNotice()
+            : ($this->config->registerCode() || $this->config->phoneChangeCode());
+
+        return ['on' => $on, 'link' => 'kwtsms.settings&section=codes'];
     }
 
     /**
@@ -493,12 +522,19 @@ class TemplatesPage
     private function advice(string $stored, string $receiver, string $event_id): array
     {
         $out = [];
-        $found = TemplateChecks::analyze($stored, $receiver);
+        // 2026-10-24 12:34 +03: Task M1.4, task 596. The event id selects the code rules (errors, not warnings).
+        $found = TemplateChecks::analyze($stored, $receiver, $event_id);
         if (isset($found[TemplateChecks::STORE_NAME_MISSING])) {
             $out[TemplateChecks::STORE_NAME_MISSING] = '';
         }
+        if (isset($found[TemplateChecks::CODE_TEMPLATE])) {
+            $out[TemplateChecks::CODE_TEMPLATE] = implode(' ', $found[TemplateChecks::CODE_TEMPLATE]);
+        }
+        if (isset($found[TemplateChecks::CODE_STORE_NAME])) {
+            $out[TemplateChecks::CODE_STORE_NAME] = '';
+        }
         $unknown = TemplateRenderer::unknownPlaceholders($stored, Defaults::allowedPlaceholders($event_id, $receiver));
-        if ($unknown !== []) {
+        if ($unknown !== [] && !Defaults::isCodeEvent($event_id)) {
             $out['unknown'] = implode(' ', $unknown);
         }
         $codes = [
@@ -572,8 +608,28 @@ class TemplatesPage
         }
 
         $stored = TemplateRepository::storedForm($input['body']);
-        $warnings = TemplateChecks::analyze($stored, $input['receiver']);
+        // 2026-10-24 12:34 +03: Task M1.4 (P3-9, P3-37), task 596. The event id selects the code rules.
+        $warnings = TemplateChecks::analyze($stored, $input['receiver'], $input['event_id']);
         $label = $this->rowLabel($row);
+
+        // 2026-10-24 12:34 +03: Task M1.4 (P3-9, P3-37), task 596. A code text with a link, a foreign placeholder or
+        // no {code} (code_template), or without {store_name} (code_store_name), is refused outright: no "Save anyway".
+        $code_errors = [
+            TemplateChecks::CODE_TEMPLATE => 'kwtsms.templates.error_code_template',
+            TemplateChecks::CODE_STORE_NAME => 'kwtsms.templates.error_code_store_name',
+        ];
+        foreach ($code_errors as $code_error => $langvar) {
+            if (isset($warnings[$code_error])) {
+                $result['reason'] = $code_error;
+                $result['draft'] = $this->draft($input, [], $code_error);
+                $this->say('E', $langvar, [
+                    '[found]' => implode(' ', $warnings[$code_error]),
+                ]);
+                $this->trace('warning', 'save', 'Template not saved: ' . $code_error, $input, $started, $code_error);
+
+                return $result;
+            }
+        }
 
         if (isset($warnings[TemplateChecks::STORE_NAME_MISSING])) {
             $result['reason'] = 'store_name';
@@ -653,7 +709,7 @@ class TemplatesPage
         if ($saved['removed'] !== []) {
             $this->say('W', 'kwtsms.templates.removed', ['[found]' => self::visible($saved['removed'])]);
         }
-        foreach (TemplateChecks::analyze($saved['body'], $input['receiver']) as $code => $found) {
+        foreach (TemplateChecks::analyze($saved['body'], $input['receiver'], $input['event_id']) as $code => $found) {
             if ($code === TemplateChecks::STORE_NAME_MISSING) {
                 continue;
             }
@@ -1415,7 +1471,8 @@ class TemplatesPage
         // 2026-10-22 19:08 +03: Task A6, task 596. And the profile ones (user id, phone, reset link).
         return SampleData::reference($lang, $status_name, $brand) + SampleData::shipment(false, $lang)
             + SampleData::profile(false) + SampleData::lowStock(false) // 2026-10-22 21:29 +03: Task A7, task 596
-            + SampleData::lowBalance(false); // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::lowBalance(false) // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::codes(false); // 2026-10-24 12:34 +03: Task M1.4, task 596
     }
 
     /**
@@ -1500,7 +1557,8 @@ class TemplatesPage
         return SampleData::worst($lang, array_values(array_filter($status, 'strlen')), $currency, $own_status_name)
             + SampleData::shipment(true, $lang) + SampleData::profile(true) // 2026-10-22 19:08 +03: Task A6, task 596
             + SampleData::lowStock(true) // 2026-10-22 21:29 +03: Task A7, task 596
-            + SampleData::lowBalance(true); // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::lowBalance(true) // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::codes(true); // 2026-10-24 12:34 +03: Task M1.4, task 596
     }
 
     /**

@@ -5530,3 +5530,114 @@ msgstr "Hourly SMS limit reached"
 msgctxt "Languages::kwtsms.alert.store_hour_cap.text"
 msgid "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."
 msgstr "The store reached its hourly limit of [cap] SMS. Further SMS are refused until the next hour."
+
+# 2026-10-24 12:39 +03: Task M1.4 (SafatMall G2, H2, I3; P3-9, P3-13, P3-24, P3-37), task 596. The code SMS and the
+# phone-changed notice: default texts, Templates page names, errors, placeholder names, the otp_unavailable alert and the
+# otp_unreachable setting. Codes go through Codes\CodeSender; the Web OTP last line is added by code, never edited.
+msgctxt "Languages::kwtsms.tpl.otp.code.C"
+msgid "{store_name}: your code is {code}. It expires in {minutes} min. Never share it."
+msgstr "{store_name}: your code is {code}. It expires in {minutes} min. Never share it."
+
+msgctxt "Languages::kwtsms.tpl.security.phone_changed.C"
+msgid "{store_name}: the mobile number on your account changed on {date}. Not you? Contact us now."
+msgstr "{store_name}: the mobile number on your account changed on {date}. Not you? Contact us now."
+
+msgctxt "Languages::kwtsms.templates.group_codes"
+msgid "Codes and security"
+msgstr "Codes and security"
+
+msgctxt "Languages::kwtsms.templates.event.otp.code"
+msgid "SMS code"
+msgstr "SMS code"
+
+msgctxt "Languages::kwtsms.templates.event.security.phone_changed"
+msgid "Phone number changed notice"
+msgstr "Phone number changed notice"
+
+msgctxt "Languages::kwtsms.templates.code_state_link"
+msgid "Change in Settings"
+msgstr "Change in Settings"
+
+msgctxt "Languages::kwtsms.templates.editor_help_code"
+msgid "The add-on adds a last line with your shop address and the code, so phones can fill the code in. You can't edit that line. Keep {store_name} and {code}; no links."
+msgstr "The add-on adds a last line with your shop address and the code, so phones can fill the code in. You can't edit that line. Keep {store_name} and {code}; no links."
+
+msgctxt "Languages::kwtsms.templates.editor_help_phone_changed"
+msgid "Sent to the old number after a customer changes the phone number of the account. Keep {store_name}; no links."
+msgstr "Sent to the old number after a customer changes the phone number of the account. Keep {store_name}; no links."
+
+msgctxt "Languages::kwtsms.templates.warn_code_template"
+msgid "Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+msgstr "Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+
+msgctxt "Languages::kwtsms.templates.error_code_template"
+msgid "Not saved. Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+msgstr "Not saved. Not allowed or missing in this code text: [found]. Code texts take no links and only the placeholders shown, and the code SMS needs {code}."
+
+msgctxt "Languages::kwtsms.templates.warn_code_store_name"
+msgid "Code texts need {store_name}, so customers know which shop sent the code. This text can't be saved without it."
+msgstr "Code texts need {store_name}, so customers know which shop sent the code. This text can't be saved without it."
+
+msgctxt "Languages::kwtsms.templates.error_code_store_name"
+msgid "Not saved. Code texts must include {store_name}, so customers know which shop sent the code."
+msgstr "Not saved. Code texts must include {store_name}, so customers know which shop sent the code."
+
+msgctxt "Languages::kwtsms.templates.ph_code"
+msgid "One-time code"
+msgstr "One-time code"
+
+msgctxt "Languages::kwtsms.templates.ph_minutes"
+msgid "Minutes the code stays valid"
+msgstr "Minutes the code stays valid"
+
+msgctxt "Languages::kwtsms.templates.ph_date"
+msgid "Date and time of the change"
+msgstr "Date and time of the change"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.title"
+msgid "SMS codes can't be sent"
+msgstr "SMS codes can't be sent"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.text"
+msgid "SMS codes can't be sent now: [reason]. Settings > Phone and codes sets what customers see meanwhile."
+msgstr "SMS codes can't be sent now: [reason]. Settings > Phone and codes sets what customers see meanwhile."
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.gateway"
+msgid "kwtSMS is unreachable, suspended or not set up"
+msgstr "kwtSMS is unreachable, suspended or not set up"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.balance"
+msgid "the balance is under 1 credit"
+msgstr "the balance is under 1 credit"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.pilot"
+msgid "pilot mode is on"
+msgstr "pilot mode is on"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sender"
+msgid "the Sender ID is KWT-SMS and test mode is off"
+msgstr "the Sender ID is KWT-SMS and test mode is off"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.daily_cap"
+msgid "the daily SMS limit was reached"
+msgstr "the daily SMS limit was reached"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.other"
+msgid "the cause is unknown"
+msgstr "the cause is unknown"
+
+msgctxt "Languages::kwtsms.settings.field.otp_unreachable"
+msgid "When SMS codes can't be sent"
+msgstr "When SMS codes can't be sent"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_pause"
+msgid "Pause: refuse the request and the form"
+msgstr "Pause: refuse the request and the form"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_continue"
+msgid "Continue: save without a verified phone"
+msgstr "Continue: save without a verified phone"
+
+msgctxt "Languages::kwtsms.settings.otp_unreachable_help"
+msgid "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."
+msgstr "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."

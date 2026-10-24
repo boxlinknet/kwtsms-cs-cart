@@ -35,6 +35,14 @@ final class TemplateChecks
     public const ENTITY_FRAGMENT = 'entity_fragment';
     public const PROMOTIONAL = 'promotional';
 
+    /**
+     * 2026-10-24 12:33 +03: Task M1.4 (P3-9, P3-37), task 596. Errors of a code text (Defaults::isCodeEvent()): a
+     * link, a placeholder outside the allowed set, or {code} missing from otp.code (code_template); {store_name}
+     * missing (code_store_name). Both refuse the save; neither is a warning.
+     */
+    public const CODE_TEMPLATE = 'code_template';
+    public const CODE_STORE_NAME = 'code_store_name';
+
     /** English promotional words, matched as whole words, any case. */
     public const PROMO_WORDS_EN = [
         'code', 'coupon', 'voucher', 'promo', 'promotion', 'offer', 'sale', 'discount', 'deal', 'free', 'bonus',
@@ -67,17 +75,23 @@ final class TemplateChecks
     /**
      * @param string $body     The stored form of the body (what the repository keeps)
      * @param string $receiver 'C' (customer) or 'A' (administrator)
+     * @param string $event_id 2026-10-24 12:33 +03: Task M1.4, task 596. '' (the 1.1.0 rules) or the event of the
+     *                         text; a code event (Defaults::isCodeEvent()) gets the code rules
      *
      * @return array<string,array<int,string>> Warning code => what was found; only the warnings that apply
      */
-    public static function analyze(string $body, string $receiver): array
+    public static function analyze(string $body, string $receiver, string $event_id = ''): array
     {
         $found = [];
         if (trim($body) === '') {
             return $found;
         }
 
-        if ($receiver === Defaults::RECEIVER_CUSTOMER && strpos($body, '{store_name}') === false) {
+        // 2026-10-24 12:33 +03: Task M1.4 (P3-9, P3-37), task 596. A code text has its own rules.
+        $is_code = Defaults::isCodeEvent($event_id);
+        if ($is_code) {
+            $found = self::codeErrors($body, $event_id);
+        } elseif ($receiver === Defaults::RECEIVER_CUSTOMER && strpos($body, '{store_name}') === false) {
             $found[self::STORE_NAME_MISSING] = [];
         }
 
@@ -96,12 +110,48 @@ final class TemplateChecks
             $found[self::ENTITY_FRAGMENT] = $fragments;
         }
 
-        $promo = self::promotionalWording($body);
+        // 2026-10-24 12:33 +03: Task M1.4, task 596. "Code" is the subject of a code text, and a link is already an
+        // error there: no promotional advice.
+        $promo = $is_code ? [] : self::promotionalWording($body);
         if ($promo !== []) {
             $found[self::PROMOTIONAL] = $promo;
         }
 
         return $found;
+    }
+
+    /**
+     * 2026-10-24 12:33 +03: Task M1.4 (P3-9, P3-37), task 596. The errors of a code text: code_template (a "://" or
+     * "www." link, a placeholder outside the event's set, otp.code without {code}) and code_store_name ({store_name}
+     * missing). The value lists what was found.
+     *
+     * @return array<string,array<int,string>>
+     */
+    private static function codeErrors(string $body, string $event_id): array
+    {
+        $out = [];
+        $bad = [];
+        if (strpos($body, '://') !== false) {
+            $bad[] = '://';
+        }
+        if (stripos($body, 'www.') !== false) {
+            $bad[] = 'www.';
+        }
+        $allowed = Defaults::allowedPlaceholders($event_id, 'C');
+        foreach (TemplateRenderer::unknownPlaceholders($body, $allowed) as $token) {
+            $bad[] = $token;
+        }
+        if ($event_id === Defaults::EVENT_OTP_CODE && strpos($body, '{code}') === false) {
+            $bad[] = '{code}';
+        }
+        if ($bad !== []) {
+            $out[self::CODE_TEMPLATE] = $bad;
+        }
+        if (strpos($body, '{store_name}') === false) {
+            $out[self::CODE_STORE_NAME] = [];
+        }
+
+        return $out;
     }
 
     /**

@@ -33,8 +33,10 @@ USAGE:     Browser: window.kwtsmsCounter. Node: require('./counter.js').
              isUnicode(text), units(text), pages(text)      on cleaned text
              count(cleaned)                  -> {units, pages, unicode, over}  (over: more than 7 pages)
              render(body, values)            -> body with {name} replaced (known names only)
-             analyze(body, receiver, config) -> {code: [found, ...]} for the codes of TemplateChecks, in its order;
-                                                config = {placeholders, promo_en, promo_ar, tlds}
+             analyze(body, receiver, config, eventId) -> {code: [found, ...]} for the codes of TemplateChecks, in its
+                                                order; config = {placeholders, promo_en, promo_ar, tlds, code_events,
+                                                code_placeholders}; eventId (2026-10-24 12:36 +03, Task M1.4) selects
+                                                the code rules of a code text
              unknownPlaceholders(body, allowed) -> ['{typo}', ...]
 DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('textarea') when a DOM exists, for the named
            entities. Display text is the caller's job and uses textContent.
@@ -406,7 +408,7 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
     }
 
     /** TemplateChecks::analyze(). */
-    function analyze(body, receiver, config) {
+    function analyze(body, receiver, config, eventId) {
         var found = {};
         var known = {};
         var list;
@@ -414,6 +416,10 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         var re;
         var text;
         var cleaned;
+        // 2026-10-24 12:36 +03: Task M1.4 (P3-9, P3-37), task 596. A code text (config.code_events) has its own rules,
+        // the same as TemplateChecks::codeErrors(): a link, a placeholder outside its set, otp.code without {code}
+        // (code_template), {store_name} missing (code_store_name); no promotional advice.
+        var isCode = Boolean(eventId) && Array.isArray(config.code_events) && config.code_events.indexOf(eventId) !== -1;
 
         body = String(body);
         if (trim(body) === '') {
@@ -423,7 +429,27 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
             known[name] = true;
         });
 
-        if (receiver === 'C' && body.indexOf('{store_name}') === -1) {
+        if (isCode) {
+            list = [];
+            if (body.indexOf('://') !== -1) {
+                list.push('://');
+            }
+            if (body.toLowerCase().indexOf('www.') !== -1) {
+                list.push('www.');
+            }
+            unknownPlaceholders(body, (config.code_placeholders || {})[eventId] || []).forEach(function (token) {
+                list.push(token);
+            });
+            if (eventId === 'otp.code' && body.indexOf('{code}') === -1) {
+                list.push('{code}');
+            }
+            if (list.length) {
+                found.code_template = list;
+            }
+            if (body.indexOf('{store_name}') === -1) {
+                found.code_store_name = [];
+            }
+        } else if (receiver === 'C' && body.indexOf('{store_name}') === -1) {
             found.store_name_missing = [];
         }
 
@@ -452,6 +478,10 @@ DEPENDS:   Nothing (plain JavaScript, no library); document.createElement('texta
         }
         if (list.length) {
             found.entity_fragment = list;
+        }
+
+        if (isCode) {
+            return found;
         }
 
         list = [];

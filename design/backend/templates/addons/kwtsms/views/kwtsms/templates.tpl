@@ -139,7 +139,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
         </thead>
         {$group = ""}
         {foreach $t.rows as $row}
-            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{elseif $row.kind == "declared"}{$row_group = "declared:`$row.group_key`"}{else}{$row_group = "generic"}{/if}
+            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{elseif $row.kind == "declared"}{$row_group = "declared:`$row.group_key`"}{elseif $row.kind == "code"}{* 2026-10-24 12:35 +03: Task M1.4, task 596. "Codes and security" *}{$row_group = "codes"}{else}{$row_group = "generic"}{/if}
             {if $row_group != $group}
                 {if $group != ""}</tbody>{/if}
                 <tbody>
@@ -202,6 +202,10 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                         <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_follows")}</span>
                     {elseif $row.switch_note == "generic"}
                         <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_generic")}</span>
+                    {elseif $row.switch_note == "code"}
+                        {* 2026-10-24 12:35 +03: Task M1.4 (SafatMall G2, H2), task 596. No switch here: the code features in Settings decide; the state is shown read-only. *}
+                        <span class="kwtsms-switch__text kwtsms-code-state" data-kwtsms-code-state="{if $row.code_switch.on}on{else}off{/if}">{if $row.code_switch.on}{__("kwtsms.status.on")}{else}{__("kwtsms.status.off")}{/if}</span>
+                        <p class="muted kwtsms-switch-note kwtsms-code-state__note"><a href="{"`$row.code_switch.link`#kwtsms_codes"|fn_url}">{__("kwtsms.templates.code_state_link")}</a></p>
                     {else}
                         <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_none")}</span>
                     {/if}
