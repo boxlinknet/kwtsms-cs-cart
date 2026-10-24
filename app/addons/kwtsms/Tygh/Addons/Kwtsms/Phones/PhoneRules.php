@@ -13,11 +13,13 @@
  *            on a new or changed phone (P3-21), which the callers decide.
  * USAGE:     $r = (new PhoneRules($config))->check($posted_phone, $hint_cc);  // ['ok', 'phone', 'reason']
  *            $text = $rules->message($r['reason'], $config->customerSmsCountries());
- * DEPENDS:   Settings\ConfigInterface::customerSmsCountries(), Sms\PhoneNormalizer, Phones\PhoneFormat, __().
+ * DEPENDS:   Settings\ConfigInterface::customerSmsCountries(), Sms\PhoneNormalizer, Phones\PhoneFormat, __(),
+ *            Admin\SettingsPage::localizeCountryOptions() and core country_descriptions (names, M1.5 fix round 1).
  */
 
 namespace Tygh\Addons\Kwtsms\Phones;
 
+use Tygh\Addons\Kwtsms\Admin\SettingsPage;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 
@@ -32,9 +34,18 @@ final class PhoneRules
     /** @var ConfigInterface */
     private $config;
 
-    public function __construct(ConfigInterface $config)
+    /** @var callable|null (string $lang): array<string,string> ISO2 => country name; null = core country_descriptions */
+    private $names;
+
+    /**
+     * 2026-10-24 16:26 +03: $names added, Task M1.5 fix round 1 (localized country names), task 596.
+     *
+     * @param callable|null $names (string $lang): array<string,string>, ISO2 => country name in $lang (test seam)
+     */
+    public function __construct(ConfigInterface $config, ?callable $names = null)
     {
         $this->config = $config;
+        $this->names = $names;
     }
 
     /**
@@ -64,24 +75,58 @@ final class PhoneRules
     /**
      * The customer-facing text of a refusal ('' for any other reason).
      *
-     * @param string[] $allowed_cc Calling codes shown in the country text, e.g. ['965']
+     * 2026-10-24 16:26 +03: Task M1.5 fix round 1 (localized country names), task 596. The country names are those of
+     * core's country descriptions in $lang (default: the current language), the English table where a name is missing.
+     *
+     * @param string[]    $allowed_cc Calling codes shown in the country text, e.g. ['965']
+     * @param string|null $lang       Language code of the text; null = CART_LANGUAGE, else en
      */
-    public function message(string $reason, array $allowed_cc): string
+    public function message(string $reason, array $allowed_cc, ?string $lang = null): string
     {
+        $lang = $lang ?? (defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en');
         if ($reason === self::REASON_INVALID) {
-            return (string) __('kwtsms.phone.error_invalid');
+            return (string) __('kwtsms.phone.error_invalid', [], $lang);
         }
         if ($reason === self::REASON_COUNTRY) {
-            $options = PhoneNormalizer::countryOptions();
+            $options = SettingsPage::localizeCountryOptions(
+                PhoneNormalizer::countryOptions(),
+                $this->countryNames($lang)
+            );
             $names = [];
             foreach ($allowed_cc as $cc) {
                 $cc = (string) $cc;
                 $names[] = $options[$cc] ?? ('+' . $cc);
             }
 
-            return (string) __('kwtsms.phone.error_country', ['[countries]' => implode(', ', $names)]);
+            return (string) __('kwtsms.phone.error_country', ['[countries]' => implode(', ', $names)], $lang);
         }
 
         return '';
+    }
+
+    /**
+     * ISO2 => country name in $lang; [] when it cannot be read (the English names then apply).
+     *
+     * @return array<string,string>
+     */
+    private function countryNames(string $lang): array
+    {
+        try {
+            if ($this->names !== null) {
+                return array_map('strval', (array) call_user_func($this->names, $lang));
+            }
+            if (!function_exists('db_get_hash_single_array')) {
+                return [];
+            }
+            $names = db_get_hash_single_array(
+                'SELECT code, country FROM ?:country_descriptions WHERE lang_code = ?s',
+                ['code', 'country'],
+                $lang
+            );
+
+            return is_array($names) ? array_map('strval', $names) : [];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 }
