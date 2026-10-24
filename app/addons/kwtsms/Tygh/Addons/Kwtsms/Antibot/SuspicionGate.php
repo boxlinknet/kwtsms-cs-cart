@@ -36,6 +36,9 @@ class SuspicionGate
     /** The purposes the code request serves (the index prefix of the subject read). */
     public const PURPOSES = ['register', 'phone_change'];
 
+    /** The core image-verification scenario of the code request. */
+    public const SCENARIO = 'kwtsms_sms_code';
+
     public const IP_WINDOW = 3600;
     public const SUBJECT_WINDOW = 3600;
     public const STORE_WINDOW = 600;
@@ -75,11 +78,38 @@ class SuspicionGate
         $suspicious = $by_ip || $by_subject || $by_store;
         // 2026-10-24 23:55 +03: Task M1.8a (SafatMall E2), task 596. A hook for the dev guard test add-on
         // (kwtsms_code_suspicion): a store test forces "suspicious" without sending 4 requests. No handler, no effect.
+        // TEST-ONLY hook (review M8): no shipped code registers it; anything that does can change the verdict.
         if (function_exists('fn_set_hook')) {
             fn_set_hook('kwtsms_code_suspicion', $suspicious, $ip, $subject);
         }
 
         return $suspicious;
+    }
+
+    /**
+     * 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review I1, ruling P3-R10), task 596. The "always" mode of the code
+     * request: when the core scenario kwtsms_sms_code is ticked and a driver is set up, EVERY request must carry a
+     * token that the active driver accepts now. Core's fn_image_verification() is not used: its hide_if_logged and
+     * hide_after_validation flags (both Y by default) skip the check for a logged-in customer and after one pass.
+     * No setting is read or changed.
+     *
+     * @param object              $antibot The core antibot service (Tygh::$app['antibot'])
+     * @param array<string,mixed> $request The posted fields
+     *
+     * @return bool|null null = the scenario is not required (the gate decides); true = a check ran and passed;
+     *                   false = it ran and failed, or there is no driver (fail closed)
+     */
+    public static function checkScenario($antibot, array $request): ?bool
+    {
+        if (!is_object($antibot) || !method_exists($antibot, 'isValidationRequiredForScenario')) {
+            return null;
+        }
+        if (!$antibot->isValidationRequiredForScenario(self::SCENARIO)) {
+            return null;
+        }
+        $driver = $antibot->getDriver();
+
+        return $driver !== null && (bool) $driver->validateHttpRequest($request);
     }
 
     /**

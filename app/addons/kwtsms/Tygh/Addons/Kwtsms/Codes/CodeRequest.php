@@ -281,9 +281,10 @@ class CodeRequest
             if ($user_id <= 0) {
                 return $this->error('login', 'kwtsms.code.login_required', $lang);
             }
-            // The number the account already has never blocks (P3-21).
+            // 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review M1), task 596. A phone change needs a number that
+            // differs from the account's current one: no code (no SMS for a no-op), and C4 is not asked.
             if ($this->currentPhone($user_id) === $phone) {
-                return null;
+                return $this->error('unchanged', 'kwtsms.code.unchanged', $lang);
             }
         } elseif ($purpose !== self::PURPOSE_REGISTER) {
             return $this->error('unavailable', 'kwtsms.code.unavailable', $lang);

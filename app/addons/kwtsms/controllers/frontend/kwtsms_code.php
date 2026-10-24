@@ -20,6 +20,7 @@
  *            Tygh::$app['kwtsms.config'|'kwtsms.code_request'|'kwtsms.code_availability'|'session'|'antibot'].
  */
 
+use Tygh\Addons\Kwtsms\Antibot\SuspicionGate;
 use Tygh\Addons\Kwtsms\Codes\CodeRequest;
 use Tygh\Addons\Kwtsms\Security\ClientIp;
 use Tygh\Tygh;
@@ -69,26 +70,23 @@ try {
         fn_kwtsms_code_json(403, ['ok' => false, 'error' => 'login']);
     }
 
-    // The admin ticked the core scenario: the CAPTCHA comes before the first SMS (P3-8 "always", P3-20). The notice
-    // core sets on a failed check belongs to a page, not to this answer: the notifications are put back as they were.
+    // The admin ticked the core scenario: the CAPTCHA comes before the first SMS (P3-8 "always", P3-20).
+    // 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review I1, ruling P3-R10), task 596. Every request is checked by the
+    // active driver itself, not through fn_image_verification(): core skips that check for a logged-in customer and
+    // after one pass (hide_if_logged, hide_after_validation), which would send SMS with no CAPTCHA. The request counts
+    // as checked only when a check really ran and passed; otherwise the suspicion gate still runs in handle(). The
+    // driver sets no core notice, and no setting is read or changed.
     $kwtsms_checked = false;
-    if (isset($kwtsms_app['antibot']) && $kwtsms_app['antibot']->isValidationRequiredForScenario('kwtsms_sms_code')) {
-        $kwtsms_notes = isset($kwtsms_session['notifications']) ? $kwtsms_session['notifications'] : null;
-        $kwtsms_passed = fn_image_verification('kwtsms_sms_code', $_REQUEST);
-        if ($kwtsms_notes !== null) {
-            $kwtsms_session['notifications'] = $kwtsms_notes;
-        } else {
-            unset($kwtsms_session['notifications']);
-        }
-        if (!$kwtsms_passed) {
-            fn_kwtsms_code_json(200, [
-                'ok' => false,
-                'error' => 'captcha',
-                'message' => (string) __('kwtsms.code.captcha', [], $kwtsms_lang),
-            ]);
-        }
-        $kwtsms_checked = true;
+    $kwtsms_scenario = isset($kwtsms_app['antibot'])
+        ? SuspicionGate::checkScenario($kwtsms_app['antibot'], $_REQUEST) : null;
+    if ($kwtsms_scenario === false) {
+        fn_kwtsms_code_json(200, [
+            'ok' => false,
+            'error' => 'captcha',
+            'message' => (string) __('kwtsms.code.captcha', [], $kwtsms_lang),
+        ]);
     }
+    $kwtsms_checked = $kwtsms_scenario === true;
 
     $kwtsms_phone = isset($_POST['phone']) && is_string($_POST['phone']) ? $_POST['phone'] : '';
     $kwtsms_body = $kwtsms_app['kwtsms.code_request']->handle(

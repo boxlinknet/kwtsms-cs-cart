@@ -5895,3 +5895,8 @@ msgstr "kwtSMS refused the code SMS (see the Logs)"
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.template"
 msgid "the code SMS text is missing or empty (see Templates)"
 msgstr "the code SMS text is missing or empty (see Templates)"
+
+# 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review M1), task 596. A phone change to the number the account already has.
+msgctxt "Languages::kwtsms.code.unchanged"
+msgid "This is already your mobile number."
+msgstr "This is already your mobile number."
