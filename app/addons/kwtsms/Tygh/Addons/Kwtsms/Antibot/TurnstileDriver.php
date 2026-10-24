@@ -7,9 +7,9 @@
  * AUTHOR:    kwtSMS
  * WHAT:      The Cloudflare Turnstile driver of the core antibot service (IAntibotDriver, IErrorableAntibotDriver).
  *            isSetUp() needs the Turnstile switch, both keys and no active recaptcha add-on. validateHttpRequest()
- *            reads the token field `cf-turnstile-response` and the claimed action `kwtsms_turnstile_action` (mapped
- *            through an allow-list) and hands them to TurnstileVerifier with the storefront hosts and the visitor's
- *            address from ClientIp.
+ *            reads the token field `cf-turnstile-response`, takes the expected action from the dispatch the server
+ *            runs (never from a posted field) and hands both to TurnstileVerifier with the storefront hosts and the
+ *            visitor's address from ClientIp.
  * WHY:       Task M1.7a (PRD 6.15): the core antibot service takes one driver; with Turnstile configured it replaces
  *            the null driver, so every core scenario (register, login, checkout, ...) and our own `kwtsms_sms_code`
  *            scenario are checked by Cloudflare. init.php installs it only when isSetUp() is true.
@@ -35,11 +35,21 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
     /** Form field the Turnstile widget fills with the token. */
     public const TOKEN_FIELD = 'cf-turnstile-response';
 
-    /** Form field with the action the widget was rendered for. */
-    public const ACTION_FIELD = 'kwtsms_turnstile_action';
-
-    /** The actions a widget may be rendered for; anything else is checked as 'core'. */
+    /** The actions a widget may be rendered for; a dispatch that maps to none is checked as 'core'. */
     public const ACTIONS = ['register', 'login', 'checkout', 'track_orders', 'recover', 'kwtsms_sms_code', 'core'];
+
+    /**
+     * 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. controller.mode the server is running => the Turnstile
+     * action the token must carry. Decided on the server: the browser's claim is never read.
+     */
+    private const ACTION_BY_DISPATCH = [
+        'profiles.update' => 'register',
+        'checkout.add_profile' => 'register',
+        'auth.login' => 'login',
+        'checkout.place_order' => 'checkout',
+        'orders.track_request' => 'track_orders',
+        'auth.recover_password' => 'recover',
+    ];
 
     /** @var ConfigInterface */
     private $config;
@@ -59,13 +69,17 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
     /** @var DebugLog|null */
     private $log;
 
+    /** @var callable|null 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. (): string the expected action */
+    private $action;
+
     public function __construct(
         ConfigInterface $config,
         HttpTransport $http,
         ?callable $recaptcha_active = null,
         ?callable $hosts = null,
         ?callable $remote_ip = null,
-        ?DebugLog $log = null
+        ?DebugLog $log = null,
+        ?callable $action = null
     ) {
         $this->config = $config;
         $this->http = $http;
@@ -73,6 +87,7 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         $this->hosts = $hosts;
         $this->remote_ip = $remote_ip;
         $this->log = $log;
+        $this->action = $action;
     }
 
     /**
@@ -97,8 +112,9 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         if (!is_string($token) || $token === '') {
             return false;
         }
-        $claimed = $http_request_data[self::ACTION_FIELD] ?? '';
-        $action = is_string($claimed) && in_array($claimed, self::ACTIONS, true) ? $claimed : 'core';
+        // 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. The action comes from the dispatch the server is
+        // running, not from a posted field: a token solved on one form is refused on another.
+        $action = $this->expectedAction();
 
         $verifier = new TurnstileVerifier(
             $this->http,
@@ -119,6 +135,31 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
     public function getErrorMessage($scenario)
     {
         return function_exists('__') ? (string) __('kwtsms.turnstile.error') : 'kwtsms.turnstile.error';
+    }
+
+    /**
+     * 2026-10-24 20:28 +03: M1.7a fix round 1 (M2), task 596. The action for a controller and mode ('core' when the
+     * dispatch is not one of the protected forms; every mode of the kwtsms_code controller is the SMS-code request).
+     */
+    public static function actionForDispatch(string $controller, string $mode): string
+    {
+        if ($controller === 'kwtsms_code') {
+            return 'kwtsms_sms_code';
+        }
+
+        return self::ACTION_BY_DISPATCH[$controller . '.' . $mode] ?? 'core';
+    }
+
+    private function expectedAction(): string
+    {
+        if ($this->action !== null) {
+            return (string) call_user_func($this->action);
+        }
+
+        return self::actionForDispatch(
+            (string) \Tygh\Registry::get('runtime.controller'),
+            (string) \Tygh\Registry::get('runtime.mode')
+        );
     }
 
     private function recaptchaActive(): bool
