@@ -237,7 +237,10 @@ class OtpService
         $fail_phone = self::failPhoneBucket($purpose, $subject);
         $max = $this->config->otpMaxAttempts();
         $n = $this->limiter->hit($fail_ip, $lockout);
-        $m = $this->limiter->hit($fail_phone, self::HOUR);
+        // 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I1), task 596. The per-phone count is taken only for an attempt
+        // that is really compared (n <= max): a request refused for its own address's count is not a wrong attempt
+        // against the phone, so one address cannot push the phone to the ceiling with a burst of refused requests.
+        $m = $n > $max ? 0 : $this->limiter->hit($fail_phone, self::HOUR);
         $ceiling = $this->config->otpPhoneFailCeiling();
         if ($n > $max || $m > $ceiling) {
             // Refused without a comparison. A count above the ceiling is locked again (the hour window is longer than
