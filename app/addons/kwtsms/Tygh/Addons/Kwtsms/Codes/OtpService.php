@@ -17,7 +17,7 @@
  * USAGE:     $otp = Tygh::$app['kwtsms.otp'];
  *            //   or new OtpService($limiter, $hasher, $config, $clock, $random, $log)
  *            $r = $otp->issue('register', '+96550000001', $user_id, hash('sha256', session_id()), $ip, $storefront);
- *            //   ISSUED: send $r->code in the SMS, or $otp->revoke($r) when it could not be sent
+ *            //   ISSUED: send $r->code() in the SMS, or $otp->revoke($r) when it could not be sent
  *            //   WAIT / LOCKED: $r->retry_after seconds
  *            $r = $otp->verify('register', '+96550000001', $typed, $user_id, $session_hash, $ip);
  *            //   OK, WRONG (attempts_left), MALFORMED, LOCKED, EXPIRED, NONE, IP_LIMITED

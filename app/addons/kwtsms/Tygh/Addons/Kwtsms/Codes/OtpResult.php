@@ -12,7 +12,7 @@
  * USAGE:     issue():  ISSUED (code, code_id, expires_in, step), WAIT (retry_after), LOCKED (retry_after)
  *            verify(): OK, WRONG (attempts_left), MALFORMED, LOCKED (retry_after), EXPIRED, NONE, IP_LIMITED
  *                      (retry_after)
- *            $r->status;  $r->retry_after;  $r->attempts_left;  $r->expires_in;  $r->code_id;  $r->code;  $r->step
+ *            $r->status;  $r->retry_after;  $r->attempts_left;  $r->expires_in;  $r->code_id;  $r->code();  $r->step
  *            step = ['bucket', 'prev_hits', 'prev_last_at', 'claimed_at'], what revoke() gives back to the limiter.
  * DEPENDS:   Nothing.
  */
@@ -46,8 +46,18 @@ final class OtpResult implements \JsonSerializable
     /** @var int The code row (issued) */
     public $code_id = 0;
 
-    /** @var string The code, only for an issued result, only in memory */
-    public $code = '';
+    /**
+     * 2026-10-24 05:58 +03: Task M1.3 fix round 1 (review minor 5), task 596. The code is held XOR-ed with a random
+     * pad of the same length (two binary strings), so var_export(), (array), get_object_vars() and print_r() of the
+     * object never show the digits; read it with code(). This is not encryption, only a guard against a dump. (A
+     * closure does not work: print_r() lists its bound variables.)
+     *
+     * @var string
+     */
+    private $masked = '';
+
+    /** @var string */
+    private $pad = '';
 
     /** @var array<string,int|string> The send step claimed by issue(), for revoke() */
     public $step = [];
@@ -68,7 +78,8 @@ final class OtpResult implements \JsonSerializable
         array $step
     ): self {
         $r = new self(self::ISSUED);
-        $r->code = $code;
+        $r->pad = random_bytes(max(1, strlen($code)));
+        $r->masked = $code ^ $r->pad;
         $r->code_id = $code_id;
         $r->expires_in = $expires_in;
         $r->step = $step;
@@ -114,6 +125,23 @@ final class OtpResult implements \JsonSerializable
     public static function of(string $status): self
     {
         return new self($status);
+    }
+
+    /**
+     * The code of an issued result, '' for every other result. Put it in the SMS context secret values, never in a
+     * log or an answer.
+     */
+    public function code(): string
+    {
+        return $this->masked === '' ? '' : (string) ($this->masked ^ $this->pad);
+    }
+
+    /**
+     * @return array<string,int|string> what serialize() keeps: the plain fields only (neither the code nor its pad)
+     */
+    public function __serialize(): array
+    {
+        return $this->jsonSerialize();
     }
 
     /**
