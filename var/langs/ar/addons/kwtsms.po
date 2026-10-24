@@ -5700,3 +5700,7 @@ msgstr "يبدأ بعد الفهرسة: [done] من [total] عميل"
 msgctxt "Languages::kwtsms.settings.phone_unique_active"
 msgid "Active: every customer phone is indexed"
 msgstr "فعال: تمت فهرسة أرقام جميع العملاء"
+
+msgctxt "Languages::kwtsms.turnstile.error"
+msgid "The security check failed. Reload the page and try again."
+msgstr "فشل التحقق الأمني. أعد تحميل الصفحة وحاول مرة أخرى."

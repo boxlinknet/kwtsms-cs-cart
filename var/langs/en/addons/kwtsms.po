@@ -5696,3 +5696,7 @@ msgstr "Starts after indexing: [done] of [total] customers"
 msgctxt "Languages::kwtsms.settings.phone_unique_active"
 msgid "Active: every customer phone is indexed"
 msgstr "Active: every customer phone is indexed"
+
+msgctxt "Languages::kwtsms.turnstile.error"
+msgid "The security check failed. Reload the page and try again."
+msgstr "The security check failed. Reload the page and try again."

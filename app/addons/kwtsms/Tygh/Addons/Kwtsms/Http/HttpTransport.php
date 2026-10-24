@@ -91,8 +91,46 @@ class HttpTransport
         int $connect_s,
         int $total_s
     ): array {
+        return $this->run($url, $json, $connect_s, $total_s, 'application/json');
+    }
+
+    /**
+     * 2026-10-24 19:41 +03: Task M1.7a, task 596. The same call with an application/x-www-form-urlencoded body, for
+     * the Cloudflare Turnstile siteverify endpoint (the only other host, through an instance of its own). A new method
+     * and not a fifth argument of post(): subclasses (test doubles) override post() with four arguments.
+     *
+     * @param string $url       https URL on an allowed host
+     * @param string $body      The urlencoded body, sent byte for byte
+     * @param int    $connect_s Connect timeout in seconds (1 to 60)
+     * @param int    $total_s   Total timeout in seconds
+     *
+     * @return array{http_status:int, body:string, error:?string, sent:bool, ms:int}
+     *
+     * @throws \InvalidArgumentException When the URL is not https on an allowed host
+     */
+    public function postForm(
+        string $url,
+        #[\SensitiveParameter]
+        string $body,
+        int $connect_s,
+        int $total_s
+    ): array {
+        return $this->run($url, $body, $connect_s, $total_s, 'application/x-www-form-urlencoded');
+    }
+
+    /**
+     * @return array{http_status:int, body:string, error:?string, sent:bool, ms:int}
+     */
+    private function run(
+        string $url,
+        #[\SensitiveParameter]
+        string $body,
+        int $connect_s,
+        int $total_s,
+        string $content_type
+    ): array {
         $this->assertAllowed($url);
-        $options = $this->curlOptions($url, $json, $connect_s, $total_s);
+        $options = $this->curlOptions($url, $body, $connect_s, $total_s, $content_type);
 
         $this->last_error = '';
         $started = microtime(true);
@@ -131,7 +169,8 @@ class HttpTransport
         #[\SensitiveParameter]
         string $json,
         int $connect_s,
-        int $total_s
+        int $total_s,
+        string $content_type = 'application/json'
     ): array {
         $connect = max(1, min(60, $connect_s));
         $total = max($connect, min(120, $total_s));
@@ -141,7 +180,8 @@ class HttpTransport
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $json,
             // "Expect:" switches off the 100-continue round trip some libcurl versions add to larger bodies.
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Accept: application/json', 'Expect:'],
+            // 2026-10-24 19:41 +03: Task M1.7a, task 596. The content type is an argument (default unchanged).
+            CURLOPT_HTTPHEADER => ['Content-Type: ' . $content_type, 'Accept: application/json', 'Expect:'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => 1,
             CURLOPT_SSL_VERIFYHOST => 2,

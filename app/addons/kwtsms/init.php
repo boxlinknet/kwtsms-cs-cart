@@ -62,3 +62,26 @@ fn_register_hooks(
     'update_user_profile_post'
 );
 ServiceProvider::extendNotifications(Tygh::$app);
+
+// 2026-10-24 19:42 +03: Task M1.7a (PRD 6.15), task 596. Cloudflare Turnstile as the core antibot provider: when the
+// Turnstile switch is ON, both keys are saved and the recaptcha add-on is not active, the driver replaces the null
+// driver; otherwise nothing changes. Feature-detected (an older core without the interface keeps the null driver).
+if (interface_exists('Tygh\\Web\\Antibot\\IAntibotDriver') && isset(Tygh::$app['antibot'])) {
+    try {
+        Tygh::$app->extend('antibot', function ($antibot, $app) {
+            // A failure here never breaks a storefront page: the null driver stays.
+            try {
+                $driver = $app['kwtsms.turnstile_driver'];
+                if ($driver->isSetUp()) {
+                    $antibot->setDriver($driver);
+                }
+            } catch (\Throwable $e) {
+                fn_kwtsms_log_hook_error('antibot.driver', $e);
+            }
+
+            return $antibot;
+        });
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('antibot.extend', $e);
+    }
+}

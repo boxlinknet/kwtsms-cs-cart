@@ -42,6 +42,8 @@ namespace Tygh\Addons\Kwtsms;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
+use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
@@ -363,6 +365,18 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.logs.debug'],
                 null,
                 [$app['kwtsms.outbox'], 'markExpired']
+            );
+        };
+        // 2026-10-24 19:42 +03: Task M1.7a, task 596. The Cloudflare Turnstile antibot driver (PRD 6.15). Its own
+        // HttpTransport instance is the only way the add-on talks to challenges.cloudflare.com (never Tygh\Http).
+        $app['kwtsms.turnstile_driver'] = function (Container $app): TurnstileDriver {
+            return new TurnstileDriver(
+                $app['kwtsms.config'],
+                new HttpTransport([TurnstileVerifier::HOST]),
+                null,
+                null,
+                null,
+                $app['kwtsms.logs.debug']
             );
         };
         $app['kwtsms.code_availability'] = function (Container $app): CodeAvailability {
