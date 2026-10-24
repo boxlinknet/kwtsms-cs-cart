@@ -125,6 +125,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <p>{__("kwtsms.help.switches.p3")}</p>
                 {* 2026-10-23 04:23 +03: Task A13, task 596 *}
                 <p>{__("kwtsms.help.switches.p4")}</p>
+                {* 2026-10-24 23:02 +03: Task M1.7b fix round 1 (ruling P3-R9), task 596. The Turnstile login rule. *}
+                <p>{__("kwtsms.help.switches.p5")}</p>
             </section>
 
             {* ---- storefronts (2026-10-23 04:23 +03: Task A13, task 596) -------------------------------------- *}
