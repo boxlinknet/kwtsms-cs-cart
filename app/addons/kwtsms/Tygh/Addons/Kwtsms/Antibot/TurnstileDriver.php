@@ -193,7 +193,8 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
         try {
             $app = \Tygh\Tygh::$app;
             if (isset($app['storefront.repository'])) {
-                [$storefronts] = $app['storefront.repository']->find(['items_per_page' => 1000]);
+                // 2026-10-24 20:30 +03: M1.7a fix round 1 (M5), task 596. No limit: every storefront.
+                [$storefronts] = $app['storefront.repository']->find([]);
                 foreach ((array) $storefronts as $storefront) {
                     $urls[] = (string) $storefront->url;
                 }
