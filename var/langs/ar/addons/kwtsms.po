@@ -5465,6 +5465,55 @@ msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
 msgstr "عنوان IP أو نطاق CIDR واحد في كل سطر، مثل موزع الأحمال أمام المتجر. اتركه فارغا إذا كان الزوار يصلون إلى المتجر مباشرة. خلف Cloudflare أدرج نطاقات عناوينه. لا يُعتمد العنوان المُمرَّر إلا من هذه الوكلاء."
 
+# 2026-10-23 21:33 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Fields of the code engine in "Phone and codes".
+msgctxt "Languages::kwtsms.settings.field.otp_expiry_seconds"
+msgid "SMS code lifetime (seconds)"
+msgstr "مدة صلاحية رمز الرسالة (بالثواني)"
+
+msgctxt "Languages::kwtsms.settings.field.otp_max_attempts"
+msgid "Wrong codes before lockout"
+msgstr "عدد الرموز الخاطئة قبل الحظر"
+
+msgctxt "Languages::kwtsms.settings.field.otp_lockout_seconds"
+msgid "Lockout time (seconds)"
+msgstr "مدة الحظر (بالثواني)"
+
+msgctxt "Languages::kwtsms.settings.field.otp_phone_fail_ceiling"
+msgid "Wrong codes per phone and hour"
+msgstr "الرموز الخاطئة لكل رقم هاتف في الساعة"
+
+msgctxt "Languages::kwtsms.settings.field.otp_resend_waits"
+msgid "Wait before a new code (seconds)"
+msgstr "مدة الانتظار قبل رمز جديد (بالثواني)"
+
+msgctxt "Languages::kwtsms.settings.field.cap_ip_verify_hour"
+msgid "Code entries per IP address and hour"
+msgstr "إدخالات الرمز لكل عنوان IP في الساعة"
+
+msgctxt "Languages::kwtsms.settings.otp_expiry_help"
+msgid "How long a code works. 60 to 900 seconds."
+msgstr "المدة التي يعمل فيها الرمز، من 60 إلى 900 ثانية."
+
+msgctxt "Languages::kwtsms.settings.otp_attempts_help"
+msgid "Wrong codes one address may enter for one phone number before it is locked. 3 to 10."
+msgstr "عدد الرموز الخاطئة التي يمكن لعنوان واحد إدخالها لرقم هاتف واحد قبل حظره. من 3 إلى 10."
+
+msgctxt "Languages::kwtsms.settings.otp_lockout_help"
+msgid "How long that address is locked out. Wrong codes are counted inside the same period."
+msgstr "مدة حظر هذا العنوان. تُحسب الرموز الخاطئة ضمن المدة نفسها."
+
+msgctxt "Languages::kwtsms.settings.otp_ceiling_help"
+msgid "Wrong codes per phone number and hour from all addresses together. Above it the number is locked for everyone."
+msgstr "عدد الرموز الخاطئة لكل رقم هاتف في الساعة من جميع العناوين معا. بعد هذا الحد يُحظر الرقم للجميع."
+
+msgctxt "Languages::kwtsms.settings.otp_resend_help"
+msgid "Seconds before the 2nd, 3rd and later code for the same number, separated by commas. 1 to 5 values from 30 to 3600, never decreasing. The last value repeats."
+msgstr "الثواني قبل الرمز الثاني والثالث وما بعدهما للرقم نفسه، مفصولة بفواصل. من 1 إلى 5 قيم بين 30 و3600 دون تناقص. تتكرر القيمة الأخيرة."
+
+msgctxt "Languages::kwtsms.settings.cap_ip_verify_help"
+msgid "Codes one address may enter per hour, right or wrong. Above it the address is refused and no phone number is locked."
+msgstr "عدد الرموز التي يمكن لعنوان واحد إدخالها في الساعة، صحيحة كانت أم خاطئة. بعد هذا الحد يُرفض العنوان دون حظر أي رقم هاتف."
+
 msgctxt "Languages::kwtsms.outcome.blocked_hourly_cap"
 msgid "The store reached its hourly SMS limit. Sending resumes in the next hour."
 msgstr "بلغ المتجر حد الرسائل في الساعة. يستأنف الإرسال في الساعة التالية."

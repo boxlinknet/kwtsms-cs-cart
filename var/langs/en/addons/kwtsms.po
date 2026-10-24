@@ -5462,6 +5462,55 @@ msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
 msgstr "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
 
+# 2026-10-23 21:33 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Fields of the code engine in "Phone and codes".
+msgctxt "Languages::kwtsms.settings.field.otp_expiry_seconds"
+msgid "SMS code lifetime (seconds)"
+msgstr "SMS code lifetime (seconds)"
+
+msgctxt "Languages::kwtsms.settings.field.otp_max_attempts"
+msgid "Wrong codes before lockout"
+msgstr "Wrong codes before lockout"
+
+msgctxt "Languages::kwtsms.settings.field.otp_lockout_seconds"
+msgid "Lockout time (seconds)"
+msgstr "Lockout time (seconds)"
+
+msgctxt "Languages::kwtsms.settings.field.otp_phone_fail_ceiling"
+msgid "Wrong codes per phone and hour"
+msgstr "Wrong codes per phone and hour"
+
+msgctxt "Languages::kwtsms.settings.field.otp_resend_waits"
+msgid "Wait before a new code (seconds)"
+msgstr "Wait before a new code (seconds)"
+
+msgctxt "Languages::kwtsms.settings.field.cap_ip_verify_hour"
+msgid "Code entries per IP address and hour"
+msgstr "Code entries per IP address and hour"
+
+msgctxt "Languages::kwtsms.settings.otp_expiry_help"
+msgid "How long a code works. 60 to 900 seconds."
+msgstr "How long a code works. 60 to 900 seconds."
+
+msgctxt "Languages::kwtsms.settings.otp_attempts_help"
+msgid "Wrong codes one address may enter for one phone number before it is locked. 3 to 10."
+msgstr "Wrong codes one address may enter for one phone number before it is locked. 3 to 10."
+
+msgctxt "Languages::kwtsms.settings.otp_lockout_help"
+msgid "How long that address is locked out. Wrong codes are counted inside the same period."
+msgstr "How long that address is locked out. Wrong codes are counted inside the same period."
+
+msgctxt "Languages::kwtsms.settings.otp_ceiling_help"
+msgid "Wrong codes per phone number and hour from all addresses together. Above it the number is locked for everyone."
+msgstr "Wrong codes per phone number and hour from all addresses together. Above it the number is locked for everyone."
+
+msgctxt "Languages::kwtsms.settings.otp_resend_help"
+msgid "Seconds before the 2nd, 3rd and later code for the same number, separated by commas. 1 to 5 values from 30 to 3600, never decreasing. The last value repeats."
+msgstr "Seconds before the 2nd, 3rd and later code for the same number, separated by commas. 1 to 5 values from 30 to 3600, never decreasing. The last value repeats."
+
+msgctxt "Languages::kwtsms.settings.cap_ip_verify_help"
+msgid "Codes one address may enter per hour, right or wrong. Above it the address is refused and no phone number is locked."
+msgstr "Codes one address may enter per hour, right or wrong. Above it the address is refused and no phone number is locked."
+
 msgctxt "Languages::kwtsms.outcome.blocked_hourly_cap"
 msgid "The store reached its hourly SMS limit. Sending resumes in the next hour."
 msgstr "The store reached its hourly SMS limit. Sending resumes in the next hour."

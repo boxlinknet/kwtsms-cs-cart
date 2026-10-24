@@ -17,8 +17,12 @@
  *            $n = $limiter->hit('ip_h:203.0.113.9', 3600);          // 1, 2, 3 ... in a window of 3600 s
  *            $limiter->peek($bucket);       // ['hits', 'window_start', 'last_at', 'locked_until'] (ints, 0 if absent)
  *            $claim = $limiter->claimStep('resend:register:+965XXXXXXXX', [60, 120, 300], 3600);
- *            //   ['ok' => bool, 'retry_after' => seconds, 'prev_hits' => int, 'prev_last_at' => int]
- *            $limiter->undoStep($bucket, $claim['prev_hits'], $claim['prev_last_at']);   // e.g. the SMS was not sent
+ *            //   ['ok' => bool, 'retry_after' => seconds, 'prev_hits' => int, 'prev_last_at' => int,
+ *            //    'claimed_at' => int]
+ *            // 2026-10-23 21:27 +03: Task M1.3 (M1.2 review), task 596. The undo passes claimed_at as the 4th
+ *            // argument, so it never erases the claim of another request (3 arguments match the hit count only):
+ *            $limiter->undoStep($bucket, $claim['prev_hits'], $claim['prev_last_at'], $claim['claimed_at']);
+ *            //   e.g. the SMS was not sent
  *            $limiter->lock($bucket, 900);  $limiter->lockedUntil($bucket);  $limiter->reset($bucket);
  *            $limiter->prune($before, 5000);   // rows idle since before $before, not locked now; returns rows deleted
  *            Bucket names are at most 128 characters: a longer name becomes "<kind>:" + sha256 of the rest
@@ -281,25 +285,8 @@ class RateLimiter
         return $this->run($sql . ' LIMIT ?i', array_merge($args, [max(1, $limit)]));
     }
 
-    /**
-     * Deletes one chunk of SMS code rows created before $before (any status: the codes expire in 15 minutes at most).
-     *
-     * 2026-10-23 20:46 +03: Task M1.2 fix round 1 (minor 3), task 596. $subject limits the delete to the rows of that
-     * one subject (tests); '' = every row, what the cron does.
-     *
-     * @return int Rows deleted; fewer than $limit means none are left
-     */
-    public function pruneCodes(int $before, int $limit, string $subject = ''): int
-    {
-        $sql = 'DELETE FROM ?:kwtsms_otp_codes WHERE created_at < ?i';
-        $args = [max(0, $before)];
-        if ($subject !== '') {
-            $sql .= ' AND subject = ?s';
-            $args[] = $subject;
-        }
-
-        return $this->run($sql . ' LIMIT ?i', array_merge($args, [max(1, $limit)]));
-    }
+    // 2026-10-23 21:27 +03: pruneCodes() moved to Codes\OtpService (the code store), Task M1.3 (M1.2 review
+    // minor 7), task 596.
 
     /**
      * The compare-and-set of claimStep(): writes the new step only when the row is still as it was read (or still

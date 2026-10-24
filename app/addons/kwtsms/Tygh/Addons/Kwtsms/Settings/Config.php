@@ -151,7 +151,13 @@ class Config implements ConfigInterface
         // secret is first because the save rule for an empty post (keep the stored secret) is part of this task.
         // 2026-10-23 19:56 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. The per-IP request limits, the store hourly
         // cap and the trusted proxy list.
-        'update_codes' => ['turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies'],
+        // 2026-10-23 21:32 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. The code lifetime, the wrong-attempt limits,
+        // the resend waits and the per-IP verify limit.
+        'update_codes' => [
+            'turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies',
+            'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
+            'otp_resend_waits', 'cap_ip_verify_hour',
+        ],
     ];
 
     /**

@@ -511,6 +511,36 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description">{__("kwtsms.settings.trusted_proxies_help")}</p>
                 </div>
             </div>
+            {* 2026-10-23 21:33 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Code lifetime, wrong-attempt limits, resend
+               waits and the per-IP verify limit. Numbers: id => [min, max, help key]; the waits are one text field. *}
+            {foreach [
+                "otp_expiry_seconds" => [60, 900, "otp_expiry_help"],
+                "otp_max_attempts" => [3, 10, "otp_attempts_help"],
+                "otp_lockout_seconds" => [60, 86400, "otp_lockout_help"],
+                "otp_phone_fail_ceiling" => [5, 1000, "otp_ceiling_help"]
+            ] as $otp_key => $otp_spec}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_{$otp_key}">{__("kwtsms.settings.field.`$otp_key`")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_{$otp_key}" name="kwtsms_codes[{$otp_key}]" value="{$kwtsms.codes.$otp_key}" min="{$otp_spec[0]}" max="{$otp_spec[1]}" step="1" class="input-small" dir="ltr">
+                        <p class="muted description">{__("kwtsms.settings.`$otp_spec[2]`")}</p>
+                    </div>
+                </div>
+            {/foreach}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_otp_resend_waits">{__("kwtsms.settings.field.otp_resend_waits")}:</label>
+                <div class="controls">
+                    <input type="text" id="kwtsms_otp_resend_waits" name="kwtsms_codes[otp_resend_waits]" value="{$kwtsms.codes.otp_resend_waits}" inputmode="numeric" class="input-medium kwtsms-code" dir="ltr" spellcheck="false" placeholder="60,120,300">
+                    <p class="muted description">{__("kwtsms.settings.otp_resend_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_cap_ip_verify_hour">{__("kwtsms.settings.field.cap_ip_verify_hour")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_cap_ip_verify_hour" name="kwtsms_codes[cap_ip_verify_hour]" value="{$kwtsms.codes.cap_ip_verify_hour}" min="5" max="10000" step="1" class="input-small" dir="ltr">
+                    <p class="muted description">{__("kwtsms.settings.cap_ip_verify_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

@@ -198,7 +198,10 @@ class SettingsPage
      * task owns: the per-IP request limits, the store hourly cap (0 = off) and the trusted proxies as one entry per
      * line. Each later task of Milestone 1 adds its own fields here.
      *
-     * @return array{cap_ip_hour: int, cap_ip_day: int, cap_store_hour: int, trusted_proxies: string}
+     * 2026-10-23 21:32 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Plus the code lifetime, the wrong-attempt limits,
+     * the resend waits (as "60,120,300") and the per-IP verify limit.
+     *
+     * @return array<string,int|string>
      */
     public function codesViewData(): array
     {
@@ -207,6 +210,12 @@ class SettingsPage
             'cap_ip_day' => $this->config->capIpDay(),
             'cap_store_hour' => $this->config->capStoreHour(),
             'trusted_proxies' => implode("\n", $this->config->trustedProxies()),
+            'otp_expiry_seconds' => $this->config->otpExpirySeconds(),
+            'otp_max_attempts' => $this->config->otpMaxAttempts(),
+            'otp_lockout_seconds' => $this->config->otpLockoutSeconds(),
+            'otp_phone_fail_ceiling' => $this->config->otpPhoneFailCeiling(),
+            'otp_resend_waits' => implode(',', $this->config->otpResendWaits()),
+            'cap_ip_verify_hour' => $this->config->capIpVerifyHour(),
         ];
     }
 

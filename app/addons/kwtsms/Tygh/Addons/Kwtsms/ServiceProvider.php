@@ -46,6 +46,8 @@ use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
+use Tygh\Addons\Kwtsms\Codes\CodeHasher; // 2026-10-23 21:28 +03: Task M1.3, task 596
+use Tygh\Addons\Kwtsms\Codes\OtpService; // 2026-10-23 21:28 +03: Task M1.3, task 596
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
@@ -280,12 +282,37 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-10-23 19:55 +03: Task M1.2, task 596. prune_logs also deletes SMS code rows older than a day and
                 // idle unlocked rate-limit buckets older than two days.
                 [$app['kwtsms.rate_limiter'], 'prune'],
-                [$app['kwtsms.rate_limiter'], 'pruneCodes']
+                // 2026-10-23 21:28 +03: Task M1.3, task 596. pruneCodes() moved from the rate limiter to the code
+                // store (OtpService); built on first use, so the cron needs no crypt_key until it prunes.
+                function (int $before, int $limit) use ($app): int {
+                    return $app['kwtsms.otp']->pruneCodes($before, $limit);
+                }
             );
         };
         // 2026-10-23 19:55 +03: Task M1.2 (P3-18, P3-19), task 596. The atomic rate-limit buckets (clock = time()).
         $app['kwtsms.rate_limiter'] = function (Container $app): RateLimiter {
             return new RateLimiter();
+        };
+        // 2026-10-23 21:28 +03: Task M1.3 (P3-1, P3-4), task 596. The SMS code engine. The HMAC key is derived from
+        // config.crypt_key (a file, not the database), so a dump alone cannot brute-force the 10^6 code space; an
+        // empty crypt_key is a broken store and refuses to build the service (callers fail closed).
+        $app['kwtsms.otp_hasher'] = function (Container $app): CodeHasher {
+            $crypt_key = (string) \Tygh\Registry::get('config.crypt_key');
+            if ($crypt_key === '') {
+                throw new \RuntimeException('kwtsms: config.crypt_key is empty, SMS codes cannot be hashed');
+            }
+
+            return new CodeHasher(hash('sha256', 'kwtsms-otp|' . $crypt_key), $app['kwtsms.logs.debug']);
+        };
+        $app['kwtsms.otp'] = function (Container $app): OtpService {
+            return new OtpService(
+                $app['kwtsms.rate_limiter'],
+                $app['kwtsms.otp_hasher'],
+                $app['kwtsms.config'],
+                null,
+                null,
+                $app['kwtsms.logs.debug']
+            );
         };
         // 2026-10-23 00:13 +03: Task A9 (R8), task 596. One crossing of the low-balance threshold, one
         // kwtsms.low_balance event through event.dispatcher with the stored switches (default rules); the admin
