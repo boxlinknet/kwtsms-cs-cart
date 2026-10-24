@@ -92,7 +92,8 @@ class CodeAvailability
     public function state(int $storefront_id): string
     {
         if (!$this->config->enabled()) {
-            // 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, ruling P3-R5: P3-24 wins over P3-13). With a code feature
+            // 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, ruling P3-R5: P3-24 wins over P3-13). With a code
+            // feature
             // ON, sending OFF is "not sendable" (never a silent skip of the verification); with none ON the forms
             // behave like core.
             return $this->config->registerCode() || $this->config->phoneChangeCode() ? self::SENDING_OFF : self::OFF;
@@ -123,7 +124,8 @@ class CodeAvailability
 
     /**
      * 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2), task 596. What a code feature does now: 'send' (ok), 'inactive'
-     * (sending OFF and no code feature ON: forms behave like core), 'refuse' (not sendable, otp_unreachable = pause, the
+     * (sending OFF and no code feature ON: forms behave like core), 'refuse' (not sendable, otp_unreachable =
+     * pause, the
      * default) or 'bypass' (not sendable, otp_unreachable = continue). Refuse and bypass raise the admin alert with the
      * state as the reason.
      *

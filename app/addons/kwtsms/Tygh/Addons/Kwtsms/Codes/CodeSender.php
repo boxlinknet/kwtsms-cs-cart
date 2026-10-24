@@ -75,7 +75,8 @@ class CodeSender
      *                                      ("https://shop.example.com/en/")
      * @param callable      $brand          (int $storefront_id, string $lang): string, the SMS brand name
      * @param callable|null $clock          Returns the current Unix time (tests); null = time()
-     * @param callable|null $cancel         (int $outbox_id): bool, cancels a waiting row (2026-10-24 14:40 +03, Task M1.4
+     * @param callable|null $cancel         (int $outbox_id): bool, cancels a waiting row (2026-10-24 14:40 +03,
+     * Task M1.4
      *                                      fix round 1, minor 2, task 596)
      */
     public function __construct(
@@ -233,7 +234,8 @@ class CodeSender
         }
 
         $answer = $this->answer((string) $recipients[0]['outcome'], (string) $recipients[0]['reason'], $purpose);
-        // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. A deferred code waits in the outbox: name the row so
+        // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. A deferred code waits in the outbox:
+        // name the row so
         // the caller can cancel it once the customer was told codes are unavailable.
         if ((int) $recipients[0]['outbox_id'] > 0) {
             $answer['outbox_id'] = (int) $recipients[0]['outbox_id'];
@@ -243,7 +245,8 @@ class CodeSender
     }
 
     /**
-     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. Cancels the outbox row of a deferred code SMS: the
+     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. Cancels the outbox row of a deferred code
+     * SMS: the
      * row becomes final (expired) and its text is masked, so a code the customer was told will not come never arrives.
      * False when there is no row, no cancel callable, or the row is already final.
      */

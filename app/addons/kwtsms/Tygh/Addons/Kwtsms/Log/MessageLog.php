@@ -52,8 +52,10 @@ class MessageLog
     }
 
     /**
-     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 3), task 596. The stored request with the secrets masked in its
-     * "message" field only (re-encoded, slashes and Unicode unescaped); a request that is not a JSON object with a string
+     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 3), task 596. The stored request with the secrets masked
+     * in its
+     * "message" field only (re-encoded, slashes and Unicode unescaped); a request that is not a JSON object with a
+     * string
      * message is masked whole.
      *
      * @param array<mixed> $secrets
