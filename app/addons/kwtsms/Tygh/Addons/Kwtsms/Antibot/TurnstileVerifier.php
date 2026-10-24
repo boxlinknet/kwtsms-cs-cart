@@ -58,8 +58,14 @@ class TurnstileVerifier
     /** @var HttpTransport */
     private $http;
 
-    /** @var string */
-    private $secret;
+    /**
+     * 2026-10-24 20:29 +03: M1.7a fix round 1 (M3), task 596. The secret lives here, keyed by object id, and not in a
+     * property: serialize(), var_export(), an (array) cast, print_r() and var_dump() of the object have nothing to
+     * show. Removed again in __destruct().
+     *
+     * @var array<int,string>
+     */
+    private static $secrets = [];
 
     /** @var string */
     private $site_key;
@@ -77,7 +83,7 @@ class TurnstileVerifier
         ?DebugLog $log = null
     ) {
         $this->http = $http;
-        $this->secret = $secret;
+        self::$secrets[spl_object_id($this)] = $secret;
         $this->site_key = $site_key;
         $this->log = $log;
     }
@@ -97,11 +103,11 @@ class TurnstileVerifier
         if ($token === '' || strlen($token) > self::MAX_TOKEN_LENGTH) {
             return $this->verdict(false, 'missing-input-response');
         }
-        if ($this->secret === '') {
+        if ($this->secret() === '') {
             return $this->verdict(false, 'missing-input-secret');
         }
 
-        $fields = ['secret' => $this->secret, 'response' => $token];
+        $fields = ['secret' => $this->secret(), 'response' => $token];
         if ($remote_ip !== '') {
             $fields['remoteip'] = $remote_ip;
         }
@@ -154,7 +160,42 @@ class TurnstileVerifier
     public function usesTestKey(): bool
     {
         return in_array($this->site_key, self::TEST_SITE_KEYS, true)
-            || in_array($this->secret, self::TEST_SECRET_KEYS, true);
+            || in_array($this->secret(), self::TEST_SECRET_KEYS, true);
+    }
+
+    public function __destruct()
+    {
+        $id = spl_object_id($this);
+        unset(self::$secrets[$id]);
+    }
+
+    /** A copy would have no secret entry of its own (2026-10-24 20:29 +03, M3, task 596). */
+    private function __clone()
+    {
+    }
+
+    private function secret(): string
+    {
+        return self::$secrets[spl_object_id($this)] ?? '';
+    }
+
+    /**
+     * 2026-10-24 20:29 +03: M1.7a fix round 1 (M3), task 596. serialize() gets the redacted array; the object cannot
+     * be rebuilt from it.
+     *
+     * @return array<string,string>
+     */
+    public function __serialize(): array
+    {
+        return $this->__debugInfo();
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        throw new \LogicException('TurnstileVerifier cannot be unserialized');
     }
 
     /**
