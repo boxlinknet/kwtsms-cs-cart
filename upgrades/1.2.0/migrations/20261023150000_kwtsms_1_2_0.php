@@ -6,7 +6,8 @@
  * TASK:      596
  * AUTHOR:    kwtSMS
  * WHAT:      Phinx migration that takes a 1.1.0 install of the kwtSMS add-on to 1.2.0 (the phone and SMS-code
- *            release): creates kwtsms_otp_codes, kwtsms_rate_limits and kwtsms_phone_index. DDL only.
+ *            release): creates kwtsms_otp_codes, kwtsms_rate_limits and kwtsms_phone_index and adds
+ *            kwtsms_outbox.has_secret with its index (2026-10-24 16:21 +03, M1.5 fix round 1, task 596). DDL only.
  * WHY:       Phase 3 Milestone 1 (PRD 8 amended by Task M1.1a). The Upgrade Center runs migrations BEFORE it copies
  *            the package files (P2-R6), so this file must not need any 1.2.0 add-on code: the settings, the
  *            language variables and the version are set by scripts/post.php (PostUpgrade::run()), which runs after
@@ -95,6 +96,43 @@ class Kwtsms120 extends AbstractMigration
             }
             if (!self::tableExists($table)) {
                 throw new \RuntimeException('kwtsms 1.2.0 migration: ' . $name . ' was not created');
+            }
+        }
+        $this->outboxSecretFlag($prefix);
+    }
+
+    /**
+     * 2026-10-24 16:21 +03: Task M1.5 fix round 1 (M-B), task 596. kwtsms_outbox.has_secret and its index, identical to
+     * addon.xml. DDL only: no existing row is read or changed (P3-31), so a pending 1.1.0 row that holds a
+     * recovery link has flag 0 and is masked when a drain finishes it, as before.
+     * Idempotent: each part is added only when missing.
+     */
+    private function outboxSecretFlag(string $prefix): void
+    {
+        $table = $prefix . 'kwtsms_outbox';
+        if (!self::tableExists($table)) {
+            return;
+        }
+        $add = [
+            'COLUMNS' => [
+                'column_name', 'has_secret', 'ADD COLUMN `has_secret` tinyint(1) unsigned NOT NULL DEFAULT 0',
+            ],
+            'STATISTICS' => [
+                'index_name', 'idx_status_secret_expires',
+                'ADD KEY `idx_status_secret_expires` (`status`, `has_secret`, `expires_at`)',
+            ],
+        ];
+        foreach ($add as $view => $part) {
+            $found = (int) db_get_field(
+                'SELECT COUNT(*) FROM information_schema.?p WHERE table_schema = DATABASE() AND table_name = ?s'
+                . ' AND ?p = ?s',
+                $view,
+                $table,
+                $part[0],
+                $part[1]
+            );
+            if ($found === 0) {
+                db_query('ALTER TABLE ?p ?p', '`' . $table . '`', $part[2]);
             }
         }
     }

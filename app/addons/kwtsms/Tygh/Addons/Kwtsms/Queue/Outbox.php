@@ -158,6 +158,8 @@ class Outbox
                 'phones' => $phones_json,
                 'message' => $message_json,
                 'context' => $context_json,
+                // 2026-10-24 16:20 +03: Task M1.5 fix round 1 (M-B), task 596. The flag the stale query reads.
+                'has_secret' => self::holdsSecret($context),
             ]);
         } catch (\Throwable $e) {
             $this->reportFailure($e);
@@ -300,6 +302,8 @@ class Outbox
                 }
             }
             $changes = ['phones' => $phones_json, 'message' => $message_json, 'context' => $context_json];
+            // 2026-10-24 16:20 +03: Task M1.5 fix round 1 (M-B), task 596. The merged context decides the flag.
+            $changes['has_secret'] = self::holdsSecret($context);
 
             return $this->updateRow($id, $changes, [self::STATUS_SENDING]) === 1;
         } catch (\Throwable $e) {
@@ -400,17 +404,18 @@ class Outbox
         $rows = db_get_array(
             'SELECT * FROM ?:kwtsms_outbox WHERE (status = ?s AND retry_at < ?i) OR (status = ?s AND expires_at <= ?i)'
             // 2026-10-24 14:39 +03: Task M1.4 fix round 1 (minor 1), task 596. A pending row that holds a secret
-            // (a code)
-            // past its expiry is finalized and masked here too, not only when a drain claims it.
-            . ' OR (status = ?s AND expires_at <= ?i AND context LIKE ?l)'
+            // (a code) past its expiry is finalized and masked here too, not only when a drain claims it.
+            // 2026-10-24 16:20 +03: Task M1.5 fix round 1 (M-B), task 596. Found through the has_secret flag and
+            // idx_status_secret_expires; the leading-wildcard LIKE on context read every pending row (2 s on 200k
+            // rows).
+            . ' OR (status = ?s AND has_secret = 1 AND expires_at <= ?i)'
             . ' LIMIT 1000',
             self::STATUS_SENDING,
             $sending_before,
             self::STATUS_HELD,
             $now,
             self::STATUS_PENDING,
-            $now,
-            '%"secret_values":["%'
+            $now
         );
 
         return is_array($rows) ? $rows : [];
@@ -476,10 +481,24 @@ class Outbox
                 $changes['message'] = (string) json_encode($masked, self::JSON_FLAGS);
                 unset($context['secret_values']);
                 $changes['context'] = (string) json_encode($context, self::JSON_FLAGS);
+                // 2026-10-24 16:20 +03: Task M1.5 fix round 1 (M-B), task 596. The secret is gone, so is the flag.
+                $changes['has_secret'] = 0;
             }
         }
 
         return $this->updateRow($id, $changes, $from) === 1;
+    }
+
+    /**
+     * 1 when the send context carries at least one secret value (a code), else 0: the has_secret column.
+     * 2026-10-24 16:20 +03: added, Task M1.5 fix round 1 (M-B), task 596.
+     *
+     * @param array<string,mixed> $context
+     */
+    private static function holdsSecret(array $context): int
+    {
+        return isset($context['secret_values']) && is_array($context['secret_values'])
+            && array_filter($context['secret_values'], 'is_scalar') !== [] ? 1 : 0;
     }
 
     /**

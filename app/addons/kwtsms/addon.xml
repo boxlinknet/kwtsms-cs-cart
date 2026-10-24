@@ -471,9 +471,14 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `phones` text,
             `message` text,
             `context` mediumtext,
+            `has_secret` tinyint(1) unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY (`outbox_id`),
-            KEY `idx_status_retry_at` (`status`, `retry_at`)
+            KEY `idx_status_retry_at` (`status`, `retry_at`),
+            KEY `idx_status_secret_expires` (`status`, `has_secret`, `expires_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+            <!-- 2026-10-24 16:20 +03: Task M1.5 fix round 1 (M-B), task 596. has_secret = 1 while the row holds a code or other
+                 secret; Outbox::selectStale() finds expired secret rows through idx_status_secret_expires instead of a
+                 leading-wildcard LIKE on context (2 s on 200k rows with 900-byte contexts). -->
         </item>
         <item>
             CREATE TABLE IF NOT EXISTS `?:kwtsms_dispatch_keys` (
