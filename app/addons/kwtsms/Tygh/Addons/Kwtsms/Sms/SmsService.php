@@ -1081,7 +1081,9 @@ class SmsService
             : min(MessageCleaner::MAX_PAGES, $this->config->maxPagesNotification());
         // 2026-10-24 14:38 +03: Task M1.4 fix round 1 (I1), task 596. A code SMS (source otp) always has 2 pages (P3-9:
         // the shipped Arabic text is 2); a store's higher max_pages_notification still applies.
-        if ($context['source'] === 'otp') {
+        // 2026-10-24 15:21 +03: Task M1.5 carry-over M-A, task 596. The floor applies only when the send carries a code
+        // (non-empty secret_values); the phone-changed notice shares source otp and keeps the store's page limit.
+        if ($context['source'] === 'otp' && !empty($context['secret_values'])) {
             $limit = max($limit, 2);
         }
         if ($pages > $limit) {
