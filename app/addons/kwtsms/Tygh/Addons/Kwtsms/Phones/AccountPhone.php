@@ -40,8 +40,9 @@ final class AccountPhone
 
     /**
      * True when $posted is a different phone from $stored. Both are compared in canonical form
-     * (50123402 and +96550123401 are the same phone); a value that is not a valid mobile compares as its raw trimmed
-     * string, so a legacy value that is posted back unchanged is not a change.
+     * (50123401 and +96550123401 are the same phone); a value that is not a valid mobile compares as its raw
+     * trimmed string, so a legacy value that is posted back unchanged is not a change.
+     * 2026-10-24 16:27 +03: example corrected (it named two different numbers), Task M1.5 fix round 1, task 596.
      */
     public static function changed(string $posted, string $stored, string $hint_cc): bool
     {
