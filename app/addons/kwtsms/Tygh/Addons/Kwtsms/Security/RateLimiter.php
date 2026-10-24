@@ -234,13 +234,16 @@ class RateLimiter
     /**
      * Locks the bucket for $seconds from now (a later lock replaces an earlier one).
      */
-    public function lock(string $bucket, int $seconds): void
+    // 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I2, ruling P3-R4), task 596. $clear_count also resets the count and
+    // the window, so the count starts again when the lock ends (hits stay as they were by default).
+    public function lock(string $bucket, int $seconds, bool $clear_count = false): void
     {
         $now = $this->now();
         $this->run(
             'INSERT INTO ?:kwtsms_rate_limits (bucket, hits, window_start, last_at, locked_until)'
             . ' VALUES (?s, 0, 0, ?i, ?i)'
-            . ' ON DUPLICATE KEY UPDATE locked_until = VALUES(locked_until), last_at = VALUES(last_at)',
+            . ' ON DUPLICATE KEY UPDATE locked_until = VALUES(locked_until), last_at = VALUES(last_at)'
+            . ($clear_count ? ', hits = 0, window_start = 0' : ''),
             [self::bucketName($bucket), $now, $now + max(1, $seconds)]
         );
     }

@@ -243,12 +243,8 @@ class OtpService
         $m = $n > $max ? 0 : $this->limiter->hit($fail_phone, self::HOUR);
         $ceiling = $this->config->otpPhoneFailCeiling();
         if ($n > $max || $m > $ceiling) {
-            // Refused without a comparison. A count above the ceiling is locked again (the hour window is longer than
-            // the lockout, so the phone stays locked until the hour passes).
-            if ($m > $ceiling) {
-                $this->limiter->lock($fail_phone, $lockout);
-            }
-
+            // Refused without a comparison. 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I2), task 596: no re-lock
+            // here, the ceiling lock below lasts otp_lockout_seconds and clears the count.
             return OtpResult::locked(max($this->lockRemaining($purpose, $subject, $ip_part, $now), 1));
         }
 
@@ -279,7 +275,8 @@ class OtpService
 
         $ceiling_reached = $m >= $ceiling;
         if ($ceiling_reached) {
-            $this->limiter->lock($fail_phone, $lockout);
+            // 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I2, P3-R4), task 596: the count restarts when the lock ends.
+            $this->limiter->lock($fail_phone, $lockout, true);
         }
         if ($n >= $max) {
             $this->limiter->lock($fail_ip, $lockout);
