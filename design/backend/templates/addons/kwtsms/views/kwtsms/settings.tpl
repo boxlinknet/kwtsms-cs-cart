@@ -569,7 +569,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                 <span class="control-label">{__("kwtsms.settings.field.phone_unique")}:</span>
                 <div class="controls">
                     <input type="hidden" name="kwtsms_codes[phone_unique]" value="N">
-                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_unique" name="kwtsms_codes[phone_unique]" value="Y"{if $kwtsms.codes.phone_unique == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_unique_help kwtsms_phone_unique_state"> {__("kwtsms.settings.phone_unique_label")}</label>
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_unique" name="kwtsms_codes[phone_unique]" value="Y"{if $kwtsms.codes.phone_unique == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_unique_help{if $kwtsms.codes.phone_unique_note} kwtsms_phone_unique_state{/if}"> {__("kwtsms.settings.phone_unique_label")}</label>
                     <p class="muted description" id="kwtsms_phone_unique_help">{__("kwtsms.settings.phone_unique_help")}</p>
                     {if $kwtsms.codes.phone_unique_note}<p class="description" id="kwtsms_phone_unique_state" role="status">{$kwtsms.codes.phone_unique_note}</p>{/if}
                 </div>
