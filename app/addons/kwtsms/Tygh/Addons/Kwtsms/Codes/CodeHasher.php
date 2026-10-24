@@ -16,9 +16,9 @@
  *            $hasher->matches($hash, 'register', '+96550000001', $typed, $salt);   // bool; writes one debug row
  *            $hasher->dummy($typed);                              // same work, never matches, writes nothing
  *            The key is never logged and never shown by var_dump() / print_r() (__debugInfo()).
- *            The debug row otp.compare holds the purpose, the first 12 hex characters of sha256(subject) as
- *            "subject_ref" (a handle to group rows, not the number) and whether it matched: never the code, the
- *            phone number, the key or a hash.
+ *            The debug row otp.compare holds the purpose, subjectRef() (12 hex characters of an HMAC of the subject
+ *            with the key: a handle to group rows that cannot be reversed to the number) and whether it matched:
+ *            never the code, the phone number, the key or a hash.
  * DEPENDS:   Log\DebugLog (optional).
  */
 
@@ -59,8 +59,15 @@ final class CodeHasher
         return bin2hex(random_bytes(16));
     }
 
-    public function hash(string $purpose, string $subject, string $code, string $salt): string
-    {
+    // 2026-10-24 05:59 +03: Task M1.3 fix round 1 (review minors 6, 7), task 596. #[\SensitiveParameter] on every code
+    // parameter (a stack trace on PHP 8.2+ shows no value; a comment on 7.4); subjectRef() is a keyed handle.
+    public function hash(
+        string $purpose,
+        string $subject,
+        #[\SensitiveParameter]
+        string $code,
+        string $salt
+    ): string {
         return hash_hmac('sha256', $purpose . '|' . $subject . '|' . $code . '|' . $salt, $this->key);
     }
 
@@ -68,13 +75,19 @@ final class CodeHasher
      * Compares a typed code with the stored hash in constant time and writes the debug row otp.compare (one row per
      * comparison; the parallel-attempt test counts them).
      */
-    public function matches(string $expected, string $purpose, string $subject, string $code, string $salt): bool
-    {
+    public function matches(
+        string $expected,
+        string $purpose,
+        string $subject,
+        #[\SensitiveParameter]
+        string $code,
+        string $salt
+    ): bool {
         $match = $expected !== '' && hash_equals($expected, $this->hash($purpose, $subject, $code, $salt));
         if ($this->log !== null) {
             $this->log->log('debug', 'otp.compare', 'code compared', [
                 'purpose' => $purpose,
-                'subject_ref' => substr(hash('sha256', $subject), 0, 12),
+                'subject_ref' => $this->subjectRef($subject),
                 'match' => $match,
             ]);
         }
@@ -83,11 +96,22 @@ final class CodeHasher
     }
 
     /**
+     * A 12-hex-character handle of a subject for debug rows: an HMAC with the hasher key, so the log alone cannot be
+     * brute-forced back to the phone number (the number space is small).
+     */
+    public function subjectRef(string $subject): string
+    {
+        return substr(hash_hmac('sha256', 'subject_ref|' . $subject, $this->key), 0, 12);
+    }
+
+    /**
      * The same work as matches() for a request that has no code row to compare with, so its timing does not tell
      * "no row" from "wrong code". Never matches, writes nothing.
      */
-    public function dummy(string $code): bool
-    {
+    public function dummy(
+        #[\SensitiveParameter]
+        string $code
+    ): bool {
         hash_equals(str_repeat('0', 64), $this->hash('dummy', 'dummy', $code, str_repeat('0', 32)));
 
         return false;
