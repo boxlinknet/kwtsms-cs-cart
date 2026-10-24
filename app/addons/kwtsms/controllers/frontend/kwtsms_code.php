@@ -71,8 +71,8 @@ try {
     }
 
     // The admin ticked the core scenario: the CAPTCHA comes before the first SMS (P3-8 "always", P3-20).
-    // 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review I1, ruling P3-R10), task 596. Every request is checked by the
-    // active driver itself, not through fn_image_verification(): core skips that check for a logged-in customer and
+    // 2026-10-25 01:22 +03: Task M1.8a fix round 1 (review I1, ruling P3-R10), task 596. Every request is checked by
+    // the active driver itself, not through fn_image_verification(): core skips that check for a logged-in customer and
     // after one pass (hide_if_logged, hide_after_validation), which would send SMS with no CAPTCHA. The request counts
     // as checked only when a check really ran and passed; otherwise the suspicion gate still runs in handle(). The
     // driver sets no core notice, and no setting is read or changed.
