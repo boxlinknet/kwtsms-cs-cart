@@ -344,7 +344,9 @@ class ServiceProvider implements ServiceProviderInterface
                 static function (int $storefront_id, string $lang): string {
                     return \Tygh\Addons\Kwtsms\Templates\BrandNames::get($storefront_id, $lang);
                 },
-                $app['kwtsms.logs.debug']
+                $app['kwtsms.logs.debug'],
+                null,
+                [$app['kwtsms.outbox'], 'markExpired']
             );
         };
         $app['kwtsms.code_availability'] = function (Container $app): CodeAvailability {

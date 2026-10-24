@@ -66,12 +66,17 @@ class CodeSender
     /** @var callable|null Returns the current Unix time (tests); null = time() */
     private $clock;
 
+    /** @var callable|null (int $outbox_id): bool, finalizes and masks a waiting outbox row (Outbox::markExpired) */
+    private $cancel;
+
     /**
      * @param callable      $send           (array $phones, string $text, array $context): SendResult
      * @param callable      $storefront_url (int $storefront_id): string, the storefront URL
      *                                      ("https://shop.example.com/en/")
      * @param callable      $brand          (int $storefront_id, string $lang): string, the SMS brand name
      * @param callable|null $clock          Returns the current Unix time (tests); null = time()
+     * @param callable|null $cancel         (int $outbox_id): bool, cancels a waiting row (2026-10-24 14:40 +03, Task M1.4
+     *                                      fix round 1, minor 2, task 596)
      */
     public function __construct(
         callable $send,
@@ -80,8 +85,10 @@ class CodeSender
         callable $storefront_url,
         callable $brand,
         ?DebugLog $log = null,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?callable $cancel = null
     ) {
+        $this->cancel = $cancel;
         $this->send = $send;
         $this->templates = $templates;
         $this->config = $config;
@@ -210,7 +217,7 @@ class CodeSender
     /**
      * @param mixed $result A SendResult
      *
-     * @return array{outcome:string,reason:string}
+     * @return array{outcome:string,reason:string,outbox_id?:int}
      */
     private function fromResult($result, string $purpose): array
     {
@@ -222,7 +229,31 @@ class CodeSender
             return $this->answer('failed', (string) $result->errorCode(), $purpose);
         }
 
-        return $this->answer((string) $recipients[0]['outcome'], (string) $recipients[0]['reason'], $purpose);
+        $answer = $this->answer((string) $recipients[0]['outcome'], (string) $recipients[0]['reason'], $purpose);
+        // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. A deferred code waits in the outbox: name the row so
+        // the caller can cancel it once the customer was told codes are unavailable.
+        if ((int) $recipients[0]['outbox_id'] > 0) {
+            $answer['outbox_id'] = (int) $recipients[0]['outbox_id'];
+        }
+
+        return $answer;
+    }
+
+    /**
+     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 2), task 596. Cancels the outbox row of a deferred code SMS: the
+     * row becomes final (expired) and its text is masked, so a code the customer was told will not come never arrives.
+     * False when there is no row, no cancel callable, or the row is already final.
+     */
+    public function cancelDeferred(int $outbox_id): bool
+    {
+        if ($outbox_id <= 0 || $this->cancel === null) {
+            return false;
+        }
+        try {
+            return (bool) call_user_func($this->cancel, $outbox_id);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
