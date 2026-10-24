@@ -399,11 +399,17 @@ class Outbox
     {
         $rows = db_get_array(
             'SELECT * FROM ?:kwtsms_outbox WHERE (status = ?s AND retry_at < ?i) OR (status = ?s AND expires_at <= ?i)'
+            // 2026-10-24 14:39 +03: Task M1.4 fix round 1 (minor 1), task 596. A pending row that holds a secret (a code)
+            // past its expiry is finalized and masked here too, not only when a drain claims it.
+            . ' OR (status = ?s AND expires_at <= ?i AND context LIKE ?l)'
             . ' LIMIT 1000',
             self::STATUS_SENDING,
             $sending_before,
             self::STATUS_HELD,
-            $now
+            $now,
+            self::STATUS_PENDING,
+            $now,
+            '%"secret_values":["%'
         );
 
         return is_array($rows) ? $rows : [];
