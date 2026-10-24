@@ -1079,6 +1079,11 @@ class SmsService
         $limit = in_array($context['source'], ['manual', 'api'], true)
             ? MessageCleaner::MAX_PAGES
             : min(MessageCleaner::MAX_PAGES, $this->config->maxPagesNotification());
+        // 2026-10-24 14:38 +03: Task M1.4 fix round 1 (I1), task 596. A code SMS (source otp) always has 2 pages (P3-9:
+        // the shipped Arabic text is 2); a store's higher max_pages_notification still applies.
+        if ($context['source'] === 'otp') {
+            $limit = max($limit, 2);
+        }
         if ($pages > $limit) {
             $this->decideAll($rcpt, 'blocked_too_long', 'pages_' . $pages . '_over_' . $limit);
 
