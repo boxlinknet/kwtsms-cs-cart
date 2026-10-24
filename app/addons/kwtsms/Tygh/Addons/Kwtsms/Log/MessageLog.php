@@ -52,6 +52,28 @@ class MessageLog
     }
 
     /**
+     * 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 3), task 596. The stored request with the secrets masked in its
+     * "message" field only (re-encoded, slashes and Unicode unescaped); a request that is not a JSON object with a string
+     * message is masked whole.
+     *
+     * @param array<mixed> $secrets
+     */
+    private static function maskRequest(
+        string $request,
+        #[\SensitiveParameter]
+        array $secrets
+    ): string {
+        $decoded = json_decode($request, true);
+        if (!is_array($decoded) || !isset($decoded['message']) || !is_string($decoded['message'])) {
+            return Redactor::mask($request, $secrets);
+        }
+        $decoded['message'] = Redactor::mask($decoded['message'], $secrets);
+        $encoded = json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return is_string($encoded) ? $encoded : Redactor::mask($request, $secrets);
+    }
+
+    /**
      * @param array<string, mixed> $row Columns of kwtsms_messages plus the optional secret_values list
      *
      * @return int The new message_id, or 0 when the row could not be written
@@ -68,7 +90,12 @@ class MessageLog
             foreach (['message', 'api_request', 'api_response'] as $column) {
                 if ($secrets !== [] && isset($row[$column]) && is_string($row[$column])) {
                     $before = $row[$column];
-                    $row[$column] = Redactor::mask($before, $secrets);
+                    // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 3), task 596. In the stored request only the
+                    // "message" field is masked: a 6-digit code can also occur inside the phone digits, a msg-id or a
+                    // balance, and cutting it out there would show where it was. Not JSON: masked whole, as before.
+                    $row[$column] = $column === 'api_request'
+                        ? self::maskRequest($before, $secrets)
+                        : Redactor::mask($before, $secrets);
                     $masked = $masked || $row[$column] !== $before;
                 }
             }
