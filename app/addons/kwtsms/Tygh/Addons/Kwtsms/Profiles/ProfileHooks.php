@@ -71,6 +71,15 @@ final class ProfileHooks
      */
     private $request_context;
 
+    /**
+     * @var callable|null 2026-10-24 18:45 +03: M1.6 fix round 1 (I2), task 596. fn(int $user_id): ?array{user_type,
+     *                    phone,b_phone,b_country}, the saved account as the database holds it (null = no such user)
+     */
+    private $account_loader;
+
+    /** @var callable|null 2026-10-24 18:45 +03: M1.6 fix round 1 (I2), task 596. fn(): bool, inside fn_update_user */
+    private $nested;
+
     public function __construct(
         callable $dispatch,
         callable $storefront_id,
@@ -80,8 +89,12 @@ final class ProfileHooks
         ?PhoneIndex $index = null, // 2026-10-24 17:13 +03: Task M1.6 (R8), task 596
         ?CodeCheckInterface $code_checks = null,
         ?callable $default_cc = null,
-        ?callable $request_context = null
+        ?callable $request_context = null,
+        ?callable $account_loader = null, // 2026-10-24 18:45 +03: M1.6 fix round 1 (I2), task 596
+        ?callable $nested = null
     ) {
+        $this->account_loader = $account_loader;
+        $this->nested = $nested;
         $this->index = $index;
         $this->code_checks = $code_checks ?? new NoCodeCheck();
         $this->default_cc = $default_cc;
@@ -130,6 +143,50 @@ final class ProfileHooks
     }
 
     /**
+     * 2026-10-24 18:45 +03: M1.6 fix round 1 (I2, ruling P3-R6), task 596. Hook update_user_profile_post: core's
+     * fn_update_user_profile() saved a profile of the account without update_profile (the checkout profile editor,
+     * checkout.update_profile). The account is re-read from the database (users.phone, the primary profile's
+     * b_phone and b_country, the same source as the backfill) and goes through the same
+     * writePhoneIndex(). Inside fn_update_user (which calls fn_update_user_profile first and update_profile last) it
+     * does nothing: update_profile writes once. Never throws.
+     *
+     * @param array<string,mixed> $posted The saved profile data (unused: the database is the source)
+     */
+    public function onUpdateUserProfile(int $user_id, array $posted, string $action): void
+    {
+        if ($this->index === null || $user_id <= 0) {
+            return;
+        }
+        try {
+            if (!$this->index->active() || $this->insideUpdateUser()) {
+                return;
+            }
+            $account = $this->account_loader === null ? null : call_user_func($this->account_loader, $user_id);
+            if (!is_array($account)) {
+                return;
+            }
+            $this->writePhoneIndex($action === 'add' ? 'add' : 'update', ['user_id' => $user_id] + $account, []);
+        } catch (\Throwable $e) {
+            error_log('kwtsms: phone index write failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
+    }
+
+    private function insideUpdateUser(): bool
+    {
+        if ($this->nested !== null) {
+            return (bool) call_user_func($this->nested);
+        }
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 12) as $frame) {
+            if (($frame['function'] ?? '') === 'fn_update_user') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * 2026-10-24 17:13 +03: Task M1.6 (P3-31, P3-33), task 596. The ONE write of kwtsms_phone_index on a profile save:
      * only while PhoneIndex::active(), only for a customer account (user_type C), in any area (an administrator
      * who edits the phone moves the index too). The row is the canonical account phone of the saved data ('' when it
@@ -148,7 +205,15 @@ final class ProfileHooks
                 return;
             }
             $user_id = (int) ($user_data['user_id'] ?? 0);
-            if ($user_id <= 0 || (string) ($user_data['user_type'] ?? $current_user_data['user_type'] ?? '') !== 'C') {
+            $type = (string) ($user_data['user_type'] ?? $current_user_data['user_type'] ?? '');
+            if ($user_id <= 0 || $type === '') {
+                return;
+            }
+            if ($type !== 'C') {
+                // 2026-10-24 18:45 +03: M1.6 fix round 1 (M3), task 596. An account saved as another type is no
+                // customer any more: its row must not keep blocking a number.
+                $this->index->delete($user_id);
+
                 return;
             }
             $default_cc = $this->default_cc === null ? '965' : (string) call_user_func($this->default_cc);

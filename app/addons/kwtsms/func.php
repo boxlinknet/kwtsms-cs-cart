@@ -429,6 +429,32 @@ function fn_kwtsms_update_profile($action = null, $user_data = null, $current_us
 }
 
 /**
+ * 2026-10-24 18:46 +03: M1.6 fix round 1 (I2, ruling P3-R6), task 596. Hook update_user_profile_post
+ * (fn_update_user_profile(), fn.users.php): a profile of an account was saved, also by the checkout profile editor
+ * (checkout.update_profile) which does not fire update_profile. The phone index follows while a feature that needs
+ * it is ON; inside fn_update_user it does nothing (update_profile writes). Never throws.
+ *
+ * @param int|string $user_id
+ * @param mixed      $user_data Profile data (unused: the saved account is re-read)
+ * @param mixed      $action
+ */
+function fn_kwtsms_update_user_profile_post($user_id = null, $user_data = null, $action = '')
+{
+    if (fn_kwtsms_hook_args_missing('update_user_profile_post', func_num_args(), 2)) {
+        return;
+    }
+    try {
+        Tygh::$app['kwtsms.profile_hooks']->onUpdateUserProfile(
+            (int) $user_id,
+            is_array($user_data) ? $user_data : [],
+            (string) $action
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_user_profile_post', $e);
+    }
+}
+
+/**
  * 2026-10-24 17:13 +03: Task M1.6 (P3-31), task 596. Hook delete_user (fn.users.php, fn_delete_user): a user account
  * was deleted. While a feature that needs the phone index is ON (phone_unique, register_code, phone_change_code) the
  * account's index row and its SMS code rows go with it; while all are OFF nothing is read or written (the backfill

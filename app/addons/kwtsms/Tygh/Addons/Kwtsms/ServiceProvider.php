@@ -765,6 +765,19 @@ class ServiceProvider implements ServiceProviderInterface
                         'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
                         'lang' => defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : '',
                     ];
+                },
+                // 2026-10-24 18:46 +03: M1.6 fix round 1 (I2), task 596. The saved account as the database holds it
+                // (the same source as the backfill: users.phone, the primary profile's b_phone and b_country).
+                static function (int $user_id): ?array {
+                    $row = db_get_row(
+                        'SELECT u.user_type, u.phone, p.b_phone, p.b_country FROM ?:users u'
+                        . ' LEFT JOIN ?:user_profiles p ON p.user_id = u.user_id AND p.profile_type = ?s'
+                        . ' WHERE u.user_id = ?i',
+                        'P',
+                        $user_id
+                    );
+
+                    return is_array($row) && $row !== [] ? $row : null;
                 }
             );
         };
