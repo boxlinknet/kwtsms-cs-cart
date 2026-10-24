@@ -5456,8 +5456,8 @@ msgid "Trusted proxies"
 msgstr "Trusted proxies"
 
 msgctxt "Languages::kwtsms.settings.cap_ip_help"
-msgid "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends."
-msgstr "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends."
+msgid "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends. Mobile carriers share one address between many customers, so raise the limits if real customers are refused."
+msgstr "The limits count each visitor's IP address, whether or not an SMS is sent. Requests above a limit are refused until the hour or day ends. Mobile carriers share one address between many customers, so raise the limits if real customers are refused."
 
 msgctxt "Languages::kwtsms.settings.cap_store_hour_help"
 msgid "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
@@ -5829,3 +5829,69 @@ msgstr "Turnstile is not shown"
 msgctxt "Languages::kwtsms.alert.captcha_template.text"
 msgid "The Turnstile CAPTCHA could not replace the reCAPTCHA add-on's form template, so the storefront kept its previous CAPTCHA setting. Copy the add-on's storefront templates to the theme again (upgrade or reinstall), then check Settings > CAPTCHA."
 msgstr "The Turnstile CAPTCHA could not replace the reCAPTCHA add-on's form template, so the storefront kept its previous CAPTCHA setting. Copy the add-on's storefront templates to the theme again (upgrade or reinstall), then check Settings > CAPTCHA."
+
+# 2026-10-24 23:49 +03: Task M1.8a (P3-34, SafatMall E1 E2 E3 I3), task 596. The per-phone request cap and the CAPTCHA
+# thresholds (Settings > Phone and codes), the answers of the code request, and two more alert reasons.
+msgctxt "SettingsOptions::kwtsms::cap_phone_hour"
+msgid "Code SMS per phone number and hour"
+msgstr "Code SMS per phone number and hour"
+
+msgctxt "Languages::kwtsms.settings.field.cap_phone_hour"
+msgid "Code SMS per phone number and hour"
+msgstr "Code SMS per phone number and hour"
+
+msgctxt "Languages::kwtsms.settings.field.captcha_after_ip"
+msgid "CAPTCHA after requests per IP address and hour"
+msgstr "CAPTCHA after requests per IP address and hour"
+
+msgctxt "Languages::kwtsms.settings.field.captcha_after_subject"
+msgid "CAPTCHA after codes per phone number and hour"
+msgstr "CAPTCHA after codes per phone number and hour"
+
+msgctxt "Languages::kwtsms.settings.field.captcha_after_store"
+msgid "CAPTCHA after requests per store in 10 minutes"
+msgstr "CAPTCHA after requests per store in 10 minutes"
+
+msgctxt "Languages::kwtsms.settings.cap_phone_help"
+msgid "Most code SMS one phone number gets in an hour, from any address and any form. The next request waits until the hour ends."
+msgstr "Most code SMS one phone number gets in an hour, from any address and any form. The next request waits until the hour ends."
+
+msgctxt "Languages::kwtsms.settings.captcha_after_help"
+msgid "Used when the CAPTCHA is not required for every request (Cloudflare Turnstile only). A request above a number needs a CAPTCHA token. Mobile carriers share one address between many customers, so raise the IP numbers and the per-IP limits above if real customers are refused."
+msgstr "Used when the CAPTCHA is not required for every request (Cloudflare Turnstile only). A request above a number needs a CAPTCHA token. Mobile carriers share one address between many customers, so raise the IP numbers and the per-IP limits above if real customers are refused."
+
+msgctxt "Languages::kwtsms.code.sent"
+msgid "We sent a code to this number. It is valid for [minutes] minutes."
+msgstr "We sent a code to this number. It is valid for [minutes] minutes."
+
+msgctxt "Languages::kwtsms.code.wait"
+msgid "You can ask for a new code in [seconds] seconds."
+msgstr "You can ask for a new code in [seconds] seconds."
+
+msgctxt "Languages::kwtsms.code.in_use"
+msgid "This mobile number is already used by another account."
+msgstr "This mobile number is already used by another account."
+
+msgctxt "Languages::kwtsms.code.unavailable"
+msgid "SMS codes are unavailable right now. Try again in a few minutes."
+msgstr "SMS codes are unavailable right now. Try again in a few minutes."
+
+msgctxt "Languages::kwtsms.code.busy"
+msgid "SMS codes are busy. Try again in [minutes] minutes."
+msgstr "SMS codes are busy. Try again in [minutes] minutes."
+
+msgctxt "Languages::kwtsms.code.captcha"
+msgid "Confirm you are not a robot, then send again."
+msgstr "Confirm you are not a robot, then send again."
+
+msgctxt "Languages::kwtsms.code.login_required"
+msgid "Sign in to change your mobile number."
+msgstr "Sign in to change your mobile number."
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.rejected"
+msgid "kwtSMS refused the code SMS (see the Logs)"
+msgstr "kwtSMS refused the code SMS (see the Logs)"
+
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.template"
+msgid "the code SMS text is missing or empty (see Templates)"
+msgstr "the code SMS text is missing or empty (see Templates)"

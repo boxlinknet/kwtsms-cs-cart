@@ -46,7 +46,11 @@ class CodeAvailability
     public const SENDING_OFF = 'sending_off';
 
     /** The reasons alert() names; any other value is raised as "other". */
-    public const ALERT_REASONS = ['gateway', 'balance', 'pilot', 'sender', 'sending_off', 'daily_cap', 'other'];
+    // 2026-10-24 23:52 +03: Task M1.8a (P3-24, M1.4 carry), task 596. rejected (kwtSMS refused the text) and template
+    // (the code text is missing or empty) join, so no not-sendable result is reported as "the cause is unknown".
+    public const ALERT_REASONS = [
+        'gateway', 'balance', 'pilot', 'sender', 'sending_off', 'daily_cap', 'rejected', 'template', 'other',
+    ];
 
     public const SENT = 'sent';
     public const NUMBER = 'number';
@@ -164,6 +168,44 @@ class CodeAvailability
         }
 
         return self::UNSENDABLE;
+    }
+
+    /**
+     * 2026-10-24 23:52 +03: Task M1.8a (P3-24, M1.4 carry), task 596. The alert reason of a send result that classify()
+     * calls unsendable. Every canonical outcome has a named reason; only an outcome nobody knows is "other".
+     */
+    public function reasonFor(string $outcome, string $reason): string
+    {
+        switch ($outcome) {
+            case 'blocked_balance':
+                return 'balance';
+            case 'blocked_daily_cap':
+                return 'daily_cap';
+            case 'blocked_pilot':
+                return 'pilot';
+            case 'blocked_disabled':
+            case 'switched_off':
+                return 'sending_off';
+            case 'rejected':
+                return 'rejected';
+            case 'no_template':
+            case 'blocked_empty':
+            case 'blocked_too_long':
+            case 'blocked_placeholder':
+                return 'template';
+            case 'deferred':
+            case 'blocked_not_configured':
+            case 'failed':
+            case 'unknown':
+            case 'cancelled':
+            case 'expired':
+            case 'not_notified':
+            case 'superseded':
+            case 'duplicate_event':
+                return 'gateway';
+        }
+
+        return 'other';
     }
 
     /**

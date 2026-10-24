@@ -120,6 +120,21 @@ hash_equals_check() {
   echo "CHECKED $n"
 }
 gate "hash_equals in CronKey and RequestGate" hash_equals_check
+# 2026-10-25 00:05 +03: Task M1.8a (SafatMall E1, PRD 10), task 596. The storefront code request controller ships, answers
+# 405 to any verb but POST before it does anything else, and checks the session security hash itself with hash_equals().
+code_controller_check() {
+  local f="$A/controllers/frontend/kwtsms_code.php" post hash
+  [ -f "$f" ] || { echo "controllers/frontend/kwtsms_code.php missing"; return 0; }
+  # Code lines only: the header comment names both.
+  post="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep "REQUEST_METHOD" | head -1 | cut -d: -f1)"
+  hash="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'hash_equals(' | head -1 | cut -d: -f1)"
+  [ -n "$post" ] || echo "no REQUEST_METHOD check"
+  [ -n "$hash" ] || echo "no hash_equals"
+  if [ -n "$post" ] && [ -n "$hash" ] && [ "$post" -gt "$hash" ]; then echo "the POST check comes after the hash check"; fi
+  grep -q "fn_kwtsms_code_json(405" "$f" || echo "no 405 answer"
+  echo "CHECKED 1"
+}
+gate "kwtsms_code controller: POST first, then hash_equals" code_controller_check
 sensitive_check() { py "$1" <<'PY'
 import os, re, sys
 # Parameter names that hold pass, secret or key but are not secrets (setting, storage, dispatch and template keys,

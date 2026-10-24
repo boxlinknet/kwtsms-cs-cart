@@ -33,6 +33,7 @@
 
 namespace Tygh\Addons\Kwtsms\Codes;
 
+use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
@@ -69,6 +70,9 @@ class CodeSender
     /** @var callable|null (int $outbox_id): bool, finalizes and masks a waiting outbox row (Outbox::markExpired) */
     private $cancel;
 
+    /** @var AttemptLog|null 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596. no_template rows. */
+    private $attempts;
+
     /**
      * @param callable      $send           (array $phones, string $text, array $context): SendResult
      * @param callable      $storefront_url (int $storefront_id): string, the storefront URL
@@ -87,8 +91,10 @@ class CodeSender
         callable $brand,
         ?DebugLog $log = null,
         ?callable $clock = null,
-        ?callable $cancel = null
+        ?callable $cancel = null,
+        ?AttemptLog $attempts = null
     ) {
+        $this->attempts = $attempts;
         $this->cancel = $cancel;
         $this->send = $send;
         $this->templates = $templates;
@@ -140,6 +146,9 @@ class CodeSender
                 $storefront_id
             );
             if ($resolved === null || trim((string) $resolved['body']) === '') {
+                // 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596. The Logs show why no code left.
+                $this->noTemplateRow($phone, 'otp.' . $purpose, $storefront_id, $user_id, $ip);
+
                 return $this->answer('no_template', 'no_template', $purpose);
             }
             $ttl = $this->config->otpExpirySeconds();
@@ -191,6 +200,9 @@ class CodeSender
                 $storefront_id
             );
             if ($resolved === null || trim((string) $resolved['body']) === '') {
+                // 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596.
+                $this->noTemplateRow($old_phone, Defaults::EVENT_PHONE_CHANGED, $storefront_id, $user_id, '');
+
                 return $this->answer('no_template', 'no_template', $purpose);
             }
             $now = $this->clock === null ? time() : (int) call_user_func($this->clock);
@@ -215,6 +227,35 @@ class CodeSender
             return $this->fromResult($result, $purpose);
         } catch (\Throwable $e) {
             return $this->failed($e, $purpose);
+        }
+    }
+
+    /**
+     * 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596. The attempt row of a text that could not be
+     * built (every language of the template is empty): outcome and reason no_template, so "every skipped SMS writes
+     * an attempt row" holds. Never holds a code or a text. A failed write is the log's own business (it returns 0).
+     */
+    private function noTemplateRow(string $phone, string $event_id, int $storefront_id, int $user_id, string $ip): void
+    {
+        if ($this->attempts === null) {
+            return;
+        }
+        try {
+            $this->attempts->record([
+                'source' => 'otp',
+                'event_id' => $event_id,
+                'receiver' => Defaults::RECEIVER_CUSTOMER,
+                'storefront_id' => $storefront_id,
+                'user_id' => $user_id,
+                'phone_raw' => $phone,
+                'phone' => (string) preg_replace('/[^0-9]/', '', $phone),
+                'outcome' => 'no_template',
+                'reason' => 'no_template',
+                'ip' => $ip === '' ? null : $ip,
+                'is_test' => $this->config->testMode() ? 'Y' : 'N',
+            ]);
+        } catch (\Throwable $e) {
+            unset($e); // the audit row must not break the request
         }
     }
 

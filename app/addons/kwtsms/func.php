@@ -1151,6 +1151,29 @@ function fn_kwtsms_cron_reply(int $status, bool $ok)
 }
 
 /**
+ * 2026-10-24 23:52 +03: Task M1.8a (SafatMall E1), task 596. The JSON answer of the storefront controller
+ * kwtsms_code: status, no-store headers, the body, exit. A 405 names the one allowed method.
+ *
+ * @param array<string,mixed> $body
+ *
+ * @return void Never returns
+ */
+function fn_kwtsms_code_json(int $status, array $body)
+{
+    if (!headers_sent()) {
+        http_response_code($status);
+        if ($status === 405) {
+            header('Allow: POST');
+        }
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        header('X-Content-Type-Options: nosniff');
+    }
+    echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+/**
  * Permission schema condition (schemas/permissions/vendor_ultimate.post.php): true only for a GET kwtSMS page opened
  * by a root administrator (company 0) who has the page privilege while a storefront is selected, and only when the
  * request does not itself select a storefront. The controller then refuses it with the notice "Select All stores to

@@ -42,6 +42,9 @@ namespace Tygh\Addons\Kwtsms;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Antibot\SuspicionGate; // 2026-10-24 23:51 +03: Task M1.8a, task 596
+use Tygh\Addons\Kwtsms\Codes\CodeRequest; // 2026-10-24 23:51 +03: Task M1.8a, task 596
+use Tygh\Addons\Kwtsms\Phones\PhoneRules; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileWidget; // 2026-10-24 21:14 +03: Task M1.7b, task 596
@@ -365,7 +368,29 @@ class ServiceProvider implements ServiceProviderInterface
                 },
                 $app['kwtsms.logs.debug'],
                 null,
-                [$app['kwtsms.outbox'], 'markExpired']
+                [$app['kwtsms.outbox'], 'markExpired'],
+                $app['kwtsms.logs.attempts'] // 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596
+            );
+        };
+        // 2026-10-24 23:51 +03: Task M1.8a (SafatMall E1 to E3, I3), task 596. The SMS code request and what it needs:
+        // the phone rule of AREA C (C3 texts), the "only when suspicious" CAPTCHA gate and the endpoint itself.
+        $app['kwtsms.phone_rules'] = function (Container $app): PhoneRules {
+            return new PhoneRules($app['kwtsms.config']);
+        };
+        $app['kwtsms.suspicion_gate'] = function (Container $app): SuspicionGate {
+            return new SuspicionGate($app['kwtsms.rate_limiter'], $app['kwtsms.config']);
+        };
+        $app['kwtsms.code_request'] = function (Container $app): CodeRequest {
+            return new CodeRequest(
+                $app['kwtsms.config'],
+                $app['kwtsms.rate_limiter'],
+                $app['kwtsms.suspicion_gate'],
+                $app['kwtsms.phone_rules'],
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.code_availability'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.code_sender'],
+                $app['kwtsms.logs.debug']
             );
         };
         // 2026-10-24 19:42 +03: Task M1.7a, task 596. The Cloudflare Turnstile antibot driver (PRD 6.15). Its own

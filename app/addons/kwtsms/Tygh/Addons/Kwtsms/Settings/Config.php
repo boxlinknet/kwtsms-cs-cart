@@ -99,8 +99,13 @@ class Config implements ConfigInterface
         'otp_phone_fail_ceiling' => '20',
         'otp_resend_waits' => '60,120,300',
         'otp_unreachable' => 'pause',
-        'cap_ip_hour' => '20',
-        'cap_ip_day' => '100',
+        // 2026-10-24 23:49 +03: Task M1.8a (P3-35, kwtsms.com test checklist 6B), task 596. 20 -> 5 and 100 -> 20: a
+        // block after 3 to 5 different numbers from one device. Existing stores keep the values they saved. Equals
+        // addon.xml.
+        'cap_ip_hour' => '5',
+        'cap_ip_day' => '20',
+        // 2026-10-24 23:49 +03: Task M1.8a (P3-34), task 596. At most 5 code SMS to one phone per hour, all IPs.
+        'cap_phone_hour' => '5',
         'cap_ip_verify_hour' => '30',
         'cap_store_hour' => '0',
         'captcha_after_ip' => '3',
@@ -166,6 +171,9 @@ class Config implements ConfigInterface
             'cap_store_hour', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
             'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check', 'phone_unique',
+            // 2026-10-24 23:49 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
+            // thresholds after which the code request needs a CAPTCHA token.
+            'cap_phone_hour', 'captcha_after_ip', 'captcha_after_subject', 'captcha_after_store',
         ],
     ];
 
@@ -226,6 +234,7 @@ class Config implements ConfigInterface
         'otp_unreachable' => ['enum', ['pause', 'continue']],
         'cap_ip_hour' => ['int', 1, 10000],
         'cap_ip_day' => ['int', 1, 10000],
+        'cap_phone_hour' => ['int', 1, 100], // 2026-10-24 23:49 +03: Task M1.8a (P3-34), task 596
         'cap_ip_verify_hour' => ['int', 5, 10000],
         'cap_store_hour' => ['int', 0, 100000],
         'captcha_after_ip' => ['int', 1, 1000],
@@ -569,6 +578,12 @@ class Config implements ConfigInterface
     public function capIpDay(): int
     {
         return $this->number('cap_ip_day');
+    }
+
+    // 2026-10-24 23:49 +03: Task M1.8a (P3-34), task 596. Code SMS to one phone per hour (all IPs, all purposes).
+    public function capPhoneHour(): int
+    {
+        return $this->number('cap_phone_hour');
     }
 
     public function capIpVerifyHour(): int

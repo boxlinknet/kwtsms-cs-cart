@@ -396,6 +396,12 @@ class SettingsPage
             // still being built, the text "starts after indexing: n of m" (empty otherwise).
             'phone_unique' => $this->config->phoneUnique() ? 'Y' : 'N',
             'phone_unique_note' => $this->phoneUniqueNote(),
+            // 2026-10-24 23:51 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
+            // thresholds after which a code request needs a CAPTCHA token.
+            'cap_phone_hour' => $this->config->capPhoneHour(),
+            'captcha_after_ip' => $this->config->captchaAfterIp(),
+            'captcha_after_subject' => $this->config->captchaAfterSubject(),
+            'captcha_after_store' => $this->config->captchaAfterStore(),
         ];
     }
 

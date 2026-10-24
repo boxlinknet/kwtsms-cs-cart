@@ -500,6 +500,23 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     </div>
                 </div>
             {/foreach}
+            {* 2026-10-24 23:51 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
+               thresholds after which a code request needs a CAPTCHA token (Turnstile "only when suspicious"). id =>
+               [min, max, help key]. *}
+            {foreach [
+                "cap_phone_hour" => [1, 100, "cap_phone_help"],
+                "captcha_after_ip" => [1, 1000, ""],
+                "captcha_after_subject" => [1, 1000, ""],
+                "captcha_after_store" => [1, 100000, "captcha_after_help"]
+            ] as $thr_key => $thr_spec}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_{$thr_key}">{__("kwtsms.settings.field.`$thr_key`")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_{$thr_key}" name="kwtsms_codes[{$thr_key}]" value="{$kwtsms.codes.$thr_key}" min="{$thr_spec[0]}" max="{$thr_spec[1]}" step="1" class="input-small" dir="ltr">
+                        {if $thr_spec[2]}<p class="muted description">{__("kwtsms.settings.`$thr_spec[2]`")}</p>{/if}
+                    </div>
+                </div>
+            {/foreach}
             <div class="control-group">
                 <label class="control-label" for="kwtsms_cap_store_hour">{__("kwtsms.settings.field.cap_store_hour")}:</label>
                 <div class="controls">

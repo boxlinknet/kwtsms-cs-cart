@@ -192,11 +192,14 @@ interface ConfigInterface
     /** 'pause' or 'continue' (P3-13), default 'pause' */
     public function otpUnreachable(): string;
 
-    /** 1..10000, default 20 */
+    /** 1..10000, default 5 (2026-10-24 23:49 +03: was 20, Task M1.8a, P3-35, task 596) */
     public function capIpHour(): int;
 
-    /** 1..10000, default 100 */
+    /** 1..10000, default 20 (2026-10-24 23:49 +03: was 100, Task M1.8a, P3-35, task 596) */
     public function capIpDay(): int;
+
+    /** 2026-10-24 23:49 +03: Task M1.8a (P3-34), task 596. Code SMS per phone and hour, 1..100, default 5 */
+    public function capPhoneHour(): int;
 
     /** 5..10000, default 30 */
     public function capIpVerifyHour(): int;

@@ -260,13 +260,18 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                         <type>hidden</type>
                         <default_value>pause</default_value>
                     </item>
+                    <!-- 2026-10-24 23:50 +03: Task M1.8a (P3-35), task 596. Per-IP defaults 20 -> 5 and 100 -> 20; stores that saved their own values keep them. cap_phone_hour (P3-34): code SMS per phone and hour. -->
                     <item id="cap_ip_hour">
                         <type>hidden</type>
-                        <default_value>20</default_value>
+                        <default_value>5</default_value>
                     </item>
                     <item id="cap_ip_day">
                         <type>hidden</type>
-                        <default_value>100</default_value>
+                        <default_value>20</default_value>
+                    </item>
+                    <item id="cap_phone_hour">
+                        <type>hidden</type>
+                        <default_value>5</default_value>
                     </item>
                     <item id="cap_ip_verify_hour">
                         <type>hidden</type>
