@@ -155,10 +155,12 @@ class Config implements ConfigInterface
         // the resend waits and the per-IP verify limit.
         // 2026-10-24 12:38 +03: Task M1.4 (P3-13), task 596. otp_unreachable: pause or continue when codes cannot be
         // sent.
+        // 2026-10-24 15:28 +03: Task M1.5 (C3, P3-15), task 596. phone_country_check: the server-side phone rule
+        // switch.
         'update_codes' => [
             'turnstile_secret', 'cap_ip_hour', 'cap_ip_day', 'cap_store_hour', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
-            'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable',
+            'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check',
         ],
     ];
 

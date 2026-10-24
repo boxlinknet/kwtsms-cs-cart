@@ -5646,3 +5646,32 @@ msgstr "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, b
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sending_off"
 msgid "SMS sending is switched off while a code feature is on"
 msgstr "SMS sending is switched off while a code feature is on"
+
+# 2026-10-24 15:30 +03: Task M1.5 (SafatMall C3, P3-15), task 596. The phone check switch, the "Add GCC countries" button and the customer-facing refusal texts.
+msgctxt "Languages::kwtsms.settings.field.phone_country_check"
+msgid "Check customer phone numbers"
+msgstr "Check customer phone numbers"
+
+msgctxt "Languages::kwtsms.settings.phone_country_check_label"
+msgid "Accept only mobile numbers from the allowed countries"
+msgstr "Accept only mobile numbers from the allowed countries"
+
+msgctxt "Languages::kwtsms.settings.phone_country_check_help"
+msgid "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
+msgstr "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
+
+msgctxt "Languages::kwtsms.settings.add_gcc"
+msgid "Add GCC countries"
+msgstr "Add GCC countries"
+
+msgctxt "Languages::kwtsms.settings.add_gcc_help"
+msgid "Ticks Kuwait, Saudi Arabia, the United Arab Emirates, Bahrain, Qatar and Oman in the list above. Save the page to apply."
+msgstr "Ticks Kuwait, Saudi Arabia, the United Arab Emirates, Bahrain, Qatar and Oman in the list above. Save the page to apply."
+
+msgctxt "Languages::kwtsms.phone.error_invalid"
+msgid "Enter a valid mobile number."
+msgstr "Enter a valid mobile number."
+
+msgctxt "Languages::kwtsms.phone.error_country"
+msgid "Enter a mobile number from: [countries]."
+msgstr "Enter a mobile number from: [countries]."

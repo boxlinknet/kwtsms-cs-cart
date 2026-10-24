@@ -154,6 +154,30 @@ attributes of .kwtsms-page; never reads or writes a credential. Runs on load and
         }
     });
 
+    /*
+    2026-10-24 15:29 +03: Task M1.5 (SafatMall C1, P3-15), task 596. "Add GCC countries" next to the customer countries
+    list of Settings: ticks the options whose calling code is in the button's data-kwtsms-gcc list and changes nothing
+    else (an option that is already ticked stays ticked). Nothing is saved here; the page's own Save writes the
+    list. Delegated on the document, so it works after an ajax re-render.
+    */
+    document.addEventListener('click', function (event) {
+        var button = event.target && event.target.closest ? event.target.closest('.kwtsms-js-add-gcc') : null;
+        if (!button) {
+            return;
+        }
+        event.preventDefault();
+        var select = document.getElementById(button.getAttribute('data-kwtsms-target') || '');
+        var codes = (button.getAttribute('data-kwtsms-gcc') || '').split(',');
+        if (!select) {
+            return;
+        }
+        Array.prototype.forEach.call(select.options, function (option) {
+            if (codes.indexOf(option.value) !== -1) {
+                option.selected = true;
+            }
+        });
+    });
+
     function init(context) {
         var root = context && context.jquery ? context.get(0) : (context || document);
         if (root) {

@@ -44,3 +44,5 @@ Tygh/Addons/Kwtsms/Queue/Outbox.php:insertRow:$row
 Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$changes
 Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$id
 Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$from_statuses
+# 2026-10-24 15:42 +03, Task M1.5, task 596. PhoneRules::message(): the list is built from the fixed country-name table of PhoneNormalizer::countryOptions() and the digits of the allowed calling codes; no request value
+Tygh/Addons/Kwtsms/Phones/PhoneRules.php:message:implode(', ', $names)

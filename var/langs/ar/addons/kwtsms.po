@@ -5650,3 +5650,32 @@ msgstr "تُطبق عند تعذر إرسال الرسائل: تعذر الوص�
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sending_off"
 msgid "SMS sending is switched off while a code feature is on"
 msgstr "إرسال الرسائل معطل بينما إحدى ميزات رمز التحقق مفعلة"
+
+# 2026-10-24 15:30 +03: Task M1.5 (SafatMall C3, P3-15), task 596. The phone check switch, the "Add GCC countries" button and the customer-facing refusal texts.
+msgctxt "Languages::kwtsms.settings.field.phone_country_check"
+msgid "Check customer phone numbers"
+msgstr "التحقق من أرقام جوال العملاء"
+
+msgctxt "Languages::kwtsms.settings.phone_country_check_label"
+msgid "Accept only mobile numbers from the allowed countries"
+msgstr "قبول أرقام الجوال من الدول المسموحة فقط"
+
+msgctxt "Languages::kwtsms.settings.phone_country_check_help"
+msgid "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
+msgstr "عند التفعيل يجب أن يكون الرقم المكتوب عند التسجيل أو الدفع أو في الحساب رقم جوال من الدول المختارة أعلاه، ويحفظ بصيغة +96550123401. يتم التحقق فقط من الرقم الجديد أو المعدل."
+
+msgctxt "Languages::kwtsms.settings.add_gcc"
+msgid "Add GCC countries"
+msgstr "إضافة دول الخليج"
+
+msgctxt "Languages::kwtsms.settings.add_gcc_help"
+msgid "Ticks Kuwait, Saudi Arabia, the United Arab Emirates, Bahrain, Qatar and Oman in the list above. Save the page to apply."
+msgstr "يحدد الكويت والسعودية والإمارات والبحرين وقطر وعمان في القائمة أعلاه. احفظ الصفحة للتطبيق."
+
+msgctxt "Languages::kwtsms.phone.error_invalid"
+msgid "Enter a valid mobile number."
+msgstr "أدخل رقم جوال صحيحا."
+
+msgctxt "Languages::kwtsms.phone.error_country"
+msgid "Enter a mobile number from: [countries]."
+msgstr "أدخل رقم جوال من: [countries]."

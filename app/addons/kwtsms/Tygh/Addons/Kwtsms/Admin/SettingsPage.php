@@ -31,6 +31,8 @@ use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 // 2026-10-23 15:14 +03: Config::MODE_KEYS for saveCodes() (Task M1.1a, task 596).
+// 2026-10-24 15:28 +03: PhoneRules::GCC for the "Add GCC countries" button (Task M1.5, task 596).
+use Tygh\Addons\Kwtsms\Phones\PhoneRules;
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\ApiErrors;
@@ -218,6 +220,10 @@ class SettingsPage
             'cap_ip_verify_hour' => $this->config->capIpVerifyHour(),
             // 2026-10-24 12:38 +03: Task M1.4 (P3-13), task 596. 'pause' or 'continue'.
             'otp_unreachable' => $this->config->otpUnreachable(),
+            // 2026-10-24 15:28 +03: Task M1.5 (C3, P3-15), task 596. The phone rule switch ('Y'/'N') and the calling
+            // codes the "Add GCC countries" button ticks, comma separated.
+            'phone_country_check' => $this->config->phoneCountryCheck() ? 'Y' : 'N',
+            'gcc' => implode(',', PhoneRules::GCC),
         ];
     }
 

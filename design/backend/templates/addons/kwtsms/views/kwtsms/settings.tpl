@@ -333,6 +333,9 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                             <option value="{$code}"{if $code|in_array:$s.customer_sms_countries} selected="selected"{/if}>{$label}</option>
                         {/foreach}
                     </select>
+                    {* 2026-10-24 15:29 +03: Task M1.5 (SafatMall C1, P3-15), task 596. Ticks the six GCC calling codes in the list above (backend.js); saved by the page's own Save. *}
+                    <p><button type="button" class="btn kwtsms-js-add-gcc" id="kwtsms_add_gcc" data-kwtsms-target="kwtsms_customer_countries" data-kwtsms-gcc="{$kwtsms.codes.gcc}" aria-describedby="kwtsms_add_gcc_help">{__("kwtsms.settings.add_gcc")}</button></p>
+                    <p class="muted description" id="kwtsms_add_gcc_help">{__("kwtsms.settings.add_gcc_help")}</p>
                     <p class="muted description">{__("kwtsms.settings.customer_countries_help")}</p>
                 </div>
             </div>
@@ -550,6 +553,15 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         <option value="continue"{if $kwtsms.codes.otp_unreachable == "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_continue")}</option>
                     </select>
                     <p class="muted description" id="kwtsms_otp_unreachable_help">{__("kwtsms.settings.otp_unreachable_help")}</p>
+                </div>
+            </div>
+            {* 2026-10-24 15:29 +03: Task M1.5 (SafatMall C3, P3-15), task 596. The server-side phone check switch (default OFF). The hidden N is posted when the box is cleared. *}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.phone_country_check")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[phone_country_check]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_country_check" name="kwtsms_codes[phone_country_check]" value="Y"{if $kwtsms.codes.phone_country_check == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_country_check_help"> {__("kwtsms.settings.phone_country_check_label")}</label>
+                    <p class="muted description" id="kwtsms_phone_country_check_help">{__("kwtsms.settings.phone_country_check_help")}</p>
                 </div>
             </div>
             <div class="control-group">
