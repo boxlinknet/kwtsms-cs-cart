@@ -40,7 +40,7 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), https://challenges
                 language: $el.attr('data-language') || 'en',
                 theme: $el.attr('data-theme') || 'auto'
             };
-            // 2026-10-25 03:11 +03: Task M1.8b fix round 1 (review item 2), task 596. Only the widget of the SMS code
+            // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review item 2), task 596. Only the widget of the SMS code
             // field sets a field name (data-response-field-name); every other widget keeps cf-turnstile-response.
             if ($el.attr('data-response-field-name')) {
                 options['response-field-name'] = $el.attr('data-response-field-name');

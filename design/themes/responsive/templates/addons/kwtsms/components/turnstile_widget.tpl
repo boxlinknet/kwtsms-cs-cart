@@ -13,7 +13,7 @@
  * DEPENDS:   func.php fn_kwtsms_turnstile_widget, hooks/index/scripts.post.tpl (api.js and turnstile.js).
  *}
 <div class="ty-control-group kwtsms-turnstile-group">
-    {* 2026-10-25 03:11 +03: Task M1.8b fix round 1 (review item 2 and Important 1), task 596. The widget of the SMS code
+    {* 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review item 2 and Important 1), task 596. The widget of the SMS code
        request gets its own response field name, so a form that also carries its own scenario widget posts the right token
        to each; every value is escaped. *}
     <div class="cf-turnstile kwtsms-turnstile" data-sitekey="{$kwtsms_ts.site_key|default:""|fn_html_escape}" data-action="{$kwtsms_ts.action|default:""|fn_html_escape}" data-language="{$kwtsms_ts.language|default:""|fn_html_escape}" data-theme="auto"{if $kwtsms_ts.action == "kwtsms_sms_code"} data-response-field-name="kwtsms-code-turnstile-response"{/if}></div>
