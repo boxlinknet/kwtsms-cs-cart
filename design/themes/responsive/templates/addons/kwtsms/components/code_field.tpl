@@ -40,20 +40,21 @@
 </style>
 {/literal}
 {/if}
-<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id}" data-ca-kwtsms-code="{$purpose}" data-purpose="{$purpose}" data-phone-name="{$phone_input_name}" data-state="idle"
-     data-url="{"kwtsms_code.send"|fn_url}"
-     data-sitekey="{$kwtsms_cf_ts.site_key}" data-action="{$kwtsms_cf_ts.action|default:"kwtsms_sms_code"}" data-language="{$kwtsms_cf_ts.language|default:$smarty.const.CART_LANGUAGE}"
-     data-t-send="{__("kwtsms.code.send")}" data-t-resend="{__("kwtsms.code.resend")}" data-t-resend-in="{__("kwtsms.code.resend_in")}"
-     data-t-sending="{__("kwtsms.code.sending")}" data-t-phone-required="{__("kwtsms.code.phone_required")}"
-     data-t-offline="{__("kwtsms.code.offline")}" data-t-server-error="{__("kwtsms.code.server_error")}"
-     data-t-bypass="{__("kwtsms.code.bypass")}">
-    <label class="ty-control-group__title" for="{$kwtsms_cf_id}_input">{__("kwtsms.code.field_label")}</label>
+{* 2026-10-25 03:06 +03: Task M1.8b fix round 1 (review Important 1, stored XSS), task 596. Every value printed in an attribute or as text goes through |fn_html_escape (|escape:"html" is dropped by core's Smarty in some expressions; the other add-on templates use fn_html_escape for __() values). Proved by tests/Store/CodeFieldEscapingStoreTest. *}
+<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id|fn_html_escape}" data-ca-kwtsms-code="{$purpose|fn_html_escape}" data-purpose="{$purpose|fn_html_escape}" data-phone-name="{$phone_input_name|fn_html_escape}" data-state="idle"
+     data-url="{"kwtsms_code.send"|fn_url|fn_html_escape}"
+     data-sitekey="{$kwtsms_cf_ts.site_key|default:""|fn_html_escape}" data-action="{$kwtsms_cf_ts.action|default:"kwtsms_sms_code"|fn_html_escape}" data-language="{$kwtsms_cf_ts.language|default:$smarty.const.CART_LANGUAGE|fn_html_escape}"
+     data-t-send="{__("kwtsms.code.send")|fn_html_escape}" data-t-resend="{__("kwtsms.code.resend")|fn_html_escape}" data-t-resend-in="{__("kwtsms.code.resend_in")|fn_html_escape}"
+     data-t-sending="{__("kwtsms.code.sending")|fn_html_escape}" data-t-phone-required="{__("kwtsms.code.phone_required")|fn_html_escape}"
+     data-t-offline="{__("kwtsms.code.offline")|fn_html_escape}" data-t-server-error="{__("kwtsms.code.server_error")|fn_html_escape}"
+     data-t-bypass="{__("kwtsms.code.bypass")|fn_html_escape}">
+    <label class="ty-control-group__title" for="{$kwtsms_cf_id|fn_html_escape}_input">{__("kwtsms.code.field_label")|fn_html_escape}</label>
     {include file="common/image_verification.tpl" option="kwtsms_sms_code"}
     <div class="kwtsms-code__slot" hidden></div>
     <div class="kwtsms-code__row">
-        <input type="text" id="{$kwtsms_cf_id}_input" name="kwtsms_code" class="ty-input-text kwtsms-code__input" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="6" aria-describedby="{$kwtsms_cf_id}_status" />
-        <button type="button" class="ty-btn ty-btn__primary kwtsms-code__send">{__("kwtsms.code.send")}</button>
+        <input type="text" id="{$kwtsms_cf_id|fn_html_escape}_input" name="kwtsms_code" class="ty-input-text kwtsms-code__input" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="6" aria-describedby="{$kwtsms_cf_id|fn_html_escape}_status" />
+        <button type="button" class="ty-btn ty-btn__primary kwtsms-code__send">{__("kwtsms.code.send")|fn_html_escape}</button>
     </div>
     <div class="kwtsms-code__count" aria-hidden="true"></div>
-    <div class="kwtsms-code__status" id="{$kwtsms_cf_id}_status" role="status" aria-live="polite"></div>
+    <div class="kwtsms-code__status" id="{$kwtsms_cf_id|fn_html_escape}_status" role="status" aria-live="polite"></div>
 </div>
