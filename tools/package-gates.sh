@@ -107,6 +107,10 @@ gate "outbound hosts: only www.kwtsms.com and challenges.cloudflare.com" scan "$
 # and the scripts (the Turnstile api.js URL lives in a .tpl): a literal http(s):// host, or a protocol-relative //host, must
 # be Cloudflare's challenge host (or an example domain). Concatenated hosts stay out of reach of any text gate.
 gate "outbound hosts in templates and scripts: only challenges.cloudflare.com" scan "$src/design/themes/responsive/templates/addons/kwtsms $src/var/themes_repository/responsive/templates/addons/kwtsms $T $J" ':\d+:(https?:)?//(challenges\.cloudflare\.com|www\.kwtsms\.com|([a-z0-9-]+\.)?example\.(com|org|test))$' -noE --include=*.tpl --include=*.js '(https?:)?//[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+'
+# 2026-10-25 02:17 +03: Task M1.8b, task 596. The SMS code field script js/addons/kwtsms/code.js ships with the add-on (the whole
+# js/addons/kwtsms directory is in SHIP) and must never write to the console (a code, a token or a number would show
+# there) or run text as code.
+gate "js/addons/kwtsms/code.js: no console output, no eval or document.write" scan "$J/code.js" '' -nE 'console\.|\beval[[:space:]]*\(|document\.write'
 gate "CURLOPT_SSL_VERIFYPEER 0 / VERIFYHOST 0/1" scan "$A" '' -nE 'SSL_VERIFYPEER, ?(0|false)|SSL_VERIFYHOST, ?(0|1|false)'
 gate "OVERRIDE / API_BASE constant" scan "$A" '' -nE "define\(['\"][A-Z_]*(OVERRIDE|API_BASE)|const[[:space:]]+[A-Z_]*(OVERRIDE|API_BASE)\b"
 gate "secret-like variable compared with ==/=== to a variable" scan "$A" ':\d+:\s*(\*|//)' -nPi --include=*.php '\$\w*(hash|secret|cron_?key|token|passw\w*)\w*\s*[!=]==?\s*\$|[!=]==?\s*\$\w*(hash|secret|cron_?key|token|passw\w*)\b'

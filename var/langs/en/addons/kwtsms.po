@@ -5900,3 +5900,41 @@ msgstr "the code SMS text is missing or empty (see Templates)"
 msgctxt "Languages::kwtsms.code.unchanged"
 msgid "This is already your mobile number."
 msgstr "This is already your mobile number."
+
+# 2026-10-25 02:10 +03: Task M1.8b (SafatMall B1, checklist P3-39), task 596. Texts of the storefront SMS code field
+# (components/code_field.tpl, js/addons/kwtsms/code.js): label, buttons, the visible countdown and the client-side errors.
+msgctxt "Languages::kwtsms.code.field_label"
+msgid "SMS code"
+msgstr "SMS code"
+
+msgctxt "Languages::kwtsms.code.send"
+msgid "Send code"
+msgstr "Send code"
+
+msgctxt "Languages::kwtsms.code.resend"
+msgid "Resend code"
+msgstr "Resend code"
+
+msgctxt "Languages::kwtsms.code.resend_in"
+msgid "Resend in [seconds] s"
+msgstr "Resend in [seconds] s"
+
+msgctxt "Languages::kwtsms.code.sending"
+msgid "Sending..."
+msgstr "Sending..."
+
+msgctxt "Languages::kwtsms.code.phone_required"
+msgid "Phone number is required"
+msgstr "Phone number is required"
+
+msgctxt "Languages::kwtsms.code.offline"
+msgid "No internet connection. Check your connection and try again."
+msgstr "No internet connection. Check your connection and try again."
+
+msgctxt "Languages::kwtsms.code.server_error"
+msgid "Something went wrong, please try again."
+msgstr "Something went wrong, please try again."
+
+msgctxt "Languages::kwtsms.code.bypass"
+msgid "SMS codes are unavailable; you can continue without a code."
+msgstr "SMS codes are unavailable; you can continue without a code."

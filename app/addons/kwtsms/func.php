@@ -883,6 +883,28 @@ function fn_kwtsms_turnstile_widget($option = '')
 }
 
 /**
+ * 2026-10-25 02:10 +03: Task M1.8b (SafatMall B1), task 596. For the storefront template hooks/index/scripts.post.tpl
+ * (modifier |fn_kwtsms_code_features_on): true while a storefront SMS code feature (registration or phone change) is
+ * switched on, so js/addons/kwtsms/code.js is loaded for the code field and for no other store. Settings only, no
+ * gateway state is read. Never throws.
+ */
+function fn_kwtsms_code_features_on($unused = '')
+{
+    try {
+        if (!isset(Tygh::$app['kwtsms.config'])) {
+            return false;
+        }
+        $config = Tygh::$app['kwtsms.config'];
+
+        return $config->registerCode() || $config->phoneChangeCode();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('code_features_on', $e);
+
+        return false;
+    }
+}
+
+/**
  * 2026-10-24 21:13 +03: Task M1.7b (ruling P3-R7), task 596. Hook init_templater_post (fn.init.php:143): in the
  * storefront,
  * while Turnstile is the active antibot driver and the reCAPTCHA add-on is active (without keys, or its driver would

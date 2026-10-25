@@ -5906,3 +5906,41 @@ msgstr "نص رسالة الرمز مفقود أو فارغ (راجع القوا
 msgctxt "Languages::kwtsms.code.unchanged"
 msgid "This is already your mobile number."
 msgstr "هذا هو رقم جوالك الحالي بالفعل."
+
+# 2026-10-25 02:10 +03: Task M1.8b (SafatMall B1, checklist P3-39), task 596. Texts of the storefront SMS code field
+# (components/code_field.tpl, js/addons/kwtsms/code.js): label, buttons, the visible countdown and the client-side errors.
+msgctxt "Languages::kwtsms.code.field_label"
+msgid "SMS code"
+msgstr "رمز التحقق"
+
+msgctxt "Languages::kwtsms.code.send"
+msgid "Send code"
+msgstr "إرسال الرمز"
+
+msgctxt "Languages::kwtsms.code.resend"
+msgid "Resend code"
+msgstr "إعادة إرسال الرمز"
+
+msgctxt "Languages::kwtsms.code.resend_in"
+msgid "Resend in [seconds] s"
+msgstr "إعادة الإرسال بعد [seconds] ث"
+
+msgctxt "Languages::kwtsms.code.sending"
+msgid "Sending..."
+msgstr "جارٍ الإرسال..."
+
+msgctxt "Languages::kwtsms.code.phone_required"
+msgid "Phone number is required"
+msgstr "رقم الجوال مطلوب"
+
+msgctxt "Languages::kwtsms.code.offline"
+msgid "No internet connection. Check your connection and try again."
+msgstr "لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.code.server_error"
+msgid "Something went wrong, please try again."
+msgstr "حدث خطأ ما، حاول مرة أخرى."
+
+msgctxt "Languages::kwtsms.code.bypass"
+msgid "SMS codes are unavailable; you can continue without a code."
+msgstr "رموز الرسائل غير متاحة، يمكنك المتابعة بدون رمز."
