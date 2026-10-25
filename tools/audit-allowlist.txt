@@ -46,3 +46,5 @@ Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$id
 Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$from_statuses
 # 2026-10-24 15:42 +03, Task M1.5, task 596. PhoneRules::message(): the list is built from the fixed country-name table of PhoneNormalizer::countryOptions() and the digits of the allowed calling codes; no request value
 Tygh/Addons/Kwtsms/Phones/PhoneRules.php:message:implode(', ', $names)
+# 2026-10-25 06:36 +03, Task M1.9, task 596. ProfileHooks::warnAdmin(): the reason is PhoneRules::message() text (language variables and core country names); the finished notice is escaped once by ProfileHooks::tell() (fn_html_escape), so the placeholder value is not escaped twice
+Tygh/Addons/Kwtsms/Profiles/ProfileHooks.php:warnAdmin:$verdict['refusal']

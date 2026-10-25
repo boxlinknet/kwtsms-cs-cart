@@ -66,6 +66,7 @@ use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:18 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:18 +03: Task M1.6, task 596
+use Tygh\Addons\Kwtsms\Phones\PhoneLock; // 2026-10-25 04:37 +03: Task M1.9, task 596
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
 use Tygh\Addons\Kwtsms\Profiles\NoCodeCheck; // 2026-10-24 17:18 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
@@ -311,6 +312,11 @@ class ServiceProvider implements ServiceProviderInterface
         };
         $app['kwtsms.code_checks'] = function (): NoCodeCheck {
             return new NoCodeCheck();
+        };
+        // 2026-10-25 04:37 +03: Task M1.9 (C4, P3-11), task 596. The per-phone lock between the "is it free" check and
+        // the index write.
+        $app['kwtsms.phone_lock'] = function (): PhoneLock {
+            return new PhoneLock();
         };
         // 2026-10-23 19:55 +03: Task M1.2 (P3-18, P3-19), task 596. The atomic rate-limit buckets (clock = time()).
         $app['kwtsms.rate_limiter'] = function (Container $app): RateLimiter {
@@ -819,6 +825,26 @@ class ServiceProvider implements ServiceProviderInterface
                         . ' LEFT JOIN ?:user_profiles p ON p.user_id = u.user_id AND p.profile_type = ?s'
                         . ' WHERE u.user_id = ?i',
                         'P',
+                        $user_id
+                    );
+
+                    return is_array($row) && $row !== [] ? $row : null;
+                },
+                null, // $nested: the backtrace test of ProfileHooks
+                // 2026-10-25 04:37 +03: Task M1.9 (C3, C4; P3-21), task 596. The phone checks of the forms and of
+                // checkout: the settings, the rule, the lock and the stored account as the database holds it before
+                // the save (users.phone and the edited profile's b_phone, s_phone and countries; no profile id = the
+                // primary profile).
+                $app['kwtsms.config'],
+                $app['kwtsms.phone_rules'],
+                $app['kwtsms.phone_lock'],
+                static function (int $user_id, int $profile_id): ?array {
+                    $row = db_get_row(
+                        'SELECT u.user_type, u.phone, p.b_phone, p.s_phone, p.b_country, p.s_country FROM ?:users u'
+                        . ' LEFT JOIN ?:user_profiles p ON p.user_id = u.user_id AND '
+                        . ($profile_id > 0 ? 'p.profile_id = ?i' : 'p.profile_type = ?s')
+                        . ' WHERE u.user_id = ?i',
+                        $profile_id > 0 ? $profile_id : 'P',
                         $user_id
                     );
 

@@ -445,6 +445,74 @@ function fn_kwtsms_update_profile($action = null, $user_data = null, $current_us
 }
 
 /**
+ * 2026-10-25 04:38 +03: Task M1.9 (SafatMall C3, C4; P3-15, P3-21), task 596. Hook update_user_pre (fn.users.php,
+ * fn_update_user(), before core's own checks): the phone fields of a customer account that are new or changed are
+ * checked (country, one account per phone, SMS code) and rewritten to their canonical form by reference;
+ * $can_update = false refuses the save. Core 4.21.2 passes all six arguments; a core that passes fewer makes the
+ * check inactive (the guard logs it), never "allowed" on a half-read state. Never throws.
+ *
+ * @param int|string $user_id
+ * @param mixed      $user_data       By reference: the posted user data
+ * @param mixed      $auth            By reference (unused)
+ * @param mixed      $ship_to_another
+ * @param mixed      $notify_user
+ * @param mixed      $can_update      By reference: set to false to refuse the save
+ */
+function fn_kwtsms_update_user_pre(
+    $user_id = null,
+    &$user_data = null,
+    &$auth = null,
+    $ship_to_another = false,
+    $notify_user = false,
+    &$can_update = true
+) {
+    if (fn_kwtsms_hook_args_missing('update_user_pre', func_num_args(), 6)) {
+        return;
+    }
+    try {
+        if (!is_array($user_data)) {
+            return;
+        }
+        $allowed = $can_update !== false;
+        Tygh::$app['kwtsms.profile_hooks']->onUpdateUserPre((int) $user_id, $user_data, $allowed);
+        if (!$allowed) {
+            $can_update = false;
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('update_user_pre', $e);
+    }
+}
+
+/**
+ * 2026-10-25 04:38 +03: Task M1.9 (SafatMall C3; P3-21), task 596. Hook pre_place_order (fn.cart.php,
+ * fn_place_order()): in the storefront, the phone fields of the cart's user data that are new or changed are checked
+ * (country) and rewritten to their canonical form by reference, so the order carries them; $allow = false stops the
+ * order. C4 is not checked at checkout. Never throws.
+ *
+ * @param mixed $cart           By reference
+ * @param mixed $allow          By reference
+ * @param mixed $product_groups (unused)
+ */
+function fn_kwtsms_pre_place_order(&$cart = null, &$allow = null, $product_groups = [])
+{
+    if (fn_kwtsms_hook_args_missing('pre_place_order', func_num_args(), 2)) {
+        return;
+    }
+    try {
+        if (!is_array($cart)) {
+            return;
+        }
+        $flag = $allow !== false;
+        Tygh::$app['kwtsms.profile_hooks']->onPrePlaceOrder($cart, $flag);
+        if (!$flag) {
+            $allow = false;
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('pre_place_order', $e);
+    }
+}
+
+/**
  * 2026-10-24 18:46 +03: M1.6 fix round 1 (I2, ruling P3-R6), task 596. Hook update_user_profile_post
  * (fn_update_user_profile(), fn.users.php): a profile of an account was saved, also by the checkout profile editor
  * (checkout.update_profile) which does not fire update_profile. The phone index follows while a feature that needs

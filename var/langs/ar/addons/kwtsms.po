@@ -5944,3 +5944,11 @@ msgstr "حدث خطأ ما، حاول مرة أخرى."
 msgctxt "Languages::kwtsms.code.bypass"
 msgid "SMS codes are unavailable; you can continue without a code."
 msgstr "رموز الرسائل غير متاحة، يمكنك المتابعة بدون رمز."
+
+msgctxt "Languages::kwtsms.phone.admin_warning"
+msgid "Saved as typed. The store would refuse this phone number: [reason]"
+msgstr "تم الحفظ كما أُدخل. سيرفض المتجر رقم الهاتف هذا: [reason]"
+
+msgctxt "Languages::kwtsms.code.check_failed"
+msgid "Could not check the code. Try again."
+msgstr "تعذر التحقق من الرمز، حاول مرة أخرى."
