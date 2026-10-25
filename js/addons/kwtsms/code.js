@@ -1,6 +1,6 @@
 /*
 FILE:      js/addons/kwtsms/code.js
-CREATED:   2026-10-25 02:12 +03
+CREATED:   2026-10-25 02:11 +03
 TASK:      596
 AUTHOR:    kwtSMS
 WHAT:      Behaviour of the storefront SMS code field (components/code_field.tpl): "Send code" posts purpose, the phone of
@@ -64,6 +64,8 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
                 stopCountdown(root);
                 setState(root, 'idle');
                 setButton(root, text(root, 'resend'), false);
+                // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 6), task 596: the old "code sent" line goes with the wait.
+                setStatus(root, '');
                 return;
             }
             $count.text(text(root, 'resend-in').replace('[seconds]', String(left)));
@@ -95,7 +97,7 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
 
     function collectToken(root, body) {
         widgets(root).each(function () {
-            // 2026-10-25 03:11 +03: Task M1.8b fix round 1 (review item 2), task 596. The field's widgets are named
+            // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review item 2), task 596. The field's widgets are named
             // kwtsms-code-turnstile-response (a form's own widget keeps cf-turnstile-response); the request still
             // carries the token under the name the driver reads.
             var v = $(this).find('input[name="kwtsms-code-turnstile-response"]').val();
@@ -168,13 +170,20 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             draw();
             return;
         }
+        // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 8), task 596: one polling timer per field, however many captcha answers arrive meanwhile.
+        if (root.data('kwtsmsDrawing')) {
+            return;
+        }
+        root.data('kwtsmsDrawing', true);
         var timer = window.setInterval(function () {
             tries++;
             if (turnstileReady()) {
                 window.clearInterval(timer);
+                root.data('kwtsmsDrawing', false);
                 draw();
             } else if (tries >= MAX_TRIES) {
                 window.clearInterval(timer);
+                root.data('kwtsmsDrawing', false);
             }
         }, WAIT_MS);
     }
@@ -192,6 +201,8 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             setState(root, 'bypass');
             setStatus(root, text(root, 'bypass'));
             root.find('.kwtsms-code__row').prop('hidden', true);
+            // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 1), task 596: the label of the hidden box goes too.
+            root.find('.kwtsms-code__label').prop('hidden', true);
             root.find('.kwtsms-code__slot').prop('hidden', true);
             root.trigger('kwtsms:bypass');
             return;
@@ -217,6 +228,10 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             return;
         }
         fail(root, data.message || text(root, 'server-error'));
+        // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 4), task 596: an input error the customer fixes in the phone box returns the focus there.
+        if (['invalid', 'country', 'in_use', 'unchanged'].indexOf(data.error) >= 0) {
+            phoneInput(root).trigger('focus');
+        }
     }
 
     function send(root) {
@@ -229,6 +244,11 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         var timer = null;
 
         if (state === 'sending' || state === 'sent' || state === 'wait' || state === 'bypass') {
+            return;
+        }
+        // 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 7), task 596: a browser without fetch gets the plain sentence, not a button stuck in "Sending...".
+        if (typeof window.fetch !== 'function') {
+            fail(root, text(root, 'server-error'));
             return;
         }
         if (phone === '') {

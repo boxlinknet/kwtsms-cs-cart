@@ -18,7 +18,8 @@
  *}
 {$kwtsms_cf_id = "kwtsms_code_`$purpose`"}
 {$kwtsms_cf_ts = "kwtsms_sms_code"|fn_kwtsms_turnstile_widget}
-{* 2026-10-25 02:16 +03: the button is the theme primary button (the secondary one fails AA contrast, 2.96:1), Task M1.8b, task 596.
+{* 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 1), task 596: the label has a class so the bypass can hide it.
+   2026-10-25 02:16 +03: the button is the theme primary button (the secondary one fails AA contrast, 2.96:1), Task M1.8b, task 596.
    2026-10-25 02:11 +03: styles of the field (Task M1.8b, task 596). Layout only; the theme keeps colours of buttons and inputs. *}
 {if !$kwtsms_code_css_done}
 {assign var="kwtsms_code_css_done" value=true scope="root"}
@@ -26,7 +27,7 @@
 <style>
 .kwtsms-code { margin-bottom: 16px; }
 .kwtsms-code__row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; max-width: 28em; }
-.kwtsms-code__row[hidden], .kwtsms-code__slot[hidden] { display: none; }
+.kwtsms-code__row[hidden], .kwtsms-code__slot[hidden], .kwtsms-code__label[hidden] { display: none; }
 .kwtsms-code__input { flex: 1 1 9em; min-width: 0; box-sizing: border-box; min-height: 44px; font-size: 1.25em; letter-spacing: .3em; text-indent: .3em; text-align: center; font-variant-numeric: tabular-nums; }
 .kwtsms-code__send { flex: 0 1 auto; min-height: 44px; white-space: nowrap; }
 .kwtsms-code__send[disabled] { cursor: not-allowed; }
@@ -48,7 +49,7 @@
      data-t-sending="{__("kwtsms.code.sending")|fn_html_escape}" data-t-phone-required="{__("kwtsms.code.phone_required")|fn_html_escape}"
      data-t-offline="{__("kwtsms.code.offline")|fn_html_escape}" data-t-server-error="{__("kwtsms.code.server_error")|fn_html_escape}"
      data-t-bypass="{__("kwtsms.code.bypass")|fn_html_escape}">
-    <label class="ty-control-group__title" for="{$kwtsms_cf_id|fn_html_escape}_input">{__("kwtsms.code.field_label")|fn_html_escape}</label>
+    <label class="ty-control-group__title kwtsms-code__label" for="{$kwtsms_cf_id|fn_html_escape}_input">{__("kwtsms.code.field_label")|fn_html_escape}</label>
     {include file="common/image_verification.tpl" option="kwtsms_sms_code"}
     <div class="kwtsms-code__slot" hidden></div>
     <div class="kwtsms-code__row">

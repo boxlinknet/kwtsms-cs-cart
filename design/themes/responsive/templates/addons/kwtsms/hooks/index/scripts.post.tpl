@@ -15,7 +15,7 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     {script src="js/addons/kwtsms/turnstile.js"}
 {/if}
-{* 2026-10-25 02:12 +03: Task M1.8b, task 596. The SMS code field script, only for stores that switched a code feature on. *}
+{* 2026-10-25 02:11 +03: Task M1.8b, task 596. The SMS code field script, only for stores that switched a code feature on. *}
 {if ""|fn_kwtsms_code_features_on}
     {script src="js/addons/kwtsms/code.js"}
 {/if}
