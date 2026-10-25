@@ -840,7 +840,10 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.phone_lock'],
                 static function (int $user_id, int $profile_id): ?array {
                     $row = db_get_row(
-                        'SELECT u.user_type, u.phone, p.b_phone, p.s_phone, p.b_country, p.s_country FROM ?:users u'
+                        // 2026-10-25 07:12 +03: M1.9 fix round 1 (I1), task 596: profile_type for the
+                        // checkout profile editor.
+                        'SELECT u.user_type, u.phone, p.b_phone, p.s_phone, p.b_country, p.s_country, p.profile_type'
+                        . ' FROM ?:users u'
                         . ' LEFT JOIN ?:user_profiles p ON p.user_id = u.user_id AND '
                         . ($profile_id > 0 ? 'p.profile_id = ?i' : 'p.profile_type = ?s')
                         . ' WHERE u.user_id = ?i',

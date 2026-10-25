@@ -115,6 +115,12 @@ final class ProfileHooks
     /** @var callable|null 2026-10-25 04:36 +03: Task M1.9, task 596. fn(): bool, inside fn_checkout_update_user_profile */
     private $checkout_profile;
 
+    /**
+     * @var array<string,bool> 2026-10-25 07:11 +03: M1.9 fix round 1 (M3), task 596. The canonical phones this
+     *                         instance holds a PhoneLock for: freed by exactly the key that was acquired.
+     */
+    private $held = [];
+
     public function __construct(
         callable $dispatch,
         callable $storefront_id,
@@ -162,7 +168,7 @@ final class ProfileHooks
     {
         $this->saveOrderSmsChoice($action, $user_data);
         $this->writePhoneIndex($action, $user_data, $current_user_data);
-        $this->releasePhoneLock($user_data, $current_user_data);
+        $this->releaseHeld();
         if ($action !== 'add' || (string) call_user_func($this->area) !== 'C') {
             return;
         }
@@ -255,12 +261,17 @@ final class ProfileHooks
                 }
             }
             if ($c4 && $this->accountPhoneTaken($user_id, $user_data, $stored, $new)) {
-                $can_update = false;
+                $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
                 if (!$this->insideCheckoutProfile()) {
-                    $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
-                }
+                    $can_update = false;
 
-                return;
+                    return;
+                }
+                // 2026-10-25 07:11 +03: M1.9 fix round 1 (item 2, ruling P3-R11), task 596. The post-order profile save: the
+                // order is placed and the customer's other changes are kept; only the taken phone goes back to its stored
+                // value, and the notice above says so (never silent).
+                $field = isset($user_data['phone']) && trim((string) $user_data['phone']) !== '' ? 'phone' : 'b_phone';
+                $user_data[$field] = (string) ($stored[$field] ?? '');
             }
         } catch (\Throwable $e) {
             error_log('kwtsms: phone check failed: ' . get_class($e) . ': ' . $e->getMessage()
@@ -284,13 +295,75 @@ final class ProfileHooks
             if ($refusal !== null) {
                 $can_update = false;
                 $this->tell('E', $refusal);
+                $this->releaseHeld(); // 2026-10-25 07:11 +03: M1.9 fix round 1 (M2), task 596
             }
         } catch (\Throwable $e) {
             error_log('kwtsms: code check failed: ' . get_class($e) . ': ' . $e->getMessage()
                 . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
             $can_update = false;
+            $this->releaseHeld();
             $this->tell('E', (string) __('kwtsms.code.check_failed', [], $lang));
         }
+    }
+
+    /**
+     * 2026-10-25 07:11 +03: M1.9 fix round 1 (I1), task 596. The checkout profile editor (POST checkout.update_profile,
+     * core's fn_update_user_profile(), which has no refusal hook), called by the pre-controller
+     * controllers/frontend/checkout.pre.php before core saves anything. For the signed-in customer (never user 1) it
+     * runs the SAME checks as the forms: C3 through evaluate() (an accepted phone is rewritten canonical in
+     * $user_data), and C4 through accountPhoneTaken() when the edited profile is the primary one and the account has
+     * no contact phone (the account phone is then the billing phone, P3-17). Returns true when the save must be
+     * refused (the notice is already set; the caller redirects), false otherwise, also when both switches are OFF
+     * (nothing is read). An internal error lets the save through (logged).
+     *
+     * @param array<string,mixed> $user_data The posted user_data of the editor (rewritten by reference)
+     */
+    public function onCheckoutProfileEdit(int $user_id, array &$user_data): bool
+    {
+        if ($user_id <= 1 || (string) call_user_func($this->area) !== 'C' || $this->config === null || $this->rules === null) {
+            return false;
+        }
+        $c3 = $this->config->phoneCountryCheck();
+        $c4 = $this->index !== null && $this->index->enforcing();
+        if (!$c3 && !$c4) {
+            return false;
+        }
+        try {
+            $profile_id = $this->intOf($user_data['profile_id'] ?? 0);
+            $stored = $this->storedAccount($user_id, $profile_id);
+            if ($stored === null || (string) ($stored['user_type'] ?? '') !== 'C') {
+                return false;
+            }
+            $lang = $this->lang();
+            if ($c3) {
+                $verdict = $this->evaluate($user_data, $stored, $profile_id === 0, $lang);
+                if ($verdict['refusal'] !== null) {
+                    $this->tell('E', $verdict['refusal']);
+
+                    return true;
+                }
+                foreach ($verdict['rewrite'] as $field => $canonical) {
+                    $user_data[$field] = $canonical;
+                }
+            }
+            if (
+                $c4 && $profile_id > 0 && (string) ($stored['profile_type'] ?? '') === 'P'
+                && trim((string) ($stored['phone'] ?? '')) === ''
+            ) {
+                $posted = $user_data;
+                unset($posted['phone']);
+                if ($this->accountPhoneTaken($user_id, $posted, $stored, false)) {
+                    $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
+
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('kwtsms: checkout profile check failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
+
+        return false;
     }
 
     /**
@@ -439,8 +512,10 @@ final class ProfileHooks
         if (!$this->lock->acquire($canonical)) {
             return true;
         }
+        $this->held[$canonical] = true;
         if ($this->index->ownerOf($canonical, $user_id) > 0) {
             $this->lock->release($canonical);
+            unset($this->held[$canonical]);
 
             return true;
         }
@@ -449,28 +524,24 @@ final class ProfileHooks
     }
 
     /**
-     * 2026-10-25 04:36 +03: Task M1.9 (C4), task 596. After the account was saved and its index row written, the lock
-     * of its phone is freed so the next request sees the row. Only while phone_unique is ON (the only time a lock
-     * is held). Never throws.
-     *
-     * @param array<string,mixed> $user_data
-     * @param array<string,mixed> $current_user_data
+     * 2026-10-25 07:11 +03: M1.9 fix round 1 (M3), task 596 (was releasePhoneLock(), which recomputed the phone from the
+     * saved data). After the account was saved and its index row written, or when a later step refused, every lock this
+     * instance took is freed by the key it acquired, so the next request sees the row. Never throws.
      */
-    private function releasePhoneLock(array $user_data, array $current_user_data): void
+    private function releaseHeld(): void
     {
-        if ($this->lock === null || $this->config === null || !$this->config->phoneUnique()) {
+        if ($this->lock === null || $this->held === []) {
             return;
         }
-        try {
-            $default_cc = $this->default_cc === null ? '965' : (string) call_user_func($this->default_cc);
-            $phone = AccountPhone::canonicalOf($user_data, $current_user_data, $default_cc);
-            if ($phone !== '') {
-                $this->lock->release($phone);
+        foreach (array_keys($this->held) as $phone) {
+            try {
+                $this->lock->release((string) $phone);
+            } catch (\Throwable $e) {
+                error_log('kwtsms: phone lock release failed: ' . get_class($e) . ': ' . $e->getMessage()
+                    . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
             }
-        } catch (\Throwable $e) {
-            error_log('kwtsms: phone lock release failed: ' . get_class($e) . ': ' . $e->getMessage()
-                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
         }
+        $this->held = [];
     }
 
     /**
@@ -545,11 +616,14 @@ final class ProfileHooks
             if (!$this->index->active() || $this->insideUpdateUser()) {
                 return;
             }
-            $account = $this->account_loader === null ? null : call_user_func($this->account_loader, $user_id);
-            if (!is_array($account)) {
-                return;
+            try {
+                $account = $this->account_loader === null ? null : call_user_func($this->account_loader, $user_id);
+                if (is_array($account)) {
+                    $this->writePhoneIndex($action === 'add' ? 'add' : 'update', ['user_id' => $user_id] + $account, []);
+                }
+            } finally {
+                $this->releaseHeld(); // 2026-10-25 07:20 +03: M1.9 fix round 1 (I1), task 596
             }
-            $this->writePhoneIndex($action === 'add' ? 'add' : 'update', ['user_id' => $user_id] + $account, []);
         } catch (\Throwable $e) {
             error_log('kwtsms: phone index write failed: ' . get_class($e) . ': ' . $e->getMessage()
                 . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
