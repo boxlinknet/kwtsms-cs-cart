@@ -95,7 +95,10 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
 
     function collectToken(root, body) {
         widgets(root).each(function () {
-            var v = $(this).find('input[name="cf-turnstile-response"]').val();
+            // 2026-10-25 03:11 +03: Task M1.8b fix round 1 (review item 2), task 596. The field's widgets are named
+            // kwtsms-code-turnstile-response (a form's own widget keeps cf-turnstile-response); the request still
+            // carries the token under the name the driver reads.
+            var v = $(this).find('input[name="kwtsms-code-turnstile-response"]').val();
             if (v) {
                 body.set('cf-turnstile-response', v);
             }
@@ -153,7 +156,8 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
                     sitekey: key,
                     action: root.attr('data-action') || 'kwtsms_sms_code',
                     language: root.attr('data-language') || 'en',
-                    theme: 'auto'
+                    theme: 'auto',
+                    'response-field-name': 'kwtsms-code-turnstile-response'
                 });
             } catch (e) {
                 // Left without a token, the next request is refused with the same answer.

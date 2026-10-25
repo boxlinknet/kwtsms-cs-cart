@@ -34,12 +34,18 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), https://challenges
         }
         $el.data('kwtsmsRendered', true);
         try {
-            window.turnstile.render(el, {
+            var options = {
                 sitekey: $el.attr('data-sitekey'),
                 action: $el.attr('data-action') || 'core',
                 language: $el.attr('data-language') || 'en',
                 theme: $el.attr('data-theme') || 'auto'
-            });
+            };
+            // 2026-10-25 03:11 +03: Task M1.8b fix round 1 (review item 2), task 596. Only the widget of the SMS code
+            // field sets a field name (data-response-field-name); every other widget keeps cf-turnstile-response.
+            if ($el.attr('data-response-field-name')) {
+                options['response-field-name'] = $el.attr('data-response-field-name');
+            }
+            window.turnstile.render(el, options);
         } catch (e) {
             // A widget that cannot render leaves the form without a token: the server refuses it.
             $el.data('kwtsmsRendered', false);
