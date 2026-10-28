@@ -17,6 +17,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+<!-- 2026-10-29 00:16 +03: Task M1.11s (SafatMall test notes on 1.1.0-rc.1), task 596 -->
+### Upgrade notes
+
+- The Upgrade Center requests its own restore script over HTTP before it installs a package. A store behind a login
+  wall (Cloudflare Access, HTTP basic auth, an IP allow list) fails that pre-check: allow the request, or lift the wall,
+  for the time of the upgrade.
+- A broken `.po` file of another add-on makes the Upgrade Center report errors for that language. The error names the
+  other add-on's file, not kwtSMS; fix or remove that file and run the upgrade again.
+
+### Fixed
+
+- Templates page: the event names and order status names follow the language of the administration panel. They were
+  shown in the content language, so an English panel with Arabic content read Arabic names. The language tabs still
+  edit each language's text.
+- The "Send me SMS about my order status" box on registration and in the profile is hidden while no customer SMS for
+  an order status change, an order update or a shipment is on for the storefront. A customer's saved choice is kept.
+
+### Changed
+
+- Shorter password recovery SMS (English: "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min.",
+  Arabic likewise): the reset link is most of the length. The upgrade replaces the stored recovery text only where it is
+  still the 1.1.0 default; an edited text stays.
+
 <!-- 2026-10-23 14:11 +03: the Unreleased entries became the 1.1.0 release, Task A15, task 596 -->
 ## [1.1.0] - 2026-10-23
 
