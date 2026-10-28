@@ -70,6 +70,7 @@ use Tygh\Addons\Kwtsms\Phones\PhoneLock; // 2026-10-25 04:37 +03: Task M1.9, tas
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
 use Tygh\Addons\Kwtsms\Profiles\CodeChecks; // 2026-10-28 11:06 +03: Task M1.10a, task 596 (replaces NoCodeCheck)
 use Tygh\Addons\Kwtsms\Profiles\RegistrationCode; // 2026-10-28 11:06 +03: Task M1.10a, task 596
+use Tygh\Addons\Kwtsms\Profiles\PhoneChange; // 2026-10-28 20:26 +03: Task M1.10b, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
@@ -323,6 +324,22 @@ class ServiceProvider implements ServiceProviderInterface
                     null,
                     null,
                     $app['kwtsms.phone_lock'] // 2026-10-28 18:50 +03: fix round 1 (I3), task 596
+                ),
+                // 2026-10-28 20:26 +03: Task M1.10b (B5, P3-17), task 596. The phone change code and the notice to
+                // the old number; the actor is the logged-in user of the request.
+                new PhoneChange(
+                    $app['kwtsms.config'],
+                    $app['kwtsms.otp'],
+                    static function (string $old, int $user_id, string $lang, int $storefront_id) use ($app) {
+                        return $app['kwtsms.code_sender']
+                            ->sendPhoneChangedNotice($old, $user_id, $lang, $storefront_id);
+                    },
+                    [$app['kwtsms.config'], 'defaultCountryCode'],
+                    static function () use ($app): int {
+                        $session = $app['session'] ?? null;
+
+                        return is_object($session) || is_array($session) ? (int) ($session['auth']['user_id'] ?? 0) : 0;
+                    }
                 ),
             ]);
         };

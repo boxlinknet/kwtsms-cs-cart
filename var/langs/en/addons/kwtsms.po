@@ -5999,3 +5999,44 @@ msgstr "Too many tries from your network. Try again later."
 msgctxt "Languages::kwtsms.code.expired"
 msgid "The code has expired. Ask for a new one."
 msgstr "The code has expired. Ask for a new one."
+
+# 2026-10-28 20:27 +03: Task M1.10b (SafatMall B5, P3-17), task 596. Phone change code and notice: Settings fields and storefront texts.
+msgctxt "Languages::kwtsms.settings.field.phone_change_code"
+msgid "SMS code at phone change"
+msgstr "SMS code at phone change"
+
+msgctxt "Languages::kwtsms.settings.phone_change_code_label"
+msgid "Require a verified SMS code to change the account phone number"
+msgstr "Require a verified SMS code to change the account phone number"
+
+msgctxt "Languages::kwtsms.settings.phone_change_code_help"
+msgid "When on, a signed-in customer who changes the phone number on the profile page enters a code sent to the new number; the code field appears once the number is edited. The profile page is the only place a customer can change it: the checkout profile editor refuses a changed number, and after an order a changed number is not saved. Edits in the admin panel need no code."
+msgstr "When on, a signed-in customer who changes the phone number on the profile page enters a code sent to the new number; the code field appears once the number is edited. The profile page is the only place a customer can change it: the checkout profile editor refuses a changed number, and after an order a changed number is not saved. Edits in the admin panel need no code."
+
+msgctxt "Languages::kwtsms.settings.field.phone_change_notice"
+msgid "Notice to the old number"
+msgstr "Notice to the old number"
+
+msgctxt "Languages::kwtsms.settings.phone_change_notice_label"
+msgid "Send an SMS to the old number after the phone number changes"
+msgstr "Send an SMS to the old number after the phone number changes"
+
+msgctxt "Languages::kwtsms.settings.phone_change_notice_help"
+msgid "Sent only after a phone number change confirmed with a code, so it needs the switch above. The text names no new number and has no link, and the customer's order SMS opt-out does not stop it. Edit the text under Templates (security.phone_changed)."
+msgstr "Sent only after a phone number change confirmed with a code, so it needs the switch above. The text names no new number and has no link, and the customer's order SMS opt-out does not stop it. Edit the text under Templates (security.phone_changed)."
+
+msgctxt "Languages::kwtsms.phone_change.code_required"
+msgid "Enter the code we sent to your new number."
+msgstr "Enter the code we sent to your new number."
+
+msgctxt "Languages::kwtsms.phone_change.invalid"
+msgid "Enter a valid mobile number to change your phone number."
+msgstr "Enter a valid mobile number to change your phone number."
+
+msgctxt "Languages::kwtsms.phone_change.profile_only"
+msgid "To change your mobile number, open your profile page and confirm the new number with an SMS code."
+msgstr "To change your mobile number, open your profile page and confirm the new number with an SMS code."
+
+msgctxt "Languages::kwtsms.phone_change.order_kept"
+msgid "Your order is placed. The new mobile number was not saved to your account: change it on your profile page with an SMS code."
+msgstr "Your order is placed. The new mobile number was not saved to your account: change it on your profile page with an SMS code."

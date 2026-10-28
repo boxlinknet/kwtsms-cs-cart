@@ -406,6 +406,9 @@ class SettingsPage
             // phone ('Y'/'N').
             'register_code' => $this->config->registerCode() ? 'Y' : 'N',
             'register_phone_required' => $this->config->registerPhoneRequired() ? 'Y' : 'N',
+            // 2026-10-28 20:27 +03: Task M1.10b (B5, P3-17), task 596. The phone change code and the notice ('Y'/'N').
+            'phone_change_code' => $this->config->phoneChangeCode() ? 'Y' : 'N',
+            'phone_change_notice' => $this->config->phoneChangeNotice() ? 'Y' : 'N',
         ];
     }
 

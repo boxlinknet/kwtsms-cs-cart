@@ -43,3 +43,10 @@
         {include file="addons/kwtsms/components/code_field.tpl" purpose="register" phone_input_name=$kwtsms_reg.phone_name}
     {/if}
 {/if}
+{* 2026-10-28 20:26 +03: Task M1.10b (SafatMall B5, P3-17), task 596. The profile page of a signed-in customer: the SMS code field (purpose phone_change) while phone_change_code is ON and the form shows a phone field; it stays hidden until the phone input changes (code.js). fn_kwtsms_phone_change_form() names the phone input. *}
+{if $runtime.mode == "update" && $auth.user_id}
+    {$kwtsms_pc = ""|fn_kwtsms_phone_change_form}
+    {if $kwtsms_pc.show}
+        {include file="addons/kwtsms/components/code_field.tpl" purpose="phone_change" phone_input_name=$kwtsms_pc.phone_name show_on_change=true}
+    {/if}
+{/if}

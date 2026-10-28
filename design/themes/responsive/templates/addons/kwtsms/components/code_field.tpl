@@ -18,6 +18,7 @@
  *}
 {$kwtsms_cf_id = "kwtsms_code_`$purpose`"}
 {$kwtsms_cf_ts = "kwtsms_sms_code"|fn_kwtsms_turnstile_widget}
+{* 2026-10-28 20:26 +03: Task M1.10b (SafatMall B5, P3-17), task 596: show_on_change (profile page, purpose phone_change) renders the field hidden with data-show-on-change; code.js shows it once the phone input differs from its loaded value. *}
 {* 2026-10-28 18:53 +03: Task M1.10a fix round 1 (review I4), task 596: maxlength is 16 (was 6) so a pasted "123 456" or a spaced Arabic-Indic code keeps its last digit; code.js cleans the value to 6 digits on input. *}
 {* 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 1), task 596: the label has a class so the bypass can hide it.
    2026-10-25 02:16 +03: the button is the theme primary button (the secondary one fails AA contrast, 2.96:1), Task M1.8b, task 596.
@@ -43,7 +44,7 @@
 {/literal}
 {/if}
 {* 2026-10-25 03:06 +03: Task M1.8b fix round 1 (review Important 1, stored XSS), task 596. Every value printed in an attribute or as text goes through |fn_html_escape (|escape:"html" is dropped by core's Smarty in some expressions; the other add-on templates use fn_html_escape for __() values). Proved by tests/Store/CodeFieldEscapingStoreTest. *}
-<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id|fn_html_escape}" data-ca-kwtsms-code="{$purpose|fn_html_escape}" data-purpose="{$purpose|fn_html_escape}" data-phone-name="{$phone_input_name|fn_html_escape}" data-state="idle"
+<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id|fn_html_escape}" data-ca-kwtsms-code="{$purpose|fn_html_escape}" data-purpose="{$purpose|fn_html_escape}" data-phone-name="{$phone_input_name|fn_html_escape}" data-state="idle"{if $show_on_change} data-show-on-change="1" hidden{/if}
      data-url="{"kwtsms_code.send"|fn_url|fn_html_escape}"
      data-sitekey="{$kwtsms_cf_ts.site_key|default:""|fn_html_escape}" data-action="{$kwtsms_cf_ts.action|default:"kwtsms_sms_code"|fn_html_escape}" data-language="{$kwtsms_cf_ts.language|default:$smarty.const.CART_LANGUAGE|fn_html_escape}"
      data-t-send="{__("kwtsms.code.send")|fn_html_escape}" data-t-resend="{__("kwtsms.code.resend")|fn_html_escape}" data-t-resend-in="{__("kwtsms.code.resend_in")|fn_html_escape}"

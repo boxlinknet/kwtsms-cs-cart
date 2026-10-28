@@ -177,6 +177,9 @@ class Config implements ConfigInterface
             // 2026-10-28 11:07 +03: Task M1.10a (SafatMall B1, P3-28), task 596. The registration code and the
             // mandatory phone.
             'register_code', 'register_phone_required',
+            // 2026-10-28 20:27 +03: Task M1.10b (SafatMall B5, P3-17), task 596. The phone change code and the
+            // notice to the old number.
+            'phone_change_code', 'phone_change_notice',
         ],
     ];
 

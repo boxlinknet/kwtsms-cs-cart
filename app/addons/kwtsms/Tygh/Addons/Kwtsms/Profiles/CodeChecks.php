@@ -53,6 +53,27 @@ final class CodeChecks implements CodeCheckInterface
         }
     }
 
+    /**
+     * 2026-10-28 20:25 +03: Task M1.10b (B5), task 596. The refusal of the checkout profile editor (no code field
+     * there): the first check that has one and refuses.
+     *
+     * @param array<string,mixed> $ctx
+     * @param array<string,mixed> $user_data
+     */
+    public function editorRefusal(array $ctx, array $user_data): ?string
+    {
+        foreach ($this->checks as $check) {
+            if (method_exists($check, 'editorRefusal')) {
+                $refusal = $check->editorRefusal($ctx, $user_data);
+                if ($refusal !== null) {
+                    return $refusal;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function check(array $ctx, array &$user_data): ?string
     {
         foreach ($this->checks as $check) {

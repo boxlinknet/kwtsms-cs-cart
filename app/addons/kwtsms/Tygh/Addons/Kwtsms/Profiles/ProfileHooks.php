@@ -298,6 +298,10 @@ final class ProfileHooks
                 'ip' => (string) ($request['ip'] ?? ''),
                 'storefront_id' => max(0, (int) call_user_func($this->storefront_id)),
                 'lang' => $lang,
+                // 2026-10-28 20:25 +03: Task M1.10b (B5, P3-17), task 596. The stored account (for the calling code
+                // of its country) and whether this save is the post-order profile update of the cart.
+                'stored_user' => $stored,
+                'checkout_profile' => $user_id > 0 && $this->insideCheckoutProfile(),
             ];
             $refusal = $this->code_checks->check($ctx, $user_data);
             if ($refusal !== null) {
@@ -365,7 +369,9 @@ final class ProfileHooks
         }
         $c3 = $this->config->phoneCountryCheck();
         $c4 = $this->index !== null && $this->index->enforcing();
-        if (!$c3 && !$c4) {
+        // 2026-10-28 20:25 +03: Task M1.10b (B5, P3-17), task 596. The phone change code applies to this editor too.
+        $b5 = $this->code_checks instanceof CodeChecks && $this->config->phoneChangeCode();
+        if (!$c3 && !$c4 && !$b5) {
             return false;
         }
         try {
@@ -394,6 +400,22 @@ final class ProfileHooks
                 unset($posted['phone']);
                 if ($this->accountPhoneTaken($user_id, $posted, $stored, false)) {
                     $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
+
+                    return true;
+                }
+            }
+            // 2026-10-28 20:25 +03: Task M1.10b (B5, P3-17), task 596. The editor has no code field: a changed account
+            // phone of the primary profile is refused with a pointer to the profile page.
+            if ($b5 && $profile_id > 0 && (string) ($stored['profile_type'] ?? '') === 'P') {
+                $request = $this->request_context === null ? [] : (array) call_user_func($this->request_context);
+                $refusal = $this->code_checks->editorRefusal([
+                    'user_id' => $user_id,
+                    'stored' => AccountPhone::field($stored),
+                    'stored_user' => $stored,
+                    'lang' => (string) ($request['lang'] ?? ''),
+                ], $user_data);
+                if ($refusal !== null) {
+                    $this->tell('E', $refusal);
 
                     return true;
                 }

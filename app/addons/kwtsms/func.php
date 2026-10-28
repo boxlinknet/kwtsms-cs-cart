@@ -1042,6 +1042,31 @@ function fn_kwtsms_register_form($unused = '')
 }
 
 /**
+ * 2026-10-28 20:27 +03: Task M1.10b (SafatMall B5, P3-17), task 596. For the storefront template
+ * hooks/profiles/account_update.post.tpl (modifier |fn_kwtsms_phone_change_form): what the profile page of a signed-in
+ * customer adds. 'show' = the SMS code field of the phone change (phone_change_code is ON and the profile form shows a
+ * phone field); 'phone_name' = the name of that phone input. Settings only. Never throws; on an error nothing is added.
+ *
+ * @return array{show:bool,phone_name:string}
+ */
+function fn_kwtsms_phone_change_form($unused = '')
+{
+    $none = ['show' => false, 'phone_name' => 'user_data[phone]'];
+    try {
+        if (!isset(Tygh::$app['kwtsms.config']) || !Tygh::$app['kwtsms.config']->phoneChangeCode()) {
+            return $none;
+        }
+        $field = \Tygh\Addons\Kwtsms\Phones\AccountPhone::formPhoneField('C');
+
+        return $field === '' ? $none : ['show' => true, 'phone_name' => 'user_data[' . $field . ']'];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('phone_change_form', $e);
+
+        return $none;
+    }
+}
+
+/**
  * 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review M3, ruling P3-R12), task 596. For
  * hooks/index/scripts.post.tpl (modifier
  * |fn_kwtsms_register_code_on): true while register_code is ON. Settings only. Never throws.

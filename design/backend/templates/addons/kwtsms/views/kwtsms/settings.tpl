@@ -608,6 +608,23 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description" id="kwtsms_register_phone_required_help">{__("kwtsms.settings.register_phone_required_help")}</p>
                 </div>
             </div>
+            {* 2026-10-28 20:27 +03: Task M1.10b (SafatMall B5, P3-17), task 596. The phone change code switch and the notice to the old number switch (both default OFF). The hidden N is posted when a box is cleared. *}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.phone_change_code")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[phone_change_code]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_change_code" name="kwtsms_codes[phone_change_code]" value="Y"{if $kwtsms.codes.phone_change_code == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_change_code_help"> {__("kwtsms.settings.phone_change_code_label")}</label>
+                    <p class="muted description" id="kwtsms_phone_change_code_help">{__("kwtsms.settings.phone_change_code_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.phone_change_notice")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[phone_change_notice]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_change_notice" name="kwtsms_codes[phone_change_notice]" value="Y"{if $kwtsms.codes.phone_change_notice == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_change_notice_help"> {__("kwtsms.settings.phone_change_notice_label")}</label>
+                    <p class="muted description" id="kwtsms_phone_change_notice_help">{__("kwtsms.settings.phone_change_notice_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

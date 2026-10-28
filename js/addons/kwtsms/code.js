@@ -324,6 +324,52 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         }
     });
 
+    // 2026-10-28 20:26 +03: Task M1.10b (SafatMall B5, P3-17), task 596. A field with data-show-on-change (the profile page,
+    // purpose phone_change) is hidden until the phone input of its form differs from the value the page loaded with. The
+    // two values are compared by their digits, so the phone mask re-formatting a stored number is not a change.
+    function digits(value) {
+        // Arabic-Indic (0660-0669) and Persian (06F0-06F9) digits count as digits; built from code points (ASCII file).
+        var f = String.fromCharCode;
+        var keep = new RegExp('[^0-9' + f(0x660) + '-' + f(0x669) + f(0x6f0) + '-' + f(0x6f9) + ']', 'g');
+
+        return String(value || '').replace(keep, '');
+    }
+
+    function syncChange(root) {
+        var $phone = phoneInput(root);
+        if (!$phone.length) {
+            return;
+        }
+        if (root.data('kwtsmsInitial') === undefined) {
+            root.data('kwtsmsInitial', digits($phone.val()));
+        }
+        root.prop('hidden', digits($phone.val()) === root.data('kwtsmsInitial'));
+    }
+
+    function syncAll() {
+        $('.kwtsms-code[data-show-on-change]').each(function () {
+            syncChange($(this));
+        });
+    }
+
+    $(document).on('input change keyup', 'form input', function () {
+        if ($('.kwtsms-code[data-show-on-change]').length) {
+            syncAll();
+            // The phone mask may write the real input after this handler ran: look again a moment later.
+            window.setTimeout(syncAll, 60);
+        }
+    });
+    $(function () {
+        syncAll();
+    });
+    // The phone mask may re-format the stored number after ready: a field still hidden at load takes the loaded value.
+    $(window).on('load', function () {
+        $('.kwtsms-code[data-show-on-change][hidden]').each(function () {
+            $(this).removeData('kwtsmsInitial');
+            syncChange($(this));
+        });
+    });
+
     $(document).on('click', '.kwtsms-code__send', function (e) {
         e.preventDefault();
         send($(this).closest('.kwtsms-code'));
