@@ -47,8 +47,21 @@ class PostUpgrade
      * ('name' => ['en' => ..., 'ar' => ...]; another language was filled from the English text). A stored value that
      * still equals it is the shipped one and is updated; an edited one stays (ruling P2-R17). None changed so far:
      * a later task that rewrites an existing text adds the old one here. ASCII only (\u{} escapes).
+     *
+     * 2026-10-29 00:07 +03: Task M1.11s item 3 (SafatMall note 3), task 596. The password recovery default is shorter
+     * in 1.2.0 (the 1.1.0 text ended in "Not you? Ignore."). Its name is a template language variable
+     * (kwtsms.tpl.<event>.<receiver>), so the same map also drives refreshUneditedTemplateBodies().
      */
-    private const SHIPPED_1_1_0 = [];
+    private const SHIPPED_1_1_0 = [
+        'kwtsms.tpl.profile.password_recover.c.C' => [
+            'en' => "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min. Not you? Ignore.",
+            'ar' => "\u{643}\u{644}\u{645}\u{629} \u{645}\u{631}\u{648}\u{631} \u{62c}\u{62f}\u{64a}\u{62f}"
+                . "\u{629} \u{644}\u{62d}\u{633}\u{627}\u{628}\u{643} \u{641}\u{64a} {store_name}: {reset_url} "
+                . "\u{635}\u{627}\u{644}\u{62d} {valid_minutes} \u{62f}\u{642}\u{64a}\u{642}\u{629}. "
+                . "\u{644}\u{645} \u{62a}\u{637}\u{644}\u{628}\u{647}\u{627}\u{61f} \u{62a}\u{62c}\u{627}"
+                . "\u{647}\u{644} \u{627}\u{644}\u{631}\u{633}\u{627}\u{644}\u{629}",
+        ],
+    ];
 
     /**
      * 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Copy of Kwtsms110::SHIPPED_1_0_0 (the four texts 1.0.0
@@ -316,6 +329,8 @@ class PostUpgrade
     private static function languageValues($scheme): void
     {
         self::refreshUneditedValues((array) $scheme->getLanguageValues(false));
+        // 2026-10-29 00:07 +03: Task M1.11s item 3, task 596. The stored template texts follow, same rule.
+        self::refreshUneditedTemplateBodies((array) $scheme->getLanguageValues(false));
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
         }
@@ -333,6 +348,51 @@ class PostUpgrade
      *
      * @return int Number of values updated
      */
+    /**
+     * 2026-10-29 00:07 +03: Task M1.11s item 3 (SafatMall note 3), task 596. The SMS template texts are stored in
+     * kwtsms_template_descriptions (seeded once from the language variables, INSERT IGNORE), so a new shipped default
+     * does not reach a store by itself. A stored body is replaced by the 1.2.0 text only where it still equals the
+     * 1.1.0 shipped one AND its row is not marked edited (is_edited N); an edited text, or any other text, stays.
+     * Every template row of the event and receiver is checked (the all-storefronts row and storefront rows).
+     * Idempotent.
+     *
+     * @param array<int,array{lang_code:string,name:string,value:string}> $rows    The 1.2.0 values of the add-on
+     * @param array<string,array<string,string>>|null                      $shipped Defaults to SHIPPED_1_1_0
+     *
+     * @return int Number of bodies updated
+     */
+    public static function refreshUneditedTemplateBodies(array $rows, ?array $shipped = null): int
+    {
+        $shipped = $shipped ?? self::SHIPPED_1_1_0;
+        $updated = 0;
+        foreach ($rows as $row) {
+            $name = (string) ($row['name'] ?? '');
+            $parsed = \Tygh\Addons\Kwtsms\Templates\Defaults::parseLangvar($name);
+            if (!isset($shipped[$name]) || $parsed === null) {
+                continue;
+            }
+            $lang = (string) $row['lang_code'];
+            $old = $shipped[$name][$lang] ?? $shipped[$name]['en'];
+            $new = trim((string) $row['value']);
+            if ($old === $new || $new === '') {
+                continue;
+            }
+            $updated += (int) db_query(
+                'UPDATE ?:kwtsms_template_descriptions d INNER JOIN ?:kwtsms_templates t ON t.template_id = d.template_id'
+                . ' SET d.body = ?s WHERE t.event_id = ?s AND t.receiver = ?s AND d.lang_code = ?s AND d.body = ?s'
+                . ' AND d.is_edited = ?s',
+                $new,
+                $parsed['event_id'],
+                $parsed['receiver'],
+                $lang,
+                $old,
+                'N'
+            );
+        }
+
+        return $updated;
+    }
+
     public static function refreshUneditedValues(array $rows, ?array $shipped = null): int
     {
         $shipped = $shipped ?? self::SHIPPED_1_1_0;

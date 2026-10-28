@@ -540,9 +540,10 @@ msgctxt "Languages::kwtsms.tpl.kwtsms.customer_registered.A"
 msgid "{store_name}: New customer registered, ID {user_id}, phone {customer_phone}"
 msgstr "{store_name}: New customer registered, ID {user_id}, phone {customer_phone}"
 
+# 2026-10-29 00:05 +03: shorter recovery default (the link dominates the length), Task M1.11s item 3, task 596. 1.1.0 shipped "... min. Not you? Ignore.".
 msgctxt "Languages::kwtsms.tpl.profile.password_recover.c.C"
-msgid "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min. Not you? Ignore."
-msgstr "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min. Not you? Ignore."
+msgid "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min."
+msgstr "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min."
 
 # 2026-10-20 22:59 +03: order status names for {order_status} when the core name is still English, Task 1.8, task 596.
 msgctxt "Languages::kwtsms.status.A"
