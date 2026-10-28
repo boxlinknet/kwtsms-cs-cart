@@ -196,6 +196,33 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
     .kwtsms-section__note {
         margin-inline-start: 0;
     }
+    /* 2026-10-29 02:17 +03: Task M1.11, task 596. The four groups of "Phone and codes" and the warnings above them. */
+    .kwtsms-codes-warning {
+        margin-block: 0 8px;
+        a {
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        &.alert-info {
+            color: @kwtsms-info-text;
+        }
+    }
+    .kwtsms-codes-group {
+        border: 0;
+        border-block-start: 1px solid #d9d9d9;
+        margin: 18px 0 0;
+        padding: 0;
+        min-width: 0;
+    }
+    .kwtsms-codes-group__title {
+        border: 0;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 10px 0 12px;
+        padding: 0;
+        width: auto;
+    }
     .kwtsms-alert {
         /* 2026-10-21 09:01 +03: cleanup item 12, task 596. The core info text (#2D95B4) is 3.14:1 on its #E9F6FF wash. */
         &.alert-info {

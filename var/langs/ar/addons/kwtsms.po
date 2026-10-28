@@ -6047,3 +6047,94 @@ msgstr "لتغيير رقم جوالك افتح صفحة ملفك الشخصي �
 msgctxt "Languages::kwtsms.phone_change.order_kept"
 msgid "Your order is placed. The new mobile number was not saved to your account: change it on your profile page with an SMS code."
 msgstr "تم تقديم طلبك. لم يُحفظ رقم الجوال الجديد في حسابك: غيّره من صفحة ملفك الشخصي برمز SMS."
+
+# 2026-10-29 02:16 +03: Task M1.11 (Phone and codes layout and warnings), task 596. Sub-group titles, the persistent warnings and their links.
+msgctxt "Languages::kwtsms.settings.codes_group_phone"
+msgid "Phone rules"
+msgstr "قواعد الهاتف"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_codes"
+msgid "Codes"
+msgstr "رموز التحقق"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_limits"
+msgid "Limits"
+msgstr "الحدود"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_captcha"
+msgid "CAPTCHA"
+msgstr "اختبار CAPTCHA"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Pointer from Phone rules to the allowed countries list in General.
+msgctxt "Languages::kwtsms.settings.codes_phone_countries_note"
+msgid "The allowed countries and the Add GCC countries button are in the General settings above."
+msgstr "الدول المسموح بها وزر إضافة دول الخليج في الإعدادات العامة أعلاه."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.codes_phone_countries_link"
+msgid "Go to allowed countries"
+msgstr "انتقل إلى الدول المسموح بها"
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. Warning: test mode with a code feature on.
+msgctxt "Languages::kwtsms.settings.warn_test_mode"
+msgid "Test mode: customers receive no codes."
+msgstr "وضع الاختبار: لا يتلقى العملاء أي رموز."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. Warning: a storefront uses KWT-SMS with a code feature on. [names] = storefront names.
+msgctxt "Languages::kwtsms.settings.warn_kwt_sender"
+msgid "Sender ID KWT-SMS is used by: [names]. Codes are refused there outside test mode. Choose a private transactional Sender ID."
+msgstr "معرّف المرسل KWT-SMS مستخدم في: [names]. تُرفض الرموز هناك خارج وضع الاختبار. اختر معرّف مرسل خاصًا بالرسائل التعاملية."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Name used for the whole store when it has no storefront list.
+msgctxt "Languages::kwtsms.settings.warn_main_sender"
+msgid "the store"
+msgstr "المتجر"
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-36), task 596. Red warning: a code feature is on and no CAPTCHA provider is active.
+msgctxt "Languages::kwtsms.settings.warn_no_captcha"
+msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+msgstr "لا يوجد مزود CAPTCHA مفعّل. يستطيع أي شخص طلب رسائل الرموز، ولا يحمي رصيدك سوى حدود الطلبات. فعّل Cloudflare Turnstile أدناه أو إضافة reCAPTCHA."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-8), task 596. Warning: reCAPTCHA is the provider but the SMS code request scenario is not ticked.
+msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick"
+msgid "Tick 'SMS code request' in Settings > Image verification to protect the code form with reCAPTCHA."
+msgstr "فعّل خيار «طلب رمز SMS» في الإعدادات > التحقق بالصورة لحماية نموذج الرمز عبر reCAPTCHA."
+
+# 2026-10-29 02:16 +03: Task M1.11 (C3), task 596. Warning: the phone field mode is not the country selection one while C3 is on.
+msgctxt "Languages::kwtsms.settings.warn_phone_mode"
+msgid "The phone field accepts any format; the add-on checks it on the server."
+msgstr "يقبل حقل الهاتف أي صيغة؛ تتحقق الإضافة منه على الخادم."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-R5), task 596. Warning: global sending is off while a registration or phone change code is on.
+msgctxt "Languages::kwtsms.settings.warn_sending_off"
+msgid "Sending is OFF while a code feature is ON. The code forms are refused (or let through unverified under 'Continue') until sending is turned on."
+msgstr "الإرسال متوقف بينما ميزة رموز التحقق مفعّلة. تُرفض نماذج الرموز (أو تمر دون تحقق عند اختيار «المتابعة») حتى يُفعَّل الإرسال."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-35), task 596. Warning: the CAPTCHA threshold is not below the hourly IP limit. [after] and [cap] are numbers.
+msgctxt "Languages::kwtsms.settings.warn_captcha_threshold"
+msgid "CAPTCHA after IP requests ([after]) is not below the per-IP hourly limit ([cap]), so the CAPTCHA can never trigger. Lower it."
+msgstr "حد CAPTCHA حسب طلبات IP ([after]) ليس أقل من الحد الساعي لكل IP ([cap])، لذلك لن يظهر CAPTCHA أبدًا. اخفضه."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-38), task 596. Always-visible notice on the section.
+msgctxt "Languages::kwtsms.settings.notice_transactional"
+msgid "Codes need a private transactional Sender ID. Promotional Sender IDs are filtered for numbers on DND and are still charged. KWT-SMS is refused outside test mode."
+msgstr "تحتاج الرموز إلى معرّف مرسل خاص بالرسائل التعاملية. تُصفّى المعرّفات الدعائية للأرقام المسجلة في خدمة عدم الإزعاج (DND) وتُحتسب رسومها مع ذلك. يُرفض KWT-SMS خارج وضع الاختبار."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_appearance"
+msgid "Settings > Appearance"
+msgstr "الإعدادات > المظهر"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_image_verification"
+msgid "Settings > Image verification"
+msgstr "الإعدادات > التحقق بالصورة"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_turnstile"
+msgid "Set up Turnstile"
+msgstr "إعداد Turnstile"
+

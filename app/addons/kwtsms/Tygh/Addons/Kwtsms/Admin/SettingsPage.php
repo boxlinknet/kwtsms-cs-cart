@@ -205,6 +205,9 @@ class SettingsPage
             'codes' => $this->codesViewData(),
             // 2026-10-24 21:10 +03: Task M1.7b (PRD 6.15), task 596. The "CAPTCHA (Cloudflare Turnstile)" section.
             'turnstile' => $this->turnstileViewData(),
+            // 2026-10-29 02:16 +03: Task M1.11 (P3-14, P3-8, P3-36, P3-38, P3-R5), task 596. The persistent warnings of
+            // the "Phone and codes" section, each under its own condition.
+            'codes_warnings' => $this->codesWarnings(),
         ];
     }
 
@@ -430,6 +433,149 @@ class SettingsPage
             '[done]' => (int) min($state['indexed'], $state['total']),
             '[total]' => (int) $state['total'],
         ]);
+    }
+
+    // ================================================================== "Phone and codes" warnings (Task M1.11)
+
+    /**
+     * 2026-10-29 02:16 +03: Task M1.11 (P3-14, P3-8, P3-36, P3-38, P3-R5), task 596. The persistent notes on top of the
+     * "Phone and codes" section, each shown under its own condition only. Level: danger (red), warning, info. A
+     * "code feature" is B1, B5 (the code, not the notice) or C4 (PhoneIndex::anyFeatureOn()). No value of a secret is
+     * ever part of an entry: texts and a link only.
+     *
+     * @return array<int,array{id:string,level:string,text:string,link_url:string,link_text:string}>
+     */
+    public function codesWarnings(): array
+    {
+        $out = [];
+        $note = function (string $id, string $level, string $text, string $url = '', string $link = '') use (&$out) {
+            $out[] = ['id' => $id, 'level' => $level, 'text' => $text, 'link_url' => $url, 'link_text' => $link];
+        };
+        // The transactional sender notice (P3-38) is always shown.
+        $note('transactional', 'info', $this->text('kwtsms.settings.notice_transactional'));
+
+        $feature = PhoneIndex::anyFeatureOn($this->config);
+        $code_on = $this->config->registerCode() || $this->config->phoneChangeCode();
+        if ($feature && $this->config->testMode()) {
+            $note('test_mode', 'warning', $this->text('kwtsms.settings.warn_test_mode'));
+        }
+        if ($feature) {
+            $names = $this->storefrontsOnTestSender();
+            if ($names !== []) {
+                $note('kwt_sender', 'warning', $this->text('kwtsms.settings.warn_kwt_sender', [
+                    '[names]' => implode(', ', $names),
+                ]));
+            }
+            $captcha = $this->captchaState();
+            if ($captcha['provider'] === 'none') {
+                $note(
+                    'no_captcha',
+                    'danger',
+                    $this->text('kwtsms.settings.warn_no_captcha'),
+                    '#kwtsms_turnstile',
+                    $this->text('kwtsms.settings.link_turnstile')
+                );
+            } elseif ($captcha['provider'] === 'recaptcha' && !$captcha['scenario']) {
+                $note(
+                    'recaptcha_tick',
+                    'warning',
+                    $this->text('kwtsms.settings.warn_recaptcha_tick'),
+                    $this->settingsUrl('settings.manage&section_id=Image_verification'),
+                    $this->text('kwtsms.settings.link_image_verification')
+                );
+            }
+        }
+        $country_mode = 'phone_number_with_country_selection';
+        if ($this->config->phoneCountryCheck() && $this->phoneValidationMode() !== $country_mode) {
+            $note(
+                'phone_mode',
+                'warning',
+                $this->text('kwtsms.settings.warn_phone_mode'),
+                $this->settingsUrl('settings.manage&section_id=Appearance'),
+                $this->text('kwtsms.settings.link_appearance')
+            );
+        }
+        if ($code_on && !$this->config->enabled()) {
+            $note('sending_off', 'warning', $this->text('kwtsms.settings.warn_sending_off'));
+        }
+        if ($this->config->captchaAfterIp() >= $this->config->capIpHour()) {
+            $note('captcha_threshold', 'warning', $this->text('kwtsms.settings.warn_captcha_threshold', [
+                '[after]' => $this->config->captchaAfterIp(),
+                '[cap]' => $this->config->capIpHour(),
+            ]));
+        }
+
+        return $out;
+    }
+
+    /**
+     * 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. The names of the storefronts whose Sender ID is KWT-SMS (own
+     * stored value, or none and the main Sender ID is KWT-SMS). Reads the stored value only: resolving a Sender ID can
+     * raise an alert and a page view must not.
+     *
+     * @return string[]
+     */
+    private function storefrontsOnTestSender(): array
+    {
+        $main = $this->config->senderId();
+        $storefronts = $this->rules === null ? [] : $this->rules->storefronts();
+        if ($storefronts === [] || $this->senders === null) {
+            return $main === self::TEST_SENDER ? [(string) $this->text('kwtsms.settings.warn_main_sender')] : [];
+        }
+        $names = [];
+        foreach ($storefronts as $id => $name) {
+            $own = $this->senders->storedSender((int) $id);
+            if (($own !== '' ? $own : $main) === self::TEST_SENDER) {
+                $names[] = (string) $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * 2026-10-29 02:16 +03: Task M1.11 (P3-8, P3-36), task 596. The active core CAPTCHA provider ('none' = the null
+     * driver, 'turnstile', 'recaptcha', 'native') and whether the scenario kwtsms_sms_code is ticked in Settings >
+     * Image verification. Overridable in a test.
+     *
+     * @return array{provider:string,scenario:bool}
+     */
+    protected function captchaState(): array
+    {
+        $provider = 'none';
+        try {
+            $app = \Tygh\Tygh::$app;
+            if (isset($app['antibot'])) {
+                $driver = $app['antibot']->getDriver();
+                $class = $driver === null ? '' : strtolower(get_class($driver));
+                if ($driver instanceof TurnstileDriver) {
+                    $provider = 'turnstile';
+                } elseif ($driver === null || substr($class, -10) === 'nulldriver') {
+                    $provider = 'none';
+                } elseif (strpos($class, 'recaptcha') !== false) {
+                    $provider = 'recaptcha';
+                } else {
+                    $provider = 'native';
+                }
+            }
+        } catch (\Throwable $e) {
+            $provider = 'none';
+        }
+        $use_for = (array) \Tygh\Registry::get('settings.Image_verification.use_for');
+
+        return ['provider' => $provider, 'scenario' => ($use_for['kwtsms_sms_code'] ?? 'N') === 'Y'];
+    }
+
+    /** 2026-10-29 02:16 +03: Task M1.11, task 596. Core Appearance > phone_validation_mode (overridable in a test). */
+    protected function phoneValidationMode(): string
+    {
+        return (string) \Tygh\Registry::get('settings.Appearance.phone_validation_mode');
+    }
+
+    /** 2026-10-29 02:16 +03: Task M1.11, task 596. An admin url (overridable in a test). */
+    protected function settingsUrl(string $dispatch): string
+    {
+        return (string) fn_url($dispatch);
     }
 
     // ================================================================== Sender ID per storefront (Task A3)

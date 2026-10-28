@@ -489,89 +489,16 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         <h4 class="subheader" id="kwtsms_codes_title">{__("kwtsms.settings.codes_title")}</h4>
         <p class="muted description" id="kwtsms_codes_help">{__("kwtsms.settings.codes_help")}</p>
         <form action="{""|fn_url}" method="post" name="kwtsms_codes_form" id="kwtsms_codes_form" class="form-horizontal form-edit" autocomplete="off">
-            {* 2026-10-23 19:58 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. Per-IP request limits, the store hourly cap and
-               the trusted proxy list. Values come from $kwtsms.codes (SettingsPage::codesViewData()). *}
-            {foreach ["cap_ip_hour" => 10000, "cap_ip_day" => 10000] as $cap => $cap_max}
-                <div class="control-group">
-                    <label class="control-label" for="kwtsms_{$cap}">{__("kwtsms.settings.field.`$cap`")}:</label>
-                    <div class="controls">
-                        <input type="number" id="kwtsms_{$cap}" name="kwtsms_codes[{$cap}]" value="{$kwtsms.codes.$cap}" min="1" max="{$cap_max}" step="1" class="input-small" dir="ltr">
-                        {if $cap == "cap_ip_day"}<p class="muted description">{__("kwtsms.settings.cap_ip_help")}</p>{/if}
-                    </div>
-                </div>
-            {/foreach}
-            {* 2026-10-24 23:51 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
-               thresholds after which a code request needs a CAPTCHA token (Turnstile "only when suspicious"). id =>
-               [min, max, help key]. *}
-            {foreach [
-                "cap_phone_hour" => [1, 100, "cap_phone_help"],
-                "captcha_after_ip" => [1, 1000, ""],
-                "captcha_after_subject" => [1, 1000, ""],
-                "captcha_after_store" => [1, 100000, "captcha_after_help"]
-            ] as $thr_key => $thr_spec}
-                <div class="control-group">
-                    <label class="control-label" for="kwtsms_{$thr_key}">{__("kwtsms.settings.field.`$thr_key`")}:</label>
-                    <div class="controls">
-                        <input type="number" id="kwtsms_{$thr_key}" name="kwtsms_codes[{$thr_key}]" value="{$kwtsms.codes.$thr_key}" min="{$thr_spec[0]}" max="{$thr_spec[1]}" step="1" class="input-small" dir="ltr">
-                        {if $thr_spec[2]}<p class="muted description">{__("kwtsms.settings.`$thr_spec[2]`")}</p>{/if}
-                    </div>
-                </div>
-            {/foreach}
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_cap_store_hour">{__("kwtsms.settings.field.cap_store_hour")}:</label>
-                <div class="controls">
-                    <input type="number" id="kwtsms_cap_store_hour" name="kwtsms_codes[cap_store_hour]" value="{$kwtsms.codes.cap_store_hour}" min="0" max="100000" step="1" class="input-small" dir="ltr">
-                    <p class="muted description">{__("kwtsms.settings.cap_store_hour_help")}</p>
-                </div>
+            {* 2026-10-29 02:16 +03: Task M1.11 (P3-14, P3-8, P3-36, P3-38, P3-R5), task 596. The section is laid out in four groups (Phone rules, Codes, Limits, CAPTCHA). The persistent warnings sit on top: $kwtsms.codes_warnings (SettingsPage::codesWarnings()), each under its own condition; the transactional Sender ID notice is always there. *}
+            <div class="kwtsms-codes-warnings" id="kwtsms_codes_warnings">
+                {foreach $kwtsms.codes_warnings as $w}
+                    <div class="alert {if $w.level == "danger"}alert-error{elseif $w.level == "info"}alert-info{else}alert-warning{/if} kwtsms-codes-warning" id="kwtsms_warn_{$w.id}" data-kwtsms-level="{$w.level}" role="{if $w.level == "info"}note{else}alert{/if}">{$w.text}{if $w.link_url} <a href="{$w.link_url}">{$w.link_text}</a>{/if}</div>
+                {/foreach}
             </div>
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_trusted_proxies">{__("kwtsms.settings.field.trusted_proxies")}:</label>
-                <div class="controls">
-                    <textarea id="kwtsms_trusted_proxies" name="kwtsms_codes[trusted_proxies]" rows="4" class="input-large kwtsms-code" dir="ltr" spellcheck="false" placeholder="10.0.0.0/8">{$kwtsms.codes.trusted_proxies}</textarea>
-                    <p class="muted description">{__("kwtsms.settings.trusted_proxies_help")}</p>
-                </div>
-            </div>
-            {* 2026-10-23 21:33 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Code lifetime, wrong-attempt limits, resend
-               waits and the per-IP verify limit. Numbers: id => [min, max, help key]; the waits are one text field. *}
-            {foreach [
-                "otp_expiry_seconds" => [60, 900, "otp_expiry_help"],
-                "otp_max_attempts" => [3, 10, "otp_attempts_help"],
-                "otp_lockout_seconds" => [60, 86400, "otp_lockout_help"],
-                "otp_phone_fail_ceiling" => [5, 1000, "otp_ceiling_help"]
-            ] as $otp_key => $otp_spec}
-                <div class="control-group">
-                    <label class="control-label" for="kwtsms_{$otp_key}">{__("kwtsms.settings.field.`$otp_key`")}:</label>
-                    <div class="controls">
-                        <input type="number" id="kwtsms_{$otp_key}" name="kwtsms_codes[{$otp_key}]" value="{$kwtsms.codes.$otp_key}" min="{$otp_spec[0]}" max="{$otp_spec[1]}" step="1" class="input-small" dir="ltr">
-                        <p class="muted description">{__("kwtsms.settings.`$otp_spec[2]`")}</p>
-                    </div>
-                </div>
-            {/foreach}
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_otp_resend_waits">{__("kwtsms.settings.field.otp_resend_waits")}:</label>
-                <div class="controls">
-                    <input type="text" id="kwtsms_otp_resend_waits" name="kwtsms_codes[otp_resend_waits]" value="{$kwtsms.codes.otp_resend_waits}" inputmode="numeric" class="input-medium kwtsms-code" dir="ltr" spellcheck="false" placeholder="60,120,300">
-                    <p class="muted description">{__("kwtsms.settings.otp_resend_help")}</p>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_cap_ip_verify_hour">{__("kwtsms.settings.field.cap_ip_verify_hour")}:</label>
-                <div class="controls">
-                    <input type="number" id="kwtsms_cap_ip_verify_hour" name="kwtsms_codes[cap_ip_verify_hour]" value="{$kwtsms.codes.cap_ip_verify_hour}" min="5" max="10000" step="1" class="input-small" dir="ltr">
-                    <p class="muted description">{__("kwtsms.settings.cap_ip_verify_help")}</p>
-                </div>
-            </div>
-            {* 2026-10-24 12:38 +03: Task M1.4 (SafatMall I3; P3-13, P3-24), task 596. What a code feature does when SMS codes cannot be sent (gateway down, balance, pilot mode, sender): pause (refuse) or continue (let the form through, unverified, and alert). *}
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_otp_unreachable">{__("kwtsms.settings.field.otp_unreachable")}:</label>
-                <div class="controls">
-                    <select name="kwtsms_codes[otp_unreachable]" id="kwtsms_otp_unreachable" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_otp_unreachable_help">
-                        <option value="pause"{if $kwtsms.codes.otp_unreachable != "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_pause")}</option>
-                        <option value="continue"{if $kwtsms.codes.otp_unreachable == "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_continue")}</option>
-                    </select>
-                    <p class="muted description" id="kwtsms_otp_unreachable_help">{__("kwtsms.settings.otp_unreachable_help")}</p>
-                </div>
-            </div>
+
+            <fieldset class="kwtsms-codes-group" id="kwtsms_codes_phone" aria-labelledby="kwtsms_codes_phone_title">
+                <legend class="kwtsms-codes-group__title" id="kwtsms_codes_phone_title">{__("kwtsms.settings.codes_group_phone")}</legend>
+                <p class="muted description">{__("kwtsms.settings.codes_phone_countries_note")} <a href="#kwtsms_customer_countries">{__("kwtsms.settings.codes_phone_countries_link")}</a></p>
             {* 2026-10-24 15:29 +03: Task M1.5 (SafatMall C3, P3-15), task 596. The server-side phone check switch (default OFF). The hidden N is posted when the box is cleared. *}
             <div class="control-group">
                 <span class="control-label">{__("kwtsms.settings.field.phone_country_check")}:</span>
@@ -591,6 +518,10 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     {if $kwtsms.codes.phone_unique_note}<p class="description" id="kwtsms_phone_unique_state" role="status">{$kwtsms.codes.phone_unique_note}</p>{/if}
                 </div>
             </div>
+            </fieldset>
+
+            <fieldset class="kwtsms-codes-group" id="kwtsms_codes_codes" aria-labelledby="kwtsms_codes_codes_title">
+                <legend class="kwtsms-codes-group__title" id="kwtsms_codes_codes_title">{__("kwtsms.settings.codes_group_codes")}</legend>
             {* 2026-10-28 11:07 +03: Task M1.10a (SafatMall B1, P3-28), task 596. The registration code switch and the mandatory phone switch (both default OFF). The hidden N is posted when a box is cleared. *}
             <div class="control-group">
                 <span class="control-label">{__("kwtsms.settings.field.register_code")}:</span>
@@ -625,6 +556,103 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description" id="kwtsms_phone_change_notice_help">{__("kwtsms.settings.phone_change_notice_help")}</p>
                 </div>
             </div>
+            {* 2026-10-23 21:33 +03: Task M1.3 (P3-2, P3-3, P3-29), task 596. Code lifetime, wrong-attempt limits, resend
+               waits and the per-IP verify limit. Numbers: id => [min, max, help key]; the waits are one text field. *}
+            {foreach [
+                "otp_expiry_seconds" => [60, 900, "otp_expiry_help"],
+                "otp_max_attempts" => [3, 10, "otp_attempts_help"],
+                "otp_lockout_seconds" => [60, 86400, "otp_lockout_help"],
+                "otp_phone_fail_ceiling" => [5, 1000, "otp_ceiling_help"]
+            ] as $otp_key => $otp_spec}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_{$otp_key}">{__("kwtsms.settings.field.`$otp_key`")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_{$otp_key}" name="kwtsms_codes[{$otp_key}]" value="{$kwtsms.codes.$otp_key}" min="{$otp_spec[0]}" max="{$otp_spec[1]}" step="1" class="input-small" dir="ltr">
+                        <p class="muted description">{__("kwtsms.settings.`$otp_spec[2]`")}</p>
+                    </div>
+                </div>
+            {/foreach}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_otp_resend_waits">{__("kwtsms.settings.field.otp_resend_waits")}:</label>
+                <div class="controls">
+                    <input type="text" id="kwtsms_otp_resend_waits" name="kwtsms_codes[otp_resend_waits]" value="{$kwtsms.codes.otp_resend_waits}" inputmode="numeric" class="input-medium kwtsms-code" dir="ltr" spellcheck="false" placeholder="60,120,300">
+                    <p class="muted description">{__("kwtsms.settings.otp_resend_help")}</p>
+                </div>
+            </div>
+            {* 2026-10-24 12:38 +03: Task M1.4 (SafatMall I3; P3-13, P3-24), task 596. What a code feature does when SMS codes cannot be sent (gateway down, balance, pilot mode, sender): pause (refuse) or continue (let the form through, unverified, and alert). *}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_otp_unreachable">{__("kwtsms.settings.field.otp_unreachable")}:</label>
+                <div class="controls">
+                    <select name="kwtsms_codes[otp_unreachable]" id="kwtsms_otp_unreachable" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_otp_unreachable_help">
+                        <option value="pause"{if $kwtsms.codes.otp_unreachable != "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_pause")}</option>
+                        <option value="continue"{if $kwtsms.codes.otp_unreachable == "continue"} selected="selected"{/if}>{__("kwtsms.settings.otp_unreachable_continue")}</option>
+                    </select>
+                    <p class="muted description" id="kwtsms_otp_unreachable_help">{__("kwtsms.settings.otp_unreachable_help")}</p>
+                </div>
+            </div>
+            </fieldset>
+
+            <fieldset class="kwtsms-codes-group" id="kwtsms_codes_limits" aria-labelledby="kwtsms_codes_limits_title">
+                <legend class="kwtsms-codes-group__title" id="kwtsms_codes_limits_title">{__("kwtsms.settings.codes_group_limits")}</legend>
+            {* 2026-10-23 19:58 +03: Task M1.2 (P3-6, P3-7, P3-26), task 596. Per-IP request limits, the store hourly cap and
+               the trusted proxy list. Values come from $kwtsms.codes (SettingsPage::codesViewData()). *}
+            {foreach ["cap_ip_hour" => 10000, "cap_ip_day" => 10000] as $cap => $cap_max}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_{$cap}">{__("kwtsms.settings.field.`$cap`")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_{$cap}" name="kwtsms_codes[{$cap}]" value="{$kwtsms.codes.$cap}" min="1" max="{$cap_max}" step="1" class="input-small" dir="ltr">
+                        {if $cap == "cap_ip_day"}<p class="muted description">{__("kwtsms.settings.cap_ip_help")}</p>{/if}
+                    </div>
+                </div>
+            {/foreach}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_cap_ip_verify_hour">{__("kwtsms.settings.field.cap_ip_verify_hour")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_cap_ip_verify_hour" name="kwtsms_codes[cap_ip_verify_hour]" value="{$kwtsms.codes.cap_ip_verify_hour}" min="5" max="10000" step="1" class="input-small" dir="ltr">
+                    <p class="muted description">{__("kwtsms.settings.cap_ip_verify_help")}</p>
+                </div>
+            </div>
+                {* 2026-10-29 02:16 +03: Task M1.11, task 596. The per-phone request cap moved here from the CAPTCHA thresholds block (Task M1.8a). *}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_cap_phone_hour">{__("kwtsms.settings.field.cap_phone_hour")}:</label>
+                    <div class="controls">
+                        <input type="number" id="kwtsms_cap_phone_hour" name="kwtsms_codes[cap_phone_hour]" value="{$kwtsms.codes.cap_phone_hour}" min="1" max="100" step="1" class="input-small" dir="ltr">
+                        <p class="muted description">{__("kwtsms.settings.cap_phone_help")}</p>
+                    </div>
+                </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_cap_store_hour">{__("kwtsms.settings.field.cap_store_hour")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_cap_store_hour" name="kwtsms_codes[cap_store_hour]" value="{$kwtsms.codes.cap_store_hour}" min="0" max="100000" step="1" class="input-small" dir="ltr">
+                    <p class="muted description">{__("kwtsms.settings.cap_store_hour_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_trusted_proxies">{__("kwtsms.settings.field.trusted_proxies")}:</label>
+                <div class="controls">
+                    <textarea id="kwtsms_trusted_proxies" name="kwtsms_codes[trusted_proxies]" rows="4" class="input-large kwtsms-code" dir="ltr" spellcheck="false" placeholder="10.0.0.0/8">{$kwtsms.codes.trusted_proxies}</textarea>
+                    <p class="muted description">{__("kwtsms.settings.trusted_proxies_help")}</p>
+                </div>
+            </div>
+            </fieldset>
+
+            <fieldset class="kwtsms-codes-group" id="kwtsms_codes_captcha" aria-labelledby="kwtsms_codes_captcha_title">
+                <legend class="kwtsms-codes-group__title" id="kwtsms_codes_captcha_title">{__("kwtsms.settings.codes_group_captcha")}</legend>
+                {* 2026-10-29 02:16 +03: Task M1.11, task 596. The three thresholds after which a code request needs a CAPTCHA token (Task M1.8a). id => [min, max, help key]. The Turnstile section follows this form. *}
+                {foreach [
+                    "captcha_after_ip" => [1, 1000, ""],
+                    "captcha_after_subject" => [1, 1000, ""],
+                    "captcha_after_store" => [1, 100000, "captcha_after_help"]
+                ] as $thr_key => $thr_spec}
+                    <div class="control-group">
+                        <label class="control-label" for="kwtsms_{$thr_key}">{__("kwtsms.settings.field.`$thr_key`")}:</label>
+                        <div class="controls">
+                            <input type="number" id="kwtsms_{$thr_key}" name="kwtsms_codes[{$thr_key}]" value="{$kwtsms.codes.$thr_key}" min="{$thr_spec[0]}" max="{$thr_spec[1]}" step="1" class="input-small" dir="ltr">
+                            {if $thr_spec[2]}<p class="muted description">{__("kwtsms.settings.`$thr_spec[2]`")}</p>{/if}
+                        </div>
+                    </div>
+                {/foreach}
+            </fieldset>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_codes_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.codes_save")}">

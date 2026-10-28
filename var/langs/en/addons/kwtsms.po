@@ -6041,3 +6041,94 @@ msgstr "To change your mobile number, open your profile page and confirm the new
 msgctxt "Languages::kwtsms.phone_change.order_kept"
 msgid "Your order is placed. The new mobile number was not saved to your account: change it on your profile page with an SMS code."
 msgstr "Your order is placed. The new mobile number was not saved to your account: change it on your profile page with an SMS code."
+
+# 2026-10-29 02:16 +03: Task M1.11 (Phone and codes layout and warnings), task 596. Sub-group titles, the persistent warnings and their links.
+msgctxt "Languages::kwtsms.settings.codes_group_phone"
+msgid "Phone rules"
+msgstr "Phone rules"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_codes"
+msgid "Codes"
+msgstr "Codes"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_limits"
+msgid "Limits"
+msgstr "Limits"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Sub-group title.
+msgctxt "Languages::kwtsms.settings.codes_group_captcha"
+msgid "CAPTCHA"
+msgstr "CAPTCHA"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Pointer from Phone rules to the allowed countries list in General.
+msgctxt "Languages::kwtsms.settings.codes_phone_countries_note"
+msgid "The allowed countries and the Add GCC countries button are in the General settings above."
+msgstr "The allowed countries and the Add GCC countries button are in the General settings above."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.codes_phone_countries_link"
+msgid "Go to allowed countries"
+msgstr "Go to allowed countries"
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. Warning: test mode with a code feature on.
+msgctxt "Languages::kwtsms.settings.warn_test_mode"
+msgid "Test mode: customers receive no codes."
+msgstr "Test mode: customers receive no codes."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. Warning: a storefront uses KWT-SMS with a code feature on. [names] = storefront names.
+msgctxt "Languages::kwtsms.settings.warn_kwt_sender"
+msgid "Sender ID KWT-SMS is used by: [names]. Codes are refused there outside test mode. Choose a private transactional Sender ID."
+msgstr "Sender ID KWT-SMS is used by: [names]. Codes are refused there outside test mode. Choose a private transactional Sender ID."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Name used for the whole store when it has no storefront list.
+msgctxt "Languages::kwtsms.settings.warn_main_sender"
+msgid "the store"
+msgstr "the store"
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-36), task 596. Red warning: a code feature is on and no CAPTCHA provider is active.
+msgctxt "Languages::kwtsms.settings.warn_no_captcha"
+msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+msgstr "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-8), task 596. Warning: reCAPTCHA is the provider but the SMS code request scenario is not ticked.
+msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick"
+msgid "Tick 'SMS code request' in Settings > Image verification to protect the code form with reCAPTCHA."
+msgstr "Tick 'SMS code request' in Settings > Image verification to protect the code form with reCAPTCHA."
+
+# 2026-10-29 02:16 +03: Task M1.11 (C3), task 596. Warning: the phone field mode is not the country selection one while C3 is on.
+msgctxt "Languages::kwtsms.settings.warn_phone_mode"
+msgid "The phone field accepts any format; the add-on checks it on the server."
+msgstr "The phone field accepts any format; the add-on checks it on the server."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-R5), task 596. Warning: global sending is off while a registration or phone change code is on.
+msgctxt "Languages::kwtsms.settings.warn_sending_off"
+msgid "Sending is OFF while a code feature is ON. The code forms are refused (or let through unverified under 'Continue') until sending is turned on."
+msgstr "Sending is OFF while a code feature is ON. The code forms are refused (or let through unverified under 'Continue') until sending is turned on."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-35), task 596. Warning: the CAPTCHA threshold is not below the hourly IP limit. [after] and [cap] are numbers.
+msgctxt "Languages::kwtsms.settings.warn_captcha_threshold"
+msgid "CAPTCHA after IP requests ([after]) is not below the per-IP hourly limit ([cap]), so the CAPTCHA can never trigger. Lower it."
+msgstr "CAPTCHA after IP requests ([after]) is not below the per-IP hourly limit ([cap]), so the CAPTCHA can never trigger. Lower it."
+
+# 2026-10-29 02:16 +03: Task M1.11 (P3-38), task 596. Always-visible notice on the section.
+msgctxt "Languages::kwtsms.settings.notice_transactional"
+msgid "Codes need a private transactional Sender ID. Promotional Sender IDs are filtered for numbers on DND and are still charged. KWT-SMS is refused outside test mode."
+msgstr "Codes need a private transactional Sender ID. Promotional Sender IDs are filtered for numbers on DND and are still charged. KWT-SMS is refused outside test mode."
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_appearance"
+msgid "Settings > Appearance"
+msgstr "Settings > Appearance"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_image_verification"
+msgid "Settings > Image verification"
+msgstr "Settings > Image verification"
+
+# 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
+msgctxt "Languages::kwtsms.settings.link_turnstile"
+msgid "Set up Turnstile"
+msgstr "Set up Turnstile"
+
