@@ -445,6 +445,35 @@ function fn_kwtsms_update_profile($action = null, $user_data = null, $current_us
 }
 
 /**
+ * 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review I2, ruling P3-R12), task 596. Hook
+ * hybrid_auth_create_user (core
+ * add-on hybrid_auth, func.php:369, before it creates an account for a first social sign-in; $user_data by
+ * reference). While
+ * register_code is ON a social sign-up cannot carry an SMS code, so update_user_pre refuses it (the P3-28 notice). Core
+ * then still e-mails a "profile created" message when the user data has an e-mail address, for an account that does not
+ * exist: the e-mail is taken out of the data here, so no such mail leaves (and nothing else changes). With
+ * register_code
+ * OFF nothing happens. Never throws.
+ *
+ * @param mixed $auth_data
+ * @param mixed $provider
+ * @param mixed $user_data By reference
+ */
+function fn_kwtsms_hybrid_auth_create_user($auth_data = null, $provider = null, &$user_data = null)
+{
+    if (fn_kwtsms_hook_args_missing('hybrid_auth_create_user', func_num_args(), 3)) {
+        return;
+    }
+    try {
+        if (is_array($user_data) && isset(Tygh::$app['kwtsms.config']) && Tygh::$app['kwtsms.config']->registerCode()) {
+            $user_data['email'] = '';
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('hybrid_auth_create_user', $e);
+    }
+}
+
+/**
  * 2026-10-25 04:38 +03: Task M1.9 (SafatMall C3, C4; P3-15, P3-21), task 596. Hook update_user_pre (fn.users.php,
  * fn_update_user(), before core's own checks): the phone fields of a customer account that are new or changed are
  * checked (country, one account per phone, SMS code) and rewritten to their canonical form by reference;
@@ -994,17 +1023,37 @@ function fn_kwtsms_register_form($unused = '')
         if (!$code && !$config->registerPhoneRequired()) {
             return $none;
         }
-        $field = \Tygh\Addons\Kwtsms\Phones\AccountPhone::formPhoneField('C');
+        // 2026-10-28 18:52 +03: Task M1.10a fix round 1 (review I5, M1, ruling P3-R12), task 596. The own phone
+        // input posts to the store's
+        // account phone field (P3-17) and the quick registration form (section C only) is covered.
+        $quick = Registry::get('settings.General.quick_registration') === 'Y';
+        $phone = \Tygh\Addons\Kwtsms\Phones\AccountPhone::registrationPhone($quick);
 
         return [
             'code' => $code,
-            'phone_input' => $field === '',
-            'phone_name' => 'user_data[' . ($field === '' ? 'phone' : $field) . ']',
+            'phone_input' => $phone['shown'] === '',
+            'phone_name' => 'user_data[' . ($phone['shown'] === '' ? $phone['account'] : $phone['shown']) . ']',
         ];
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('register_form', $e);
 
         return $none;
+    }
+}
+
+/**
+ * 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review M3, ruling P3-R12), task 596. For
+ * hooks/index/scripts.post.tpl (modifier
+ * |fn_kwtsms_register_code_on): true while register_code is ON. Settings only. Never throws.
+ */
+function fn_kwtsms_register_code_on($unused = '')
+{
+    try {
+        return isset(Tygh::$app['kwtsms.config']) && Tygh::$app['kwtsms.config']->registerCode();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('register_code_on', $e);
+
+        return false;
     }
 }
 

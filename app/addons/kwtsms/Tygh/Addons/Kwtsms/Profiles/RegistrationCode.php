@@ -30,6 +30,7 @@ use Tygh\Addons\Kwtsms\Codes\CodeRequest;
 use Tygh\Addons\Kwtsms\Codes\OtpResult;
 use Tygh\Addons\Kwtsms\Codes\OtpService;
 use Tygh\Addons\Kwtsms\Phones\AccountPhone;
+use Tygh\Addons\Kwtsms\Phones\PhoneLock; // 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review I3), task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 
 final class RegistrationCode implements CodeCheckInterface
@@ -57,6 +58,15 @@ final class RegistrationCode implements CodeCheckInterface
     /** @var callable|null fn(): int, the Unix time */
     private $clock;
 
+    /** @var PhoneLock|null 2026-10-28 18:50 +03: fix round 1 (I3), task 596. Null = no lock (unit rigs). */
+    private $lock;
+
+    /** @var array<string,bool> canonical phones this check holds a lock for */
+    private $held = [];
+
+    /** @var callable|null 2026-10-28 18:50 +03: fix round 1 (M2), task 596. fn(string $phone): void, clears the bypass of $phone */
+    private $clear_skip;
+
     /**
      * @param callable      $default_cc fn(): string
      * @param callable|null $posted     null = the request field kwtsms_code
@@ -69,7 +79,9 @@ final class RegistrationCode implements CodeCheckInterface
         callable $default_cc,
         ?callable $posted = null,
         ?callable $skip_until = null,
-        ?callable $clock = null
+        ?callable $clock = null,
+        ?PhoneLock $lock = null, // 2026-10-28 18:50 +03: fix round 1 (I3, R8), task 596
+        ?callable $clear_skip = null
     ) {
         $this->config = $config;
         $this->otp = $otp;
@@ -77,6 +89,8 @@ final class RegistrationCode implements CodeCheckInterface
         $this->posted = $posted;
         $this->skip_until = $skip_until;
         $this->clock = $clock;
+        $this->lock = $lock;
+        $this->clear_skip = $clear_skip;
     }
 
     /** Whether this check does anything at all (a switch is ON). */
@@ -104,6 +118,16 @@ final class RegistrationCode implements CodeCheckInterface
             return $required; // nothing a code could be about
         }
         $session = (string) ($ctx['session_hash'] ?? '');
+        // 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review I3), task 596. The phone is locked from here to
+        // the index write (or a
+        // refusal; ProfileHooks calls release()), and the verified state is read INSIDE the lock, so parallel submits
+        // of one verified code create exactly one account (P3-5), with C4 on or off.
+        if ($this->lock !== null) {
+            if (!$this->lock->acquire($phone)) {
+                return (string) __('kwtsms.code.check_failed', [], $lang);
+            }
+            $this->held[$phone] = true;
+        }
         if ($this->otp->hasVerified(self::PURPOSE, $phone, 0, $session)) {
             return null;
         }
@@ -126,7 +150,54 @@ final class RegistrationCode implements CodeCheckInterface
             return '';
         }
 
-        return $this->otp->consume(self::PURPOSE, $phone, 0, (string) ($ctx['session_hash'] ?? '')) ? $phone : '';
+        $used = $this->otp->consume(self::PURPOSE, $phone, 0, (string) ($ctx['session_hash'] ?? ''));
+        // 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review M2), task 596. A "continue" bypass lets ONE
+        // account through.
+        $this->clearBypass($phone);
+
+        return $used ? $phone : '';
+    }
+
+    /**
+     * 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review I3), task 596. Frees the phone locks this check took.
+     * Called by ProfileHooks
+     * after the index write and after every refusal. Never throws.
+     */
+    public function release(): void
+    {
+        if ($this->lock === null) {
+            $this->held = [];
+
+            return;
+        }
+        foreach (array_keys($this->held) as $phone) {
+            try {
+                $this->lock->release((string) $phone);
+            } catch (\Throwable $e) {
+                error_log('kwtsms: registration lock release failed: ' . get_class($e));
+            }
+        }
+        $this->held = [];
+    }
+
+    private function clearBypass(string $phone): void
+    {
+        try {
+            if ($this->clear_skip !== null) {
+                call_user_func($this->clear_skip, $phone);
+
+                return;
+            }
+            $session = \Tygh\Tygh::$app['session'];
+            $all = isset($session[CodeRequest::BYPASS_KEY]) && is_array($session[CodeRequest::BYPASS_KEY])
+                ? $session[CodeRequest::BYPASS_KEY] : [];
+            if (isset($all[self::PURPOSE][$phone])) {
+                unset($all[self::PURPOSE][$phone]);
+                $session[CodeRequest::BYPASS_KEY] = $all;
+            }
+        } catch (\Throwable $e) {
+            return;
+        }
     }
 
     /**

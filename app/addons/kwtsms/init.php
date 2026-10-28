@@ -64,6 +64,10 @@ fn_register_hooks(
     // (update_user_pre) and before an order is placed (pre_place_order); both inactive while their switches are OFF.
     'update_user_pre',
     'pre_place_order',
+    // 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review I2, ruling P3-R12), task 596. Core's social login
+    // (hybrid_auth) hook before it
+    // creates an account; inactive while register_code is OFF, and never fires when that add-on is not installed.
+    'hybrid_auth_create_user',
     // 2026-10-24 21:14 +03: Task M1.7b (P3-R7, P3-36), task 596. The scenario "SMS code request" in Settings > Image
     // verification; and, while Turnstile is the active driver, core's template override map points
     // common/image_verification.tpl at our template instead of the reCAPTCHA add-on's native image.

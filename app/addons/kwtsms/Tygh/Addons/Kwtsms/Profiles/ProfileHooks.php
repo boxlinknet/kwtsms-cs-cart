@@ -244,8 +244,12 @@ final class ProfileHooks
             if ($user_id > 0) {
                 $stored = $this->storedAccount($user_id, $this->intOf($user_data['profile_id'] ?? 0)) ?? [];
             }
+            // 2026-10-28 18:49 +03: Task M1.10a fix round 1 (review C1, ruling P3-R12), task 596. A new
+            // storefront account is a customer
+            // the way core decides it (fn_check_user_type(): a posted V, A, c or empty value gives type C), so a
+            // posted user_type never skips the checks.
             $type = $user_id > 0 ? (string) ($stored['user_type'] ?? $user_data['user_type'] ?? '')
-                : (string) ($user_data['user_type'] ?? 'C');
+                : $this->newAccountType($user_data);
             if ($type !== 'C') {
                 return;
             }
@@ -308,6 +312,22 @@ final class ProfileHooks
             $this->releaseHeld();
             $this->tell('E', (string) __('kwtsms.code.check_failed', [], $lang));
         }
+    }
+
+    /**
+     * 2026-10-28 18:49 +03: Task M1.10a fix round 1 (review C1), task 596. The type core gives a NEW account
+     * created in the storefront:
+     * C, except V while core's own vendor sign-up path allows it (Registry runtime.users.allow_vendor_admin_creation,
+     * set only inside fn.companies.php) and the data names V and a company.
+     *
+     * @param array<string,mixed> $user_data
+     */
+    private function newAccountType(array $user_data): string
+    {
+        $vendor = class_exists('\\Tygh\\Registry') && \Tygh\Registry::get('runtime.users.allow_vendor_admin_creation')
+            && strtoupper((string) ($user_data['user_type'] ?? '')) === 'V' && !empty($user_data['company_id']);
+
+        return $vendor ? 'V' : 'C';
     }
 
     /**
@@ -445,8 +465,12 @@ final class ProfileHooks
             if ($user_id > 0) {
                 $stored = $this->storedAccount($user_id, $this->intOf($user_data['profile_id'] ?? 0)) ?? [];
             }
+            // 2026-10-28 18:49 +03: Task M1.10a fix round 1 (review C1, ruling P3-R12), task 596. A new
+            // storefront account is a customer
+            // the way core decides it (fn_check_user_type(): a posted V, A, c or empty value gives type C), so a
+            // posted user_type never skips the checks.
             $type = $user_id > 0 ? (string) ($stored['user_type'] ?? $user_data['user_type'] ?? '')
-                : (string) ($user_data['user_type'] ?? 'C');
+                : $this->newAccountType($user_data);
             if ($type !== 'C') {
                 return;
             }
@@ -551,6 +575,11 @@ final class ProfileHooks
      */
     private function releaseHeld(): void
     {
+        // 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review I3), task 596. The code checks hold their own
+        // phone locks.
+        if ($this->code_checks instanceof CodeChecks) {
+            $this->code_checks->release();
+        }
         if ($this->lock === null || $this->held === []) {
             return;
         }

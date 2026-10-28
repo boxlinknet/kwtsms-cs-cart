@@ -313,6 +313,17 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         });
     }
 
+    // 2026-10-28 18:52 +03: Task M1.10a fix round 1 (review I4), task 596. A code pasted or typed with spaces, no-break spaces, direction
+    // marks or dashes ("123 456", Arabic-Indic digits with a space) is cleaned to its digits and cut at 6 characters: the box
+    // takes up to 16 characters (maxlength) so the browser never drops the end of a spaced paste, and the server also
+    // normalizes (CodeInput).
+    $(document).on('input', '.kwtsms-code__input', function () {
+        var clean = this.value.replace(/[\s\u00a0\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff\-]/g, '').slice(0, 6);
+        if (clean !== this.value) {
+            this.value = clean;
+        }
+    });
+
     $(document).on('click', '.kwtsms-code__send', function (e) {
         e.preventDefault();
         send($(this).closest('.kwtsms-code'));

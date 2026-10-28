@@ -30,12 +30,13 @@
     </div>
 {/if}
 {* 2026-10-28 11:08 +03: Task M1.10a (B1, P3-28), task 596. The registration page only: mode add, nobody signed in. *}
+{* 2026-10-28 20:19 +03: Task M1.10a fix round 1 (review I5, M1, ruling P3-R12), task 596: the own phone input posts to the store account phone field (user_data[b_phone] when that is the account phone, else user_data[phone]), named by fn_kwtsms_register_form(); the quick registration form is covered. *}
 {if $runtime.mode == "add" && !$auth.user_id}
     {$kwtsms_reg = ""|fn_kwtsms_register_form}
     {if $kwtsms_reg.phone_input}
         <div class="ty-control-group kwtsms-register-phone">
             <label for="kwtsms_register_phone" class="ty-control-group__title cm-required">{__("phone")}</label>
-            <input type="tel" id="kwtsms_register_phone" name="user_data[phone]" class="ty-input-text cm-required" size="32" maxlength="32" value="{$user_data.phone|default:""|fn_html_escape}" autocomplete="tel" dir="ltr" />
+            <input type="tel" id="kwtsms_register_phone" name="{$kwtsms_reg.phone_name|fn_html_escape}" class="ty-input-text cm-required" size="32" maxlength="32" value="{$user_data.phone|default:$user_data.b_phone|default:""|fn_html_escape}" autocomplete="tel" dir="ltr" />
         </div>
     {/if}
     {if $kwtsms_reg.code}

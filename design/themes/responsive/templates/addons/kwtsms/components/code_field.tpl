@@ -18,6 +18,7 @@
  *}
 {$kwtsms_cf_id = "kwtsms_code_`$purpose`"}
 {$kwtsms_cf_ts = "kwtsms_sms_code"|fn_kwtsms_turnstile_widget}
+{* 2026-10-28 18:53 +03: Task M1.10a fix round 1 (review I4), task 596: maxlength is 16 (was 6) so a pasted "123 456" or a spaced Arabic-Indic code keeps its last digit; code.js cleans the value to 6 digits on input. *}
 {* 2026-10-25 03:10 +03: Task M1.8b fix round 1 (review minor 1), task 596: the label has a class so the bypass can hide it.
    2026-10-25 02:16 +03: the button is the theme primary button (the secondary one fails AA contrast, 2.96:1), Task M1.8b, task 596.
    2026-10-25 02:11 +03: styles of the field (Task M1.8b, task 596). Layout only; the theme keeps colours of buttons and inputs. *}
@@ -53,7 +54,7 @@
     {include file="common/image_verification.tpl" option="kwtsms_sms_code"}
     <div class="kwtsms-code__slot" hidden></div>
     <div class="kwtsms-code__row">
-        <input type="text" id="{$kwtsms_cf_id|fn_html_escape}_input" name="kwtsms_code" class="ty-input-text kwtsms-code__input" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="6" aria-describedby="{$kwtsms_cf_id|fn_html_escape}_status" />
+        <input type="text" id="{$kwtsms_cf_id|fn_html_escape}_input" name="kwtsms_code" class="ty-input-text kwtsms-code__input" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="16" aria-describedby="{$kwtsms_cf_id|fn_html_escape}_status" />
         <button type="button" class="ty-btn ty-btn__primary kwtsms-code__send">{__("kwtsms.code.send")|fn_html_escape}</button>
     </div>
     <div class="kwtsms-code__count" aria-hidden="true"></div>

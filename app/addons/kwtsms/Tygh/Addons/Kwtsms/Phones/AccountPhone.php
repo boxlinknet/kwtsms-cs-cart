@@ -145,6 +145,53 @@ final class AccountPhone
         }
     }
 
+    /**
+     * 2026-10-28 18:52 +03: Task M1.10a fix round 1 (review I5, M1, ruling P3-R12), task 596. The phone of the
+     * registration form:
+     * 'account' is the store's account phone field (P3-17: phone, or b_phone when no section of the form location
+     * has an active phone field), 'shown' is the phone field the form really shows ('' = none). The quick
+     * registration form (settings.General.quick_registration) shows section C only. When 'shown' is '' the add-on
+     * adds an input of its own that posts to 'account'.
+     *
+     * @param callable|null $fields (string $location): array, the fn_get_profile_fields() result (test seam)
+     *
+     * @return array{account:string,shown:string}
+     */
+    public static function registrationPhone(bool $quick, ?callable $fields = null): array
+    {
+        $none = ['account' => 'phone', 'shown' => ''];
+        try {
+            if ($fields === null) {
+                if (!function_exists('fn_get_profile_fields')) {
+                    return $none;
+                }
+                $fields = static function (string $where): array {
+                    $rows = fn_get_profile_fields($where);
+
+                    return is_array($rows) ? $rows : [];
+                };
+            }
+            $account = 'b_phone';
+            $shown = '';
+            foreach ((array) $fields('C') as $section => $rows) {
+                $visible = !$quick || (string) $section === 'C';
+                foreach ((array) $rows as $row) {
+                    $name = is_array($row) && isset($row['field_name']) ? (string) $row['field_name'] : '';
+                    if ($name === 'phone') {
+                        $account = 'phone';
+                        $shown = $visible ? 'phone' : $shown;
+                    } elseif ($name === 'b_phone' && $visible && $shown !== 'phone') {
+                        $shown = 'b_phone';
+                    }
+                }
+            }
+
+            return ['account' => $account, 'shown' => $shown];
+        } catch (\Throwable $e) {
+            return $none;
+        }
+    }
+
     private static function comparable(string $value, string $hint_cc): string
     {
         $trimmed = trim($value);

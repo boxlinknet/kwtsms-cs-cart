@@ -318,7 +318,11 @@ class ServiceProvider implements ServiceProviderInterface
                 new RegistrationCode(
                     $app['kwtsms.config'],
                     $app['kwtsms.otp'],
-                    [$app['kwtsms.config'], 'defaultCountryCode']
+                    [$app['kwtsms.config'], 'defaultCountryCode'],
+                    null,
+                    null,
+                    null,
+                    $app['kwtsms.phone_lock'] // 2026-10-28 18:50 +03: fix round 1 (I3), task 596
                 ),
             ]);
         };

@@ -5963,8 +5963,8 @@ msgid "Require a verified SMS code to create an account"
 msgstr "اشتراط رمز SMS مُتحقق منه لإنشاء الحساب"
 
 msgctxt "Languages::kwtsms.settings.register_code_help"
-msgid "When on, the registration form shows an SMS code field and an account is created only after the customer enters the code sent to the phone number. Accounts created from checkout or from the order confirmation page need the code too; their forms have no code field, so they are refused."
-msgstr "عند التفعيل يعرض نموذج التسجيل حقل رمز SMS ولا يُنشأ الحساب إلا بعد إدخال الرمز المرسل إلى رقم الجوال. ينطبق ذلك أيضاً على الحسابات التي تُنشأ من صفحة إتمام الطلب أو صفحة تأكيد الطلب، ولا تحتوي نماذجها على حقل الرمز، لذا تُرفض."
+msgid "When on, the registration form shows an SMS code field and an account is created only after the customer enters the code sent to the phone number. Accounts created from checkout or from the order confirmation page need the code too; their forms have no code field, so they are refused. Sign-ups through social login and the mobile app API cannot carry a code either, so they are refused too; the order confirmation page then hides its create account block."
+msgstr "عند التفعيل يعرض نموذج التسجيل حقل رمز SMS ولا يُنشأ الحساب إلا بعد إدخال الرمز المرسل إلى رقم الجوال. ينطبق ذلك أيضاً على الحسابات التي تُنشأ من صفحة إتمام الطلب أو صفحة تأكيد الطلب، ولا تحتوي نماذجها على حقل الرمز، لذا تُرفض. كذلك لا يمكن للتسجيل عبر حسابات التواصل الاجتماعي أو واجهة تطبيق الجوال إرسال الرمز، لذا يُرفض أيضا، وتخفي صفحة تأكيد الطلب نموذج إنشاء الحساب."
 
 msgctxt "Languages::kwtsms.settings.field.register_phone_required"
 msgid "Mobile number at registration"

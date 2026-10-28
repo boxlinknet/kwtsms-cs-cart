@@ -41,6 +41,18 @@ final class CodeChecks implements CodeCheckInterface
         return false;
     }
 
+    /**
+     * 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review I3), task 596. Frees what the checks hold (phone locks).
+     */
+    public function release(): void
+    {
+        foreach ($this->checks as $check) {
+            if (method_exists($check, 'release')) {
+                $check->release();
+            }
+        }
+    }
+
     public function check(array $ctx, array &$user_data): ?string
     {
         foreach ($this->checks as $check) {
