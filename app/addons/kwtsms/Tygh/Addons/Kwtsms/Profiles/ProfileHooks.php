@@ -232,7 +232,9 @@ final class ProfileHooks
             return;
         }
         $c4 = $this->index !== null && $this->config !== null && $this->rules !== null && $this->index->enforcing();
-        $codes = !($this->code_checks instanceof NoCodeCheck);
+        // 2026-10-28 11:06 +03: Task M1.10a, task 596. The composite CodeChecks is always wired; it counts only
+        // while a check is ON.
+        $codes = $this->codesActive();
         if (!$c3 && !$c4 && !$codes) {
             return;
         }
@@ -267,9 +269,11 @@ final class ProfileHooks
 
                     return;
                 }
-                // 2026-10-25 07:11 +03: M1.9 fix round 1 (item 2, ruling P3-R11), task 596. The post-order profile save: the
-                // order is placed and the customer's other changes are kept; only the taken phone goes back to its stored
-                // value, and the notice above says so (never silent).
+                // 2026-10-25 07:11 +03: M1.9 fix round 1 (item 2, ruling P3-R11), task 596. The post-order profile
+                // save: the order is placed and the customer's other changes are kept; only the taken phone goes
+                // back to its stored value, and the notice above says so (never silent).
+                // 2026-10-28 11:11 +03: Task M1.10a, task 596: lines wrapped to 120 columns (phpcs warnings), no
+                // change of logic.
                 $field = isset($user_data['phone']) && trim((string) $user_data['phone']) !== '' ? 'phone' : 'b_phone';
                 $user_data[$field] = (string) ($stored[$field] ?? '');
             }
@@ -307,6 +311,19 @@ final class ProfileHooks
     }
 
     /**
+     * 2026-10-28 11:06 +03: Task M1.10a, task 596. Whether a code check has work to do: not the NoCodeCheck, and
+     * for the composite CodeChecks at least one of its checks switched ON.
+     */
+    private function codesActive(): bool
+    {
+        if ($this->code_checks instanceof NoCodeCheck) {
+            return false;
+        }
+
+        return !($this->code_checks instanceof CodeChecks) || $this->code_checks->active();
+    }
+
+    /**
      * 2026-10-25 07:11 +03: M1.9 fix round 1 (I1), task 596. The checkout profile editor (POST checkout.update_profile,
      * core's fn_update_user_profile(), which has no refusal hook), called by the pre-controller
      * controllers/frontend/checkout.pre.php before core saves anything. For the signed-in customer (never user 1) it
@@ -320,7 +337,10 @@ final class ProfileHooks
      */
     public function onCheckoutProfileEdit(int $user_id, array &$user_data): bool
     {
-        if ($user_id <= 1 || (string) call_user_func($this->area) !== 'C' || $this->config === null || $this->rules === null) {
+        if (
+            $user_id <= 1 || (string) call_user_func($this->area) !== 'C'
+            || $this->config === null || $this->rules === null
+        ) {
             return false;
         }
         $c3 = $this->config->phoneCountryCheck();
@@ -524,9 +544,10 @@ final class ProfileHooks
     }
 
     /**
-     * 2026-10-25 07:11 +03: M1.9 fix round 1 (M3), task 596 (was releasePhoneLock(), which recomputed the phone from the
-     * saved data). After the account was saved and its index row written, or when a later step refused, every lock this
-     * instance took is freed by the key it acquired, so the next request sees the row. Never throws.
+     * 2026-10-25 07:11 +03: M1.9 fix round 1 (M3), task 596 (was releasePhoneLock(), which recomputed the phone
+     * from the saved data). After the account was saved and its index row written, or when a later step refused,
+     * every lock this instance took is freed by the key it acquired, so the next request sees the row. Never
+     * throws.
      */
     private function releaseHeld(): void
     {
@@ -619,7 +640,8 @@ final class ProfileHooks
             try {
                 $account = $this->account_loader === null ? null : call_user_func($this->account_loader, $user_id);
                 if (is_array($account)) {
-                    $this->writePhoneIndex($action === 'add' ? 'add' : 'update', ['user_id' => $user_id] + $account, []);
+                    $written = ['user_id' => $user_id] + $account;
+                    $this->writePhoneIndex($action === 'add' ? 'add' : 'update', $written, []);
                 }
             } finally {
                 $this->releaseHeld(); // 2026-10-25 07:20 +03: M1.9 fix round 1 (I1), task 596

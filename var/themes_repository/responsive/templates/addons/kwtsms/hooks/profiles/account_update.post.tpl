@@ -13,8 +13,13 @@
  *            show (SMS sending is switched on) and allowed (ticked unless the account opted out).
  *            2026-10-23 01:31 +03, Task A10, task 596: the help line is smaller and muted, set apart from the box by a small gap
  *            (inline style: the add-on ships no storefront stylesheet, and the line must read as help, not as a second option).
- * DEPENDS:   func.php fn_kwtsms_order_sms_choice, language variables kwtsms.profile.order_sms_label and
- *            kwtsms.profile.order_sms_help.
+ *            2026-10-28 11:08 +03, Task M1.10a (SafatMall B1, P3-28), task 596: on the registration page (not for a signed-in customer)
+ *            the SMS code field (code_field.tpl, purpose register) while register_code is ON, and a phone input of our own
+ *            named user_data[phone] when the form has no phone field and a phone is needed (core saves a posted
+ *            user_data[phone] with the account). fn_kwtsms_register_form() decides, from the settings and the profile
+ *            fields.
+ * DEPENDS:   func.php fn_kwtsms_order_sms_choice, fn_kwtsms_register_form, components/code_field.tpl, language
+ *            variables kwtsms.profile.order_sms_label and kwtsms.profile.order_sms_help.
  *}
 {$kwtsms_choice = $auth.user_id|fn_kwtsms_order_sms_choice}
 {if $kwtsms_choice.show}
@@ -23,4 +28,17 @@
         <label for="kwtsms_order_sms" class="ty-login__remember-me-label"><input class="checkbox" type="checkbox" name="user_data[kwtsms_order_sms]" id="kwtsms_order_sms" value="Y"{if $kwtsms_choice.allowed} checked="checked"{/if} />{__("kwtsms.profile.order_sms_label")}</label>
         <div class="ty-control-group__help kwtsms-order-sms__help" style="margin-top: 4px; font-size: 13px; opacity: 0.75;">{__("kwtsms.profile.order_sms_help")}</div>
     </div>
+{/if}
+{* 2026-10-28 11:08 +03: Task M1.10a (B1, P3-28), task 596. The registration page only: mode add, nobody signed in. *}
+{if $runtime.mode == "add" && !$auth.user_id}
+    {$kwtsms_reg = ""|fn_kwtsms_register_form}
+    {if $kwtsms_reg.phone_input}
+        <div class="ty-control-group kwtsms-register-phone">
+            <label for="kwtsms_register_phone" class="ty-control-group__title cm-required">{__("phone")}</label>
+            <input type="tel" id="kwtsms_register_phone" name="user_data[phone]" class="ty-input-text cm-required" size="32" maxlength="32" value="{$user_data.phone|default:""|fn_html_escape}" autocomplete="tel" dir="ltr" />
+        </div>
+    {/if}
+    {if $kwtsms_reg.code}
+        {include file="addons/kwtsms/components/code_field.tpl" purpose="register" phone_input_name=$kwtsms_reg.phone_name}
+    {/if}
 {/if}

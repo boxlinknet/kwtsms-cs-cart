@@ -5946,3 +5946,56 @@ msgstr "Saved as typed. The store would refuse this phone number: [reason]"
 msgctxt "Languages::kwtsms.code.check_failed"
 msgid "Could not check the code. Try again."
 msgstr "Could not check the code. Try again."
+
+# 2026-10-28 11:07 +03: Task M1.10a (SafatMall B1, P3-28), task 596. Registration code and mandatory phone: Settings fields and refusal texts.
+msgctxt "Languages::kwtsms.settings.field.register_code"
+msgid "SMS code at registration"
+msgstr "SMS code at registration"
+
+msgctxt "Languages::kwtsms.settings.register_code_label"
+msgid "Require a verified SMS code to create an account"
+msgstr "Require a verified SMS code to create an account"
+
+msgctxt "Languages::kwtsms.settings.register_code_help"
+msgid "When on, the registration form shows an SMS code field and an account is created only after the customer enters the code sent to the phone number. Accounts created from checkout or from the order confirmation page need the code too; their forms have no code field, so they are refused."
+msgstr "When on, the registration form shows an SMS code field and an account is created only after the customer enters the code sent to the phone number. Accounts created from checkout or from the order confirmation page need the code too; their forms have no code field, so they are refused."
+
+msgctxt "Languages::kwtsms.settings.field.register_phone_required"
+msgid "Mobile number at registration"
+msgstr "Mobile number at registration"
+
+msgctxt "Languages::kwtsms.settings.register_phone_required_label"
+msgid "Require a mobile number to create an account"
+msgstr "Require a mobile number to create an account"
+
+msgctxt "Languages::kwtsms.settings.register_phone_required_help"
+msgid "When on, an account cannot be created without a phone number. If the registration form has no phone field, the add-on adds one."
+msgstr "When on, an account cannot be created without a phone number. If the registration form has no phone field, the add-on adds one."
+
+msgctxt "Languages::kwtsms.register.error_phone_required"
+msgid "Enter your mobile number to create your account."
+msgstr "Enter your mobile number to create your account."
+
+msgctxt "Languages::kwtsms.register.code_required"
+msgid "Verify your mobile number with the SMS code to create your account."
+msgstr "Verify your mobile number with the SMS code to create your account."
+
+msgctxt "Languages::kwtsms.code.enter_code"
+msgid "Enter the code we sent to [phone]."
+msgstr "Enter the code we sent to [phone]."
+
+msgctxt "Languages::kwtsms.code.wrong"
+msgid "The code is not correct. You have [n] tries left."
+msgstr "The code is not correct. You have [n] tries left."
+
+msgctxt "Languages::kwtsms.code.locked"
+msgid "Too many wrong codes. Try again in [minutes] minutes."
+msgstr "Too many wrong codes. Try again in [minutes] minutes."
+
+msgctxt "Languages::kwtsms.code.ip_limited"
+msgid "Too many tries from your network. Try again later."
+msgstr "Too many tries from your network. Try again later."
+
+msgctxt "Languages::kwtsms.code.expired"
+msgid "The code has expired. Ask for a new one."
+msgstr "The code has expired. Ask for a new one."

@@ -973,6 +973,42 @@ function fn_kwtsms_code_features_on($unused = '')
 }
 
 /**
+ * 2026-10-28 11:08 +03: Task M1.10a (SafatMall B1, P3-28), task 596. For the storefront template
+ * hooks/profiles/account_update.post.tpl
+ * (modifier |fn_kwtsms_register_form): what the registration page adds. 'code' = show the SMS code field (register_code
+ * is ON); 'phone_input' = the form has no phone field of its own and a phone is needed (the code or the mandatory
+ * phone is ON), so the template adds an input named user_data[phone] (core saves it, platform facts); 'phone_name' =
+ * the name of the phone input the code field reads. Settings only. Never throws; on an error nothing is added.
+ *
+ * @return array{code:bool,phone_input:bool,phone_name:string}
+ */
+function fn_kwtsms_register_form($unused = '')
+{
+    $none = ['code' => false, 'phone_input' => false, 'phone_name' => 'user_data[phone]'];
+    try {
+        if (!isset(Tygh::$app['kwtsms.config'])) {
+            return $none;
+        }
+        $config = Tygh::$app['kwtsms.config'];
+        $code = $config->registerCode();
+        if (!$code && !$config->registerPhoneRequired()) {
+            return $none;
+        }
+        $field = \Tygh\Addons\Kwtsms\Phones\AccountPhone::formPhoneField('C');
+
+        return [
+            'code' => $code,
+            'phone_input' => $field === '',
+            'phone_name' => 'user_data[' . ($field === '' ? 'phone' : $field) . ']',
+        ];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('register_form', $e);
+
+        return $none;
+    }
+}
+
+/**
  * 2026-10-24 21:13 +03: Task M1.7b (ruling P3-R7), task 596. Hook init_templater_post (fn.init.php:143): in the
  * storefront,
  * while Turnstile is the active antibot driver and the reCAPTCHA add-on is active (without keys, or its driver would

@@ -68,7 +68,8 @@ use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:18 +03: Task M1.6, ta
 use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:18 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneLock; // 2026-10-25 04:37 +03: Task M1.9, task 596
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
-use Tygh\Addons\Kwtsms\Profiles\NoCodeCheck; // 2026-10-24 17:18 +03: Task M1.6, task 596
+use Tygh\Addons\Kwtsms\Profiles\CodeChecks; // 2026-10-28 11:06 +03: Task M1.10a, task 596 (replaces NoCodeCheck)
+use Tygh\Addons\Kwtsms\Profiles\RegistrationCode; // 2026-10-28 11:06 +03: Task M1.10a, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
@@ -310,8 +311,16 @@ class ServiceProvider implements ServiceProviderInterface
         $app['kwtsms.phone_index_backfill'] = function (Container $app): PhoneIndexBackfill {
             return new PhoneIndexBackfill($app['kwtsms.config'], $app['kwtsms.storage'], $app['kwtsms.logs.debug']);
         };
-        $app['kwtsms.code_checks'] = function (): NoCodeCheck {
-            return new NoCodeCheck();
+        // 2026-10-28 11:06 +03: Task M1.10a, task 596. The code checks are the composite of the enabled checks: the
+        // registration code (B1); the phone change (B5, Task M1.10b) joins it. Was NoCodeCheck.
+        $app['kwtsms.code_checks'] = function (Container $app): CodeChecks {
+            return new CodeChecks([
+                new RegistrationCode(
+                    $app['kwtsms.config'],
+                    $app['kwtsms.otp'],
+                    [$app['kwtsms.config'], 'defaultCountryCode']
+                ),
+            ]);
         };
         // 2026-10-25 04:37 +03: Task M1.9 (C4, P3-11), task 596. The per-phone lock between the "is it free" check and
         // the index write.

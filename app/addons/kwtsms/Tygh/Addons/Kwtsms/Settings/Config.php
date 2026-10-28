@@ -174,6 +174,9 @@ class Config implements ConfigInterface
             // 2026-10-24 23:49 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
             // thresholds after which the code request needs a CAPTCHA token.
             'cap_phone_hour', 'captcha_after_ip', 'captcha_after_subject', 'captcha_after_store',
+            // 2026-10-28 11:07 +03: Task M1.10a (SafatMall B1, P3-28), task 596. The registration code and the
+            // mandatory phone.
+            'register_code', 'register_phone_required',
         ],
     ];
 

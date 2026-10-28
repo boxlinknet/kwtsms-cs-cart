@@ -103,10 +103,22 @@ final class AccountPhone
      */
     public static function formHasPhone(string $location, ?callable $fields = null): bool
     {
+        return self::formPhoneField($location, $fields) !== '';
+    }
+
+    /**
+     * 2026-10-28 11:07 +03: Task M1.10a (B1), task 596. The name of the phone field the form of $location shows:
+     * 'phone' (preferred, it is the account phone), else 'b_phone', '' when neither. The registration code field
+     * posts the phone of this input.
+     *
+     * @param callable|null $fields (string $location): array, the fn_get_profile_fields() result (test seam)
+     */
+    public static function formPhoneField(string $location, ?callable $fields = null): string
+    {
         try {
             if ($fields === null) {
                 if (!function_exists('fn_get_profile_fields')) {
-                    return false;
+                    return '';
                 }
                 $fields = static function (string $where): array {
                     $rows = fn_get_profile_fields($where);
@@ -114,19 +126,23 @@ final class AccountPhone
                     return is_array($rows) ? $rows : [];
                 };
             }
+            $found = '';
             foreach ((array) $fields($location) as $section) {
                 foreach ((array) $section as $row) {
                     $name = is_array($row) && isset($row['field_name']) ? (string) $row['field_name'] : '';
-                    if ($name === 'phone' || $name === 'b_phone') {
-                        return true;
+                    if ($name === 'phone') {
+                        return 'phone';
+                    }
+                    if ($name === 'b_phone') {
+                        $found = 'b_phone';
                     }
                 }
             }
-        } catch (\Throwable $e) {
-            return false;
-        }
 
-        return false;
+            return $found;
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     private static function comparable(string $value, string $hint_cc): string

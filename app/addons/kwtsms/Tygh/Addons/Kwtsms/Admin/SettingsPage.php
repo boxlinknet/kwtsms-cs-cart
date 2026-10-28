@@ -402,6 +402,10 @@ class SettingsPage
             'captcha_after_ip' => $this->config->captchaAfterIp(),
             'captcha_after_subject' => $this->config->captchaAfterSubject(),
             'captcha_after_store' => $this->config->captchaAfterStore(),
+            // 2026-10-28 11:07 +03: Task M1.10a (B1, P3-28), task 596. The registration code and the mandatory
+            // phone ('Y'/'N').
+            'register_code' => $this->config->registerCode() ? 'Y' : 'N',
+            'register_phone_required' => $this->config->registerPhoneRequired() ? 'Y' : 'N',
         ];
     }
 
