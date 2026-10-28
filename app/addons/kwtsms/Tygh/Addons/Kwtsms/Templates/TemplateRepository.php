@@ -386,7 +386,10 @@ class TemplateRepository
         foreach ($receivers as $receiver) {
             $rows[] = $row(Defaults::EVENT_STATUS, $receiver, 'generic', '', '');
         }
-        $lang = $status_lang ?? (defined('DESCR_SL') ? (string) DESCR_SL : $this->defaultLang());
+        // 2026-10-29 00:02 +03: Task M1.11s item 1 (SafatMall note 1), task 596. Was DESCR_SL (the CONTENT language):
+        // an English admin whose content language was Arabic read the event and status names in Arabic. The labels
+        // follow the admin INTERFACE language (CART_LANGUAGE); the per-language body tabs are separate.
+        $lang = $status_lang ?? (defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : $this->defaultLang());
         foreach ($this->orderStatuses($lang) as $code => $name) {
             foreach ($receivers as $receiver) {
                 $rows[] = $row(
