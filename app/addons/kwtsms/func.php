@@ -613,6 +613,15 @@ function fn_kwtsms_order_sms_choice($user_id)
             return ['show' => false, 'allowed' => true];
         }
 
+        // 2026-10-29 00:04 +03: Task M1.11s item 2 (SafatMall note 2), task 596. Hidden while no customer order SMS
+        // (status change, order updated, shipment created) is ON for this storefront; the stored choice stays.
+        $storefront = Tygh::$app['storefront'] ?? null;
+        $storefront_id = is_object($storefront) && isset($storefront->storefront_id)
+            ? (int) $storefront->storefront_id : 0;
+        if (!Tygh::$app['kwtsms.order_sms_scope']->anyOn($storefront_id)) {
+            return ['show' => false, 'allowed' => true];
+        }
+
         return ['show' => true, 'allowed' => Tygh::$app['kwtsms.customer_prefs']->orderSmsAllowed((int) $user_id)];
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('order_sms_choice', $e);

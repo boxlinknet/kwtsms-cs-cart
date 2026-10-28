@@ -18,6 +18,10 @@
  *            named user_data[phone] when the form has no phone field and a phone is needed (core saves a posted
  *            user_data[phone] with the account). fn_kwtsms_register_form() decides, from the settings and the profile
  *            fields.
+ *            2026-10-29 00:04 +03, Task M1.11s item 2 (SafatMall note 2), task 596: fn_kwtsms_order_sms_choice().show is also false
+ *            while no customer order SMS the opt-out covers (status change, order updated, shipment created) is ON for this
+ *            storefront, so the box is hidden on registration and profile; a stored choice stays. This is the only theme
+ *            copy of the box (design/themes/responsive).
  * DEPENDS:   func.php fn_kwtsms_order_sms_choice, fn_kwtsms_register_form, components/code_field.tpl, language
  *            variables kwtsms.profile.order_sms_label and kwtsms.profile.order_sms_help.
  *}

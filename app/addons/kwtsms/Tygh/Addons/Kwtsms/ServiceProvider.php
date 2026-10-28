@@ -212,6 +212,14 @@ class ServiceProvider implements ServiceProviderInterface
         $app['kwtsms.customer_prefs'] = function (): CustomerPrefs {
             return new CustomerPrefs();
         };
+        // 2026-10-29 00:04 +03: Task M1.11s item 2 (SafatMall note 2), task 596. Whether any customer order SMS the
+        // opt-out covers is ON (the box is hidden while none is).
+        $app['kwtsms.order_sms_scope'] = function (Container $app): \Tygh\Addons\Kwtsms\Profiles\OrderSmsScope {
+            return new \Tygh\Addons\Kwtsms\Profiles\OrderSmsScope(
+                EventsSchemaExtender::declarations($app['kwtsms.declared_events'], self::isMultiVendor()),
+                $app['kwtsms.storefront_rules']
+            );
+        };
         $app['kwtsms.sender_resolver'] = function (Container $app): SenderResolver {
             return new SenderResolver($app['kwtsms.config'], $app['kwtsms.state'], $app['kwtsms.alerts']);
         };
