@@ -70,7 +70,7 @@ final class PhoneChange implements CodeCheckInterface
     /** @var callable|null fn(string $phone): void, clears the bypass of $phone */
     private $clear_skip;
 
-    /** @var array<int,array{old:string,new:string}> user id => the old stored phone and the new canonical phone */
+    /** @var array<int,array{old:string,new:string,mode:string}> user id => old stored phone, new canonical phone, code|bypass|clear */
     private $pending = [];
 
     /**
@@ -129,11 +129,35 @@ final class PhoneChange implements CodeCheckInterface
             return null;
         }
         $lang = (string) ($ctx['lang'] ?? '');
+        $old = (string) ($ctx['stored'] ?? '');
+        // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review I1, ruling P3-R13), task 596. A clear needs no code
+        // (nothing to verify) but the old number is told after the save. Inside the post-order update the phone is
+        // put back instead.
+        if ($change['clear']) {
+            if (!empty($ctx['checkout_profile'])) {
+                $this->putBack($user_data, ['phone', 'b_phone'], $stored);
+
+                return null;
+            }
+            $this->pending[$user_id] = ['old' => $old, 'new' => '', 'mode' => 'clear'];
+
+            return null;
+        }
         $phone = $change['new'];
         if ($phone === '') {
-            return (string) __('kwtsms.phone_change.invalid', [], $lang); // a code cannot go to this value
+            // 2026-10-28 22:32 +03: fix round 1 (review M1), task 596: through afterRefusal(), so the post-order update
+            // resets only the phone field and goes on.
+            return $this->afterRefusal(
+                $ctx,
+                $user_data,
+                $stored,
+                (string) __('kwtsms.phone_change.invalid', [], $lang),
+                $lang,
+                $change['field']
+            ); // a code cannot go to this value
         }
         $session = (string) ($ctx['session_hash'] ?? '');
+        $mode = 'code';
         $verified = $this->otp->hasVerified(self::PURPOSE, $phone, $user_id, $session);
         if (!$verified) {
             $code = $this->postedCode();
@@ -148,19 +172,22 @@ final class PhoneChange implements CodeCheckInterface
                 );
                 $refusal = $this->message($result, $phone, $lang);
                 if ($refusal !== null) {
-                    return $this->afterRefusal($ctx, $user_data, $stored, $refusal, $lang);
+                    return $this->afterRefusal($ctx, $user_data, $stored, $refusal, $lang, $change['field']);
                 }
-            } elseif (!$this->bypassed($phone)) {
+            } elseif ($this->bypassed($phone)) {
+                $mode = 'bypass';
+            } else {
                 return $this->afterRefusal(
                     $ctx,
                     $user_data,
                     $stored,
                     (string) __('kwtsms.phone_change.code_required', [], $lang),
-                    $lang
+                    $lang,
+                    $change['field']
                 );
             }
         }
-        $this->pending[$user_id] = ['old' => (string) ($ctx['stored'] ?? ''), 'new' => $phone];
+        $this->pending[$user_id] = ['old' => $old, 'new' => $phone, 'mode' => $mode];
 
         return null;
     }
@@ -177,10 +204,23 @@ final class PhoneChange implements CodeCheckInterface
         $pending = $this->pending[$user_id];
         unset($this->pending[$user_id]);
 
-        $used = $this->otp->consume(self::PURPOSE, $pending['new'], $user_id, (string) ($ctx['session_hash'] ?? ''));
-        $this->clearBypass($pending['new']);
-        if (!$used) {
-            return ''; // saved through the "continue" bypass: nothing verified, no notice
+        $used = false;
+        if ($pending['mode'] === 'code') {
+            $used = $this->otp->consume(
+                self::PURPOSE,
+                $pending['new'],
+                $user_id,
+                (string) ($ctx['session_hash'] ?? '')
+            );
+        }
+        if ($pending['new'] !== '') {
+            $this->clearBypass($pending['new']);
+        }
+        // 2026-10-28 22:31 +03: fix round 1 (review I1, ruling P3-R13), task 596. The notice follows every save that
+        // changed the account phone: a code that was used, a "continue" bypass save, a clear. A code lost to a
+        // parallel save sends nothing (the save that used it sends the notice).
+        if ($pending['mode'] === 'code' && !$used) {
+            return '';
         }
         if ($this->config->phoneChangeNotice() && trim($pending['old']) !== '') {
             try {
@@ -197,7 +237,7 @@ final class PhoneChange implements CodeCheckInterface
             }
         }
 
-        return $pending['new'];
+        return $pending['mode'] === 'code' ? $pending['new'] : '';
     }
 
     /**
@@ -225,14 +265,15 @@ final class PhoneChange implements CodeCheckInterface
     }
 
     /**
-     * What this save does to the account phone: null when it does not change (or is cleared: nothing to verify),
-     * else the new canonical phone ('' when it is not a mobile). The stored phone and b_phone are overlaid with the
-     * posted ones, so a form that shows only one of them leaves the other as it is.
+     * What this save does to the account phone: null when it does not change, else the new canonical phone ('' when
+     * it is not a mobile), whether the save clears a stored phone, and the posted field that carries the account
+     * phone. The stored phone and b_phone are overlaid with the posted ones, so a form that shows only one of them
+     * leaves the other as it is.
      *
      * @param array<string,mixed> $user_data
      * @param array<string,mixed> $stored
      *
-     * @return array{new:string}|null
+     * @return array{new:string,clear:bool,field:string}|null
      */
     private function change(array $user_data, array $stored, string $stored_phone): ?array
     {
@@ -243,45 +284,64 @@ final class PhoneChange implements CodeCheckInterface
             }
         }
         $after_phone = AccountPhone::field($after);
+        $before = $stored === [] ? $stored_phone : AccountPhone::field($stored);
         if ($after_phone === '') {
-            return null;
+            // 2026-10-28 22:31 +03: fix round 1 (review I1, ruling P3-R13), task 596: clearing is a change.
+            return trim($before) === '' ? null : ['new' => '', 'clear' => true, 'field' => 'phone'];
         }
         $cc = (string) call_user_func($this->default_cc);
         $field = trim($after['phone']) !== '' ? 'phone' : 'b_phone';
         $hint = AccountPhone::hint($field, $user_data, $stored, $cc);
-        $before = $stored === [] ? $stored_phone : AccountPhone::field($stored);
         if (!AccountPhone::changed($after_phone, $before, $hint)) {
             return null;
         }
-
         // 2026-10-28 20:25 +03: Task M1.10b, task 596. The posted countries stay in the data the calling code is
         // read from.
         $merged = $after + $user_data;
 
-        return ['new' => AccountPhone::canonicalOf($merged, $stored, $cc)];
+        return ['new' => AccountPhone::canonicalOf($merged, $stored, $cc), 'clear' => false, 'field' => $field];
     }
 
     /**
-     * A refusal. Inside the post-order profile update the order is placed already: the phone goes back to the stored
-     * value, the customer is told, and the save goes on (P3-17). Everywhere else the save is refused.
+     * A refusal. Inside the post-order profile update the order is placed already: only the account phone field goes
+     * to the stored value (P3-R11), the customer is told, and the save goes on (P3-17). Everywhere else the save is
+     * refused.
      *
      * @param array<string,mixed> $ctx
      * @param array<string,mixed> $user_data
      * @param array<string,mixed> $stored
      */
-    private function afterRefusal(array $ctx, array &$user_data, array $stored, string $refusal, string $lang): ?string
-    {
+    private function afterRefusal(
+        array $ctx,
+        array &$user_data,
+        array $stored,
+        string $refusal,
+        string $lang,
+        string $field
+    ): ?string {
         if (empty($ctx['checkout_profile'])) {
             return $refusal;
         }
-        foreach (['phone', 'b_phone'] as $field) {
+        $this->putBack($user_data, [$field], $stored);
+        $this->tell('W', (string) __('kwtsms.phone_change.order_kept', [], $lang));
+
+        return null;
+    }
+
+    /**
+     * 2026-10-28 22:31 +03: Task M1.10b fix round 1, task 596. Puts the named posted phone fields back.
+     *
+     * @param array<string,mixed> $user_data
+     * @param string[]            $fields
+     * @param array<string,mixed> $stored
+     */
+    private function putBack(array &$user_data, array $fields, array $stored): void
+    {
+        foreach ($fields as $field) {
             if (isset($user_data[$field])) {
                 $user_data[$field] = (string) ($stored[$field] ?? '');
             }
         }
-        $this->tell('W', (string) __('kwtsms.phone_change.order_kept', [], $lang));
-
-        return null;
     }
 
     private function tell(string $type, string $text): void

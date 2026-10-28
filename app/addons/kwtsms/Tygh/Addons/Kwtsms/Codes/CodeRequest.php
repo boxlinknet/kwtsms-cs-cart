@@ -176,7 +176,17 @@ class CodeRequest
         }
 
         // 2. The phone, read now and judged after the gate (a bot learns nothing about a number it cannot pass).
-        $check = $this->rules->check($raw_phone, $this->config->defaultCountryCode());
+        // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The same calling code as the profile
+        // check.
+        $stored_iso = '';
+        if ($user_id > 0 && function_exists('fn_get_user_info')) {
+            $user = fn_get_user_info($user_id, false);
+            $stored_iso = is_array($user) && isset($user['b_country']) ? (string) $user['b_country'] : '';
+        }
+        $check = $this->rules->check(
+            $raw_phone,
+            self::countryHint($request, $stored_iso, $this->config->defaultCountryCode())
+        );
         $phone = $check['ok'] ? $check['phone'] : '';
 
         // 3. Suspicion: a CAPTCHA token from the 4th request of an IP, the 3rd code of a phone, the 31st of the store.
@@ -363,6 +373,27 @@ class CodeRequest
             ? $session[self::BYPASS_KEY] : [];
         $all[$purpose][$phone] = $until;
         $session[self::BYPASS_KEY] = $all;
+    }
+
+    /**
+     * 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The calling code a local number is read
+     * with: the form's country (request field country, ISO 2), else the customer's stored country, else the store
+     * default. The profile check reads the same order (AccountPhone::hint(): posted b_country, stored b_country,
+     * default).
+     *
+     * @param array<string,mixed> $request
+     */
+    public static function countryHint(array $request, string $stored_iso, string $default_cc): string
+    {
+        $posted = isset($request['country']) && is_string($request['country']) ? $request['country'] : '';
+        foreach ([$posted, $stored_iso] as $iso) {
+            $cc = $iso === '' ? null : \Tygh\Addons\Kwtsms\Sms\PhoneNormalizer::callingCodeForIso($iso);
+            if ($cc !== null) {
+                return $cc;
+            }
+        }
+
+        return $default_cc;
     }
 
     private function currentPhone(int $user_id): string

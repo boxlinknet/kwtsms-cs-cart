@@ -192,6 +192,21 @@ final class AccountPhone
         }
     }
 
+    /**
+     * 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M3, P3-17), task 596. The phone input the code field of a
+     * phone change watches: $shown is the phone field of the profile form (formPhoneField()), $stored_users_phone the
+     * stored users.phone of the customer. A shown b_phone is the account phone only while users.phone is empty; ''
+     * = none.
+     */
+    public static function watchedField(string $shown, string $stored_users_phone): string
+    {
+        if ($shown === 'phone') {
+            return 'phone';
+        }
+
+        return $shown === 'b_phone' && trim($stored_users_phone) === '' ? 'b_phone' : '';
+    }
+
     private static function comparable(string $value, string $hint_cc): string
     {
         $trimmed = trim($value);

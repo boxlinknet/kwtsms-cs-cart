@@ -6016,8 +6016,8 @@ msgid "Require a verified SMS code to change the account phone number"
 msgstr "اشتراط رمز SMS مُتحقق منه لتغيير رقم جوال الحساب"
 
 msgctxt "Languages::kwtsms.settings.phone_change_code_help"
-msgid "When on, a signed-in customer who changes the phone number on the profile page enters a code sent to the new number; the code field appears once the number is edited. The profile page is the only place a customer can change it: the checkout profile editor refuses a changed number, and after an order a changed number is not saved. Edits in the admin panel need no code."
-msgstr "عند التفعيل يدخل العميل المسجل الذي يغير رقم الجوال في صفحة الملف الشخصي رمزاً يُرسل إلى الرقم الجديد، ويظهر حقل الرمز بعد تعديل الرقم. صفحة الملف الشخصي هي المكان الوحيد الذي يمكن للعميل تغيير الرقم منه: يرفض محرر الملف الشخصي في صفحة إتمام الطلب أي رقم مختلف، وبعد إتمام الطلب لا يُحفظ الرقم المختلف. التعديلات من لوحة الإدارة لا تحتاج إلى رمز."
+msgid "When on, a signed-in customer who changes the phone number on the profile page enters a code sent to the new number; the code field appears once the number is edited. The profile page is the only place a customer can change it: the checkout profile editor refuses a changed number, and after an order a changed number is not saved. The mobile app (storefront REST API) cannot change the phone number while this is on. Edits in the admin panel need no code."
+msgstr "عند التفعيل يدخل العميل المسجل الذي يغير رقم الجوال في صفحة الملف الشخصي رمزاً يُرسل إلى الرقم الجديد، ويظهر حقل الرمز بعد تعديل الرقم. صفحة الملف الشخصي هي المكان الوحيد الذي يمكن للعميل تغيير الرقم منه: يرفض محرر الملف الشخصي في صفحة إتمام الطلب أي رقم مختلف، وبعد إتمام الطلب لا يُحفظ الرقم المختلف. لا يستطيع تطبيق الجوال (واجهة REST للمتجر) تغيير رقم الجوال أثناء التفعيل. التعديلات من لوحة الإدارة لا تحتاج إلى رمز."
 
 msgctxt "Languages::kwtsms.settings.field.phone_change_notice"
 msgid "Notice to the old number"
@@ -6028,8 +6028,8 @@ msgid "Send an SMS to the old number after the phone number changes"
 msgstr "إرسال رسالة SMS إلى الرقم القديم بعد تغيير رقم الجوال"
 
 msgctxt "Languages::kwtsms.settings.phone_change_notice_help"
-msgid "Sent only after a phone number change confirmed with a code, so it needs the switch above. The text names no new number and has no link, and the customer's order SMS opt-out does not stop it. Edit the text under Templates (security.phone_changed)."
-msgstr "تُرسل فقط بعد تغيير رقم جوال تم تأكيده برمز، لذا تحتاج إلى المفتاح أعلاه. لا يذكر النص الرقم الجديد ولا يحتوي على رابط، ولا يوقفه إلغاء العميل لرسائل الطلبات. يمكن تعديل النص من صفحة القوالب (security.phone_changed)."
+msgid "Sent after every change of the phone number made in the storefront (a change confirmed with a code, a change saved without a code while codes are unavailable, or removing the number), so it needs the switch above. The text names no new number and has no link, and the customer's order SMS opt-out does not stop it. Edit the text under Templates (security.phone_changed)."
+msgstr "تُرسل بعد كل تغيير لرقم الجوال من المتجر (تغيير مؤكد برمز، أو تغيير محفوظ بدون رمز عند عدم توفر الرموز، أو حذف الرقم)، لذا تحتاج إلى المفتاح أعلاه. لا يذكر النص الرقم الجديد ولا يحتوي على رابط، ولا يوقفه إلغاء العميل لرسائل الطلبات. يمكن تعديل النص من صفحة القوالب (security.phone_changed)."
 
 msgctxt "Languages::kwtsms.phone_change.code_required"
 msgid "Enter the code we sent to your new number."

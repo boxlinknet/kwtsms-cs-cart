@@ -262,6 +262,12 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         }
         body.set('purpose', root.attr('data-purpose') || '');
         body.set('phone', phone);
+        // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The form's country, so a local number is read with
+        // the calling code the save will use.
+        var country = root.closest('form').find('select[name="user_data[b_country]"], input[name="user_data[b_country]"]').first().val();
+        if (country) {
+            body.set('country', String(country));
+        }
         body.set('security_hash', typeof _.security_hash === 'string' ? _.security_hash : '');
         collectToken(root, body);
 

@@ -1056,7 +1056,14 @@ function fn_kwtsms_phone_change_form($unused = '')
         if (!isset(Tygh::$app['kwtsms.config']) || !Tygh::$app['kwtsms.config']->phoneChangeCode()) {
             return $none;
         }
-        $field = \Tygh\Addons\Kwtsms\Phones\AccountPhone::formPhoneField('C');
+        // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M3), task 596. Only the input that is the account phone
+        // (P3-17) is watched; a shown b_phone beside a stored users.phone is not.
+        $user_id = (int) (Tygh::$app['session']['auth']['user_id'] ?? 0);
+        $stored = $user_id > 0 ? (string) db_get_field('SELECT phone FROM ?:users WHERE user_id = ?i', $user_id) : '';
+        $field = \Tygh\Addons\Kwtsms\Phones\AccountPhone::watchedField(
+            \Tygh\Addons\Kwtsms\Phones\AccountPhone::formPhoneField('C'),
+            $stored
+        );
 
         return $field === '' ? $none : ['show' => true, 'phone_name' => 'user_data[' . $field . ']'];
     } catch (\Throwable $e) {
