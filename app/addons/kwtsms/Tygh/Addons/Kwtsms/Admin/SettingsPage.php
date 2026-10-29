@@ -440,8 +440,8 @@ class SettingsPage
     /**
      * 2026-10-29 02:16 +03: Task M1.11 (P3-14, P3-8, P3-36, P3-38, P3-R5), task 596. The persistent notes on top of the
      * "Phone and codes" section, each shown under its own condition only. Level: danger (red), warning, info. A
-     * "code feature" is B1, B5 (the code, not the notice) or C4 (PhoneIndex::anyFeatureOn()). No value of a secret is
-     * ever part of an entry: texts and a link only.
+     * "code feature" is B1 or B5 (the code, not the notice); C4 sends no code (fix round 1, 2026-10-29 03:27 +03).
+     * No value of a secret is ever part of an entry: texts and a link only.
      *
      * @return array<int,array{id:string,level:string,text:string,link_url:string,link_text:string}>
      */
@@ -454,12 +454,13 @@ class SettingsPage
         // The transactional sender notice (P3-38) is always shown.
         $note('transactional', 'info', $this->text('kwtsms.settings.notice_transactional'));
 
-        $feature = PhoneIndex::anyFeatureOn($this->config);
+        // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I1), task 596. The four code-only warnings key off a CODE
+        // feature (B1, B5 code); C4 alone sends no code and has no code form.
         $code_on = $this->config->registerCode() || $this->config->phoneChangeCode();
-        if ($feature && $this->config->testMode()) {
+        if ($code_on && $this->config->testMode()) {
             $note('test_mode', 'warning', $this->text('kwtsms.settings.warn_test_mode'));
         }
-        if ($feature) {
+        if ($code_on) {
             $names = $this->storefrontsOnTestSender();
             if ($names !== []) {
                 $note('kwt_sender', 'warning', $this->text('kwtsms.settings.warn_kwt_sender', [
@@ -475,11 +476,16 @@ class SettingsPage
                     '#kwtsms_turnstile',
                     $this->text('kwtsms.settings.link_turnstile')
                 );
-            } elseif ($captcha['provider'] === 'recaptcha' && !$captcha['scenario']) {
+            } elseif ($captcha['provider'] === 'recaptcha' && $captcha['unticked'] !== []) {
+                // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I2), task 596. Per storefront: the sentence of
+                // P3-8, then the storefront(s) whose list lacks the tick.
                 $note(
                     'recaptcha_tick',
                     'warning',
-                    $this->text('kwtsms.settings.warn_recaptcha_tick'),
+                    $this->text('kwtsms.settings.warn_recaptcha_tick') . ' ' . $this->text(
+                        'kwtsms.settings.warn_recaptcha_tick_for',
+                        ['[names]' => implode(', ', $captcha['unticked'])]
+                    ),
                     $this->settingsUrl('settings.manage&section_id=Image_verification'),
                     $this->text('kwtsms.settings.link_image_verification')
                 );
@@ -561,9 +567,37 @@ class SettingsPage
         } catch (\Throwable $e) {
             $provider = 'none';
         }
-        $use_for = (array) \Tygh\Registry::get('settings.Image_verification.use_for');
 
-        return ['provider' => $provider, 'scenario' => ($use_for['kwtsms_sms_code'] ?? 'N') === 'Y'];
+        return ['provider' => $provider, 'unticked' => $provider === 'recaptcha' ? $this->storefrontsWithoutTick() : []];
+    }
+
+    /**
+     * 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I2), task 596. The names of the storefronts whose Image
+     * verification list (a per-storefront setting, as core and fn_kwtsms_set_sms_code_scenario() read it) lacks the
+     * scenario kwtsms_sms_code. A store with one storefront is named by the main store text.
+     *
+     * @return string[]
+     */
+    protected function storefrontsWithoutTick(): array
+    {
+        $storefronts = $this->rules === null ? [] : $this->rules->storefronts();
+        $missing = [];
+        $ticked = static function (?int $storefront_id): bool {
+            $settings = \Tygh\Settings::instance($storefront_id === null ? [] : ['storefront_id' => $storefront_id]);
+            $list = (array) $settings->getValue('use_for', 'Image_verification', null, $storefront_id);
+
+            return ($list['kwtsms_sms_code'] ?? 'N') === 'Y';
+        };
+        if (count($storefronts) < 2) {
+            return $ticked(null) ? [] : [$this->text('kwtsms.settings.warn_main_sender')];
+        }
+        foreach ($storefronts as $id => $name) {
+            if (!$ticked((int) $id)) {
+                $missing[] = (string) $name;
+            }
+        }
+
+        return $missing;
     }
 
     /** 2026-10-29 02:16 +03: Task M1.11, task 596. Core Appearance > phone_validation_mode (overridable in a test). */

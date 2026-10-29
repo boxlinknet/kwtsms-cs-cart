@@ -6132,3 +6132,7 @@ msgctxt "Languages::kwtsms.settings.link_turnstile"
 msgid "Set up Turnstile"
 msgstr "Set up Turnstile"
 
+# 2026-10-29 03:27 +03: Task M1.11 fix round 1 (I2), task 596. Storefront(s) whose Image verification list lacks the tick.
+msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick_for"
+msgid "Not ticked on: [names]."
+msgstr "Not ticked on: [names]."
