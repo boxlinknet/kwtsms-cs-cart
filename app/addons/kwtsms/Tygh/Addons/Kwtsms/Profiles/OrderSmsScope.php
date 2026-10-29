@@ -17,8 +17,8 @@
  *            the one OrderNotifier::optedOut() gates: every order.status_changed.* event and every declaration with
  *            opt_out (order.updated, order.shipment_updated). The order-placed receipt is not in it.
  *            The two reads are protected methods, so the unit test replaces them.
- * DEPENDS:   Notifications\EventsSchemaExtender (STATUS_PREFIX), Notifications\EventDeclaration, Storefronts\StorefrontRules,
- *            core EventDispatcherProvider::getNotificationSettings().
+ * DEPENDS:   Notifications\EventsSchemaExtender (STATUS_PREFIX), Notifications\EventDeclaration,
+ *            Storefronts\StorefrontRules, core EventDispatcherProvider::getNotificationSettings().
  */
 
 namespace Tygh\Addons\Kwtsms\Profiles;
@@ -52,7 +52,11 @@ class OrderSmsScope
             if (!$on || !$this->inScope($event_id)) {
                 continue;
             }
-            if ($storefront_id > 0 && $this->rules !== null && $this->rules->isSwitchedOff($storefront_id, $event_id, self::CUSTOMER)) {
+            // 2026-10-29 03:23 +03: condition wrapped to 120 columns, same logic, task 596.
+            if (
+                $storefront_id > 0 && $this->rules !== null
+                && $this->rules->isSwitchedOff($storefront_id, $event_id, self::CUSTOMER)
+            ) {
                 continue;
             }
 

@@ -340,15 +340,6 @@ class PostUpgrade
     }
 
     /**
-     * Updates a language variable whose text changed in 1.2.0 only where the stored value still equals the one 1.1.0
-     * shipped (merchant edits stay). Idempotent.
-     *
-     * @param array<int,array{lang_code:string,name:string,value:string}> $rows    The 1.2.0 values of the add-on
-     * @param array<string,array<string,string>>|null                      $shipped Defaults to SHIPPED_1_1_0
-     *
-     * @return int Number of values updated
-     */
-    /**
      * 2026-10-29 00:07 +03: Task M1.11s item 3 (SafatMall note 3), task 596. The SMS template texts are stored in
      * kwtsms_template_descriptions (seeded once from the language variables, INSERT IGNORE), so a new shipped default
      * does not reach a store by itself. A stored body is replaced by the 1.2.0 text only where it still equals the
@@ -378,7 +369,9 @@ class PostUpgrade
                 continue;
             }
             $updated += (int) db_query(
-                'UPDATE ?:kwtsms_template_descriptions d INNER JOIN ?:kwtsms_templates t ON t.template_id = d.template_id'
+                // 2026-10-29 03:23 +03: wrapped to 120 columns, no change in the SQL, task 596.
+                'UPDATE ?:kwtsms_template_descriptions d INNER JOIN ?:kwtsms_templates t'
+                . ' ON t.template_id = d.template_id'
                 . ' SET d.body = ?s WHERE t.event_id = ?s AND t.receiver = ?s AND d.lang_code = ?s AND d.body = ?s'
                 . ' AND d.is_edited = ?s',
                 $new,
@@ -393,6 +386,17 @@ class PostUpgrade
         return $updated;
     }
 
+    /**
+     * Updates a language variable whose text changed in 1.2.0 only where the stored value still equals the one 1.1.0
+     * shipped (merchant edits stay). Idempotent.
+     *
+     * @param array<int,array{lang_code:string,name:string,value:string}> $rows    The 1.2.0 values of the add-on
+     * @param array<string,array<string,string>>|null                      $shipped Defaults to SHIPPED_1_1_0
+     *
+     * @return int Number of values updated
+     *
+     * 2026-10-29 03:23 +03: docblock moved back onto this method (the M1.11s method had been inserted between), task 596.
+     */
     public static function refreshUneditedValues(array $rows, ?array $shipped = null): int
     {
         $shipped = $shipped ?? self::SHIPPED_1_1_0;
