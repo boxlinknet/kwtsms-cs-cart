@@ -100,6 +100,9 @@ class PostUpgrade
         ],
     ];
 
+    /** The default templates 1.2.0 added (2026-10-29 20:10 +03: M1.13b fix round 1, task 596). */
+    private const TEMPLATES_1_2_0 = ['otp.code|C', 'security.phone_changed|C'];
+
     /** Name of the database lock that serializes post-upgrade runs (post.php and the self-heal). */
     private const LOCK = 'kwtsms_post_upgrade';
 
@@ -119,8 +122,10 @@ class PostUpgrade
      *
      * @throws \Throwable When a step fails (the version is then not written, so a retry runs every step again)
      */
-    public static function run(string $from_version): void
+    public static function run(string $from_version, ?callable $seeder = null): void
     {
+        // 2026-10-29 20:10 +03: M1.13b fix round 1 (branch review I3, ruling P3-R16), task 596. $seeder replaces the
+        // template seed (a test injects a no-op to simulate a class that stayed old in the Upgrade Center request).
         SchemesManager::clearInternalCache(self::ADDON);
         $scheme = SchemesManager::getScheme(self::ADDON);
         if ($scheme === null || version_compare((string) $scheme->getVersion(), self::VERSION, '<')) {
@@ -152,9 +157,13 @@ class PostUpgrade
         // request has the OLD func.php loaded (its seed function would seed the old defaults), so the step uses the
         // classes, which autoload from the new files on disk.
         try {
-            (new \Tygh\Addons\Kwtsms\Templates\TemplateRepository())->seedDefaults(
-                array_map('strval', array_keys(\Tygh\Languages\Languages::getAll()))
-            );
+            if ($seeder !== null) {
+                $seeder();
+            } else {
+                (new \Tygh\Addons\Kwtsms\Templates\TemplateRepository())->seedDefaults(
+                    array_map('strval', array_keys(\Tygh\Languages\Languages::getAll()))
+                );
+            }
         } catch (\Throwable $e) {
             throw new \RuntimeException(
                 'seeding the default templates failed: ' . get_class($e) . ': ' . $e->getMessage(),
@@ -174,7 +183,70 @@ class PostUpgrade
             throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
         }
 
-        fn_update_addon_version(self::ADDON, self::VERSION);
+        // 2026-10-29 20:10 +03: M1.13b fix round 1 (branch review I3, ruling P3-R16), task 596. A kwtsms class that the
+        // old code loaded earlier in the Upgrade Center request stays old, so the seed above can have left out the
+        // 1.2.0 templates. The version is set only when they exist; otherwise the step fails and a fresh request
+        // repairs it.
+        $missing = self::missingTemplates();
+        if ($missing !== []) {
+            throw new \RuntimeException('the 1.2.0 default templates are missing (' . implode(', ', $missing) . ')');
+        }
+
+        self::writeVersion(self::VERSION);
+    }
+
+    /**
+     * 2026-10-29 20:20 +03: M1.13b fix round 1 (M1.14 static report), task 596. The stored add-on version through the
+     * core function when this CS-Cart has it (4.21.2 does), else a direct read of the ?:addons row (the same table the
+     * core function reads), so a core without the function cannot fatal the step (SafatMall runs 4.20.1).
+     */
+    private static function storedVersion(): string
+    {
+        if (function_exists('fn_get_addon_version')) {
+            return (string) fn_get_addon_version(self::ADDON);
+        }
+
+        return (string) db_get_field('SELECT version FROM ?:addons WHERE addon = ?s', self::ADDON);
+    }
+
+    /** The reverse of storedVersion(): fn_update_addon_version() or a direct UPDATE of the same row. */
+    private static function writeVersion(string $version): void
+    {
+        if (function_exists('fn_update_addon_version')) {
+            fn_update_addon_version(self::ADDON, $version);
+
+            return;
+        }
+        db_query('UPDATE ?:addons SET version = ?s WHERE addon = ?s', $version, self::ADDON);
+    }
+
+    /**
+     * The default templates 1.2.0 added ("event_id|receiver") that the store lacks: no template row, or a row without a
+     * description. A fixed list on purpose: Defaults::events() may itself be a stale in-memory class.
+     * 2026-10-29 20:10 +03: M1.13b fix round 1 (branch review I3, ruling P3-R16), task 596.
+     *
+     * @return string[]
+     */
+    public static function missingTemplates(): array
+    {
+        $missing = [];
+        foreach (self::TEMPLATES_1_2_0 as $key) {
+            [$event, $receiver] = explode('|', $key);
+            $id = (int) db_get_field(
+                'SELECT template_id FROM ?:kwtsms_templates WHERE event_id = ?s AND receiver = ?s',
+                $event,
+                $receiver
+            );
+            $described = $id > 0 && (int) db_get_field(
+                'SELECT COUNT(*) FROM ?:kwtsms_template_descriptions WHERE template_id = ?i',
+                $id
+            ) > 0;
+            if (!$described) {
+                $missing[] = $key;
+            }
+        }
+
+        return $missing;
     }
 
     /**
@@ -212,15 +284,17 @@ class PostUpgrade
                 error_log('kwtsms: the debug log write failed: ' . get_class($inner));
             }
             // 2026-10-23 17:41 +03: Task M1.1b, task 596. The notice is escaped like every notice (package gate).
-            fn_set_notification(
-                'E',
-                __('error'),
-                fn_html_escape(
-                    'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e) . '). Open any '
-                    . 'kwtSMS admin page to finish the upgrade: the step runs again by itself and is safe to repeat. '
-                    . 'Details are in the kwtSMS debug log and the PHP error log.'
-                )
-            );
+            if (function_exists('fn_set_notification') && function_exists('fn_html_escape')) {
+                fn_set_notification(
+                    'E',
+                    __('error'),
+                    fn_html_escape(
+                        'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e) . '). Open any '
+                        . 'kwtSMS admin page to finish the upgrade: the step runs again by itself and is safe to '
+                        . 'repeat. Details are in the kwtSMS debug log and the PHP error log.'
+                    )
+                );
+            }
 
             return false;
         } finally {
@@ -262,8 +336,10 @@ class PostUpgrade
             return false;
         }
         self::$healChecked = true;
-        $from = (string) fn_get_addon_version(self::ADDON);
-        if ($from === '' || version_compare($from, self::VERSION, '>=')) {
+        $from = self::storedVersion();
+        // 2026-10-29 20:10 +03: M1.13b fix round 1 (review I3, ruling P3-R16), task 596. A store whose version is
+        // already current but whose 1.2.0 templates are missing (a stale class seeded the old set) is repaired too.
+        if ($from === '' || (version_compare($from, self::VERSION, '>=') && self::missingTemplates() === [])) {
             return false;
         }
         self::runReported($from);
@@ -312,6 +388,15 @@ class PostUpgrade
     {
         if (self::missingSettings($scheme) === []) {
             return;
+        }
+        // 2026-10-29 20:20 +03: M1.13b fix round 1 (M1.14 static report), task 596. These three core functions have
+        // no equivalent direct write: a core without them fails the step with a message (reported, retried), never
+        // a fatal.
+        $needed = ['fn_update_addon_settings', 'fn_get_addon_settings_values', 'fn_get_addon_settings_vendor_values'];
+        foreach ($needed as $core) {
+            if (!function_exists($core)) {
+                throw new \RuntimeException('this CS-Cart has no ' . $core . '()');
+            }
         }
         $result = fn_update_addon_settings(
             $scheme,
