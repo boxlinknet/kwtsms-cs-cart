@@ -6185,9 +6185,10 @@ msgid "Country check: [country]. One account per phone: [unique]."
 msgstr "فحص الدولة: [country]. حساب واحد لكل رقم: [unique]."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.integrations.codes.index.off"
-msgid "No phone feature is on, so no phone is indexed."
-msgstr "لا توجد ميزة هاتف مفعلة، لذا لا تتم فهرسة أي رقم."
+msgid "No phone rule or code feature is on, so no phone is indexed."
+msgstr "لا توجد قاعدة هاتف أو ميزة رمز مفعلة، لذا لا تتم فهرسة أي رقم."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.index.building"
@@ -6210,9 +6211,10 @@ msgid "Code to create an account: [register]. Code to change the phone number: [
 msgstr "رمز إنشاء الحساب: [register]. رمز تغيير رقم الهاتف: [change]."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.integrations.codes.sms.today"
-msgid "Today: [issued] codes sent, [lockouts] lockouts, [bypasses] let through without a code."
-msgstr "اليوم: [issued] رمزا مرسلا، و[lockouts] حالات حظر، و[bypasses] حالات سمح فيها بالمتابعة بلا رمز."
+msgid "Today: [issued] codes issued, [lockouts] lockouts, [bypasses] let through without a code."
+msgstr "اليوم: صدر [issued] رمزا، و[lockouts] حالات حظر، و[bypasses] حالات سمح فيها بالمتابعة بلا رمز."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.sms.none"
@@ -6295,9 +6297,10 @@ msgid "By default a customer gets 5 wrong tries for one phone number from one ne
 msgstr "يحصل العميل افتراضيا على 5 محاولات خاطئة لرقم هاتف واحد من شبكة واحدة. بعد ذلك تُمنع هذه الشبكة من استخدام هذا الرقم لمدة 15 دقيقة، ولا يعيد طلب رمز جديد العد من الصفر. وتحصل كل الشبكات معا على 20 محاولة خاطئة لكل رقم في الساعة. وبعد ذلك يُقفل الرقم للجميع."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.codes.p3"
-msgid "A customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. The waits start over after an hour without a request. The form shows the countdown."
-msgstr "ينتظر العميل 60 ثانية للرمز الثاني، ودقيقتين للثالث، و5 دقائق لكل رمز بعد ذلك. تبدأ فترات الانتظار من جديد بعد ساعة بلا طلبات. يعرض النموذج العد التنازلي."
+msgid "By default a customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. You can set 1 to 5 waits of 30 to 3600 seconds each in Settings. The waits start over after an hour without a request. The form shows the countdown."
+msgstr "افتراضيا ينتظر العميل 60 ثانية للرمز الثاني، ودقيقتين للثالث، و5 دقائق لكل رمز بعد ذلك. يمكنك ضبط من 1 إلى 5 فترات انتظار، من 30 إلى 3600 ثانية لكل منها، من الإعدادات. تبدأ فترات الانتظار من جديد بعد ساعة بلا طلبات. يعرض النموذج العد التنازلي."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p4"
@@ -6315,9 +6318,10 @@ msgid "Code to create an account: the registration form shows a phone field and 
 msgstr "رمز إنشاء الحساب: يعرض نموذج التسجيل حقل هاتف وحقل رمز، ولا يُنشأ الحساب إلا بعد إدخال الرمز الصحيح. الطرق الأخرى لإنشاء الحساب لا تستطيع حمل رمز، لذلك يرفضها المتجر: تسجيل الدخول عبر حسابات التواصل الاجتماعي، والتسجيل من تطبيق الجوال (واجهة REST للمتجر)، والحسابات التي تُنشأ عند إتمام الطلب، وقسم إنشاء الحساب في صفحة تأكيد الطلب الذي يخفيه المتجر. أما الشراء كضيف، حيث يسمح متجرك به، فلا يتأثر."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.codes.p7"
-msgid "Code to change the phone number: a signed-in customer enters a code sent to the new number. The profile page is the only place where a change works, because the checkout profile editor refuses a changed number. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
-msgstr "رمز تغيير رقم الهاتف: يدخل العميل المسجل رمزا مرسلا إلى الرقم الجديد. صفحة الملف الشخصي هي المكان الوحيد الذي ينجح فيه التغيير، لأن محرر الملف الشخصي في صفحة إتمام الطلب يرفض أي رقم معدل. لا يستطيع تطبيق الجوال تغيير رقم الهاتف ما دام هذا المفتاح مفعلا، لكنه يستطيع مسحه. أما التغييرات من لوحة الإدارة فلا تحتاج إلى رمز."
+msgid "Code to change the phone number: a signed-in customer enters a code sent to the new number. Customers change the number on the profile page; the checkout profile editor refuses a changed number without a verified code. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
+msgstr "رمز تغيير رقم الهاتف: يدخل العميل المسجل رمزا مرسلا إلى الرقم الجديد. يغيّر العملاء الرقم من صفحة الملف الشخصي؛ ويرفض محرر الملف الشخصي في صفحة إتمام الطلب أي رقم معدل بلا رمز تم التحقق منه. لا يستطيع تطبيق الجوال تغيير رقم الهاتف ما دام هذا المفتاح مفعلا، لكنه يستطيع مسحه. أما التغييرات من لوحة الإدارة فلا تحتاج إلى رمز."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p8"
@@ -6350,9 +6354,10 @@ msgid "Only a new or changed number is checked. A customer with an old number th
 msgstr "يُفحص الرقم الجديد أو المعدل فقط. يستطيع العميل الذي لديه رقم قديم لا يطابق القواعد أن يغيّر اسمه أو يُتمّ طلبه."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.phones.p5"
-msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save with the message that the number is already used, and the customer can try again."
-msgstr "عندما يحفظ طلبان الرقم نفسه في اللحظة نفسها، ينتظر الطلب الثاني حتى 2 ثانية. وإذا بقي الرقم مشغولا بعد ذلك، يرفض المتجر الحفظ برسالة «رقم الجوال هذا مستخدم في حساب آخر»، ويستطيع العميل المحاولة مجددا."
+msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save and asks the customer to try again."
+msgstr "عندما يحفظ طلبان الرقم نفسه في اللحظة نفسها، ينتظر الطلب الثاني حتى 2 ثانية. وإذا بقي الرقم مشغولا بعد ذلك، يرفض المتجر الحفظ ويطلب من العميل المحاولة مجددا."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.title"
@@ -6360,14 +6365,16 @@ msgid "Limits and proxies"
 msgstr "الحدود والوكلاء"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.limits.p1"
-msgid "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap, when you set one, and the daily caps count code SMS too. All the numbers are in Settings."
-msgstr "يحسب المتجر طلبات الرموز لكل عنوان زائر. افتراضيا يستطيع العنوان الواحد طلب 5 رموز في الساعة و20 في اليوم وإدخال 30 رمزا في الساعة، ويحصل الرقم الواحد على 5 رموز كحد أقصى في الساعة من جميع العناوين معا. ويحسب السقف الساعي للمتجر، إن حددته، والسقوف اليومية رسائل الرموز أيضا. كل الأرقام في الإعدادات."
+msgid "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap (off by default) and the daily caps count code SMS too. A code SMS can use up to 2 pages, so one code can cost up to 2 credits. All the numbers are in Settings."
+msgstr "يحسب المتجر طلبات الرموز لكل عنوان زائر. افتراضيا يستطيع العنوان الواحد طلب 5 رموز في الساعة و20 في اليوم وإدخال 30 رمزا في الساعة، ويحصل الرقم الواحد على 5 رموز كحد أقصى في الساعة من جميع العناوين معا. ويحسب السقف الساعي للمتجر (معطل افتراضيا) والسقوف اليومية رسائل الرموز أيضا. وقد تستهلك رسالة الرمز صفحتين، فقد يكلف الرمز الواحد حتى رصيدين. كل الأرقام في الإعدادات."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.limits.p2"
-msgid "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The forwarded address is then believed only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
-msgstr "تقرأ الإضافة عنوان الزائر من الاتصال نفسه، لا من ترويسات يستطيع الزائر تزويرها. خلف Cloudflare أو موازن أحمال يبدو كل الزوار كعنوان واحد، لذا أدرج نطاقات عناوين الوكيل ضمن «الوكلاء الموثوقون» في الإعدادات. عندها يُصدَّق العنوان المُمرَّر فقط إذا جاء الطلب من وكيل مدرج. ويُحسب زائر IPv6 بحسب شبكته ⁦/64⁩."
+msgid "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The add-on then reads the forwarded address from the X-Forwarded-For header, and believes it only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
+msgstr "تقرأ الإضافة عنوان الزائر من الاتصال نفسه، لا من ترويسات يستطيع الزائر تزويرها. خلف Cloudflare أو موازن أحمال يبدو كل الزوار كعنوان واحد، لذا أدرج نطاقات عناوين الوكيل ضمن «الوكلاء الموثوقون» في الإعدادات. عندها تقرأ الإضافة العنوان المُمرَّر من ترويسة X-Forwarded-For، ولا تصدّقه إلا إذا جاء الطلب من وكيل مدرج. ويُحسب زائر IPv6 بحسب شبكته ⁦/64⁩."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.p3"
@@ -6425,9 +6432,10 @@ msgid "When the store can't send SMS"
 msgstr "عندما يتعذر على المتجر إرسال الرسائل"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.unreachable.p1"
-msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
-msgstr "لا يمكن إرسال الرمز عندما يكون الإرسال متوقفا، أو يتعذر الوصول إلى kwtSMS أو يكون موقوفا، أو يقل الرصيد عن رصيد واحد، أو يكون الوضع التجريبي مفعلا، أو يكون معرف المرسل KWT-SMS ووضع الاختبار معطلا. يحدد خيار «عند تعذر إرسال الرموز» ما يراه العملاء."
+msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, the store daily cap is reached, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
+msgstr "لا يمكن إرسال الرمز عندما يكون الإرسال متوقفا، أو يتعذر الوصول إلى kwtSMS أو يكون موقوفا، أو يقل الرصيد عن رصيد واحد، أو يكون الوضع التجريبي مفعلا، أو بلغ السقف اليومي للمتجر، أو يكون معرف المرسل KWT-SMS ووضع الاختبار معطلا. يحدد خيار «عند تعذر إرسال الرموز» ما يراه العملاء."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.unreachable.p2"
@@ -6435,9 +6443,10 @@ msgid "Pause refuses the code request and the form, and tells the customer that 
 msgstr "يرفض خيار الإيقاف طلب الرمز والنموذج، ويخبر العميل أن رموز التحقق غير متاحة وأن عليه المحاولة بعد دقائق. ويسمح خيار المتابعة بإتمام النموذج والرقم غير موثق. كلاهما ينشئ تنبيها."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.unreachable.p3"
-msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work."
-msgstr "لا تسمح مشكلة في رقم واحد بمتابعة النموذج أبدا. يرى العميل الرد نفسه الذي يراه عند إرسال الرمز، فلا يستطيع أحد استكشاف الأرقام التي تعمل."
+msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
+msgstr "لا تسمح مشكلة في رقم واحد بمتابعة النموذج أبدا. يرى العميل الرد نفسه الذي يراه عند إرسال الرمز، فلا يستطيع أحد استكشاف الأرقام التي تعمل. ولا يسمح السقف الساعي للمتجر بمتابعة النموذج أيضا: يُطلب من العملاء المحاولة لاحقا."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.optout.p4"
@@ -6455,9 +6464,10 @@ msgid "Upgrading"
 msgstr "الترقية"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.upgrade.p1"
-msgid "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone feature."
-msgstr "تحتفظ الترقية ببيانات الدخول والإعدادات والمفاتيح والنصوص المعدلة، ولا ترسل أي شيء جديد: تبقى كل ميزة جديدة معطلة حتى تفعّلها. ولا تعالج الترقية بيانات العملاء. ولا تُبنى فهرسة الأرقام إلا بعد أن تفعّل ميزة هاتف."
+msgid "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone rule or a code feature."
+msgstr "تحتفظ الترقية ببيانات الدخول والإعدادات والمفاتيح والنصوص المعدلة، ولا ترسل أي شيء جديد: تبقى كل ميزة جديدة معطلة حتى تفعّلها. ولا تعالج الترقية بيانات العملاء. ولا تُبنى فهرسة الأرقام إلا بعد أن تفعّل قاعدة هاتف أو ميزة رمز."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.upgrade.p2"
@@ -6469,3 +6479,7 @@ msgctxt "Languages::kwtsms.help.upgrade.p3"
 msgid "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
 msgstr "يجعل ملف ⁦.po⁩ تالف في إضافة أخرى مركز الترقية يعرض أخطاء لتلك اللغة. يذكر الخطأ ملف الإضافة الأخرى لا kwtSMS. أصلح الملف أو احذفه ثم أعد الترقية."
 
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1 (I1), task 596. reCAPTCHA is configured but the SMS code request is not ticked.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"
+msgid "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."
+msgstr "مزود CAPTCHA لرموز التحقق: لا يوجد. إضافة reCAPTCHA مفعلة لكن خيار «طلب رمز التحقق بالرسالة» غير مفعّل في الإعدادات > التحقق بالصورة."

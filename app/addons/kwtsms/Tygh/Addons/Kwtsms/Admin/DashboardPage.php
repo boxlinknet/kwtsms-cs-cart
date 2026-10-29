@@ -417,7 +417,9 @@ class DashboardPage
                 TurnstileDriver::recaptchaBlocks(
                     (string) Registry::get('addons.recaptcha.status'),
                     (array) Registry::get('addons.recaptcha')
-                )
+                ),
+                // 2026-10-29 05:12 +03: Task M1.12 fix round 1 (I1), task 596. A provider only with the tick.
+                IntegrationsPage::smsCodeScenarioTicked()
             ),
             'edited_langs' => $edited,
             'live_accepted' => $this->stats->liveAccepted(),

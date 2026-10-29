@@ -6179,9 +6179,10 @@ msgid "Country check: [country]. One account per phone: [unique]."
 msgstr "Country check: [country]. One account per phone: [unique]."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.integrations.codes.index.off"
-msgid "No phone feature is on, so no phone is indexed."
-msgstr "No phone feature is on, so no phone is indexed."
+msgid "No phone rule or code feature is on, so no phone is indexed."
+msgstr "No phone rule or code feature is on, so no phone is indexed."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.index.building"
@@ -6204,9 +6205,10 @@ msgid "Code to create an account: [register]. Code to change the phone number: [
 msgstr "Code to create an account: [register]. Code to change the phone number: [change]."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.integrations.codes.sms.today"
-msgid "Today: [issued] codes sent, [lockouts] lockouts, [bypasses] let through without a code."
-msgstr "Today: [issued] codes sent, [lockouts] lockouts, [bypasses] let through without a code."
+msgid "Today: [issued] codes issued, [lockouts] lockouts, [bypasses] let through without a code."
+msgstr "Today: [issued] codes issued, [lockouts] lockouts, [bypasses] let through without a code."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.sms.none"
@@ -6289,9 +6291,10 @@ msgid "By default a customer gets 5 wrong tries for one phone number from one ne
 msgstr "By default a customer gets 5 wrong tries for one phone number from one network. After that, that network is locked out of that number for 15 minutes, and asking for a new code doesn't reset the count. All networks together get 20 wrong tries per phone number per hour. Above that, the number is locked for everyone."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.codes.p3"
-msgid "A customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. The waits start over after an hour without a request. The form shows the countdown."
-msgstr "A customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. The waits start over after an hour without a request. The form shows the countdown."
+msgid "By default a customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. You can set 1 to 5 waits of 30 to 3600 seconds each in Settings. The waits start over after an hour without a request. The form shows the countdown."
+msgstr "By default a customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. You can set 1 to 5 waits of 30 to 3600 seconds each in Settings. The waits start over after an hour without a request. The form shows the countdown."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p4"
@@ -6309,9 +6312,10 @@ msgid "Code to create an account: the registration form shows a phone field and 
 msgstr "Code to create an account: the registration form shows a phone field and a code field, and the account is created only after the right code. Other ways to create an account can't carry a code, so the store refuses them: social login, sign-ups through the mobile app (the storefront REST API), accounts created at checkout, and the create account block on the order confirmation page, which the store hides. Guest checkout, where your store allows it, is not affected."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.codes.p7"
-msgid "Code to change the phone number: a signed-in customer enters a code sent to the new number. The profile page is the only place where a change works, because the checkout profile editor refuses a changed number. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
-msgstr "Code to change the phone number: a signed-in customer enters a code sent to the new number. The profile page is the only place where a change works, because the checkout profile editor refuses a changed number. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
+msgid "Code to change the phone number: a signed-in customer enters a code sent to the new number. Customers change the number on the profile page; the checkout profile editor refuses a changed number without a verified code. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
+msgstr "Code to change the phone number: a signed-in customer enters a code sent to the new number. Customers change the number on the profile page; the checkout profile editor refuses a changed number without a verified code. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p8"
@@ -6344,9 +6348,10 @@ msgid "Only a new or changed number is checked. A customer with an old number th
 msgstr "Only a new or changed number is checked. A customer with an old number that fails the rules can still change their name or check out."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.phones.p5"
-msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save with the message that the number is already used, and the customer can try again."
-msgstr "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save with the message that the number is already used, and the customer can try again."
+msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save and asks the customer to try again."
+msgstr "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save and asks the customer to try again."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.title"
@@ -6354,14 +6359,16 @@ msgid "Limits and proxies"
 msgstr "Limits and proxies"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.limits.p1"
-msgid "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap, when you set one, and the daily caps count code SMS too. All the numbers are in Settings."
-msgstr "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap, when you set one, and the daily caps count code SMS too. All the numbers are in Settings."
+msgid "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap (off by default) and the daily caps count code SMS too. A code SMS can use up to 2 pages, so one code can cost up to 2 credits. All the numbers are in Settings."
+msgstr "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap (off by default) and the daily caps count code SMS too. A code SMS can use up to 2 pages, so one code can cost up to 2 credits. All the numbers are in Settings."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.limits.p2"
-msgid "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The forwarded address is then believed only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
-msgstr "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The forwarded address is then believed only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
+msgid "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The add-on then reads the forwarded address from the X-Forwarded-For header, and believes it only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
+msgstr "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The add-on then reads the forwarded address from the X-Forwarded-For header, and believes it only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.p3"
@@ -6419,9 +6426,10 @@ msgid "When the store can't send SMS"
 msgstr "When the store can't send SMS"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.unreachable.p1"
-msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
-msgstr "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
+msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, the store daily cap is reached, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
+msgstr "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, the store daily cap is reached, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.unreachable.p2"
@@ -6429,9 +6437,10 @@ msgid "Pause refuses the code request and the form, and tells the customer that 
 msgstr "Pause refuses the code request and the form, and tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.unreachable.p3"
-msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work."
-msgstr "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work."
+msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
+msgstr "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.optout.p4"
@@ -6449,9 +6458,10 @@ msgid "Upgrading"
 msgstr "Upgrading"
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.upgrade.p1"
-msgid "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone feature."
-msgstr "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone feature."
+msgid "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone rule or a code feature."
+msgstr "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone rule or a code feature."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.upgrade.p2"
@@ -6463,3 +6473,7 @@ msgctxt "Languages::kwtsms.help.upgrade.p3"
 msgid "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
 msgstr "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
 
+# 2026-10-29 05:13 +03: Task M1.12 fix round 1 (I1), task 596. reCAPTCHA is configured but the SMS code request is not ticked.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"
+msgid "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."
+msgstr "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."

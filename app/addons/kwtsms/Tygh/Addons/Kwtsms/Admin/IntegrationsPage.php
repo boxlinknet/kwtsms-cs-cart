@@ -26,7 +26,7 @@
  *            fn_set_notification(), __() (through protected methods a test replaces).
  * CHANGED:   2026-10-21 07:02 +03: header tidied; the readiness labels use the core names (fix round 1, Tasks 1.13
  *            and 1.15, task 596).
- *            2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0 rows in viewData(): phone_rules (C3, C4, phone index
+ *            2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0 rows in viewData(): phone_rules (C3, C4, index
  *            progress), codes (B1, B5, today's codes issued / lockouts / bypasses from the debug log), the CAPTCHA
  *            provider (Turnstile, reCAPTCHA or none) and the "Coming in 1.3" list (SOON).
  */
@@ -248,7 +248,11 @@ class IntegrationsPage
             'codes' => $this->codesRow(),
             'soon' => self::SOON,
             'captcha' => [
-                'provider' => self::captchaProvider($this->turnstileReady(), $this->recaptchaBlocks()),
+                'provider' => self::captchaProvider(
+                    $this->turnstileReady(),
+                    $this->recaptchaBlocks(),
+                    $this->recaptchaTicked()
+                ),
                 'checkout' => $this->captchaForCheckout(),
                 'recaptcha' => $this->addonActive('recaptcha'),
                 'link' => $may_settings ? 'settings.manage?section_id=Image_verification' : '',
@@ -261,10 +265,17 @@ class IntegrationsPage
      * Which CAPTCHA provider the code requests use: a configured reCAPTCHA add-on wins (ruling P3-R7), else Turnstile
      * when it is on with both keys, else none. 2026-10-29 04:12 +03: Task M1.12, task 596.
      */
-    public static function captchaProvider(bool $turnstile_ready, bool $recaptcha_blocks): string
-    {
+    public static function captchaProvider(
+        bool $turnstile_ready,
+        bool $recaptcha_blocks,
+        bool $recaptcha_ticked = true
+    ): string {
+        // 2026-10-29 05:12 +03: Task M1.12 fix round 1 (I1), task 596. A configured reCAPTCHA protects the code
+        // request only while "SMS code request" is ticked under Image verification; otherwise the request has no
+        // CAPTCHA (SuspicionGate asks a token only of Turnstile in the other mode), so it is reported apart and
+        // counts as no provider.
         if ($recaptcha_blocks) {
-            return 'recaptcha';
+            return $recaptcha_ticked ? 'recaptcha' : 'recaptcha_unticked';
         }
 
         return $turnstile_ready ? 'turnstile' : 'none';
@@ -574,6 +585,37 @@ class IntegrationsPage
         return $this->config->turnstileEnabled()
             && $this->config->turnstileSiteKey() !== ''
             && $this->config->turnstileSecret() !== '';
+    }
+
+    /**
+     * Whether the scenario kwtsms_sms_code ("SMS code request") is ticked in Settings > Image verification for the
+     * store (one storefront) or for every storefront (several). 2026-10-29 05:12 +03: Task M1.12 fix round 1 (I1),
+     * task 596.
+     */
+    public static function smsCodeScenarioTicked(): bool
+    {
+        $ticked = static function (?int $storefront_id): bool {
+            $settings = \Tygh\Settings::instance($storefront_id === null ? [] : ['storefront_id' => $storefront_id]);
+            $list = (array) $settings->getValue('use_for', 'Image_verification', null, $storefront_id);
+
+            return ($list['kwtsms_sms_code'] ?? 'N') === 'Y';
+        };
+        $ids = array_map('intval', (array) db_get_fields('SELECT storefront_id FROM ?:storefronts'));
+        if (count($ids) < 2) {
+            return $ticked(null);
+        }
+        foreach ($ids as $id) {
+            if (!$ticked($id)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function recaptchaTicked(): bool
+    {
+        return self::smsCodeScenarioTicked();
     }
 
     /** A reCAPTCHA add-on that is active and has a key pair saved (the Turnstile driver's own rule, ruling P3-R7). */

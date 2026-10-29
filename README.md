@@ -66,9 +66,10 @@ including order status changes and Multi-Vendor vendor events.
 - A daily sync of balance, Sender IDs and coverage, run by a cron job
 
 <!-- 2026-10-23 05:33 +03: Task A13 fix round 1: only what is still planned after 1.1.0, task 596 -->
+<!-- 2026-10-29 05:14 +03: Task M1.12 fix round 1 (I2), task 596. 1.2.0 ships the country check, registration and phone change codes and Turnstile; they leave this list. -->
 Planned for later releases: SMS for returns (RMA), call requests, back in stock, gift certificates, reviews and
-vendor communication, then OTP login and registration by phone, two-factor sign-in, Cloudflare Turnstile and a
-country check at registration, and later abandoned cart reminders, bulk and scheduled SMS. None of these is in 1.1.0.
+vendor communication, then sign-in by SMS code, two-factor sign-in, password recovery by code, phone verification at
+checkout, and later abandoned cart reminders, bulk and scheduled SMS. None of these is in 1.2.0.
 
 ## Requirements
 
