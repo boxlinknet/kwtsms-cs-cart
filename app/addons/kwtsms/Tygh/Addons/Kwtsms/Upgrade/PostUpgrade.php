@@ -395,7 +395,7 @@ class PostUpgrade
      *
      * @return int Number of values updated
      *
-     * 2026-10-29 03:23 +03: docblock moved back onto this method (the M1.11s method had been inserted between), task 596.
+     * 2026-10-29 03:23 +03: docblock moved back onto this method (another method sat between), task 596.
      */
     public static function refreshUneditedValues(array $rows, ?array $shipped = null): int
     {
