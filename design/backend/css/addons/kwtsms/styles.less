@@ -206,6 +206,15 @@ only, so the page reads right in RTL without the core's CSS flip. Usable at 1280
         &.alert-info {
             color: @kwtsms-info-text;
         }
+        /* 2026-10-29 21:44 +03: M1.13a part 2 (admin e2e AA scan after the reinstall), task 596. The red "No CAPTCHA provider is
+           active" note: the core error text (#B94A48) is 4.49:1 on its #F2DEDE wash, and the link inside it took the core
+           link blue (2.48:1). The text is the dark red #9E2B28 and the link follows the text colour (bold, underlined). */
+        &.alert-error {
+            color: #9E2B28;
+        }
+        a {
+            color: inherit;
+        }
     }
     .kwtsms-codes-group {
         border: 0;
