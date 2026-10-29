@@ -494,7 +494,11 @@ class SettingsPage
             }
         }
         $country_mode = 'phone_number_with_country_selection';
-        if ($this->config->phoneCountryCheck() && $this->phoneValidationMode() !== $country_mode) {
+        // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 5). An empty mode means unknown (the core setting is
+        // absent), not any
+        // digits: no claim about the field is made then.
+        $mode = $this->config->phoneCountryCheck() ? $this->phoneValidationMode() : '';
+        if ($mode !== '' && $mode !== $country_mode) {
             $note(
                 'phone_mode',
                 'warning',
