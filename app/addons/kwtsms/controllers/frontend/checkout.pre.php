@@ -39,5 +39,13 @@ if (
         $_REQUEST['user_data'] = $kwtsms_user_data;
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('checkout.update_profile', $e);
+        // 2026-10-29 20:08 +03: Task 596 (branch review M1, ruling P3-R16). Fail closed: while a code feature is ON
+        // an error in the
+        // check does not let the editor save a changed phone.
+        if (fn_kwtsms_code_features_on()) {
+            fn_set_notification('E', (string) __('error'), fn_html_escape((string) __('kwtsms.code.check_failed')));
+
+            return [CONTROLLER_STATUS_REDIRECT, 'checkout.checkout'];
+        }
     }
 }

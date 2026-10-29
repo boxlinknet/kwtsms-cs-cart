@@ -509,6 +509,15 @@ function fn_kwtsms_update_user_pre(
         }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('update_user_pre', $e);
+        // 2026-10-29 20:08 +03: Task 596 (branch review M1, ruling P3-R16). Fail closed: while a code feature is ON
+        // an error in the
+        // check refuses the save (no account without a code, no phone change without a code).
+        if (fn_kwtsms_code_features_on()) {
+            $can_update = false;
+            if (function_exists('fn_set_notification')) {
+                fn_set_notification('E', (string) __('error'), fn_html_escape((string) __('kwtsms.code.check_failed')));
+            }
+        }
     }
 }
 
