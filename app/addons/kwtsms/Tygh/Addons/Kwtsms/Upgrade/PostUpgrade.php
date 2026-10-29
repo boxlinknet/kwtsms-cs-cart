@@ -148,10 +148,19 @@ class PostUpgrade
 
         self::addMissingSettings($scheme);
 
-        if (function_exists('fn_kwtsms_seed_default_templates')) {
-            \fn_kwtsms_seed_default_templates();
-        } else {
-            throw new \RuntimeException('fn_kwtsms_seed_default_templates() does not exist');
+        // 2026-10-29 19:47 +03: M1.13b fix round 1, task 596. No call of a func.php function: the Upgrade Center
+        // request has the OLD func.php loaded (its seed function would seed the old defaults), so the step uses the
+        // classes, which autoload from the new files on disk.
+        try {
+            (new \Tygh\Addons\Kwtsms\Templates\TemplateRepository())->seedDefaults(
+                array_map('strval', array_keys(\Tygh\Languages\Languages::getAll()))
+            );
+        } catch (\Throwable $e) {
+            throw new \RuntimeException(
+                'seeding the default templates failed: ' . get_class($e) . ': ' . $e->getMessage(),
+                0,
+                $e
+            );
         }
 
         self::languageValues($scheme);
@@ -159,12 +168,10 @@ class PostUpgrade
         // 2026-10-24 21:13 +03: Task M1.7b (P3-36), task 596. The CAPTCHA scenario of the SMS code request is
         // ticked, so the mode is "always" by default. It adds one entry to the ticked list and changes nothing else;
         // no customer data is processed and no form of the 1.1.0 store changes (the scenario has no form yet).
-        if (function_exists('fn_kwtsms_tick_sms_code_scenario')) {
-            if (!\fn_kwtsms_tick_sms_code_scenario()) {
-                throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
-            }
-        } else {
-            throw new \RuntimeException('fn_kwtsms_tick_sms_code_scenario() does not exist');
+        // 2026-10-29 19:47 +03: M1.13b fix round 1, task 596. Through the class (autoloaded from the new files), not
+        // fn_kwtsms_tick_sms_code_scenario(), which the old func.php of the Upgrade Center request does not have.
+        if (!SmsCodeScenario::tick()) {
+            throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
         }
 
         fn_update_addon_version(self::ADDON, self::VERSION);

@@ -920,40 +920,9 @@ function fn_kwtsms_untick_sms_code_scenario(): bool
  */
 function fn_kwtsms_set_sms_code_scenario(bool $on): bool
 {
-    $scenario = 'kwtsms_sms_code';
-    $read = static function (Settings $settings, $storefront_id = null) {
-        $now = (array) $settings->getValue('use_for', 'Image_verification', null, $storefront_id);
-
-        return array_values(array_keys(array_filter($now, static function ($value): bool {
-            return $value === 'Y';
-        })));
-    };
-    $apply = static function (Settings $settings, $storefront_id = null) use ($on, $scenario, $read): bool {
-        $ticked = $read($settings, $storefront_id);
-        if (in_array($scenario, $ticked, true) !== $on) {
-            $ticked = $on ? array_merge($ticked, [$scenario]) : array_values(array_diff($ticked, [$scenario]));
-            $settings->updateValue('use_for', $ticked, 'Image_verification', false, null, true, $storefront_id);
-        }
-
-        return in_array($scenario, $read($settings, $storefront_id), true) === $on;
-    };
-
-    $ok = $apply(Settings::instance(['company_id' => 0, 'storefront_id' => 0]));
-    try {
-        [$storefronts] = Tygh::$app['storefront.repository']->find([]);
-        if (count((array) $storefronts) > 1) {
-            foreach ((array) $storefronts as $storefront) {
-                $id = (int) $storefront->storefront_id;
-                $ok = $apply(Settings::instance(['storefront_id' => $id]), $id) && $ok;
-            }
-        }
-    } catch (\Throwable $e) {
-        fn_kwtsms_log_hook_error('sms_code_scenario.storefronts', $e);
-        $ok = false;
-    }
-    fn_clear_cache('registry');
-
-    return $ok;
+    // 2026-10-29 19:47 +03: M1.13b fix round 1, task 596. The body moved to Upgrade\SmsCodeScenario so the 1.2.0
+    // post-upgrade step (which runs while the OLD func.php is loaded) can call it; this stays a thin wrapper.
+    return \Tygh\Addons\Kwtsms\Upgrade\SmsCodeScenario::set($on);
 }
 
 /**
