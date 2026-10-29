@@ -57,6 +57,10 @@ including order status changes and Multi-Vendor vendor events.
 - Per-storefront switches, Sender ID and texts
 - Vendor SMS in Multi-Vendor with approved phones and a monthly quota per vendor
 - Customer opt-out of order SMS, and a manual SMS from the order page
+<!-- 2026-10-29 04:17 +03: Task M1.12, task 596. The 1.2.0 features. -->
+- Phone rules: a country check and one account per phone, each off until you turn it on
+- SMS codes to create an account and to change the account phone number, with limits per phone number and per
+  address, trusted proxies, a Cloudflare Turnstile or reCAPTCHA check, and an SMS to the old number after a change
 - Admin pages: Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Vendor SMS (Multi-Vendor), Logs, Help
 - A full send log, an attempt log and an optional debug log
 - A daily sync of balance, Sender IDs and coverage, run by a cron job

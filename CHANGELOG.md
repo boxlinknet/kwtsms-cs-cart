@@ -17,6 +17,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+<!-- 2026-10-29 04:16 +03: Task M1.12 (1.2.0 Added and Changed entries), task 596 -->
+### Added
+
+- Phone rules (Settings > Phone and codes), each off until you turn it on: a country check that accepts only mobile
+  numbers from the countries you choose, and one account per phone, which starts after the cron job has indexed every
+  customer phone. Only a new or changed number is checked, so a customer with an old number can still save a new name
+  or check out.
+- SMS codes: a code to create an account and a code to change the account phone number, each with its own switch. A
+  code has 6 digits, works once in the browser that asked for it, and expires after 5 minutes by default. Wrong
+  tries are limited per phone number and network, with a lockout, and the wait between codes grows from 60 seconds to
+  5 minutes. Codes need a private transactional Sender ID: the shared KWT-SMS Sender ID is refused outside test mode.
+- An optional SMS to the old number after every storefront change of the phone number.
+- Per-address limits on code requests (with trusted proxies for Cloudflare and load balancers), a store hourly cap, and
+  a CAPTCHA provider for code requests: Cloudflare Turnstile, or the core reCAPTCHA add-on.
+- Pause or continue when the store cannot send SMS, with an alert in both cases.
+- Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a
+  "Coming in 1.3" list. The Dashboard go-live list gains "Set a CAPTCHA provider for SMS codes" while a code feature
+  is on. Help gains sections for SMS codes, phone numbers, limits and proxies, CAPTCHA, when SMS cannot be sent, and
+  upgrading, in English and Arabic.
+
 <!-- 2026-10-29 00:16 +03: Task M1.11s (SafatMall test notes on 1.1.0-rc.1), task 596 -->
 ### Upgrade notes
 
@@ -39,6 +59,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Shorter password recovery SMS (English: "{store_name}: Reset password: {reset_url} Valid {valid_minutes} min.",
   Arabic likewise): the reset link is most of the length. The upgrade replaces the stored recovery text only where it is
   still the 1.1.0 default; an edited text stays.
+- The "Other add-ons" list on the Integrations page now says "Coming in 1.4".
+- If you use Turnstile, allow `https://challenges.cloudflare.com` in `script-src` and `frame-src` of your
+  Content-Security-Policy header.
 
 <!-- 2026-10-23 14:11 +03: the Unreleased entries became the 1.1.0 release, Task A15, task 596 -->
 ## [1.1.0] - 2026-10-23
