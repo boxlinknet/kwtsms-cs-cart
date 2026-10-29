@@ -26,12 +26,17 @@
  *            fn_set_notification(), __() (through protected methods a test replaces).
  * CHANGED:   2026-10-21 07:02 +03: header tidied; the readiness labels use the core names (fix round 1, Tasks 1.13
  *            and 1.15, task 596).
+ *            2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0 rows in viewData(): phone_rules (C3, C4, phone index
+ *            progress), codes (B1, B5, today's codes issued / lockouts / bypasses from the debug log), the CAPTCHA
+ *            provider (Turnstile, reCAPTCHA or none) and the "Coming in 1.3" list (SOON).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
+use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
+use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 
@@ -76,16 +81,33 @@ class IntegrationsPage
      */
     public const AREAS = ['orders', 'storefronts', 'profiles', 'low_stock', 'vendors'];
 
+    /**
+     * 2026-10-29 04:12 +03: Task M1.12, task 596. The features that come in 1.3 (Milestone 2), shown as
+     * "Coming in 1.3".
+     *
+     * @var string[]
+     */
+    public const SOON = ['signin_code', 'twofa', 'recovery_code', 'checkout_verification', 'country_selector'];
+
+    /** The debug-log actions behind the numbers of the codes row (OtpService, CodeRequest). */
+    private const ACTION_ISSUED = 'otp.issue';
+    private const ACTION_LOCKOUT = 'otp.lockout';
+    private const ACTION_BYPASS = 'otp.bypass_unreachable';
+
     /** @var ConfigInterface */
     private $config;
 
     /** @var DebugLog */
     private $log;
 
-    public function __construct(ConfigInterface $config, DebugLog $log)
+    /** @var PhoneIndexBackfill|null 2026-10-29 04:12 +03: Task M1.12, task 596. The index progress of the phone row. */
+    private $backfill;
+
+    public function __construct(ConfigInterface $config, DebugLog $log, ?PhoneIndexBackfill $backfill = null)
     {
         $this->config = $config;
         $this->log = $log;
+        $this->backfill = $backfill;
     }
 
     /**
@@ -93,7 +115,7 @@ class IntegrationsPage
      */
     public static function fromContainer($app): self
     {
-        return new self($app['kwtsms.config'], $app['kwtsms.logs.debug']);
+        return new self($app['kwtsms.config'], $app['kwtsms.logs.debug'], $app['kwtsms.phone_index_backfill']);
     }
 
     // ================================================================== pure rules
@@ -220,13 +242,83 @@ class IntegrationsPage
                 'active' => $this->addonActive('sms_notifications'),
                 'link' => $may_addons ? 'addons.manage' : '',
             ],
+            // 2026-10-29 04:12 +03: Task M1.12, task 596. The 1.2.0 rows: phone rules (C3, C4, index progress), codes
+            // (B1, B5, today's numbers), the CAPTCHA provider and what comes in 1.3.
+            'phone_rules' => $this->phoneRulesRow(),
+            'codes' => $this->codesRow(),
+            'soon' => self::SOON,
             'captcha' => [
+                'provider' => self::captchaProvider($this->turnstileReady(), $this->recaptchaBlocks()),
                 'checkout' => $this->captchaForCheckout(),
                 'recaptcha' => $this->addonActive('recaptcha'),
                 'link' => $may_settings ? 'settings.manage?section_id=Image_verification' : '',
             ],
             'later' => $later,
         ];
+    }
+
+    /**
+     * Which CAPTCHA provider the code requests use: a configured reCAPTCHA add-on wins (ruling P3-R7), else Turnstile
+     * when it is on with both keys, else none. 2026-10-29 04:12 +03: Task M1.12, task 596.
+     */
+    public static function captchaProvider(bool $turnstile_ready, bool $recaptcha_blocks): string
+    {
+        if ($recaptcha_blocks) {
+            return 'recaptcha';
+        }
+
+        return $turnstile_ready ? 'turnstile' : 'none';
+    }
+
+    /**
+     * C3, C4 and the phone index: 'off' while no phone feature is on, 'building' while the backfill runs, 'ready' once
+     * it is done. 2026-10-29 04:12 +03: Task M1.12, task 596.
+     *
+     * @return array{country_check:bool,unique:bool,index:array{state:string,indexed:int,total:int}}
+     */
+    private function phoneRulesRow(): array
+    {
+        $index = ['state' => 'off', 'indexed' => 0, 'total' => 0];
+        if (PhoneIndex::anyFeatureOn($this->config)) {
+            $state = $this->indexState();
+            $total = max(0, (int) $state['total']);
+            $index = [
+                'state' => (int) $state['done'] === 1 ? 'ready' : 'building',
+                'indexed' => min(max(0, (int) $state['indexed']), $total),
+                'total' => $total,
+            ];
+        }
+
+        return [
+            'country_check' => $this->config->phoneCountryCheck(),
+            'unique' => $this->config->phoneUnique(),
+            'index' => $index,
+        ];
+    }
+
+    /**
+     * B1, B5 and today's numbers (since local midnight): codes issued, lockouts set, "continue" bypasses. Nothing is
+     * counted while both code features are off. 2026-10-29 04:12 +03: Task M1.12, task 596.
+     *
+     * @return array{register:bool,change:bool,issued_today:int,lockouts_today:int,bypasses_today:int}
+     */
+    private function codesRow(): array
+    {
+        $row = [
+            'register' => $this->config->registerCode(),
+            'change' => $this->config->phoneChangeCode(),
+            'issued_today' => 0,
+            'lockouts_today' => 0,
+            'bypasses_today' => 0,
+        ];
+        if ($row['register'] || $row['change']) {
+            $n = $this->codeCounts((int) strtotime('today', $this->now()));
+            $row['issued_today'] = (int) $n['issued'];
+            $row['lockouts_today'] = (int) $n['lockouts'];
+            $row['bypasses_today'] = (int) $n['bypasses'];
+        }
+
+        return $row;
     }
 
     /**
@@ -431,6 +523,66 @@ class IntegrationsPage
                 ''
             ),
         ];
+    }
+
+    /**
+     * The phone index state. 2026-10-29 04:12 +03: Task M1.12, task 596.
+     *
+     * @return array{cursor:int,done:int,total:int,indexed:int}
+     */
+    protected function indexState(): array
+    {
+        return $this->backfill === null
+            ? PhoneIndexBackfill::parseState(null)
+            : $this->backfill->state();
+    }
+
+    /**
+     * Codes issued, lockouts set and bypasses since $since: our own rows, by exact action (index idx_action) and the
+     * code table (index idx_created_at). 2026-10-29 04:12 +03: Task M1.12, task 596.
+     *
+     * @return array{issued:int,lockouts:int,bypasses:int}
+     */
+    protected function codeCounts(int $since): array
+    {
+        $rows = (array) db_get_array(
+            'SELECT action, COUNT(*) AS n FROM ?:kwtsms_debug_log WHERE action IN (?a) AND created_at >= ?i'
+            . ' GROUP BY action',
+            [self::ACTION_ISSUED, self::ACTION_LOCKOUT, self::ACTION_BYPASS],
+            $since
+        );
+        $by = [];
+        foreach ($rows as $row) {
+            $by[(string) $row['action']] = (int) $row['n'];
+        }
+
+        return [
+            'issued' => $by[self::ACTION_ISSUED] ?? 0,
+            'lockouts' => $by[self::ACTION_LOCKOUT] ?? 0,
+            'bypasses' => $by[self::ACTION_BYPASS] ?? 0,
+        ];
+    }
+
+    protected function now(): int
+    {
+        return time();
+    }
+
+    /** Turnstile is on and both keys are saved. 2026-10-29 04:12 +03: Task M1.12, task 596. */
+    protected function turnstileReady(): bool
+    {
+        return $this->config->turnstileEnabled()
+            && $this->config->turnstileSiteKey() !== ''
+            && $this->config->turnstileSecret() !== '';
+    }
+
+    /** A reCAPTCHA add-on that is active and has a key pair saved (the Turnstile driver's own rule, ruling P3-R7). */
+    protected function recaptchaBlocks(): bool
+    {
+        return \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::recaptchaBlocks(
+            (string) \Tygh\Registry::get('addons.recaptcha.status'),
+            (array) \Tygh\Registry::get('addons.recaptcha')
+        );
     }
 
     /** The core low stock notification threshold (Settings > General). 2026-10-23 04:21 +03: Task A13, task 596. */

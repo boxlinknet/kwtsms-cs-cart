@@ -24,6 +24,8 @@
  *            Templates\Defaults; CS-Cart Registry and fn_url() (through protected methods a test replaces).
  * CHANGED:   2026-10-21 07:02 +03: header tidied; the crontab line comes from Admin\CronLine, the same helper the
  *            Settings page uses (a path with a space was quoted here and not there). Fix round 1, task 596.
+ *            2026-10-29 04:23 +03: Task M1.12, task 596. topics() lists the 1.2.0 sections (codes, phones, limits,
+ *            captcha, unreachable) and the upgrade section.
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -153,9 +155,13 @@ class HelpPage
             $topics[] = 'vendors';
         }
 
+        // 2026-10-29 04:15 +03: Task M1.12, task 596. The 1.2.0 sections (codes, phones, limits, captcha, unreachable)
+        // follow the storefront and vendor sections; "upgrade" sits before "support".
         return array_merge(
             $topics,
-            ['optout', 'recovery', 'manual', 'ph', 'costs', 'cron', 'test', 'ip', 'missing', 'support', 'links']
+            ['codes', 'phones', 'limits', 'captcha', 'unreachable'],
+            ['optout', 'recovery', 'manual', 'ph', 'costs', 'cron', 'test', 'ip', 'missing'],
+            ['upgrade', 'support', 'links']
         );
     }
 

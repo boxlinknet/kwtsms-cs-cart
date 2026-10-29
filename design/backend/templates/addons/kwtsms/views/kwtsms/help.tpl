@@ -17,6 +17,9 @@ USAGE:     Rendered by kwtsms.help (controllers/backend/kwtsms.php) with $kwtsms
            $kwtsms_nav = Admin\Navigation::sections().
 DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, kwtsms.help.* and kwtsms.nav.* language
            variables.
+CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections SMS codes, phone numbers, limits and proxies,
+           CAPTCHA for codes, when the store can't send SMS and upgrading; lines on the opt-out box and on test mode with codes;
+           the go-live line for the CAPTCHA provider.
 *}
 {* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
@@ -107,6 +110,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                     <li>{__("kwtsms.help.golive.g4")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_general" pages=$h.pages}</li>
                     <li>{__("kwtsms.help.golive.g5")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="dashboard" pages=$h.pages}</li>
                     <li>{__("kwtsms.help.golive.g6")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="integrations" pages=$h.pages}</li>
+                    {* 2026-10-29 04:14 +03: Task M1.12, task 596. The CAPTCHA line for SMS codes. *}
+                    <li>{__("kwtsms.help.golive.g7")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_turnstile" pages=$h.pages}</li>
                 </ul>
             </section>
 
@@ -149,12 +154,63 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
             </section>
             {/if}
 
+            {* ---- 2026-10-29 04:14 +03: Task M1.12, task 596. The 1.2.0 sections: SMS codes, phones, limits, CAPTCHA, when SMS cannot be sent. ---- *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_codes" aria-labelledby="kwtsms_help_codes_title">
+                <h4 class="subheader" id="kwtsms_help_codes_title">{__("kwtsms.help.codes.title")}</h4>
+                <p>{__("kwtsms.help.codes.intro")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.codes.p1")}</p>
+                <p>{__("kwtsms.help.codes.p2")}</p>
+                <p>{__("kwtsms.help.codes.p3")}</p>
+                <p id="kwtsms_help_codes_sender">{__("kwtsms.help.codes.p4")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_sender" pages=$h.pages} {include file="addons/kwtsms/views/kwtsms/components/help_ext_link.tpl" key="sender_id" links=$h.links}</p>
+                <p>{__("kwtsms.help.codes.p5")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="logs" pages=$h.pages}</p>
+                <p id="kwtsms_help_codes_register">{__("kwtsms.help.codes.p6")}</p>
+                <p id="kwtsms_help_codes_change">{__("kwtsms.help.codes.p7")}</p>
+                <p id="kwtsms_help_codes_notice">{__("kwtsms.help.codes.p8")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_phones" aria-labelledby="kwtsms_help_phones_title">
+                <h4 class="subheader" id="kwtsms_help_phones_title">{__("kwtsms.help.phones.title")}</h4>
+                <p>{__("kwtsms.help.phones.p1")}</p>
+                <p>{__("kwtsms.help.phones.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.phones.p3")}</p>
+                <p>{__("kwtsms.help.phones.p4")}</p>
+                <p id="kwtsms_help_phones_busy">{__("kwtsms.help.phones.p5")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_limits" aria-labelledby="kwtsms_help_limits_title">
+                <h4 class="subheader" id="kwtsms_help_limits_title">{__("kwtsms.help.limits.title")}</h4>
+                <p>{__("kwtsms.help.limits.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
+                <p id="kwtsms_help_limits_proxies">{__("kwtsms.help.limits.p2")}</p>
+                <p>{__("kwtsms.help.limits.p3")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_captcha" aria-labelledby="kwtsms_help_captcha_title">
+                <h4 class="subheader" id="kwtsms_help_captcha_title">{__("kwtsms.help.captcha.title")}</h4>
+                <p>{__("kwtsms.help.captcha.intro")}</p>
+                <p>{__("kwtsms.help.captcha.modes")}</p>
+                <h5 class="kwtsms-subtitle">{__("kwtsms.help.captcha.setup_title")}</h5>
+                <p>{__("kwtsms.help.captcha.setup")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_turnstile" pages=$h.pages}</p>
+                <p id="kwtsms_help_captcha_testkeys">{__("kwtsms.help.captcha.testkeys")}</p>
+                <p id="kwtsms_help_captcha_csp">{__("kwtsms.help.captcha.csp")}</p>
+                <p>{__("kwtsms.help.captcha.outage")}</p>
+                <p>{__("kwtsms.help.captcha.recaptcha")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_unreachable" aria-labelledby="kwtsms_help_unreachable_title">
+                <h4 class="subheader" id="kwtsms_help_unreachable_title">{__("kwtsms.help.unreachable.title")}</h4>
+                <p>{__("kwtsms.help.unreachable.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.unreachable.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.unreachable.p3")}</p>
+            </section>
+
             {* ---- customer opt-out *}
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_optout" aria-labelledby="kwtsms_help_optout_title">
                 <h4 class="subheader" id="kwtsms_help_optout_title">{__("kwtsms.help.optout.title")}</h4>
                 <p>{__("kwtsms.help.optout.p1")}</p>
                 <p>{__("kwtsms.help.optout.p2")}</p>
                 <p>{__("kwtsms.help.optout.p3")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="logs" pages=$h.pages}</p>
+                {* 2026-10-29 04:14 +03: Task M1.12 (M1.11s), task 596. The box hides itself when no customer order SMS is on. *}
+                <p id="kwtsms_help_optout_hidden">{__("kwtsms.help.optout.p4")}</p>
             </section>
 
             {* ---- password recovery *}
@@ -240,6 +296,8 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                 <p>{__("kwtsms.help.test.p1")}</p>
                 <p>{__("kwtsms.help.test.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="dashboard" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.test.p3")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_general" pages=$h.pages}</p>
+                {* 2026-10-29 04:14 +03: Task M1.12, task 596. Test mode and SMS codes. *}
+                <p id="kwtsms_help_test_codes">{__("kwtsms.help.test.p4")}</p>
             </section>
 
             {* ---- IP lockdown and proxies ------------------------------------------------------------------------ *}
@@ -263,6 +321,14 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
                     <li>{__("kwtsms.help.missing.s6")}</li>
                     <li>{__("kwtsms.help.missing.s7")} {include file="addons/kwtsms/views/kwtsms/components/help_ext_link.tpl" key="faq" links=$h.links}</li>
                 </ol>
+            </section>
+
+            {* ---- 2026-10-29 04:14 +03: Task M1.12 (M1.11s), task 596. Upgrading: no new SMS, the Upgrade Center login wall, a broken .po. ---- *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_upgrade" aria-labelledby="kwtsms_help_upgrade_title">
+                <h4 class="subheader" id="kwtsms_help_upgrade_title">{__("kwtsms.help.upgrade.title")}</h4>
+                <p>{__("kwtsms.help.upgrade.p1")}</p>
+                <p id="kwtsms_help_upgrade_wall">{__("kwtsms.help.upgrade.p2")}</p>
+                <p>{__("kwtsms.help.upgrade.p3")}</p>
             </section>
 
             {* ---- support ---------------------------------------------------------------------------------------- *}

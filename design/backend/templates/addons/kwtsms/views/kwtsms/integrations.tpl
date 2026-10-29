@@ -15,6 +15,8 @@ WHY:       PRD 6.3 and 6.7. Native backend components under the .kwtsms-page roo
 USAGE:     Rendered by kwtsms.integrations (controllers/backend/kwtsms.php) with $kwtsms_integrations =
            Admin\IntegrationsPage::viewData() plus can_open_settings and can_open_templates; $kwtsms_nav = Navigation::sections().
 DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwtsms.nav.* language variables.
+CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: the "Phone rules and SMS codes" section, the CAPTCHA
+           provider line and the "Coming in 1.3" list.
 *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
    array, a backtick interpolation): the value stayed raw. A storefront name printed raw in the Settings aria-label and the Templates hint
@@ -144,6 +146,55 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
         </ul>
     </section>
 
+    {* 2026-10-29 04:19 +03: Task M1.12, task 596. Phone rules and SMS codes of 1.2: C3, C4 and the index progress; B1, B5 and today's numbers.
+       Every value is a number, an On/Off word or a language variable: nothing from the request or a secret is printed. *}
+    {$pr = $i.phone_rules}
+    {$cd = $i.codes}
+    {$w_on = __("kwtsms.integrations.codes.on")}
+    {$w_off = __("kwtsms.integrations.codes.off")}
+    {if $pr.country_check}{$w_country = $w_on}{else}{$w_country = $w_off}{/if}
+    {if $pr.unique}{$w_unique = $w_on}{else}{$w_unique = $w_off}{/if}
+    {if $cd.register}{$w_register = $w_on}{else}{$w_register = $w_off}{/if}
+    {if $cd.change}{$w_change = $w_on}{else}{$w_change = $w_off}{/if}
+    <section class="kwtsms-section" id="kwtsms_codes_status" aria-labelledby="kwtsms_codes_status_title">
+        <h4 class="subheader" id="kwtsms_codes_status_title">{__("kwtsms.integrations.codes.title")}</h4>
+        <p class="muted description">{__("kwtsms.integrations.codes.help")}</p>
+        <ul class="kwtsms-later-list kwtsms-areas" id="kwtsms_codes_list">
+            <li data-kwtsms-row="phone_rules" data-kwtsms-index="{$pr.index.state}">
+                <div class="kwtsms-area__head">
+                    <strong>{__("kwtsms.integrations.codes.phone.title")}</strong>
+                    <span class="kwtsms-badge{if $pr.country_check || $pr.unique} kwtsms-badge--ok{/if}">{if $pr.country_check || $pr.unique}{__("kwtsms.integrations.codes.on")}{else}{__("kwtsms.integrations.codes.off")}{/if}</span>
+                </div>
+                <div class="kwtsms-area__text">
+                    {__("kwtsms.integrations.codes.phone.text", ["[country]" => $w_country|fn_html_escape, "[unique]" => $w_unique|fn_html_escape])}
+                    <span id="kwtsms_codes_index">
+                    {if $pr.index.state == "building"}{__("kwtsms.integrations.codes.index.building", ["[done]" => $pr.index.indexed|fn_html_escape, "[total]" => $pr.index.total|fn_html_escape])}
+                    {elseif $pr.index.state == "ready"}{__("kwtsms.integrations.codes.index.ready")}
+                    {else}{__("kwtsms.integrations.codes.index.off")}{/if}
+                    </span>
+                </div>
+                <div class="kwtsms-area__action">
+                    {if $i.can_open_settings}<a class="btn kwtsms-area__link" id="kwtsms_codes_link_phone" href="{"kwtsms.settings#kwtsms_codes"|fn_url}">{__("kwtsms.integrations.open.settings")}</a>{/if}
+                </div>
+            </li>
+            <li data-kwtsms-row="sms_codes">
+                <div class="kwtsms-area__head">
+                    <strong>{__("kwtsms.integrations.codes.sms.title")}</strong>
+                    <span class="kwtsms-badge{if $cd.register || $cd.change} kwtsms-badge--ok{/if}">{if $cd.register || $cd.change}{__("kwtsms.integrations.codes.on")}{else}{__("kwtsms.integrations.codes.off")}{/if}</span>
+                </div>
+                <div class="kwtsms-area__text">
+                    {__("kwtsms.integrations.codes.sms.text", ["[register]" => $w_register|fn_html_escape, "[change]" => $w_change|fn_html_escape])}
+                    <span id="kwtsms_codes_today">
+                    {if $cd.register || $cd.change}{__("kwtsms.integrations.codes.sms.today", ["[issued]" => $cd.issued_today|fn_html_escape, "[lockouts]" => $cd.lockouts_today|fn_html_escape, "[bypasses]" => $cd.bypasses_today|fn_html_escape])}{else}{__("kwtsms.integrations.codes.sms.none")}{/if}
+                    </span>
+                </div>
+                <div class="kwtsms-area__action">
+                    {if $i.can_open_settings}<a class="btn kwtsms-area__link" id="kwtsms_codes_link_sms" href="{"kwtsms.settings#kwtsms_codes"|fn_url}">{__("kwtsms.integrations.open.settings")}</a>{/if}
+                </div>
+            </li>
+        </ul>
+    </section>
+
     {* ---- Multi-Vendor: only in Multi-Vendor ------------------------------------------------------------------------- *}
     {if $i.is_multivendor}
         {$m = $i.mve.values}
@@ -218,6 +269,8 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
                 <p class="kwtsms-check__text" id="kwtsms_captcha_text">
                     {if $i.captcha.checkout}{__("kwtsms.integrations.captcha.on")}{else}{__("kwtsms.integrations.captcha.off")}{/if}
                 </p>
+                {* 2026-10-29 04:19 +03: Task M1.12, task 596. Which provider protects the SMS code requests. *}
+                <p class="kwtsms-check__text" id="kwtsms_captcha_provider" data-kwtsms-provider="{$i.captcha.provider}">{__("kwtsms.integrations.captcha.provider.`$i.captcha.provider`")}</p>
                 <p class="muted description" id="kwtsms_recaptcha_state">
                     {if $i.captcha.recaptcha}{__("kwtsms.integrations.captcha.recaptcha_on")}{else}{__("kwtsms.integrations.captcha.recaptcha_off")}{/if}
                 </p>
@@ -239,6 +292,17 @@ DEPENDS:   components/navigation.tpl, alerts.less, kwtsms.integrations.* and kwt
         {else}
             <p class="muted" id="kwtsms_clickatell_ok">{__("kwtsms.integrations.clickatell.inactive")}</p>
         {/if}
+    </section>
+
+    {* 2026-10-29 04:19 +03: Task M1.12, task 596. What comes in 1.3. *}
+    <section class="kwtsms-section" id="kwtsms_soon" aria-labelledby="kwtsms_soon_title">
+        <h4 class="subheader" id="kwtsms_soon_title">{__("kwtsms.integrations.soon.title")}</h4>
+        <p class="muted description">{__("kwtsms.integrations.soon.help")}</p>
+        <ul class="kwtsms-later-list" id="kwtsms_soon_list">
+            {foreach $i.soon as $id}
+                <li data-kwtsms-soon="{$id}">{__("kwtsms.integrations.soon.`$id`")}</li>
+            {/foreach}
+        </ul>
     </section>
 
     {* ---- other add-ons ----------------------------------------------------------------------------------------------- *}

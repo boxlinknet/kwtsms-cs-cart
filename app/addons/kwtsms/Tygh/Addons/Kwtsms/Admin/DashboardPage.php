@@ -33,6 +33,7 @@
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-29 04:12 +03: Task M1.12, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
@@ -406,6 +407,18 @@ class DashboardPage
             'is_multivendor' => $this->isMultiVendor(),
             'vendor_phones_approved' => $this->isMultiVendor() ? $this->approvedVendorPhones() : 0,
             'admin_phones' => count($this->config->adminPhones()),
+            // 2026-10-29 04:12 +03: Task M1.12, task 596. The "CAPTCHA provider set" line shows only while a code
+            // feature (B1 or B5) is ON.
+            'code_feature_on' => $this->config->registerCode() || $this->config->phoneChangeCode(),
+            'captcha_provider' => IntegrationsPage::captchaProvider(
+                $this->config->turnstileEnabled()
+                    && $this->config->turnstileSiteKey() !== ''
+                    && $this->config->turnstileSecret() !== '',
+                TurnstileDriver::recaptchaBlocks(
+                    (string) Registry::get('addons.recaptcha.status'),
+                    (array) Registry::get('addons.recaptcha')
+                )
+            ),
             'edited_langs' => $edited,
             'live_accepted' => $this->stats->liveAccepted(),
             'suspended' => $suspended,
@@ -576,13 +589,26 @@ class DashboardPage
         $langs = isset($f['edited_langs']) && is_array($f['edited_langs']) ? $f['edited_langs'] : [];
         $pilot = !empty($f['live_accepted']) ? 'done' : (!empty($f['pilot_mode']) ? 'progress' : 'todo');
 
-        return [
+        $steps = [
             self::step('sender_ordered', $ordered, (string) $f['sender_id'], 'sender_id_help', ''),
             self::step('templates', in_array('en', $langs, true) && in_array('ar', $langs, true), '', 'templates', ''),
             self::step('admin_phones', (int) $f['admin_phones'] > 0, '', 'admin_alerts', ''),
-            ['state' => $pilot] + self::step('pilot', false, '', 'settings', 'kwtsms_pilot_mode'),
-            self::step('test_mode_off', empty($f['test_mode']), '', 'settings', 'kwtsms_test_mode'),
         ];
+        // 2026-10-29 04:12 +03: Task M1.12, task 596. Shown only while a code feature is ON; done once a provider
+        // (Turnstile or a configured reCAPTCHA) is set.
+        if (!empty($f['code_feature_on'])) {
+            $steps[] = self::step(
+                'captcha',
+                in_array((string) ($f['captcha_provider'] ?? 'none'), ['turnstile', 'recaptcha'], true),
+                '',
+                'settings',
+                'kwtsms_turnstile'
+            );
+        }
+        $steps[] = ['state' => $pilot] + self::step('pilot', false, '', 'settings', 'kwtsms_pilot_mode');
+        $steps[] = self::step('test_mode_off', empty($f['test_mode']), '', 'settings', 'kwtsms_test_mode');
+
+        return $steps;
     }
 
     /**

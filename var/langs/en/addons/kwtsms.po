@@ -3193,9 +3193,10 @@ msgctxt "Languages::kwtsms.integrations.later.title"
 msgid "Other add-ons"
 msgstr "Other add-ons"
 
+# 2026-10-29 04:13 +03: Task M1.12, task 596. 1.2 ships phone rules and SMS codes; these add-ons come in 1.4.
 msgctxt "Languages::kwtsms.integrations.later.help"
-msgid "Coming in 1.2."
-msgstr "Coming in 1.2."
+msgid "Coming in 1.4."
+msgstr "Coming in 1.4."
 
 msgctxt "Languages::kwtsms.integrations.later.installed"
 msgid "Installed in this store"
@@ -6136,3 +6137,329 @@ msgstr "Set up Turnstile"
 msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick_for"
 msgid "Not ticked on: [names]."
 msgstr "Not ticked on: [names]."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Dashboard go-live line, shown while a code feature is ON.
+msgctxt "Languages::kwtsms.dash.golive.captcha"
+msgid "Set a CAPTCHA provider for SMS codes"
+msgstr "Set a CAPTCHA provider for SMS codes"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Dashboard go-live line, shown while a code feature is ON.
+msgctxt "Languages::kwtsms.dash.golive.captcha.link"
+msgid "Set up"
+msgstr "Set up"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.title"
+msgid "Phone rules and SMS codes"
+msgstr "Phone rules and SMS codes"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.help"
+msgid "New in 1.2. Every option is off until you turn it on in Settings."
+msgstr "New in 1.2. Every option is off until you turn it on in Settings."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.on"
+msgid "On"
+msgstr "On"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.off"
+msgid "Off"
+msgstr "Off"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.phone.title"
+msgid "Phone rules"
+msgstr "Phone rules"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.phone.text"
+msgid "Country check: [country]. One account per phone: [unique]."
+msgstr "Country check: [country]. One account per phone: [unique]."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.index.off"
+msgid "No phone feature is on, so no phone is indexed."
+msgstr "No phone feature is on, so no phone is indexed."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.index.building"
+msgid "Indexing customer phones: [done] of [total]."
+msgstr "Indexing customer phones: [done] of [total]."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.index.ready"
+msgid "Every customer phone is indexed."
+msgstr "Every customer phone is indexed."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.sms.title"
+msgid "SMS codes"
+msgstr "SMS codes"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.sms.text"
+msgid "Code to create an account: [register]. Code to change the phone number: [change]."
+msgstr "Code to create an account: [register]. Code to change the phone number: [change]."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.sms.today"
+msgid "Today: [issued] codes sent, [lockouts] lockouts, [bypasses] let through without a code."
+msgstr "Today: [issued] codes sent, [lockouts] lockouts, [bypasses] let through without a code."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
+msgctxt "Languages::kwtsms.integrations.codes.sms.none"
+msgid "No code feature is on."
+msgstr "No code feature is on."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the CAPTCHA provider line.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.turnstile"
+msgid "CAPTCHA provider for SMS codes: Cloudflare Turnstile."
+msgstr "CAPTCHA provider for SMS codes: Cloudflare Turnstile."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the CAPTCHA provider line.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha"
+msgid "CAPTCHA provider for SMS codes: the reCAPTCHA add-on."
+msgstr "CAPTCHA provider for SMS codes: the reCAPTCHA add-on."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the CAPTCHA provider line.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.none"
+msgid "CAPTCHA provider for SMS codes: none. Only the rate limits protect code requests."
+msgstr "CAPTCHA provider for SMS codes: none. Only the rate limits protect code requests."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.title"
+msgid "Coming in 1.3"
+msgstr "Coming in 1.3"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.help"
+msgid "These features are not in 1.2. Nothing here changes how your store works today."
+msgstr "These features are not in 1.2. Nothing here changes how your store works today."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.signin_code"
+msgid "Sign in with an SMS code"
+msgstr "Sign in with an SMS code"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.twofa"
+msgid "Two-factor sign-in with an SMS code"
+msgstr "Two-factor sign-in with an SMS code"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.recovery_code"
+msgid "Password recovery with an SMS code"
+msgstr "Password recovery with an SMS code"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.checkout_verification"
+msgid "Phone verification at checkout"
+msgstr "Phone verification at checkout"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
+msgctxt "Languages::kwtsms.integrations.soon.country_selector"
+msgid "Country selector on phone fields"
+msgstr "Country selector on phone fields"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.golive.g7"
+msgid "If you use SMS codes, set a CAPTCHA provider so a bot can't spend your credits."
+msgstr "If you use SMS codes, set a CAPTCHA provider so a bot can't spend your credits."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.title"
+msgid "SMS codes"
+msgstr "SMS codes"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.intro"
+msgid "An SMS code confirms that a phone number belongs to the person who typed it. Two features use it: a code to create an account and a code to change the account phone number. Both are off until you turn them on under Phone and codes in Settings."
+msgstr "An SMS code confirms that a phone number belongs to the person who typed it. Two features use it: a code to create an account and a code to change the account phone number. Both are off until you turn them on under Phone and codes in Settings."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p1"
+msgid "A code has 6 digits. It works once, only in the browser that asked for it, and by default for 5 minutes (you can set 60 to 900 seconds). A new code cancels the one before it. The SMS carries the store name and the code, and it goes out at once, even during quiet hours."
+msgstr "A code has 6 digits. It works once, only in the browser that asked for it, and by default for 5 minutes (you can set 60 to 900 seconds). A new code cancels the one before it. The SMS carries the store name and the code, and it goes out at once, even during quiet hours."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p2"
+msgid "By default a customer gets 5 wrong tries for one phone number from one network. After that, that network is locked out of that number for 15 minutes, and asking for a new code doesn't reset the count. All networks together get 20 wrong tries per phone number per hour. Above that, the number is locked for everyone."
+msgstr "By default a customer gets 5 wrong tries for one phone number from one network. After that, that network is locked out of that number for 15 minutes, and asking for a new code doesn't reset the count. All networks together get 20 wrong tries per phone number per hour. Above that, the number is locked for everyone."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p3"
+msgid "A customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. The waits start over after an hour without a request. The form shows the countdown."
+msgstr "A customer waits 60 seconds for a second code, 2 minutes for a third, and 5 minutes for every code after that. The waits start over after an hour without a request. The form shows the countdown."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p4"
+msgid "Codes need a private transactional Sender ID. kwtSMS filters promotional Sender IDs for numbers on the Do Not Disturb (DND) list, and still charges for those messages. The shared KWT-SMS Sender ID is refused for codes unless test mode is on."
+msgstr "Codes need a private transactional Sender ID. kwtSMS filters promotional Sender IDs for numbers on the Do Not Disturb (DND) list, and still charges for those messages. The shared KWT-SMS Sender ID is refused for codes unless test mode is on."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p5"
+msgid "Logs show a code message with the code hidden, and Logs can't resend one. A customer asks for a new code on the form."
+msgstr "Logs show a code message with the code hidden, and Logs can't resend one. A customer asks for a new code on the form."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p6"
+msgid "Code to create an account: the registration form shows a phone field and a code field, and the account is created only after the right code. Other ways to create an account can't carry a code, so the store refuses them: social login, sign-ups through the mobile app (the storefront REST API), accounts created at checkout, and the create account block on the order confirmation page, which the store hides. Guest checkout, where your store allows it, is not affected."
+msgstr "Code to create an account: the registration form shows a phone field and a code field, and the account is created only after the right code. Other ways to create an account can't carry a code, so the store refuses them: social login, sign-ups through the mobile app (the storefront REST API), accounts created at checkout, and the create account block on the order confirmation page, which the store hides. Guest checkout, where your store allows it, is not affected."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p7"
+msgid "Code to change the phone number: a signed-in customer enters a code sent to the new number. The profile page is the only place where a change works, because the checkout profile editor refuses a changed number. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
+msgstr "Code to change the phone number: a signed-in customer enters a code sent to the new number. The profile page is the only place where a change works, because the checkout profile editor refuses a changed number. The mobile app can't change the phone number while this switch is on, but it can clear it. Changes made in the admin panel need no code."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.codes.p8"
+msgid "The notice to the old number goes out after every change of the phone number made in the storefront: a change confirmed with a code, a change saved while codes are unavailable (Continue), and removing the number. It needs the change code switch. It names no new number and has no link, and the customer's order SMS opt-out doesn't stop it. Edit its text under Templates."
+msgstr "The notice to the old number goes out after every change of the phone number made in the storefront: a change confirmed with a code, a change saved while codes are unavailable (Continue), and removing the number. It needs the change code switch. It names no new number and has no link, and the customer's order SMS opt-out doesn't stop it. Edit its text under Templates."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.title"
+msgid "Phone numbers and accounts"
+msgstr "Phone numbers and accounts"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.p1"
+msgid "A customer can type a number with or without the country code, and with Arabic or Persian digits. An 8-digit number without + or 00 gets the default country code (965 for Kuwait unless you changed it). The store saves the number in international form, such as +96550123401."
+msgstr "A customer can type a number with or without the country code, and with Arabic or Persian digits. An 8-digit number without + or 00 gets the default country code (965 for Kuwait unless you changed it). The store saves the number in international form, such as +96550123401."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.p2"
+msgid "The country check accepts only mobile numbers from the countries you choose under Phone and codes in Settings. The Add GCC countries button picks Kuwait, Saudi Arabia, the United Arab Emirates, Bahrain, Qatar, and Oman."
+msgstr "The country check accepts only mobile numbers from the countries you choose under Phone and codes in Settings. The Add GCC countries button picks Kuwait, Saudi Arabia, the United Arab Emirates, Bahrain, Qatar, and Oman."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.p3"
+msgid "One account per phone refuses a new or changed number that another account already uses. The check starts once every existing customer phone is indexed. The cron job indexes them in batches, and Settings shows the progress. Accounts that already share a number are left alone."
+msgstr "One account per phone refuses a new or changed number that another account already uses. The check starts once every existing customer phone is indexed. The cron job indexes them in batches, and Settings shows the progress. Accounts that already share a number are left alone."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.p4"
+msgid "Only a new or changed number is checked. A customer with an old number that fails the rules can still change their name or check out."
+msgstr "Only a new or changed number is checked. A customer with an old number that fails the rules can still change their name or check out."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.phones.p5"
+msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save with the message that the number is already used, and the customer can try again."
+msgstr "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save with the message that the number is already used, and the customer can try again."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.limits.title"
+msgid "Limits and proxies"
+msgstr "Limits and proxies"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.limits.p1"
+msgid "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap, when you set one, and the daily caps count code SMS too. All the numbers are in Settings."
+msgstr "The store counts code requests for each visitor address. By default one address may ask for 5 codes an hour and 20 a day, enter 30 codes an hour, and one phone number gets at most 5 codes an hour from all addresses together. The store hourly cap, when you set one, and the daily caps count code SMS too. All the numbers are in Settings."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.limits.p2"
+msgid "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The forwarded address is then believed only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
+msgstr "The add-on reads the visitor address from the connection, not from headers a visitor can forge. Behind Cloudflare or a load balancer, every visitor looks like one address, so list the proxy IP ranges under Trusted proxies in Settings. The forwarded address is then believed only when the request comes from a listed proxy. An IPv6 visitor is counted by its /64 network."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.limits.p3"
+msgid "Mobile carriers share one address between many customers. If real customers are refused with \"Too many tries from your network\", raise the per-address numbers."
+msgstr "Mobile carriers share one address between many customers. If real customers are refused with \"Too many tries from your network\", raise the per-address numbers."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.title"
+msgid "CAPTCHA for codes"
+msgstr "CAPTCHA for codes"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.intro"
+msgid "Anyone can ask your store to send a code, so a bot can spend your credits. A CAPTCHA makes a visitor prove they're a person first. Only one provider is active at a time: Cloudflare Turnstile, set up in this add-on, or the core reCAPTCHA add-on."
+msgstr "Anyone can ask your store to send a code, so a bot can spend your credits. A CAPTCHA makes a visitor prove they're a person first. Only one provider is active at a time: Cloudflare Turnstile, set up in this add-on, or the core reCAPTCHA add-on."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.modes"
+msgid "There are two modes. If you tick SMS code request under Settings > Image verification, every code request needs a fresh CAPTCHA, even from a signed-in customer; this works with Turnstile and with reCAPTCHA. Without the tick, and with Turnstile on, a CAPTCHA is asked only when a request looks suspicious: the 4th request from one address in an hour, the 3rd code for one phone number in an hour, or the 31st request to the store in 10 minutes. With reCAPTCHA or no provider and no tick, only the rate limits protect you."
+msgstr "There are two modes. If you tick SMS code request under Settings > Image verification, every code request needs a fresh CAPTCHA, even from a signed-in customer; this works with Turnstile and with reCAPTCHA. Without the tick, and with Turnstile on, a CAPTCHA is asked only when a request looks suspicious: the 4th request from one address in an hour, the 3rd code for one phone number in an hour, or the 31st request to the store in 10 minutes. With reCAPTCHA or no provider and no tick, only the rate limits protect you."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.setup_title"
+msgid "Set up Turnstile"
+msgstr "Set up Turnstile"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.setup"
+msgid "Create a widget in the Cloudflare dashboard (Turnstile). Add your store domain to its hostnames, with and without www if both open your store. Paste the site key and the secret key under CAPTCHA in Settings, tick Use Cloudflare Turnstile as the CAPTCHA, save, and press Check keys. Check keys sends Cloudflare a test token. The secret key is never shown again after you save it."
+msgstr "Create a widget in the Cloudflare dashboard (Turnstile). Add your store domain to its hostnames, with and without www if both open your store. Paste the site key and the secret key under CAPTCHA in Settings, tick Use Cloudflare Turnstile as the CAPTCHA, save, and press Check keys. Check keys sends Cloudflare a test token. The secret key is never shown again after you save it."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.testkeys"
+msgid "To try the setup, Cloudflare publishes test keys. The site key 1x00000000000000000000AA with the secret key 1x0000000000000000000000000000000AA always passes. The site key 2x00000000000000000000AB with the secret key 2x0000000000000000000000000000000AA always fails. Use them on a test store only: they protect nothing."
+msgstr "To try the setup, Cloudflare publishes test keys. The site key 1x00000000000000000000AA with the secret key 1x0000000000000000000000000000000AA always passes. The site key 2x00000000000000000000AB with the secret key 2x0000000000000000000000000000000AA always fails. Use them on a test store only: they protect nothing."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.csp"
+msgid "If your store sends a Content-Security-Policy header, allow https://challenges.cloudflare.com in both script-src and frame-src. Without it the Turnstile widget doesn't load and customers can't pass the check."
+msgstr "If your store sends a Content-Security-Policy header, allow https://challenges.cloudflare.com in both script-src and frame-src. Without it the Turnstile widget doesn't load and customers can't pass the check."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.outage"
+msgid "If Cloudflare can't be reached or answers with a server error, the check doesn't block the visitor, and the rate limits still apply. A wrong secret key or a failed check is refused."
+msgstr "If Cloudflare can't be reached or answers with a server error, the check doesn't block the visitor, and the rate limits still apply. A wrong secret key or a failed check is refused."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.captcha.recaptcha"
+msgid "The core reCAPTCHA add-on comes installed without keys, and Turnstile replaces it while it has none. When reCAPTCHA has its keys saved, it stays the provider: turn it off before you switch Turnstile on."
+msgstr "The core reCAPTCHA add-on comes installed without keys, and Turnstile replaces it while it has none. When reCAPTCHA has its keys saved, it stays the provider: turn it off before you switch Turnstile on."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.unreachable.title"
+msgid "When the store can't send SMS"
+msgstr "When the store can't send SMS"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.unreachable.p1"
+msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
+msgstr "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.unreachable.p2"
+msgid "Pause refuses the code request and the form, and tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert."
+msgstr "Pause refuses the code request and the form, and tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.unreachable.p3"
+msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work."
+msgstr "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.optout.p4"
+msgid "The opt-out box shows only while a customer SMS for an order status change, an order update, or a shipment is on for the storefront. With all three off, the box is hidden, and a customer's saved choice is kept."
+msgstr "The opt-out box shows only while a customer SMS for an order status change, an order update, or a shipment is on for the storefront. With all three off, the box is hidden, and a customer's saved choice is kept."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.test.p4"
+msgid "While test mode is on, kwtSMS accepts code SMS but delivers none, so customers can't finish a sign-up that needs a code. Turn off test mode before you turn on a code feature for customers."
+msgstr "While test mode is on, kwtSMS accepts code SMS but delivers none, so customers can't finish a sign-up that needs a code. Turn off test mode before you turn on a code feature for customers."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.upgrade.title"
+msgid "Upgrading"
+msgstr "Upgrading"
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.upgrade.p1"
+msgid "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone feature."
+msgstr "An upgrade keeps your credentials, settings, switches, and edited texts, and sends nothing new: every new feature stays off until you turn it on. It doesn't process customer data. The phone index builds only after you turn on a phone feature."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.upgrade.p2"
+msgid "The Upgrade Center requests its own restore script over HTTP before it installs a package. If your store sits behind a login wall (Cloudflare Access, HTTP basic authentication, an IP allow list), that check fails. Allow the request, or lift the wall, while you upgrade."
+msgstr "The Upgrade Center requests its own restore script over HTTP before it installs a package. If your store sits behind a login wall (Cloudflare Access, HTTP basic authentication, an IP allow list), that check fails. Allow the request, or lift the wall, while you upgrade."
+
+# 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+msgctxt "Languages::kwtsms.help.upgrade.p3"
+msgid "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
+msgstr "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
+
