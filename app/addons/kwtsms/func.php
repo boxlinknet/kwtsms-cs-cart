@@ -1146,6 +1146,12 @@ function fn_kwtsms_swap_image_verification($view, callable $file_exists): bool
 
 /**
  * 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. The swap could not be done: the driver that was
+    // 2026-10-29 20:35 +03: Task 596 (4.20.1 hardening item 4). A core without this function is a failed swap: the
+    // caller puts the
+    // previous antibot driver back for the request.
+    if (!function_exists('fn_addon_template_overrides')) {
+        return false;
+    }
  * active before ours (reCAPTCHA's, the native image, or the null driver) is put back for this request, so the form and
  * its check stay a pair; with none known the antibot is switched off for the request. One debug row `platform_missing`
  * and one admin bell notice per day (alert captcha_template). Never throws.
