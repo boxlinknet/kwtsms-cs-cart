@@ -6115,6 +6115,7 @@ msgid "the store"
 msgstr "المتجر"
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-36), task 596. Red warning: a code feature is on and no CAPTCHA provider is active.
+# 2026-10-29 20:08 +03: Task 596 (branch review I2c, ruling P3-R15). The text now states the daily code cap ([cap]).
 msgctxt "Languages::kwtsms.settings.warn_no_captcha"
 msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance, and the store sends at most [cap] code SMS a day (then new codes are refused until tomorrow). Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
 msgstr "لا يوجد مزود CAPTCHA مفعّل. يستطيع أي شخص طلب رسائل الرموز، ولا يحمي رصيدك سوى حدود الطلبات، ويرسل المتجر حتى [cap] رسالة رمز في اليوم ثم تُرفض الرموز الجديدة حتى الغد. فعّل Cloudflare Turnstile أدناه أو إضافة reCAPTCHA."
@@ -6128,6 +6129,16 @@ msgstr "فعّل خيار «طلب رمز SMS» في الإعدادات > الت
 msgctxt "Languages::kwtsms.settings.warn_phone_mode"
 msgid "The phone field accepts any format; the add-on checks it on the server."
 msgstr "يقبل حقل الهاتف أي صيغة؛ تتحقق الإضافة منه على الخادم."
+
+# 2026-10-29 20:37 +03: Task 596 (4.20.1 hardening items 2). Settings warning.
+msgctxt "Languages::kwtsms.settings.warn_platform_missing"
+msgid "Not enforced on this CS-Cart version: [hooks] reached the add-on without the data it needs, so the code and phone rules cannot refuse a save. Update CS-Cart or the add-on, and do not rely on these rules until then."
+msgstr "غير مطبّق على إصدار CS-Cart هذا: وصل [hooks] إلى الإضافة دون البيانات التي يحتاجها، لذلك لا تستطيع قواعد الرموز والهاتف رفض الحفظ. حدّث CS-Cart أو الإضافة ولا تعتمد على هذه القواعد قبل ذلك."
+
+# 2026-10-29 20:37 +03: Task 596 (4.20.1 hardening items 6). Settings warning.
+msgctxt "Languages::kwtsms.settings.warn_scenario_unselectable"
+msgid "This CS-Cart version does not list \"SMS code request\" under Settings > Image verification, so it cannot be ticked and the CAPTCHA does not protect the code form."
+msgstr "لا يعرض إصدار CS-Cart هذا \"طلب رمز التحقق بالرسالة\" ضمن الإعدادات > التحقق بالصورة، لذلك لا يمكن تحديده ولا يحمي CAPTCHA نموذج الرمز."
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-R5), task 596. Warning: global sending is off while a registration or phone change code is on.
 msgctxt "Languages::kwtsms.settings.warn_sending_off"
@@ -6401,6 +6412,16 @@ msgctxt "Languages::kwtsms.help.limits.p3"
 msgid "Mobile carriers share one address between many customers. If real customers are refused with \"Too many tries from your network\", raise the per-address numbers."
 msgstr "تتشارك شركات الاتصالات عنوانا واحدا بين عدد كبير من العملاء. إذا رُفض عملاء حقيقيون برسالة «محاولات كثيرة من شبكتك»، فارفع أرقام الحدود لكل عنوان."
 
+# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+msgctxt "Languages::kwtsms.help.limits.p4"
+msgid "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+msgstr "لرسائل الرموز أيضا حد يومي خاص للمتجر كله (الافتراضي 300، في الإعدادات). عند بلوغه تُرفض الرموز الجديدة حتى اليوم التالي ويصلك تنبيه، وتحتفظ رسائل الطلبات بحدها الخاص. طلب الرمز المرفوض بسبب حد لا يمر بدون تحقق: خيار \"عند تعذر إرسال رموز التحقق\" ينطبق فقط عندما يتعذر الإرسال نفسه، وليس بسبب حد."
+
+# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+msgctxt "Languages::kwtsms.help.limits.p5"
+msgid "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
+msgstr "تُحتسب الرسالة المرسلة إلى الرقم القديم بعد تغيير الجوال ضمن حدود العنوان نفسها، ويحصل الحساب على رسالة واحدة منها كحد أقصى في الساعة. التغيير الإضافي خلال الساعة يُحفظ بدون الرسالة ويُسجل في سجل التصحيح."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.captcha.title"
 msgid "CAPTCHA for codes"
@@ -6412,16 +6433,6 @@ msgid "Anyone can ask your store to send a code, so a bot can spend your credits
 msgstr "يستطيع أي شخص أن يطلب من متجرك إرسال رمز، لذا قد يستنزف برنامج آلي رصيدك. يطلب CAPTCHA من الزائر أن يثبت أولا أنه شخص حقيقي. يعمل مزود واحد فقط في كل مرة: Cloudflare Turnstile الذي تُعده من هذه الإضافة، أو إضافة reCAPTCHA الأساسية."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
-# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
-msgctxt "Languages::kwtsms.help.limits.p4"
-msgid "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
-msgstr "لرسائل الرموز أيضا حد يومي خاص للمتجر كله (الافتراضي 300، في الإعدادات). عند بلوغه تُرفض الرموز الجديدة حتى اليوم التالي ويصلك تنبيه، وتحتفظ رسائل الطلبات بحدها الخاص. طلب الرمز المرفوض بسبب حد لا يمر بدون تحقق: خيار \"عند تعذر إرسال رموز التحقق\" ينطبق فقط عندما يتعذر الإرسال نفسه، وليس بسبب حد."
-
-# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
-msgctxt "Languages::kwtsms.help.limits.p5"
-msgid "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
-msgstr "تُحتسب الرسالة المرسلة إلى الرقم القديم بعد تغيير الجوال ضمن حدود العنوان نفسها، ويحصل الحساب على رسالة واحدة منها كحد أقصى في الساعة. التغيير الإضافي خلال الساعة يُحفظ بدون الرسالة ويُسجل في سجل التصحيح."
-
 msgctxt "Languages::kwtsms.help.captcha.modes"
 msgid "There are two modes. If you tick SMS code request under Settings > Image verification, every code request needs a fresh CAPTCHA, even from a signed-in customer; this works with Turnstile and with reCAPTCHA. Without the tick, and with Turnstile on, a CAPTCHA is asked only when a request looks suspicious: the 4th request from one address in an hour, the 3rd code for one phone number in an hour, or the 31st request to the store in 10 minutes. With reCAPTCHA or no provider and no tick, only the rate limits protect you."
 msgstr "هناك وضعان. إذا فعّلت خيار «طلب رمز التحقق بالرسالة» من الإعدادات > التحقق بالصورة، فكل طلب رمز يحتاج إلى CAPTCHA جديد حتى من عميل مسجل الدخول؛ وهذا يعمل مع Turnstile ومع reCAPTCHA. وبدون هذا الخيار ومع تفعيل Turnstile، لا يُطلب CAPTCHA إلا عندما يبدو الطلب مريبا: الطلب الرابع من عنوان واحد في الساعة، أو الرمز الثالث لرقم واحد في الساعة، أو الطلب رقم 31 إلى المتجر خلال 10 دقائق. ومع reCAPTCHA أو بلا مزود وبلا هذا الخيار، لا يحميك سوى حدود الطلبات."

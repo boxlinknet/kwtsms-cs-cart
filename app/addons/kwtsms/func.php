@@ -841,6 +841,24 @@ function fn_kwtsms_hook_args_missing(string $hook, int $given, int $needed): boo
         $logged[$hook] = true;
         error_log('kwtsms: hook ' . $hook . ' called with ' . $given . ' of the ' . $needed
             . ' arguments it needs: skipped (core version mismatch?)');
+        // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 2). Persistent record for the Settings warning "not
+        // enforced on this
+        // CS-Cart version": hook => [given, needed, time]. A by-reference flag that did not arrive cannot be set, so
+        // the
+        // hook cannot refuse; the red Settings note is what tells the admin. Never throws.
+        try {
+            if (function_exists('fn_get_storage_data') && function_exists('fn_set_storage_data')) {
+                $raw = fn_get_storage_data('kwtsms_platform_missing');
+                $all = is_string($raw) ? json_decode($raw, true) : [];
+                $all = is_array($all) ? $all : [];
+                if (!isset($all[$hook])) {
+                    $all[$hook] = [$given, $needed, time()];
+                    fn_set_storage_data('kwtsms_platform_missing', (string) json_encode($all));
+                }
+            }
+        } catch (\Throwable $e) {
+            unset($e);
+        }
     }
 
     return true;
@@ -1128,6 +1146,12 @@ function fn_kwtsms_init_templater_post($view = null)
  */
 function fn_kwtsms_swap_image_verification($view, callable $file_exists): bool
 {
+    // 2026-10-29 20:35 +03: Task 596 (4.20.1 hardening item 4). A core without this function is a failed swap: the
+    // caller puts the
+    // previous antibot driver back for the request.
+    if (!function_exists('fn_addon_template_overrides')) {
+        return false;
+    }
     // Builds core's map (or loads it from the cache) and returns the key it lives under, exactly as core does.
     fn_addon_template_overrides('common/image_verification.tpl', $view);
     $key = md5(rtrim(rtrim($view->getTemplateDir(0), '/') . '/', '/'));
@@ -1146,12 +1170,6 @@ function fn_kwtsms_swap_image_verification($view, callable $file_exists): bool
 
 /**
  * 2026-10-24 22:56 +03: Task M1.7b fix round 1 (review I1), task 596. The swap could not be done: the driver that was
-    // 2026-10-29 20:35 +03: Task 596 (4.20.1 hardening item 4). A core without this function is a failed swap: the
-    // caller puts the
-    // previous antibot driver back for the request.
-    if (!function_exists('fn_addon_template_overrides')) {
-        return false;
-    }
  * active before ours (reCAPTCHA's, the native image, or the null driver) is put back for this request, so the form and
  * its check stay a pair; with none known the antibot is switched off for the request. One debug row `platform_missing`
  * and one admin bell notice per day (alert captcha_template). Never throws.

@@ -493,6 +493,34 @@ class SettingsPage
                 );
             }
         }
+        // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 2). A hook that arrived with fewer arguments than it
+        // needs (a
+        // different CS-Cart version) cannot enforce its rule: say so while the rule is ON.
+        $needed = [];
+        if ($code_on) {
+            $needed[] = 'update_user_pre';
+        }
+        if ($this->config->phoneCountryCheck() || $this->config->phoneUnique()) {
+            $needed[] = 'update_user_pre';
+            $needed[] = 'pre_place_order';
+        }
+        $missing = array_values(array_intersect(array_unique($needed), $this->platformMissing()));
+        if ($missing !== []) {
+            $note('platform_missing', 'danger', $this->text('kwtsms.settings.warn_platform_missing', [
+                '[hooks]' => implode(', ', $missing),
+            ]));
+        }
+        // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 6). Without the scenario in core's list it cannot be
+        // ticked.
+        if ($code_on && !$this->scenarioSelectable()) {
+            $note(
+                'scenario_unselectable',
+                'warning',
+                $this->text('kwtsms.settings.warn_scenario_unselectable'),
+                $this->settingsUrl('settings.manage&section_id=Image_verification'),
+                $this->text('kwtsms.settings.link_image_verification')
+            );
+        }
         $country_mode = 'phone_number_with_country_selection';
         // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 5). An empty mode means unknown (the core setting is
         // absent), not any
@@ -606,6 +634,44 @@ class SettingsPage
         }
 
         return $missing;
+    }
+
+    /**
+     * 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 2). Names of the hooks recorded as arriving with fewer
+     * arguments than the
+     * handler needs (func.php fn_kwtsms_hook_args_missing()). Empty when nothing was recorded. Overridable in a test.
+     *
+     * @return string[]
+     */
+    protected function platformMissing(): array
+    {
+        if (!function_exists('fn_get_storage_data')) {
+            return [];
+        }
+        $raw = fn_get_storage_data('kwtsms_platform_missing');
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+
+        return is_array($data) ? array_values(array_map('strval', array_keys($data))) : [];
+    }
+
+    /**
+     * 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 6). Whether core's list for Image verification > Use for
+     * holds the scenario
+     * kwtsms_sms_code (the hook settings_variants_image_verification_use_for ran and added it). True when core's
+     * function is not there (nothing can be said). Overridable in a test.
+     */
+    protected function scenarioSelectable(): bool
+    {
+        if (!function_exists('fn_settings_variants_image_verification_use_for')) {
+            return true;
+        }
+        try {
+            $objects = fn_settings_variants_image_verification_use_for();
+        } catch (\Throwable $e) {
+            return true;
+        }
+
+        return is_array($objects) && isset($objects['kwtsms_sms_code']);
     }
 
     /** 2026-10-29 02:16 +03: Task M1.11, task 596. Core Appearance > phone_validation_mode (overridable in a test). */
