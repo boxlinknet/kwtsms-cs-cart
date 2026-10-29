@@ -182,6 +182,9 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.limits.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
                 <p id="kwtsms_help_limits_proxies">{__("kwtsms.help.limits.p2")}</p>
                 <p>{__("kwtsms.help.limits.p3")}</p>
+                {* 2026-10-29 20:10 +03: Task 596 (branch review I1, I2). The code daily cap and the old-number notice limit. *}
+                <p id="kwtsms_help_limits_code_cap">{__("kwtsms.help.limits.p4")}</p>
+                <p id="kwtsms_help_limits_notice">{__("kwtsms.help.limits.p5")}</p>
             </section>
 
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_captcha" aria-labelledby="kwtsms_help_captcha_title">

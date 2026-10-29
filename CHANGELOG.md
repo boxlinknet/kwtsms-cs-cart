@@ -37,9 +37,13 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   code has 6 digits, works once in the browser that asked for it, and expires after 5 minutes by default. Wrong
   tries are limited per phone number and network, with a lockout, and the wait between codes grows from 60 seconds to
   5 minutes. Codes need a private transactional Sender ID: the shared KWT-SMS Sender ID is refused outside test mode.
-- An optional SMS to the old number after every storefront change of the phone number.
+- An optional SMS to the old number after every storefront change of the phone number. It counts against the
+  per-address limits and an account gets at most 1 such SMS an hour.
 - Per-address limits on code requests (with trusted proxies for Cloudflare and load balancers), a store hourly cap, and
   a CAPTCHA provider for code requests: Cloudflare Turnstile, or the core reCAPTCHA add-on.
+- A store-wide daily cap for code SMS (default 300, in Settings), checked before the shared daily cap so a flood of code
+  requests cannot use up the order SMS budget. A code request refused by any limit is never let through under
+  "When SMS codes can't be sent: Continue".
 - Pause or continue when the store cannot send SMS, with an alert in both cases.
 - Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a
   "Coming in 1.3" list. The Dashboard go-live list gains "Set a CAPTCHA provider for SMS codes" while a code feature

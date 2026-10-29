@@ -6406,6 +6406,16 @@ msgid "Anyone can ask your store to send a code, so a bot can spend your credits
 msgstr "Anyone can ask your store to send a code, so a bot can spend your credits. A CAPTCHA makes a visitor prove they're a person first. Only one provider is active at a time: Cloudflare Turnstile, set up in this add-on, or the core reCAPTCHA add-on."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+msgctxt "Languages::kwtsms.help.limits.p4"
+msgid "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+msgstr "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+
+# 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+msgctxt "Languages::kwtsms.help.limits.p5"
+msgid "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
+msgstr "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
+
 msgctxt "Languages::kwtsms.help.captcha.modes"
 msgid "There are two modes. If you tick SMS code request under Settings > Image verification, every code request needs a fresh CAPTCHA, even from a signed-in customer; this works with Turnstile and with reCAPTCHA. Without the tick, and with Turnstile on, a CAPTCHA is asked only when a request looks suspicious: the 4th request from one address in an hour, the 3rd code for one phone number in an hour, or the 31st request to the store in 10 minutes. With reCAPTCHA or no provider and no tick, only the rate limits protect you."
 msgstr "There are two modes. If you tick SMS code request under Settings > Image verification, every code request needs a fresh CAPTCHA, even from a signed-in customer; this works with Turnstile and with reCAPTCHA. Without the tick, and with Turnstile on, a CAPTCHA is asked only when a request looks suspicious: the 4th request from one address in an hour, the 3rd code for one phone number in an hour, or the 31st request to the store in 10 minutes. With reCAPTCHA or no provider and no tick, only the rate limits protect you."
