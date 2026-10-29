@@ -162,6 +162,22 @@ class TurnstileDriver implements IAntibotDriver, IErrorableAntibotDriver
     }
 
     /**
+     * 2026-10-29 20:35 +03: Task 596 (4.20.1 hardening item 3, branch review M3). The location of the P3-R9 login
+     * redirect as a plain string: the posted redirect_url when it is a local address, else auth.login_form. The schema
+     * computes it when it loads (it is built per request and the request is known), so no Closure location depends
+     * on core calling it.
+     *
+     * @param array<string,mixed> $request
+     */
+    public static function loginRedirectLocation(array $request): string
+    {
+        $url = isset($request['redirect_url']) && is_string($request['redirect_url'])
+            ? trim($request['redirect_url']) : '';
+
+        return self::isLocalRedirect($url) ? $url : 'auth.login_form';
+    }
+
+    /**
      * 2026-10-24 23:50 +03: Task M1.8a (M1.7b re-review minor), task 596. True for a local address only: no scheme, not
      * protocol-relative ("//host"), no backslash anywhere ("/\host" is "//host" for a browser), and no whitespace or
      * control character anywhere (browsers drop tabs and line breaks inside a URL, so "/<tab>/host" is "//host"). An

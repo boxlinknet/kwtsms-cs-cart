@@ -25,17 +25,11 @@ try {
         $kwtsms_driver instanceof \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver
         && isset($schema['auth']['login']['rewrite_controller_status'])
     ) {
+        // 2026-10-29 20:35 +03: Task 596 (4.20.1 hardening item 3, branch review M3). The location is a string computed
+        // here, not a Closure: core 4.21.2 calls a callable location, other versions may not.
         $schema['auth']['login']['rewrite_controller_status'] = [
             CONTROLLER_STATUS_REDIRECT,
-            static function () {
-                $url = isset($_REQUEST['redirect_url']) && is_string($_REQUEST['redirect_url'])
-                    ? trim($_REQUEST['redirect_url']) : '';
-
-                // A local address only (no scheme, no host, no protocol-relative form).
-                // 2026-10-24 23:50 +03: Task M1.8a (M1.7b re-review minor), task 596. The rule moved to
-                // TurnstileDriver::isLocalRedirect(): it also refuses "/\host" and any inner whitespace.
-                return \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::isLocalRedirect($url) ? $url : 'auth.login_form';
-            },
+            \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::loginRedirectLocation($_REQUEST),
         ];
     }
 } catch (\Throwable $e) {
