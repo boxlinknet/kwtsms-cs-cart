@@ -331,6 +331,19 @@ final class ProfileHooks
         $vendor = class_exists('\\Tygh\\Registry') && \Tygh\Registry::get('runtime.users.allow_vendor_admin_creation')
             && strtoupper((string) ($user_data['user_type'] ?? '')) === 'V' && !empty($user_data['company_id']);
 
+        // 2026-10-29 20:34 +03: Task 596 (4.20.1 hardening item 1, M1.14 row 30). 4.21.2's fn_check_user_type() no
+        // longer honours
+        // create_vendor_admin, 4.20.1 may. The account counts as a vendor (checks skipped) only when BOTH our explicit
+        // rule and core's own decision on the running version say V; any disagreement leaves it a customer C, so
+        // the checks run. Core's answer is asked with a stored type of C (a new storefront account).
+        if ($vendor && function_exists('fn_check_user_type')) {
+            try {
+                $vendor = (string) fn_check_user_type($user_data, ['user_type' => 'C']) === 'V';
+            } catch (\Throwable $e) {
+                $vendor = false;
+            }
+        }
+
         return $vendor ? 'V' : 'C';
     }
 
