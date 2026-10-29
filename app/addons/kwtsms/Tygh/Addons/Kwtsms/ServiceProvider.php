@@ -55,6 +55,7 @@ use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
 use Tygh\Addons\Kwtsms\Codes\CodeAvailability; // 2026-10-24 12:37 +03: Task M1.4, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeHasher; // 2026-10-23 21:28 +03: Task M1.3, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeSender; // 2026-10-24 12:37 +03: Task M1.4, task 596
+use Tygh\Addons\Kwtsms\Codes\NoticeLimiter; // 2026-10-29 20:05 +03: Task 596 (branch review I1)
 use Tygh\Addons\Kwtsms\Codes\OtpService; // 2026-10-23 21:28 +03: Task M1.3, task 596
 use Tygh\Addons\Kwtsms\Cron\CronRunner;
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
@@ -347,9 +348,22 @@ class ServiceProvider implements ServiceProviderInterface
                         $session = $app['session'] ?? null;
 
                         return is_object($session) || is_array($session) ? (int) ($session['auth']['user_id'] ?? 0) : 0;
+                    },
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    // 2026-10-29 20:05 +03: Task 596 (branch review I1, P3-R14). The notice limits.
+                    static function (string $ip, int $user_id) use ($app): ?string {
+                        return $app['kwtsms.notice_limiter']->refusal($ip, $user_id);
                     }
                 ),
             ]);
+        };
+        // 2026-10-29 20:05 +03: Task 596 (branch review I1, ruling P3-R14). The limits of the old-number notice.
+        $app['kwtsms.notice_limiter'] = function (Container $app): NoticeLimiter {
+            return new NoticeLimiter($app['kwtsms.config'], $app['kwtsms.rate_limiter'], $app['kwtsms.logs.debug']);
         };
         // 2026-10-25 04:37 +03: Task M1.9 (C4, P3-11), task 596. The per-phone lock between the "is it free" check and
         // the index write.

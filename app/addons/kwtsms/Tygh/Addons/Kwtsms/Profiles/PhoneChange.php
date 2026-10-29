@@ -70,6 +70,9 @@ final class PhoneChange implements CodeCheckInterface
     /** @var callable|null fn(string $phone): void, clears the bypass of $phone */
     private $clear_skip;
 
+    /** @var callable|null fn(string $ip, int $user_id): ?string, null = the notice may go, else why it is skipped */
+    private $notice_gate;
+
     /** @var array<int,array{old:string,new:string,mode:string}> user id => old stored phone, new canonical phone, code|bypass|clear */
     private $pending = [];
 
@@ -82,6 +85,8 @@ final class PhoneChange implements CodeCheckInterface
      * @param callable|null $clock      null = time()
      * @param callable|null $notify     null = fn_set_notification()
      * @param callable|null $clear_skip null = the session key
+     * @param callable|null $notice_gate 2026-10-29 20:05 +03: Task 596 (branch review I1, P3-R14). fn(string $ip,
+     *                                   int $user_id): ?string; null = no limit
      */
     public function __construct(
         ConfigInterface $config,
@@ -93,7 +98,8 @@ final class PhoneChange implements CodeCheckInterface
         ?callable $skip_until = null,
         ?callable $clock = null,
         ?callable $notify = null,
-        ?callable $clear_skip = null
+        ?callable $clear_skip = null,
+        ?callable $notice_gate = null
     ) {
         $this->config = $config;
         $this->otp = $otp;
@@ -105,6 +111,7 @@ final class PhoneChange implements CodeCheckInterface
         $this->clock = $clock;
         $this->notify = $notify;
         $this->clear_skip = $clear_skip;
+        $this->notice_gate = $notice_gate;
     }
 
     /** Whether this check does anything at all (the switch is ON). */
@@ -224,6 +231,14 @@ final class PhoneChange implements CodeCheckInterface
         }
         if ($this->config->phoneChangeNotice() && trim($pending['old']) !== '') {
             try {
+                // 2026-10-29 20:05 +03: Task 596 (branch review I1, ruling P3-R14). The notice is an SMS path: it
+                // counts against the per-IP buckets and 1 per account per hour; a skip still saves the change.
+                if (
+                    $this->notice_gate !== null
+                    && call_user_func($this->notice_gate, (string) ($ctx['ip'] ?? ''), $user_id) !== null
+                ) {
+                    return $pending['mode'] === 'code' ? $pending['new'] : '';
+                }
                 call_user_func(
                     $this->notice,
                     $pending['old'],
