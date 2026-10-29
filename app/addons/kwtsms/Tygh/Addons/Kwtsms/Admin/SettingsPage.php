@@ -454,8 +454,8 @@ class SettingsPage
         // The transactional sender notice (P3-38) is always shown.
         $note('transactional', 'info', $this->text('kwtsms.settings.notice_transactional'));
 
-        // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I1), task 596. The four code-only warnings key off a CODE
-        // feature (B1, B5 code); C4 alone sends no code and has no code form.
+        // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I1), task 596. The four code-only warnings key off a
+        // CODE feature (B1, B5 code); C4 alone sends no code and has no code form.
         $code_on = $this->config->registerCode() || $this->config->phoneChangeCode();
         if ($code_on && $this->config->testMode()) {
             $note('test_mode', 'warning', $this->text('kwtsms.settings.warn_test_mode'));
@@ -568,7 +568,9 @@ class SettingsPage
             $provider = 'none';
         }
 
-        return ['provider' => $provider, 'unticked' => $provider === 'recaptcha' ? $this->storefrontsWithoutTick() : []];
+        $unticked = $provider === 'recaptcha' ? $this->storefrontsWithoutTick() : [];
+
+        return ['provider' => $provider, 'unticked' => $unticked];
     }
 
     /**
