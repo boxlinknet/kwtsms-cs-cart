@@ -383,6 +383,7 @@ class SettingsPage
             'cap_ip_day' => $this->config->capIpDay(),
             'cap_store_hour' => $this->config->capStoreHour(),
             'trusted_proxies' => implode("\n", $this->config->trustedProxies()),
+            'cap_code_day' => $this->config->capCodeDay(), // 2026-10-29 20:06 +03: Task 596 (I2a, P3-R15)
             'otp_expiry_seconds' => $this->config->otpExpirySeconds(),
             'otp_max_attempts' => $this->config->otpMaxAttempts(),
             'otp_lockout_seconds' => $this->config->otpLockoutSeconds(),
@@ -472,7 +473,8 @@ class SettingsPage
                 $note(
                     'no_captcha',
                     'danger',
-                    $this->text('kwtsms.settings.warn_no_captcha'),
+                    // 2026-10-29 20:08 +03: Task 596 (branch review I2c, ruling P3-R15). States the daily code cap.
+                    $this->text('kwtsms.settings.warn_no_captcha', ['[cap]' => $this->config->capCodeDay()]),
                     '#kwtsms_turnstile',
                     $this->text('kwtsms.settings.link_turnstile')
                 );

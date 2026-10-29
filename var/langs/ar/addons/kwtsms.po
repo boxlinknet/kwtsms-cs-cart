@@ -227,6 +227,11 @@ msgctxt "SettingsOptions::kwtsms::cap_store_hour"
 msgid "Code SMS per store and hour (0 = off)"
 msgstr "رسائل الرمز لكل متجر في الساعة (0 = معطل)"
 
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). The code SMS daily cap.
+msgctxt "SettingsOptions::kwtsms::cap_code_day"
+msgid "Code SMS per store and day"
+msgstr "رسائل الرموز لكل متجر في اليوم"
+
 msgctxt "SettingsOptions::kwtsms::captcha_after_ip"
 msgid "CAPTCHA after requests per IP address"
 msgstr "اختبار CAPTCHA بعد عدد الطلبات لكل عنوان IP"
@@ -5456,6 +5461,11 @@ msgctxt "Languages::kwtsms.settings.field.cap_store_hour"
 msgid "Store SMS per hour (0 = off)"
 msgstr "رسائل المتجر في الساعة (0 = معطل)"
 
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Label of the code SMS daily cap.
+msgctxt "Languages::kwtsms.settings.field.cap_code_day"
+msgid "Code SMS per day"
+msgstr "رسائل الرموز في اليوم"
+
 msgctxt "Languages::kwtsms.settings.field.trusted_proxies"
 msgid "Trusted proxies"
 msgstr "الوكلاء الموثوقون"
@@ -5467,6 +5477,11 @@ msgstr "تُحسب الحدود لكل عنوان IP للزائر، سواء أ�
 msgctxt "Languages::kwtsms.settings.cap_store_hour_help"
 msgid "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
 msgstr "أقصى عدد من الرسائل يرسله المتجر في ساعة واحدة، بما فيها رموز التحقق. بعد هذا الحد يتوقف الإرسال حتى الساعة التالية ويصلك تنبيه. القيمة 0 تعطل الحد."
+
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Help of the code SMS daily cap.
+msgctxt "Languages::kwtsms.settings.cap_code_day_help"
+msgid "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
+msgstr "أقصى عدد من رسائل الرموز (رموز التحقق ورموز وإشعارات تغيير الرقم) يرسله المتجر في اليوم، يُحتسب من منتصف الليل. بعد هذا الحد تُرفض الرموز الجديدة حتى الغد ويصلك تنبيه. تحتفظ رسائل الطلبات بحدها الخاص، فلا يستطيع سيل من طلبات الرموز استهلاكه. الافتراضي 300."
 
 msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
@@ -5632,6 +5647,11 @@ msgstr "معرف المرسل هو KWT-SMS ووضع الاختبار معطل"
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.daily_cap"
 msgid "the daily SMS limit was reached"
 msgstr "تم بلوغ حد الرسائل اليومي"
+
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Alert reason: the code SMS daily cap.
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.code_cap"
+msgid "the daily limit of code SMS was reached"
+msgstr "تم بلوغ الحد اليومي لرسائل الرموز"
 
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.other"
 msgid "the cause is unknown"
@@ -6096,8 +6116,8 @@ msgstr "المتجر"
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-36), task 596. Red warning: a code feature is on and no CAPTCHA provider is active.
 msgctxt "Languages::kwtsms.settings.warn_no_captcha"
-msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
-msgstr "لا يوجد مزود CAPTCHA مفعّل. يستطيع أي شخص طلب رسائل الرموز، ولا يحمي رصيدك سوى حدود الطلبات. فعّل Cloudflare Turnstile أدناه أو إضافة reCAPTCHA."
+msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance, and the store sends at most [cap] code SMS a day (then new codes are refused until tomorrow). Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+msgstr "لا يوجد مزود CAPTCHA مفعّل. يستطيع أي شخص طلب رسائل الرموز، ولا يحمي رصيدك سوى حدود الطلبات، ويرسل المتجر حتى [cap] رسالة رمز في اليوم ثم تُرفض الرموز الجديدة حتى الغد. فعّل Cloudflare Turnstile أدناه أو إضافة reCAPTCHA."
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-8), task 596. Warning: reCAPTCHA is the provider but the SMS code request scenario is not ticked.
 msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick"

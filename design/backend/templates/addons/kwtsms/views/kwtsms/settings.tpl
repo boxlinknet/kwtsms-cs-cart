@@ -627,6 +627,14 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description">{__("kwtsms.settings.cap_store_hour_help")}</p>
                 </div>
             </div>
+            {* 2026-10-29 20:06 +03: Task 596 (branch review I2a, ruling P3-R15). The store-wide daily cap of code SMS. *}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_cap_code_day">{__("kwtsms.settings.field.cap_code_day")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_cap_code_day" name="kwtsms_codes[cap_code_day]" value="{$kwtsms.codes.cap_code_day}" min="1" max="1000000" step="1" class="input-small" dir="ltr">
+                    <p class="muted description">{__("kwtsms.settings.cap_code_day_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <label class="control-label" for="kwtsms_trusted_proxies">{__("kwtsms.settings.field.trusted_proxies")}:</label>
                 <div class="controls">

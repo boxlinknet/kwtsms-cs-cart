@@ -207,6 +207,9 @@ interface ConfigInterface
     /** 0..100000, 0 = off (default) */
     public function capStoreHour(): int;
 
+    /** 1..1000000, default 300: code SMS (source otp) per store and day, counted before cap_store_day */
+    public function capCodeDay(): int;
+
     /** Requests per IP and hour before a CAPTCHA token is needed, 1..1000, default 3 */
     public function captchaAfterIp(): int;
 

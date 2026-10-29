@@ -281,6 +281,11 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                         <type>hidden</type>
                         <default_value>0</default_value>
                     </item>
+                    <!-- 2026-10-29 20:06 +03: Task 596 (branch review I2a, ruling P3-R15). Code SMS per store and day. -->
+                    <item id="cap_code_day">
+                        <type>hidden</type>
+                        <default_value>300</default_value>
+                    </item>
                     <item id="captcha_after_ip">
                         <type>hidden</type>
                         <default_value>3</default_value>

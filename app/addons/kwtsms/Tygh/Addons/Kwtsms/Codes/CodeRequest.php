@@ -288,7 +288,9 @@ class CodeRequest
         if (isset($sent['outbox_id'])) {
             $this->sender->cancelDeferred((int) $sent['outbox_id']);
         }
-        if ($this->config->otpUnreachable() === 'continue') {
+        // 2026-10-29 20:07 +03: Task 596 (branch review I2b, ruling P3-R15). Never when one of our own limits refused
+        // the send.
+        if ($this->config->otpUnreachable() === 'continue' && $this->availability->bypassAllowed($outcome, $reason)) {
             return $this->bypassBody($purpose, $phone, $storefront_id);
         }
 

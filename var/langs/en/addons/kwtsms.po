@@ -227,6 +227,11 @@ msgctxt "SettingsOptions::kwtsms::cap_store_hour"
 msgid "Code SMS per store and hour (0 = off)"
 msgstr "Code SMS per store and hour (0 = off)"
 
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). The code SMS daily cap.
+msgctxt "SettingsOptions::kwtsms::cap_code_day"
+msgid "Code SMS per store and day"
+msgstr "Code SMS per store and day"
+
 msgctxt "SettingsOptions::kwtsms::captcha_after_ip"
 msgid "CAPTCHA after requests per IP address"
 msgstr "CAPTCHA after requests per IP address"
@@ -5453,6 +5458,11 @@ msgctxt "Languages::kwtsms.settings.field.cap_store_hour"
 msgid "Store SMS per hour (0 = off)"
 msgstr "Store SMS per hour (0 = off)"
 
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Label of the code SMS daily cap.
+msgctxt "Languages::kwtsms.settings.field.cap_code_day"
+msgid "Code SMS per day"
+msgstr "Code SMS per day"
+
 msgctxt "Languages::kwtsms.settings.field.trusted_proxies"
 msgid "Trusted proxies"
 msgstr "Trusted proxies"
@@ -5464,6 +5474,11 @@ msgstr "The limits count each visitor's IP address, whether or not an SMS is sen
 msgctxt "Languages::kwtsms.settings.cap_store_hour_help"
 msgid "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
 msgstr "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
+
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Help of the code SMS daily cap.
+msgctxt "Languages::kwtsms.settings.cap_code_day_help"
+msgid "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
+msgstr "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
 
 msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
@@ -5628,6 +5643,11 @@ msgstr "the Sender ID is KWT-SMS and test mode is off"
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.daily_cap"
 msgid "the daily SMS limit was reached"
 msgstr "the daily SMS limit was reached"
+
+# 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Alert reason: the code SMS daily cap.
+msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.code_cap"
+msgid "the daily limit of code SMS was reached"
+msgstr "the daily limit of code SMS was reached"
 
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.other"
 msgid "the cause is unknown"
@@ -6090,8 +6110,8 @@ msgstr "the store"
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-36), task 596. Red warning: a code feature is on and no CAPTCHA provider is active.
 msgctxt "Languages::kwtsms.settings.warn_no_captcha"
-msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
-msgstr "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance. Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+msgid "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance, and the store sends at most [cap] code SMS a day (then new codes are refused until tomorrow). Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
+msgstr "No CAPTCHA provider is active. Anyone can request code SMS; only the rate limits protect your balance, and the store sends at most [cap] code SMS a day (then new codes are refused until tomorrow). Set up Cloudflare Turnstile below or turn on the reCAPTCHA add-on."
 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-8), task 596. Warning: reCAPTCHA is the provider but the SMS code request scenario is not ticked.
 msgctxt "Languages::kwtsms.settings.warn_recaptcha_tick"

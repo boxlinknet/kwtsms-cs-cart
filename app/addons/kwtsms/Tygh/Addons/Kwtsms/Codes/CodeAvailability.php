@@ -50,6 +50,9 @@ class CodeAvailability
     // (the code text is missing or empty) join, so no not-sendable result is reported as "the cause is unknown".
     public const ALERT_REASONS = [
         'gateway', 'balance', 'pilot', 'sender', 'sending_off', 'daily_cap', 'rejected', 'template', 'other',
+        // 2026-10-29 20:07 +03: Task 596 (branch review I2a, ruling P3-R15). The code SMS daily cap (setting
+        // cap_code_day).
+        'code_cap',
     ];
 
     public const SENT = 'sent';
@@ -180,7 +183,8 @@ class CodeAvailability
             case 'blocked_balance':
                 return 'balance';
             case 'blocked_daily_cap':
-                return 'daily_cap';
+                // 2026-10-29 20:07 +03: Task 596 (I2a, P3-R15). Its own reason for the code cap.
+                return $reason === 'cap_code_day' ? 'code_cap' : 'daily_cap';
             case 'blocked_pilot':
                 return 'pilot';
             case 'blocked_disabled':
@@ -206,6 +210,21 @@ class CodeAvailability
         }
 
         return 'other';
+    }
+
+    /**
+     * 2026-10-29 20:07 +03: Task 596 (branch review I2b, ruling P3-R15). Whether a not-sendable send result may
+     * become a "continue"
+     * bypass: only when the gateway side failed. A refusal by one of the add-on's own limits (the code cap, the
+     * store cap, a busy cap lock) is never a bypass, or whoever pumps the limit also switches the verification off.
+     */
+    public function bypassAllowed(string $outcome, string $reason): bool
+    {
+        if ($reason === 'cap_unavailable') {
+            return false;
+        }
+
+        return !in_array($this->reasonFor($outcome, $reason), ['daily_cap', 'code_cap'], true);
     }
 
     /**

@@ -1525,7 +1525,7 @@ class SmsService
      */
     private function applyCaps(array &$rcpt, array $context): void
     {
-        $daily = ['blocked' => 0, 'used' => 0, 'hour_blocked' => 0, 'hour_used' => 0];
+        $daily = ['blocked' => 0, 'used' => 0, 'hour_blocked' => 0, 'hour_used' => 0, 'code_blocked' => 0];
         $ran = $this->cap_lock->runLocked(function () use (&$rcpt, $context, &$daily): void {
             $daily = $this->checkCaps($rcpt, $context);
             $this->reserve($rcpt, $context);
@@ -1534,6 +1534,14 @@ class SmsService
             throw new \RuntimeException('the cap lock is busy or unavailable');
         }
 
+        // 2026-10-29 20:07 +03: Task 596 (I2a, P3-R15). The code cap leaves a log row; the admin alert comes from
+        // CodeRequest
+        // (otp_unavailable, reason code_cap), so no store-wide daily_cap alert is raised for it.
+        if ($daily['code_blocked'] > 0) {
+            $this->note('warning', 'sms.code_cap', 'store daily cap of code SMS reached', [
+                'cap' => $this->config->capCodeDay(),
+            ]);
+        }
         if ($daily['blocked'] > 0) {
             $this->note('warning', 'sms.daily_cap', 'store daily cap reached', [
                 'cap' => $this->config->capStoreDay(),
@@ -1563,7 +1571,8 @@ class SmsService
      * @param array<int,array<string,mixed>> $rcpt
      * @param array<string,mixed>            $context
      *
-     * @return array{blocked:int,used:int,hour_blocked:int,hour_used:int} Recipients the store daily cap stopped, and
+     * @return array{blocked:int,used:int,hour_blocked:int,hour_used:int,code_blocked:int} Recipients the store daily
+     * cap stopped, and
      *                                the count it read; the same two for the store hourly cap (2026-10-23 19:54 +03,
      *                                Task M1.2, task 596)
      *
@@ -1614,6 +1623,32 @@ class SmsService
         // The store-wide daily cap: counted from local midnight, or from "Resume now" when that is later.
         $now = $this->now();
         $start = max((int) strtotime('today', $now), $this->state->dailyCapResumedAt());
+        // 2026-10-29 20:07 +03: Task 596 (branch review I2a, ruling P3-R15). Code SMS (source otp) have their own
+        // store-wide daily cap,
+        // checked before the shared one: the numbers it blocks never reach the shared count, so a flood of code
+        // requests cannot use up the order SMS budget. Same window start as the shared cap ("Resume now" resets both).
+        $code_blocked = 0;
+        if ($context['source'] === 'otp') {
+            $code_left = $this->config->capCodeDay() - $this->attempts->countRecent(
+                '',
+                '',
+                max(1, $now - $start),
+                self::SENT_OUTCOMES,
+                ['source' => 'otp']
+            );
+            $code_passed = [];
+            foreach ($this->open($rcpt) as $i) {
+                if (!$rcpt[$i]['valid'] || isset($code_passed[$rcpt[$i]['phone']])) {
+                    continue;
+                }
+                if (count($code_passed) >= $code_left) {
+                    $rcpt[$i] = $this->decided($rcpt[$i], 'blocked_daily_cap', 'cap_code_day');
+                    $code_blocked++;
+                    continue;
+                }
+                $code_passed[$rcpt[$i]['phone']] = true;
+            }
+        }
         $used = $this->attempts->countRecent('', '', $now - $start, self::SENT_OUTCOMES);
         $left = $this->config->capStoreDay() - $used;
         $passed = [];
@@ -1656,7 +1691,10 @@ class SmsService
             }
         }
 
-        return ['blocked' => $blocked, 'used' => $used, 'hour_blocked' => $hour_blocked, 'hour_used' => $hour_used];
+        return [
+            'blocked' => $blocked, 'used' => $used, 'hour_blocked' => $hour_blocked, 'hour_used' => $hour_used,
+            'code_blocked' => $code_blocked,
+        ];
     }
 
     /**

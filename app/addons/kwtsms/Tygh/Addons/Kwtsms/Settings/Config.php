@@ -108,6 +108,9 @@ class Config implements ConfigInterface
         'cap_phone_hour' => '5',
         'cap_ip_verify_hour' => '30',
         'cap_store_hour' => '0',
+        // 2026-10-29 20:06 +03: Task 596 (branch review I2a, ruling P3-R15). Code SMS per store and day, checked
+        // before cap_store_day.
+        'cap_code_day' => '300',
         'captcha_after_ip' => '3',
         'captcha_after_subject' => '2',
         'captcha_after_store' => '30',
@@ -168,7 +171,7 @@ class Config implements ConfigInterface
         // two fields of the "CAPTCHA (Cloudflare Turnstile)" section.
         'update_codes' => [
             'turnstile_enabled', 'turnstile_site_key', 'turnstile_secret', 'cap_ip_hour', 'cap_ip_day',
-            'cap_store_hour', 'trusted_proxies',
+            'cap_store_hour', 'cap_code_day', 'trusted_proxies',
             'otp_expiry_seconds', 'otp_max_attempts', 'otp_lockout_seconds', 'otp_phone_fail_ceiling',
             'otp_resend_waits', 'cap_ip_verify_hour', 'otp_unreachable', 'phone_country_check', 'phone_unique',
             // 2026-10-24 23:49 +03: Task M1.8a (P3-34, SafatMall E2), task 596. The per-phone request cap and the three
@@ -243,6 +246,7 @@ class Config implements ConfigInterface
         'cap_phone_hour' => ['int', 1, 100], // 2026-10-24 23:49 +03: Task M1.8a (P3-34), task 596
         'cap_ip_verify_hour' => ['int', 5, 10000],
         'cap_store_hour' => ['int', 0, 100000],
+        'cap_code_day' => ['int', 1, 1000000], // 2026-10-29 20:06 +03: Task 596 (I2a, P3-R15)
         'captcha_after_ip' => ['int', 1, 1000],
         'captcha_after_subject' => ['int', 1, 1000],
         'captcha_after_store' => ['int', 1, 100000],
@@ -600,6 +604,13 @@ class Config implements ConfigInterface
     public function capStoreHour(): int
     {
         return $this->number('cap_store_hour');
+    }
+
+    // 2026-10-29 20:06 +03: Task 596 (branch review I2a, ruling P3-R15). Code SMS the whole store may send per day
+    // (default 300).
+    public function capCodeDay(): int
+    {
+        return $this->number('cap_code_day');
     }
 
     public function captchaAfterIp(): int
