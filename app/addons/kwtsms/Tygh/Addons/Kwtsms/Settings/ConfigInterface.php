@@ -237,6 +237,53 @@ interface ConfigInterface
      */
     public function turnstileSecret(): string;
 
+    // Sign-in and security. 2026-11-04 18:19 +03: Task M2.0 (1.3.0), task 596. Every getter returns its default (the
+    // feature OFF) for an absent setting, an out of range value or a malformed one.
+
+    /** B2: sign in with a code sent to a verified phone. Default N. */
+    public function loginCode(): bool;
+
+    /** B3: two-step sign-in for customers, 'off' or 'optional'. Default 'off'. */
+    public function twofaCustomers(): string;
+
+    /** B3: two-step sign-in for vendor administrators (Multi-Vendor), 'off', 'optional' or 'required'. Default 'off'. */
+    public function twofaVendors(): string;
+
+    /** B3: two-step sign-in for administrators, 'off', 'optional' or 'required'. Default 'off'. */
+    public function twofaAdmins(): string;
+
+    /** B4: password recovery by a code sent to a verified phone. Default N. */
+    public function recoverCode(): bool;
+
+    /** B6: checkout verification, 'off', 'all', 'guest' or 'cod'. Default 'off'. */
+    public function checkoutCode(): string;
+
+    /**
+     * B6: the payment ids that count as cash on delivery for checkout_code = 'cod'; positive whole numbers only,
+     * anything else in the stored list is dropped.
+     *
+     * @return int[]
+     */
+    public function checkoutCodPaymentIds(): array;
+
+    /** C2: country selector on phone fields (needs phone_country_check). Default N. */
+    public function phoneCountrySelector(): bool;
+
+    /** A vendor administrator proves the company phone with a code. Default N. */
+    public function vendorPhoneSelfVerify(): bool;
+
+    /** P3-41: alert (and staff SMS) when sends fail in a burst. Default N. */
+    public function failSpikeAlert(): bool;
+
+    /** 1..10000, default 10 failures in 15 minutes. */
+    public function failSpikeThreshold(): int;
+
+    /**
+     * P3-59: true while any storefront code feature is on (B1, B2, B3 of any type, B4, B5, B6, vendor phone
+     * self-verification); the one test every "does this store send codes" check uses.
+     */
+    public function codeFeaturesOn(): bool;
+
     /**
      * Writes the keys that $mode may write, each validated and cast, and returns the rejected keys
      * (not allowed in this mode, unknown, invalid value, or failing a precondition such as

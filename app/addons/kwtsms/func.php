@@ -998,7 +998,8 @@ function fn_kwtsms_code_features_on($unused = '')
         }
         $config = Tygh::$app['kwtsms.config'];
 
-        return $config->registerCode() || $config->phoneChangeCode();
+        // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. The one feature list (every code feature of 1.3.0 too).
+        return $config->codeFeaturesOn();
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('code_features_on', $e);
 

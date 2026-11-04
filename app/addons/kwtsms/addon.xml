@@ -17,6 +17,10 @@ USAGE:     Read by CS-Cart (Admin > Add-ons > Manage add-ons, or fn_install_addo
 2026-10-23 15:11 +03: 1.2.0 adds three tables (16 in all: kwtsms_otp_codes, kwtsms_rate_limits, kwtsms_phone_index) and
            23 hidden settings for the phone and SMS-code features, all OFF by default (Task M1.1a, task 596); the
            upgrade path from 1.1.0 and 1.0.0 is upgrades/1.2.0 (Task M1.1b).
+2026-11-04 18:18 +03: 1.3.0 adds two tables (18 in all: kwtsms_twofa, kwtsms_backup_codes) and 11 hidden settings for sign-in and
+           recovery by code, two-step sign-in, checkout verification, the country selector, vendor phone
+           self-verification and the send-failure spike alert, all OFF by default (Task M2.0, task 596); the upgrade path
+           from 1.2.0, 1.1.0 and 1.0.0 is upgrades/1.3.0.
 DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_info),
            var/langs/{en,ar}/addons/kwtsms.po, design/backend/media/images/addons/kwtsms/icon.png.
 -->
@@ -24,7 +28,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
     <id>kwtsms</id>
     <!-- 2026-10-22 13:13 +03: 1.1.0 (Phase 2: schema of Milestone A, setting vendor_monthly_quota, four tables), Task A1, task 596 -->
     <!-- 2026-10-23 15:11 +03: 1.2.0 (Phase 3 Milestone 1: phone and SMS-code set, three tables, 23 settings), Task M1.1a, task 596 -->
-    <version>1.2.0</version>
+    <!-- 2026-11-04 18:18 +03: 1.3.0 (Milestone 2: schema of sign-in and security, two tables, 11 settings), Task M2.0, task 596 -->
+    <version>1.3.0</version>
     <priority>4000</priority>
     <status>active</status>
     <default_language>en</default_language>
@@ -315,6 +320,54 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                         <default_value/>
                     </item>
 
+                    <!-- 2026-11-04 18:18 +03: Task M2.0 (1.3.0 data model), task 596. Sign-in and security settings, written only by
+                         the Settings mode update_codes (each feature task adds its own field and key). Every feature defaults
+                         to OFF; nothing here turns anything on and no install or upgrade step writes a kwtsms_twofa row. -->
+                    <item id="login_code">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="twofa_customers">
+                        <type>hidden</type>
+                        <default_value>off</default_value>
+                    </item>
+                    <item id="twofa_vendors">
+                        <type>hidden</type>
+                        <default_value>off</default_value>
+                    </item>
+                    <item id="twofa_admins">
+                        <type>hidden</type>
+                        <default_value>off</default_value>
+                    </item>
+                    <item id="recover_code">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="checkout_code">
+                        <type>hidden</type>
+                        <default_value>off</default_value>
+                    </item>
+                    <item id="checkout_cod_payment_ids">
+                        <type>hidden</type>
+                        <default_value/>
+                    </item>
+                    <item id="phone_country_selector">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="vendor_phone_self_verify">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="fail_spike_alert">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="fail_spike_threshold">
+                        <type>hidden</type>
+                        <default_value>10</default_value>
+                    </item>
+
                     <!-- Kept for marketplace documentation compliance (PRD 4.5). -->
                     <item id="marketplace_license_number">
                         <type>input</type>
@@ -590,6 +643,33 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
 
+        <!-- 2026-11-04 18:18 +03: Task M2.0 (1.3.0 data model), task 596. The two-step sign-in row of a user (one row per user, only
+             written when the user opts in or is enrolled, never by install or upgrade) and the one-time backup codes
+             (hash and salt only, never a plain code). The upgrade migration (upgrades/1.3.0) builds exactly these
+             definitions. -->
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_twofa` (
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `enabled` char(1) NOT NULL DEFAULT 'N',
+            `phone` varchar(32) NOT NULL DEFAULT '',
+            `enrolled_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_backup_codes` (
+            `code_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            `user_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `code_hash` char(64) NOT NULL DEFAULT '',
+            `salt` char(32) NOT NULL DEFAULT '',
+            `created_at` int(11) unsigned NOT NULL DEFAULT 0,
+            `used_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`code_id`),
+            KEY `idx_user_id` (`user_id`, `used_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+
         <!-- Privileges (PRD 7): section addons, group kwtsms. -->
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms', 'Y', 'addons', 'kwtsms', 'Y');</item>
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms_logs', 'Y', 'addons', 'kwtsms', 'Y');</item>
@@ -620,6 +700,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_otp_codes`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_rate_limits`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_phone_index`;</item>
+        <!-- 2026-11-04 18:18 +03: the two 1.3.0 tables (PRD 13), Task M2.0, task 596. -->
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_twofa`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_backup_codes`;</item>
         <item for="uninstall">DELETE FROM ?:usergroup_privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>

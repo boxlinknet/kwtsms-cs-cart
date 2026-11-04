@@ -399,7 +399,8 @@ class TemplatesPage
     {
         $on = $event_id === Defaults::EVENT_PHONE_CHANGED
             ? $this->config->phoneChangeNotice()
-            : ($this->config->registerCode() || $this->config->phoneChangeCode());
+            // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. codeFeaturesOn(): otp.code serves every 1.3.0 feature.
+            : $this->config->codeFeaturesOn();
 
         return ['on' => $on, 'link' => 'kwtsms.settings&section=codes'];
     }

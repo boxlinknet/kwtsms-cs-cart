@@ -57,8 +57,8 @@ try {
     $kwtsms_storefront = isset($kwtsms_app['storefront']) ? $kwtsms_app['storefront'] : null;
     $kwtsms_storefront_id = is_object($kwtsms_storefront) && isset($kwtsms_storefront->storefront_id)
         ? (int) $kwtsms_storefront->storefront_id : 0;
-    $kwtsms_feature = $kwtsms_purpose === CodeRequest::PURPOSE_REGISTER
-        ? $kwtsms_config->registerCode() : $kwtsms_config->phoneChangeCode();
+    // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. The switch of the purpose (CodeRequest::FEATURE).
+    $kwtsms_feature = CodeRequest::featureOn($kwtsms_config, $kwtsms_purpose);
     if (!$kwtsms_feature || $kwtsms_app['kwtsms.code_availability']->state($kwtsms_storefront_id) === 'off') {
         fn_kwtsms_code_json(404, ['ok' => false]);
     }

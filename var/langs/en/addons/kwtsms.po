@@ -6565,3 +6565,58 @@ msgstr "[name] is the active CAPTCHA but is not set up, so the code form has no 
 msgctxt "Languages::kwtsms.integrations.captcha.unconfigured"
 msgid "[name] is the active CAPTCHA but is not set up, so it does not protect the SMS code form."
 msgstr "[name] is the active CAPTCHA but is not set up, so it does not protect the SMS code form."
+
+# 2026-11-04 18:21 +03: Task M2.0 (1.3.0), task 596. The "Sign-in and security" section of Settings (shell; the fields arrive with the
+# tasks of Milestone 2).
+msgctxt "Languages::kwtsms.settings.signin_title"
+msgid "Sign-in and security"
+msgstr "Sign-in and security"
+
+msgctxt "Languages::kwtsms.settings.signin_help"
+msgid "Sign-in by code, two-step sign-in, recovery by code and checkout verification appear here. Every option is off until you turn it on."
+msgstr "Sign-in by code, two-step sign-in, recovery by code and checkout verification appear here. Every option is off until you turn it on."
+
+# 2026-11-04 18:40 +03: Task M2.0 (1.3.0), task 596. Labels of the 11 hidden settings (the Lifecycle test requires one per setting).
+msgctxt "SettingsOptions::kwtsms::login_code"
+msgid "Sign in with an SMS code"
+msgstr "Sign in with an SMS code"
+
+msgctxt "SettingsOptions::kwtsms::twofa_customers"
+msgid "Two-step sign-in for customers"
+msgstr "Two-step sign-in for customers"
+
+msgctxt "SettingsOptions::kwtsms::twofa_vendors"
+msgid "Two-step sign-in for vendors"
+msgstr "Two-step sign-in for vendors"
+
+msgctxt "SettingsOptions::kwtsms::twofa_admins"
+msgid "Two-step sign-in for administrators"
+msgstr "Two-step sign-in for administrators"
+
+msgctxt "SettingsOptions::kwtsms::recover_code"
+msgid "Password recovery by SMS code"
+msgstr "Password recovery by SMS code"
+
+msgctxt "SettingsOptions::kwtsms::checkout_code"
+msgid "Verify the phone at checkout"
+msgstr "Verify the phone at checkout"
+
+msgctxt "SettingsOptions::kwtsms::checkout_cod_payment_ids"
+msgid "Cash on delivery payment methods"
+msgstr "Cash on delivery payment methods"
+
+msgctxt "SettingsOptions::kwtsms::phone_country_selector"
+msgid "Country selector on phone fields"
+msgstr "Country selector on phone fields"
+
+msgctxt "SettingsOptions::kwtsms::vendor_phone_self_verify"
+msgid "Vendors verify their own phone"
+msgstr "Vendors verify their own phone"
+
+msgctxt "SettingsOptions::kwtsms::fail_spike_alert"
+msgid "Alert when sends fail in a burst"
+msgstr "Alert when sends fail in a burst"
+
+msgctxt "SettingsOptions::kwtsms::fail_spike_threshold"
+msgid "Failures in 15 minutes before the alert"
+msgstr "Failures in 15 minutes before the alert"

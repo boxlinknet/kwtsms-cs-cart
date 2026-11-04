@@ -458,7 +458,8 @@ class SettingsPage
 
         // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I1), task 596. The four code-only warnings key off a
         // CODE feature (B1, B5 code); C4 alone sends no code and has no code form.
-        $code_on = $this->config->registerCode() || $this->config->phoneChangeCode();
+        // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. codeFeaturesOn(): every code feature of 1.3.0 counts.
+        $code_on = $this->config->codeFeaturesOn();
         if ($code_on && $this->config->testMode()) {
             $note('test_mode', 'warning', $this->text('kwtsms.settings.warn_test_mode'));
         }

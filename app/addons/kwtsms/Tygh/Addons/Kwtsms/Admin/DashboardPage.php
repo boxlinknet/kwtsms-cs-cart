@@ -410,7 +410,8 @@ class DashboardPage
             'admin_phones' => count($this->config->adminPhones()),
             // 2026-10-29 04:12 +03: Task M1.12, task 596. The "CAPTCHA provider set" line shows only while a code
             // feature (B1 or B5) is ON.
-            'code_feature_on' => $this->config->registerCode() || $this->config->phoneChangeCode(),
+            // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. codeFeaturesOn(): every code feature of 1.3.0 counts.
+            'code_feature_on' => $this->config->codeFeaturesOn(),
             'captcha_provider' => IntegrationsPage::captchaProvider(
                 $this->config->turnstileEnabled()
                     && $this->config->turnstileSiteKey() !== ''

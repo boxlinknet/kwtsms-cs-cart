@@ -669,6 +669,14 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </form>
     </section>
 
+    {* 2026-11-04 18:21 +03: Task M2.0 (1.3.0 data model), task 596. Shell of the "Sign-in and security" section: no field yet. Each task of
+       Milestone 2 adds its own control inside this section (sign-in and recovery by code, two-step sign-in, checkout
+       verification), saved through Config mode update_codes. Nothing is on by default. *}
+    <section class="kwtsms-section" id="kwtsms_signin" aria-labelledby="kwtsms_signin_title">
+        <h4 class="subheader" id="kwtsms_signin_title">{__("kwtsms.settings.signin_title")}</h4>
+        <p class="muted description" id="kwtsms_signin_help">{__("kwtsms.settings.signin_help")}</p>
+    </section>
+
     {* 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. The "CAPTCHA (Cloudflare Turnstile)" section: its own
        form (Config mode update_codes; Check keys is the POST mode turnstile_check), redirect back to #kwtsms_turnstile. The
        secret key is never rendered back: its field is empty, autocomplete="new-password", and an empty post keeps the saved

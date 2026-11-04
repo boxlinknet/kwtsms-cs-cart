@@ -118,6 +118,19 @@ class Config implements ConfigInterface
         'turnstile_enabled' => 'N',
         'turnstile_site_key' => '',
         'turnstile_secret' => '',
+        // 2026-11-04 18:19 +03: Task M2.0 (1.3.0 data model), task 596. Sign-in and security: every feature OFF. Equals
+        // addon.xml.
+        'login_code' => 'N',
+        'twofa_customers' => 'off',
+        'twofa_vendors' => 'off',
+        'twofa_admins' => 'off',
+        'recover_code' => 'N',
+        'checkout_code' => 'off',
+        'checkout_cod_payment_ids' => '',
+        'phone_country_selector' => 'N',
+        'vendor_phone_self_verify' => 'N',
+        'fail_spike_alert' => 'N',
+        'fail_spike_threshold' => '10',
     ];
 
     /**
@@ -253,6 +266,20 @@ class Config implements ConfigInterface
         'trusted_proxies' => ['proxies'],
         'turnstile_enabled' => ['flag'],
         'turnstile_site_key' => ['sitekey'],
+        // 2026-11-04 18:19 +03: Task M2.0 (1.3.0 data model, P3-48, P3-54, P3-57), task 596. No save mode names these
+        // keys yet: each feature task adds its key to MODE_KEYS['update_codes']. The 2FA switch values are P3-48
+        // (customers have no "required", Open 4); 'paymentids' = a comma list of positive whole numbers.
+        'login_code' => ['flag'],
+        'twofa_customers' => ['enum', ['off', 'optional']],
+        'twofa_vendors' => ['enum', ['off', 'optional', 'required']],
+        'twofa_admins' => ['enum', ['off', 'optional', 'required']],
+        'recover_code' => ['flag'],
+        'checkout_code' => ['enum', ['off', 'all', 'guest', 'cod']],
+        'checkout_cod_payment_ids' => ['paymentids'],
+        'phone_country_selector' => ['flag'],
+        'vendor_phone_self_verify' => ['flag'],
+        'fail_spike_alert' => ['flag'],
+        'fail_spike_threshold' => ['int', 1, 10000],
     ];
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
@@ -665,6 +692,90 @@ class Config implements ConfigInterface
         return $this->prefixedSecret('turnstile_secret');
     }
 
+    // ------------------------------------------------------------------ sign-in and security (2026-11-04 18:19 +03,
+    // Task M2.0, task 596). A stored value that is out of range or malformed reads as the default (OFF).
+
+    public function loginCode(): bool
+    {
+        return $this->flag('login_code');
+    }
+
+    public function twofaCustomers(): string
+    {
+        return $this->enum('twofa_customers');
+    }
+
+    public function twofaVendors(): string
+    {
+        return $this->enum('twofa_vendors');
+    }
+
+    public function twofaAdmins(): string
+    {
+        return $this->enum('twofa_admins');
+    }
+
+    public function recoverCode(): bool
+    {
+        return $this->flag('recover_code');
+    }
+
+    public function checkoutCode(): string
+    {
+        return $this->enum('checkout_code');
+    }
+
+    public function checkoutCodPaymentIds(): array
+    {
+        $ids = [];
+        $parts = (array) preg_split('/[,;\s]+/', $this->raw('checkout_cod_payment_ids'), -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($parts as $part) {
+            if (preg_match('/^[1-9][0-9]{0,9}$/D', (string) $part) === 1) {
+                $ids[(int) $part] = true;
+            }
+        }
+
+        return array_map('intval', array_keys($ids));
+    }
+
+    public function phoneCountrySelector(): bool
+    {
+        return $this->flag('phone_country_selector');
+    }
+
+    public function vendorPhoneSelfVerify(): bool
+    {
+        return $this->flag('vendor_phone_self_verify');
+    }
+
+    public function failSpikeAlert(): bool
+    {
+        return $this->flag('fail_spike_alert');
+    }
+
+    public function failSpikeThreshold(): int
+    {
+        return $this->number('fail_spike_threshold');
+    }
+
+    /**
+     * P3-59: the one list of "a storefront code feature is on". B1 and B5 (registration, phone change), B2 and B4
+     * (sign-in, recovery by code), B3 (two-step sign-in, any of the three types), B6 (checkout code) and the vendor
+     * phone self-verification send or check an SMS code. C2 (country selector) and the failure alert send none.
+     */
+    public function codeFeaturesOn(): bool
+    {
+        return $this->registerCode()
+            || $this->phoneChangeCode()
+            || $this->loginCode()
+            || $this->recoverCode()
+            || $this->twofaCustomers() !== 'off'
+            || $this->twofaVendors() !== 'off'
+            || $this->twofaAdmins() !== 'off'
+            || $this->checkoutCode() !== 'off'
+            || $this->vendorPhoneSelfVerify();
+    }
+
     // ------------------------------------------------------------------ save
 
     public function save(
@@ -897,6 +1008,12 @@ class Config implements ConfigInterface
 
                 // One invalid entry refuses the whole list (like the calling-code list); an empty list is allowed.
                 return array_filter($entries, [$this, 'isIpOrCidr']) === $entries ? implode("\n", $entries) : null;
+            // 2026-11-04 18:19 +03: Task M2.0 (P3-54), task 596. Payment ids: positive whole numbers; one bad entry
+            // refuses the whole list, an empty list is allowed.
+            case 'paymentids':
+                $ids = $this->tokens($value, '/^[1-9][0-9]{0,9}$/D', false);
+
+                return $ids === null ? null : implode(',', $ids);
             case 'sitekey':
                 $text = is_string($value) ? trim($value) : null;
 

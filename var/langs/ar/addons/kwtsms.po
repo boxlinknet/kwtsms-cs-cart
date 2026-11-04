@@ -6571,3 +6571,57 @@ msgstr "[name] هي إضافة CAPTCHA النشطة لكنها غير مهيأة
 msgctxt "Languages::kwtsms.integrations.captcha.unconfigured"
 msgid "[name] is the active CAPTCHA but is not set up, so it does not protect the SMS code form."
 msgstr "[name] هي إضافة CAPTCHA النشطة لكنها غير مهيأة، لذلك لا تحمي نموذج رمز التحقق بالرسالة."
+
+# 2026-11-04 18:21 +03: Task M2.0 (1.3.0), task 596. The "Sign-in and security" section of Settings (shell).
+msgctxt "Languages::kwtsms.settings.signin_title"
+msgid "Sign-in and security"
+msgstr "تسجيل الدخول والأمان"
+
+msgctxt "Languages::kwtsms.settings.signin_help"
+msgid "Sign-in by code, two-step sign-in, recovery by code and checkout verification appear here. Every option is off until you turn it on."
+msgstr "تظهر هنا خيارات تسجيل الدخول برمز، وتسجيل الدخول بخطوتين، واستعادة الحساب برمز، والتحقق عند إتمام الطلب. جميع الخيارات متوقفة حتى تفعّلها."
+
+# 2026-11-04 18:40 +03: Task M2.0 (1.3.0), task 596. Labels of the 11 hidden settings (the Lifecycle test requires one per setting).
+msgctxt "SettingsOptions::kwtsms::login_code"
+msgid "Sign in with an SMS code"
+msgstr "تسجيل الدخول برمز نصي"
+
+msgctxt "SettingsOptions::kwtsms::twofa_customers"
+msgid "Two-step sign-in for customers"
+msgstr "تسجيل الدخول بخطوتين للعملاء"
+
+msgctxt "SettingsOptions::kwtsms::twofa_vendors"
+msgid "Two-step sign-in for vendors"
+msgstr "تسجيل الدخول بخطوتين للبائعين"
+
+msgctxt "SettingsOptions::kwtsms::twofa_admins"
+msgid "Two-step sign-in for administrators"
+msgstr "تسجيل الدخول بخطوتين للمسؤولين"
+
+msgctxt "SettingsOptions::kwtsms::recover_code"
+msgid "Password recovery by SMS code"
+msgstr "استعادة كلمة المرور برمز نصي"
+
+msgctxt "SettingsOptions::kwtsms::checkout_code"
+msgid "Verify the phone at checkout"
+msgstr "التحقق من رقم الهاتف عند إتمام الطلب"
+
+msgctxt "SettingsOptions::kwtsms::checkout_cod_payment_ids"
+msgid "Cash on delivery payment methods"
+msgstr "طرق الدفع عند الاستلام"
+
+msgctxt "SettingsOptions::kwtsms::phone_country_selector"
+msgid "Country selector on phone fields"
+msgstr "قائمة اختيار الدولة في حقول الهاتف"
+
+msgctxt "SettingsOptions::kwtsms::vendor_phone_self_verify"
+msgid "Vendors verify their own phone"
+msgstr "يتحقق البائعون من رقم هاتفهم بأنفسهم"
+
+msgctxt "SettingsOptions::kwtsms::fail_spike_alert"
+msgid "Alert when sends fail in a burst"
+msgstr "تنبيه عند فشل الإرسال دفعة واحدة"
+
+msgctxt "SettingsOptions::kwtsms::fail_spike_threshold"
+msgid "Failures in 15 minutes before the alert"
+msgstr "عدد حالات الفشل خلال 15 دقيقة قبل التنبيه"

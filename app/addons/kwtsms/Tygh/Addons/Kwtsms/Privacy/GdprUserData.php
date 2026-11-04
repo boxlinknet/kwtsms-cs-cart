@@ -36,6 +36,10 @@
  *            2026-10-23 15:14 +03, Task M1.1a, task 596: collect() also lists the account's rows of
  *            kwtsms_phone_index ('phone_index') and kwtsms_otp_codes ('codes', without code_hash, salt and
  *            session_hash); anonymize() deletes both by the exact user id (P3-31).
+ *            2026-11-04 18:21 +03, Task M2.0 (1.3.0), task 596: collect() also lists the account's two-step sign-in
+ *            row ('twofa': user_id, enabled, the 2FA phone, enrolled_at, updated_at) and the number of backup codes
+ *            ('backup_codes': total and unused counts, NEVER a hash or a salt); anonymize() deletes both tables' rows by the exact user
+ *            id.
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]
@@ -118,6 +122,8 @@ class GdprUserData
             'messages' => [], 'attempts' => [], 'outbox' => [], 'prefs' => [],
             // 2026-10-23 15:14 +03: Task M1.1a (P3-31), task 596. The account's phone index row and code rows.
             'phone_index' => [], 'codes' => [],
+            // 2026-11-04 18:21 +03: Task M2.0 (1.3.0), task 596. The 2FA row and the backup code counts.
+            'twofa' => [], 'backup_codes' => [],
         ];
         if ($user_id < 1) {
             return $out;
@@ -128,6 +134,9 @@ class GdprUserData
         // of the account (never the code hash, the salt or the session hash).
         $out['phone_index'] = $this->phoneIndex($user_id);
         $out['codes'] = $this->codes($user_id);
+        // 2026-11-04 18:21 +03: Task M2.0, task 596. The 2FA phone and the counts of backup codes (never the hashes).
+        $out['twofa'] = $this->twofa($user_id);
+        $out['backup_codes'] = $this->backupCodeCounts($user_id);
         $out['messages'] = $this->messages($user_id, $order_ids, $phones);
         $out['attempts'] = $this->attempts($user_id, $order_ids, $phones);
         $out['outbox'] = $this->outbox($user_id, $order_ids, $phones);
@@ -345,6 +354,8 @@ class GdprUserData
         // 2026-10-23 15:14 +03: Task M1.1a (P3-31), task 596. The phone index row and the code rows of the account,
         // by the exact user id (user 0 is a guest and never matches).
         $this->deletePhoneIndexAndCodes((int) ($data['user_id'] ?? 0));
+        // 2026-11-04 18:21 +03: Task M2.0, task 596. The 2FA row and the backup codes, by the exact user id.
+        $this->deleteTwofa((int) ($data['user_id'] ?? 0));
         $this->log->log('info', 'gdpr.anonymized', 'SMS rows of a customer anonymized', [
             'user_id' => (int) ($data['user_id'] ?? 0), 'numbers' => count($tokens),
         ] + $done);
@@ -465,6 +476,48 @@ class GdprUserData
         );
 
         return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * 2026-11-04 18:21 +03: Task M2.0, task 596. The account's two-step sign-in row (the 2FA phone is personal data).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function twofa(int $user_id): array
+    {
+        $rows = db_get_array(
+            'SELECT user_id, enabled, phone, enrolled_at, updated_at FROM ?:kwtsms_twofa WHERE user_id = ?i',
+            $user_id
+        );
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * 2026-11-04 18:21 +03: Task M2.0, task 596. How many backup codes the account holds and how many are unused:
+     * counts only, code_hash and salt are never selected.
+     *
+     * @return array{total:int,unused:int}
+     */
+    protected function backupCodeCounts(int $user_id): array
+    {
+        $row = db_get_row(
+            'SELECT COUNT(*) AS total, COALESCE(SUM(used_at = 0), 0) AS unused FROM ?:kwtsms_backup_codes'
+            . ' WHERE user_id = ?i',
+            $user_id
+        );
+        $row = is_array($row) ? $row : [];
+
+        return ['total' => (int) ($row['total'] ?? 0), 'unused' => (int) ($row['unused'] ?? 0)];
+    }
+
+    /** 2026-11-04 18:21 +03: Task M2.0, task 596. Deletes the account's 2FA row and backup codes (exact user id; 0 is a guest). */
+    protected function deleteTwofa(int $user_id): void
+    {
+        if ($user_id > 0) {
+            db_query('DELETE FROM ?:kwtsms_twofa WHERE user_id = ?i', $user_id);
+            db_query('DELETE FROM ?:kwtsms_backup_codes WHERE user_id = ?i', $user_id);
+        }
     }
 
     /** 2026-10-23 15:14 +03: Task M1.1a, task 596. Deletes both tables' rows of one account (exact user id). */

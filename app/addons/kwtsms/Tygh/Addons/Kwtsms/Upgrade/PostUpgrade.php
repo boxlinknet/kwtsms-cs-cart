@@ -339,10 +339,17 @@ class PostUpgrade
         $from = self::storedVersion();
         // 2026-10-29 20:10 +03: M1.13b fix round 1 (review I3, ruling P3-R16), task 596. A store whose version is
         // already current but whose 1.2.0 templates are missing (a stale class seeded the old set) is repaired too.
-        if ($from === '' || (version_compare($from, self::VERSION, '>=') && self::missingTemplates() === [])) {
+        // 2026-11-04 18:20 +03: Task M2.0 (P3-60), task 596. The files are 1.3.0 now: a stored version below 1.3.0
+        // (1.0.0, 1.1.0 or 1.2.0, final or any rc) is finished by PostUpgrade130, which runs the 1.2.0 content first
+        // for 1.0.0 / 1.1.0 and the rc wording refresh for 1.2.0; a 1.3.0 store with a template missing is repaired by
+        // it too (it never writes a version below 1.3.0).
+        if (
+            $from === ''
+            || (version_compare($from, PostUpgrade130::VERSION, '>=') && PostUpgrade130::missingTemplates() === [])
+        ) {
             return false;
         }
-        self::runReported($from);
+        PostUpgrade130::runReported($from);
         \Tygh::$app['session'][self::HEAL_SESSION_KEY] = $now;
 
         return true;

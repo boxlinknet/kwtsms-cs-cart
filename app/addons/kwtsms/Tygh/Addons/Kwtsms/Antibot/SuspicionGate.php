@@ -34,7 +34,8 @@ use Tygh\Web\Antibot\IAntibotDriver;
 class SuspicionGate
 {
     /** The purposes the code request serves (the index prefix of the subject read). */
-    public const PURPOSES = ['register', 'phone_change'];
+    // 2026-11-04 18:20 +03: Task M2.0 (1.3.0), task 596. The five purposes of 1.3.0 count in the subject read too.
+    public const PURPOSES = ['register', 'phone_change', 'login', '2fa', 'recover', 'checkout', 'vendor_phone'];
 
     /** The core image-verification scenario of the code request. */
     public const SCENARIO = 'kwtsms_sms_code';

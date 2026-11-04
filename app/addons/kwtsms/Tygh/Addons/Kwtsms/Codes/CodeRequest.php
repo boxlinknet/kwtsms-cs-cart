@@ -48,7 +48,49 @@ class CodeRequest
 {
     public const PURPOSE_REGISTER = 'register';
     public const PURPOSE_PHONE_CHANGE = 'phone_change';
-    public const PURPOSES = [self::PURPOSE_REGISTER, self::PURPOSE_PHONE_CHANGE];
+    // 2026-11-04 18:20 +03: Task M2.0 (1.3.0 data model), task 596. Five purposes join the two of 1.2.0; the code
+    // row's purpose column (varchar 16) needs no DDL change. Each is served by its own task (M2.1 login, M2.2a 2fa,
+    // M2.3 recover, M2.4 checkout, M2.6 vendor_phone); until then handle() answers "unavailable" for them.
+    public const PURPOSE_LOGIN = 'login';
+    public const PURPOSE_2FA = '2fa';
+    public const PURPOSE_RECOVER = 'recover';
+    public const PURPOSE_CHECKOUT = 'checkout';
+    public const PURPOSE_VENDOR_PHONE = 'vendor_phone';
+    public const PURPOSES = [
+        self::PURPOSE_REGISTER, self::PURPOSE_PHONE_CHANGE, self::PURPOSE_LOGIN, self::PURPOSE_2FA,
+        self::PURPOSE_RECOVER, self::PURPOSE_CHECKOUT, self::PURPOSE_VENDOR_PHONE,
+    ];
+
+    /**
+     * 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. The switch behind each purpose: the ConfigInterface getters
+     * whose value turns the purpose on (a flag that is true, or a mode other than 'off'). The code request is
+     * refused (404) while none of them is on.
+     */
+    public const FEATURE = [
+        self::PURPOSE_REGISTER => ['registerCode'],
+        self::PURPOSE_PHONE_CHANGE => ['phoneChangeCode'],
+        self::PURPOSE_LOGIN => ['loginCode'],
+        self::PURPOSE_2FA => ['twofaCustomers', 'twofaVendors', 'twofaAdmins'],
+        self::PURPOSE_RECOVER => ['recoverCode'],
+        self::PURPOSE_CHECKOUT => ['checkoutCode'],
+        self::PURPOSE_VENDOR_PHONE => ['vendorPhoneSelfVerify'],
+    ];
+
+    /**
+     * 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. True while the switch behind $purpose is on (FEATURE);
+     * false for a purpose that is not in PURPOSES.
+     */
+    public static function featureOn(ConfigInterface $config, string $purpose): bool
+    {
+        foreach (self::FEATURE[$purpose] ?? [] as $getter) {
+            $value = $config->{$getter}();
+            if ($value === true || (is_string($value) && $value !== 'off')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /** The session key of a "continue" bypass: [purpose][canonical phone] => Unix time it is valid until. */
     public const BYPASS_KEY = 'kwtsms_code_bypass';

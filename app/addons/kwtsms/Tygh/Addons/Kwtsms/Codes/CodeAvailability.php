@@ -103,7 +103,9 @@ class CodeAvailability
             // feature
             // ON, sending OFF is "not sendable" (never a silent skip of the verification); with none ON the forms
             // behave like core.
-            return $this->config->registerCode() || $this->config->phoneChangeCode() ? self::SENDING_OFF : self::OFF;
+            // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. codeFeaturesOn() replaces the registerCode() ||
+            // phoneChangeCode() test: every code feature of 1.3.0 counts.
+            return $this->config->codeFeaturesOn() ? self::SENDING_OFF : self::OFF;
         }
         if ($this->state->suspendedCode() !== null || $this->state->breaker()['open']) {
             return self::GATEWAY;
