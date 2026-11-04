@@ -64,7 +64,7 @@ class PostUpgrade
     ];
 
     /**
-     * 2026-11-04 14:40 +03: Task RC2-refresh, task 596. The two language variables whose text 1.2.0-rc.2 reworded after
+     * 2026-11-04 14:34 +03: Task RC2-refresh, task 596. The two language variables whose text 1.2.0-rc.2 reworded after
      * 1.2.0-rc.1 (the code cap now counts only this add-on's code SMS), with the text rc.1 shipped, per language. Both
      * releases are version 1.2.0, so a store on rc.1 that takes the rc.2 refresh package only gets the new wording
      * through this map: a stored value that still equals it is refreshed, an edited one stays (same rule as
@@ -247,7 +247,7 @@ class PostUpgrade
         // no customer data is processed and no form of the 1.1.0 store changes (the scenario has no form yet).
         // 2026-10-29 19:47 +03: M1.13b fix round 1, task 596. Through the class (autoloaded from the new files), not
         // fn_kwtsms_tick_sms_code_scenario(), which the old func.php of the Upgrade Center request does not have.
-        // 2026-11-04 14:40 +03: Task RC2-refresh, task 596. Only for a store coming from before 1.2.0: the refresh
+        // 2026-11-04 14:34 +03: Task RC2-refresh, task 596. Only for a store coming from before 1.2.0: the refresh
         // package (1.2.0 rc.1 -> rc.2, $from_version 1.2.0) must not tick again what an admin may have unticked.
         if (version_compare($from_version, self::VERSION, '<') && !SmsCodeScenario::tick()) {
             throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
@@ -491,7 +491,7 @@ class PostUpgrade
     private static function languageValues($scheme): void
     {
         self::refreshUneditedValues((array) $scheme->getLanguageValues(false));
-        // 2026-11-04 14:40 +03: Task RC2-refresh, task 596. The rc.1 -> rc.2 rewording of two existing variables
+        // 2026-11-04 14:34 +03: Task RC2-refresh, task 596. The rc.1 -> rc.2 rewording of two existing variables
         // (same version 1.2.0, so the refresh package runs this step too); an edited value stays.
         self::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::SHIPPED_1_2_0_RC1);
         // 2026-10-29 00:07 +03: Task M1.11s item 3, task 596. The stored template texts follow, same rule.
