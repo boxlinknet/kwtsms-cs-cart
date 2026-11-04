@@ -14,6 +14,8 @@
  *            other than http and https, a scheme without a host ("https:evil"), userinfo, a colon in the first path
  *            segment ("evil:x"), control characters (also inside, "java\tscript:"), an empty value. The host is
  *            compared without port and without case; a current host of '' keeps no absolute address.
+ *            2026-11-04 21:18 +03 (M3 fix, task 596): a 4th argument $secure (true on an https request) refuses an http
+ *            absolute address, even of the same host.
  * DEPENDS:   Nothing.
  */
 
@@ -21,7 +23,9 @@ namespace Tygh\Addons\Kwtsms\Auth;
 
 final class ReturnUrl
 {
-    public static function safe(string $url, string $current_host, string $fallback): string
+    // 2026-11-04 21:18 +03: review fix M3 of Task M2.1, task 596. $secure = the request is https: then only an https absolute URL is kept
+    // (an http one of the same host would leave the secure site); a relative URL is kept either way.
+    public static function safe(string $url, string $current_host, string $fallback, bool $secure = false): string
     {
         // 2026-11-04 19:12 +03: Task M2.1, task 596. Control characters are looked for BEFORE trimming (trim() would
         // drop a trailing NUL, tab or newline and hide it); only spaces are trimmed.
@@ -51,6 +55,9 @@ final class ReturnUrl
             return $url;
         }
         $web = $scheme === 'http' || $scheme === 'https';
+        if ($secure && $scheme !== 'https') {
+            return $fallback;
+        }
         if (!$web || $host === '' || isset($parts['user']) || isset($parts['pass'])) {
             return $fallback;
         }

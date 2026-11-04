@@ -80,7 +80,8 @@ if (!empty($kwtsms_auth['user_id'])) {
 $kwtsms_return = ReturnUrl::safe(
     isset($_REQUEST['return_url']) && is_string($_REQUEST['return_url']) ? $_REQUEST['return_url'] : '',
     $kwtsms_host,
-    ''
+    '',
+    defined('HTTPS') // 2026-11-04 21:18 +03: review fix M3 of Task M2.1, task 596. https request: only https absolute URLs are kept
 );
 $kwtsms_phone = '';
 
