@@ -95,7 +95,9 @@ tgz_modes() { local res; res="$(tar -tvzf "$tgzf")" || return 3; printf '%s\n' "
 gate "zip entry modes" zip_modes
 gate "tgz entry modes" tgz_modes
 if [ "$fail" != 0 ]; then rm -rf "$zipf" "$tgzf" "$out/kwtsms"; echo "== ARCHIVE CHECK FAILED ($failed failed): no archive kept =="; exit 1; fi
-( cd "$out" && sha256sum "kwtsms-$version.zip" "kwtsms-$version.tgz" > SHA256SUMS ) || { rm -f "$zipf" "$tgzf"; echo "FAIL  sha256sum"; exit 1; }
+# 2026-11-04 12:47 +03: Task RC2 item 4, task 596. SHA256SUMS lists the full package AND every upgrade zip of this
+# version that is already in dist/ (tools/write-checksums.sh); the upgrade builder refreshes it when it runs later.
+bash "$here/tools/write-checksums.sh" "$out" "$version" > /dev/null || { rm -f "$zipf" "$tgzf"; echo "FAIL  sha256sum"; exit 1; }
 echo "files: $(printf '%s\n' "$list" | wc -l)"
 ls -l "$zipf" "$tgzf"; cat "$out/SHA256SUMS"
 echo "== OK kwtsms $version ($passed gates passed) =="

@@ -92,4 +92,17 @@ screenshot that shows the API password, the cron key or a customer phone number.
    For a release candidate, tag `vX.Y.Z-rc.N`: it is published as a GitHub pre-release.
 5. GitHub Actions builds the package and publishes the release with `kwtsms-X.Y.Z.zip`, `kwtsms-X.Y.Z.tgz` and
    `SHA256SUMS`. The notes come from `tools/release-notes.sh` (the README's Features, Requirements, Installation and
-   Configuration sections plus a CHANGELOG link). No manual step.
+   Configuration sections plus a CHANGELOG link).
+6. <!-- 2026-11-04 12:47 +03: Task RC2 item 4, task 596 -->Upgrade packages and `SHA256SUMS` (controller step, after
+   the workflow has published the release; CI builds only the full package because the upgrade builder needs the
+   old release tags and the released-zips table). `SHA256SUMS` must list the full zip, the tgz AND every upgrade zip:
+   ```
+   bash tools/build-package.sh
+   bash tools/build-upgrade-package.sh --from 1.1.0 --to X.Y.Z     # once per supported older version
+   bash tools/build-upgrade-package.sh --from 1.0.0 --to X.Y.Z
+   cat dist/SHA256SUMS                                             # full zip, tgz, every upgrade zip
+   gh release upload vX.Y.Z dist/kwtsms-upgrade-*-X.Y.Z.zip dist/SHA256SUMS --clobber
+   ```
+   Each build refreshes `dist/SHA256SUMS` through `tools/write-checksums.sh`, so the order does not matter. The
+   rebuilt full zip must have the same sha256 as the one the workflow published (the build is reproducible); if it
+   differs, upload nothing and find out why.

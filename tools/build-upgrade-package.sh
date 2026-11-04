@@ -437,4 +437,8 @@ if [ "$fail" != 0 ]; then rm -f "$zipf"; echo "== UPGRADE PACKAGE CHECK FAILED (
 echo "files in the zip: $(printf '%s\n' "$up_list" | wc -l); old release: $ref"
 ls -l "$zipf"
 sha256sum "$zipf"
+# 2026-11-04 12:47 +03: Task RC2 item 4, task 596. SHA256SUMS in the output directory lists this upgrade zip next to
+# the full package and the other upgrade zips of the same version (tools/write-checksums.sh).
+bash "$here/tools/write-checksums.sh" "$out" "$to" > /dev/null || { echo "FAIL  SHA256SUMS"; exit 1; }
+echo "SHA256SUMS: $(wc -l < "$out/SHA256SUMS") files listed in $out/SHA256SUMS"
 echo "== OK kwtsms upgrade $from -> $to ($passed gates passed). Upload a copy named kwtsms.zip =="
