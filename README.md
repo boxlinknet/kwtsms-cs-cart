@@ -102,6 +102,116 @@ admin notices.
 
 The Help page inside the add-on has the full setup guide.
 
+<!-- 2026-11-04 12:37 +03: Task RC2 item 2 (1.2.0-rc.2), task 596. The public send interface, documented as stable. -->
+## For developers
+
+Other add-ons can send SMS through the add-on's own pipeline, so their texts pass the same switches, limits, number
+checks, balance checks and logs as everything else the store sends.
+
+```php
+/** @var \Tygh\Addons\Kwtsms\Sms\SendResult $result */
+$result = \Tygh::$app['kwtsms.sms']->send($phones, string $message, array $context = []);
+```
+
+Signature: `SmsService::send($phones, string $message, array $context = []): SendResult`. It never throws; every
+failure is an outcome in the result. Guard the call with `isset(\Tygh::$app['kwtsms.sms'])` (and
+`Registry::get('addons.kwtsms.status') === 'A'`) when your add-on may run without kwtSMS.
+
+**Stability promise.** This method, the `SendResult` accessors listed below and the context keys listed below are a
+public interface. A change to any of them is announced in the release notes and in CHANGELOG.md. A contract test
+(`tests/Unit/PublicInterfaceContractTest.php`) fails when the signature, the accessors or the documented keys change.
+
+### Phone numbers (`$phones`)
+
+An array of strings, or one string that lists several numbers separated by `,` `;` or line breaks. Any other value is
+read as an empty number. At most 1000 numbers per call through `fn_kwtsms_send()`; `send()` itself splits the call into
+gateway requests of at most 200 numbers. Accepted formats: international with or without `+` or `00`
+(`+965 5012 3401`, `00965 50123401`, `96550123401`), spaces, dashes and brackets, Arabic-Indic and Persian digits, a
+leading trunk zero after the country code, and a local number with no country code whose length is the default
+country's local length (default country: Settings, 965 preselected), for example `50123401`. A number that fails the
+local check is not sent: its outcome is `invalid` (reasons: `empty`, `email`, `too_short`, `too_long`, `bad_length`,
+`not_mobile`). Repeated numbers are sent once (`duplicate`).
+
+### Context (`$context`)
+
+Every key is optional. A key not in this table is dropped. A string value is trimmed and cut to 128 characters, an
+integer key reads a non-numeric value as 0.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `source` | `manual` | `event`, `manual`, `api`, `cron` or `otp`; anything else is read as `manual`. See below. |
+| `event_id` | empty | A label for the Logs page, for example `myaddon.order_verified`. |
+| `receiver` | empty | `C` customer, `A` admin, `V` vendor. `C`, `A` and `V` sends are capped per number. Quiet hours (Settings) hold a `C` send of source `manual`, `api` or `cron`, never an `otp` send or one with a `ttl`. |
+| `audience` | `storefront` | `admin` or `storefront` (anything else is `storefront`). Decides how an error is worded for an interactive caller. |
+| `interactive` | `false` | `true` when a person waits for the answer: `errorMessage()` then carries text to show. |
+| `order_id`, `parent_order_id`, `company_id`, `storefront_id`, `user_id`, `actor_user_id`, `actor_company_id` | `0` | Ids stored with the log row so the send shows up on the right order, vendor and customer. |
+| `lang_code` | empty | Two-letter language of the text, stored with the log row. |
+| `country_iso` | empty | ISO2 country of the customer, used as the hint for a number typed without a country code. |
+| `ip` | empty | Visitor address, stored with the attempt row. |
+| `secret_values` | `[]` | Strings (a one-time code) that are masked as `******` in every stored copy: the message, the API request and response, the attempt, debug and outbox rows. The text still goes out in full. |
+| `ttl` | `0` | Seconds the text stays worth sending if it has to wait in the queue (0 = 1800); a send with a ttl is never held for quiet hours. |
+| `caller` | empty | Name of your add-on, stored in the log context. |
+
+Internal keys, not for external use (they are read, but their meaning can change without notice): `outbox_id` (always
+dropped), `retry_of`, `resend_outbox_id`. The stored source `otp_code` is reserved for the code SMS this add-on sends
+itself; passing it is read as `manual`.
+
+### Sources
+
+- `event`: a notification about something that happened (an order, a status). Limited to the page count set in Settings.
+- `manual`: a person sent it. Capped per number and counted in the per-number bucket.
+- `api`: a program sent it (this is what `fn_kwtsms_send()` uses). Counted in its own per-number bucket, so a bulk
+  job does not use up the customer caps.
+- `cron`: a scheduled job.
+- `otp`: a one-time code of your add-on. The values in `secret_values` are masked in every stored copy, the send is
+  exempt from quiet hours (a code must arrive now), it may use 2 pages whatever the notification page limit is, and a
+  Logs resend of the row is refused. It keeps the ordinary caps: the per-number hourly and daily caps, the store
+  hourly and daily caps. It is not counted by, and not blocked by, the daily cap on the code SMS this add-on sends
+  itself (Settings > Phone and codes).
+
+### The result (`SendResult`)
+
+- `status(): string`: `sent`, `partial`, `failed`, `skipped` (every number was blocked locally) or `deferred` (queued
+  for later).
+- `acceptedCount(): int`: numbers the gateway accepted (outcomes `accepted`, `test_queued`, `partial_accept`).
+- `outcomes(): array`: raw number => outcome. Outcomes include `accepted`, `test_queued`, `partial_accept`,
+  `duplicate`, `invalid`, `no_phone`, `blocked_*`, `rate_limited`, `no_coverage`, `deferred`, `rejected`, `failed`,
+  `unknown`, `expired`, `cancelled`.
+- `recipients(): array`: one entry per number with `phone_raw`, `phone`, `outcome`, `reason`, `code`, `attempt_id`,
+  `message_id`, `outbox_id`.
+- `messageIds(): string[]`, `errorCode(): ?string`, `errorMessage(): string`, `pointsCharged(): float`,
+  `balanceAfter(): ?float`, `isTest(): bool`, `toArray(): array`.
+
+### Test mode
+
+While Test mode is on in Settings, every call goes to kwtSMS with `test=1`: the outcome is `test_queued`, `isTest()` is
+true, nothing is delivered, and the message waits in the kwtSMS queue until it is deleted there (credits are held until
+then). Your code does not need to know: the same call works in both modes.
+
+### Example
+
+```php
+if (isset(\Tygh::$app['kwtsms.sms'])) {
+    $result = \Tygh::$app['kwtsms.sms']->send(
+        $order_info['phone'],
+        'Your verification code is ' . $code,
+        [
+            'source' => 'otp',
+            'event_id' => 'myaddon.checkout_code',
+            'receiver' => 'C',
+            'secret_values' => [$code],
+            'order_id' => (int) $order_info['order_id'],
+            'storefront_id' => (int) $order_info['storefront_id'],
+            'ttl' => 300,
+            'caller' => 'myaddon',
+        ]
+    );
+    if ($result->acceptedCount() === 0) {
+        // $result->status(), $result->errorCode(): tell the customer to try later
+    }
+}
+```
+
 ## Build the package
 
 `bash tools/build-package.sh` runs the release gates (security greps, language parity, `php -l`, package content

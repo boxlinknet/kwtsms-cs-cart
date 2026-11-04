@@ -46,6 +46,12 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   cap so a flood of code requests cannot use up the order SMS budget. Codes that other add-ons send through the SMS
   interface (source `otp`) are not counted and not capped by it. A code request refused by any limit is never let through under
   "When SMS codes can't be sent: Continue".
+<!-- 2026-11-04 12:40 +03: Task RC2 item 2 (1.2.0-rc.2), task 596 -->
+- A documented public interface for other add-ons: `Tygh::$app['kwtsms.sms']->send($phones, $message, $context)`
+  returns a `SendResult`. README "For developers" lists the number formats, every context key, the sources (including
+  what `otp` does), the result accessors and test mode. **Stability promise:** changes to this interface are
+  announced in the release notes and in this CHANGELOG, and a contract test fails when the signature, the result
+  accessors or the context keys change.
 - Pause or continue when the store cannot send SMS, with an alert in both cases.
 - Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a
   "Coming in 1.3" list. The Dashboard go-live list gains "Set a CAPTCHA provider for SMS codes" while a code feature
