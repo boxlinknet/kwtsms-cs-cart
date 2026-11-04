@@ -77,6 +77,10 @@ if [ "$fail" != 0 ]; then echo "== GATES FAILED ($failed failed, $passed passed)
 echo "-- archives"
 zipf="$out/kwtsms-$version.zip"; tgzf="$out/kwtsms-$version.tgz"
 must "clear the old dist files" rm -rf "$out/kwtsms" "$zipf" "$tgzf" "$out/SHA256SUMS"
+# 2026-11-04 14:36 +03: Task RC2 (coordinator item), task 596. Upgrade zips of this version left by an earlier build (an older
+# RC) would be listed in SHA256SUMS by write-checksums.sh and uploaded by the release step; the upgrade builder makes
+# them again after this script (CONTRIBUTING, Releasing). Other versions' zips stay.
+must "clear stale upgrade zips of $version" rm -f "$out"/kwtsms-upgrade-*-"$version".zip
 must "copy the stage to dist/kwtsms" cp -r "$pkg" "$out/kwtsms"
 # 2026-10-22 12:37 +03: zip writes each entry time as zone-less local time, so a UTC runner gave the same files with
 # other times and another hash; pinned to Asia/Kuwait (no DST), the zone the 1.0.0 RC zip was built in, task 596.
@@ -96,7 +100,8 @@ gate "zip entry modes" zip_modes
 gate "tgz entry modes" tgz_modes
 if [ "$fail" != 0 ]; then rm -rf "$zipf" "$tgzf" "$out/kwtsms"; echo "== ARCHIVE CHECK FAILED ($failed failed): no archive kept =="; exit 1; fi
 # 2026-11-04 12:47 +03: Task RC2 item 4, task 596. SHA256SUMS lists the full package AND every upgrade zip of this
-# version that is already in dist/ (tools/write-checksums.sh); the upgrade builder refreshes it when it runs later.
+# version that is in dist/ (tools/write-checksums.sh; none right after the clean-up above); the upgrade builder
+# refreshes it when it runs later.
 bash "$here/tools/write-checksums.sh" "$out" "$version" > /dev/null || { rm -f "$zipf" "$tgzf"; echo "FAIL  sha256sum"; exit 1; }
 echo "files: $(printf '%s\n' "$list" | wc -l)"
 ls -l "$zipf" "$tgzf"; cat "$out/SHA256SUMS"
