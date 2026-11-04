@@ -252,6 +252,11 @@ class TwoFactorFlow
 
                 return $this->answer('changed');
             }
+            // 2026-11-05 02:28 +03: Task M2.2a fix 1 (M1), task 596. A pending state belongs to the area that started it: a code typed
+            // on the other area's page does not complete it (and is not used up).
+            if ((string) $state['area'] !== (string) $this->environment()['area']) {
+                return $this->answer('changed');
+            }
             $need = $this->policy->requirement($user);
             if ($need !== TwoFactorPolicy::CODE && $need !== TwoFactorPolicy::ENROLL) {
                 // The switch changed or the account no longer needs a code: the password is asked again.
@@ -672,12 +677,12 @@ class TwoFactorFlow
     }
 
     /**
-     * @return array{ip:string,hash:string,storefront_id:int,lang:string,host:string,secure:bool}
+     * @return array{ip:string,hash:string,storefront_id:int,lang:string,host:string,secure:bool,area:string}
      */
     private function environment(): array
     {
         if ($this->env !== null) {
-            return (array) call_user_func($this->env) + ['host' => '', 'secure' => false];
+            return (array) call_user_func($this->env) + ['host' => '', 'secure' => false, 'area' => $this->area()];
         }
         $storefront = isset(\Tygh\Tygh::$app['storefront']) ? \Tygh\Tygh::$app['storefront'] : null;
 
@@ -689,7 +694,14 @@ class TwoFactorFlow
             'lang' => defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en',
             'host' => (string) \Tygh\Registry::get('config.current_host'),
             'secure' => defined('HTTPS'),
+            'area' => $this->area(),
         ];
+    }
+
+    /** 2026-11-05 02:28 +03: Task M2.2a fix 1 (M1), task 596. The current area: C (storefront), A (admin) or V (vendor panel). */
+    private function area(): string
+    {
+        return defined('AREA') ? (string) AREA : '';
     }
 
     /**
