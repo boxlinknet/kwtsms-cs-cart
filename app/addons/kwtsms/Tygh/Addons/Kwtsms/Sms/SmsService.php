@@ -161,8 +161,19 @@ class SmsService
 
     private const SOURCES = ['event', 'manual', 'api', 'cron', 'otp'];
 
+    /**
+     * 2026-11-04 12:32 +03: Task RC2 item 1, task 596. The stored source of the code SMS THIS add-on issues itself
+     * (CodeSender: login, registration, phone-change and recovery codes, and the old-number notice, P3-R14). It behaves
+     * like 'otp' everywhere (secret masking, quiet-hours exemption, 2-page floor, per-number bucket), and it alone is
+     * counted by the daily code cap (cap_code_day, P3-R15). Only sendCode() and the outbox drain can produce it:
+     * send() reads a caller's 'otp_code' as 'manual', so a third-party add-on that sends its own codes with source
+     * 'otp' keeps the 1.1.0 behaviour and is never counted against the code cap.
+     */
+    public const SOURCE_CODE = 'otp_code';
+
     /** The per-number bucket of every source that is not api (PRD 5.2: api has its own). */
-    private const NON_API_SOURCES = ['event', 'manual', 'cron', 'otp'];
+    // 2026-11-04 12:32 +03: otp_code joins the per-number bucket of the other non-api sources, Task RC2, task 596.
+    private const NON_API_SOURCES = ['event', 'manual', 'cron', 'otp', self::SOURCE_CODE];
 
     private const SUSPEND_CODES = ['ERR001', 'ERR004', 'ERR005', 'ERR024', 'ERR034'];
 
@@ -341,6 +352,22 @@ class SmsService
         unset($context['outbox_id']);
 
         return $this->run($this->phoneList($phones), $message, $this->normalizeContext($context), null);
+    }
+
+    /**
+     * 2026-11-04 12:32 +03: Task RC2 item 1, task 596. send() for the code SMS this add-on issues itself (CodeSender
+     * only): the same pipeline, stored with source otp_code so the daily code cap counts these and nothing else.
+     * NOT part of the public interface; third-party add-ons call send().
+     *
+     * @param array<int,mixed>|string $phones
+     * @param array<string,mixed>     $context See send()
+     */
+    public function sendCode($phones, string $message, array $context = []): SendResult
+    {
+        unset($context['outbox_id']);
+        $context['source'] = self::SOURCE_CODE;
+
+        return $this->run($this->phoneList($phones), $message, $this->normalizeContext($context, true), null);
     }
 
     /**
@@ -612,7 +639,7 @@ class SmsService
      */
     private function sendRow(array $row): SendResult
     {
-        $context = $this->normalizeContext(is_array($row['context']) ? $row['context'] : []);
+        $context = $this->normalizeContext(is_array($row['context']) ? $row['context'] : [], true);
         $context['outbox_id'] = (int) $row['outbox_id'];
 
         return $this->run($this->phoneList($row['phones']), (string) $row['message'], $context, $row);
@@ -903,6 +930,7 @@ class SmsService
         // 2026-10-21 08:35 +03: a row queued for after the response is a first attempt and the hook runs on it
         // once ($hook_due below, 2026-10-21 04:19 and 05:08 +03); cleanup item 8, task 596.
         $cancel = false;
+        $was_code = $context['source'] === self::SOURCE_CODE; // 2026-11-04 12:32 +03: Task RC2, task 596
         $outbox_id = $context['outbox_id'];
         // 2026-10-21 03:15 +03: sendTest() skips step 2 for this send only; read and cleared before any hook runs
         // (ruling R30, Task 1.10 fix round 1 item 2), task 596.
@@ -922,7 +950,8 @@ class SmsService
             // A handler may have put anything into the three references.
             $phones = $this->phoneList($phones);
             $message = is_scalar($message) ? (string) $message : '';
-            $context = $this->normalizeContext(is_array($context) ? $context : []);
+            // 2026-11-04 12:32 +03: Task RC2, task 596. A hook handler keeps otp_code only when the send had it.
+            $context = $this->normalizeContext(is_array($context) ? $context : [], $was_code);
         }
         $context['outbox_id'] = $outbox_id;
         // 2026-10-21 05:08 +03: the queued row keeps what the hook returned and the mark that it ran, before anything
@@ -1083,7 +1112,7 @@ class SmsService
         // the shipped Arabic text is 2); a store's higher max_pages_notification still applies.
         // 2026-10-24 15:21 +03: Task M1.5 carry-over M-A, task 596. The floor applies only when the send carries a code
         // (non-empty secret_values); the phone-changed notice shares source otp and keeps the store's page limit.
-        if ($context['source'] === 'otp' && !empty($context['secret_values'])) {
+        if (self::isOtpSource($context['source']) && !empty($context['secret_values'])) {
             $limit = max($limit, 2);
         }
         if ($pages > $limit) {
@@ -1628,13 +1657,15 @@ class SmsService
         // checked before the shared one: the numbers it blocks never reach the shared count, so a flood of code
         // requests cannot use up the order SMS budget. Same window start as the shared cap ("Resume now" resets both).
         $code_blocked = 0;
-        if ($context['source'] === 'otp') {
+        // 2026-11-04 12:32 +03: Task RC2 item 1, task 596. Only the code SMS this add-on issues (otp_code) are counted
+        // and capped; a third-party add-on's own 'otp' sends are not (their checkout codes keep the 1.1.0 caps).
+        if ($context['source'] === self::SOURCE_CODE) {
             $code_left = $this->config->capCodeDay() - $this->attempts->countRecent(
                 '',
                 '',
                 max(1, $now - $start),
                 self::SENT_OUTCOMES,
-                ['source' => 'otp']
+                ['source' => self::SOURCE_CODE]
             );
             $code_passed = [];
             foreach ($this->open($rcpt) as $i) {
@@ -1861,7 +1892,10 @@ class SmsService
      */
     private function quietHoursEnd(array $context): ?int
     {
-        if (!$this->config->quietHoursEnabled() || $context['receiver'] !== 'C' || $context['source'] === 'otp') {
+        if (
+            !$this->config->quietHoursEnabled() || $context['receiver'] !== 'C'
+            || self::isOtpSource($context['source'])
+        ) {
             return null;
         }
         // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R13, M1), task 596. A send that carries a ttl (a password-
@@ -2192,7 +2226,7 @@ class SmsService
      *
      * @return array<string,mixed>
      */
-    private function normalizeContext(array $context): array
+    private function normalizeContext(array $context, bool $internal = false): array
     {
         $out = self::CONTEXT_DEFAULTS;
         foreach (self::CONTEXT_DEFAULTS as $key => $default) {
@@ -2211,11 +2245,20 @@ class SmsService
                 $out[$key] = substr(trim((string) $value), 0, 128);
             }
         }
-        $out['source'] = in_array($out['source'], self::SOURCES, true) ? $out['source'] : 'manual';
+        // 2026-11-04 12:32 +03: Task RC2, task 596. otp_code is accepted only from our own callers (sendCode(), the
+        // outbox drain); from send() it is read as manual.
+        $allowed = $internal ? array_merge(self::SOURCES, [self::SOURCE_CODE]) : self::SOURCES;
+        $out['source'] = in_array($out['source'], $allowed, true) ? $out['source'] : 'manual';
         $out['receiver'] = strtoupper(substr($out['receiver'], 0, 15));
         $out['audience'] = $out['audience'] === 'admin' ? 'admin' : 'storefront';
 
         return $out;
+    }
+
+    /** 2026-11-04 12:32 +03: Task RC2, task 596. A third-party code (otp) or one of ours (otp_code). */
+    private static function isOtpSource(string $source): bool
+    {
+        return $source === 'otp' || $source === self::SOURCE_CODE;
     }
 
     /**

@@ -401,7 +401,9 @@ class ServiceProvider implements ServiceProviderInterface
         $app['kwtsms.code_sender'] = function (Container $app): CodeSender {
             return new CodeSender(
                 static function (array $phones, string $text, array $context) use ($app) {
-                    return $app['kwtsms.sms']->send($phones, $text, $context);
+                    // 2026-11-04 12:32 +03: Task RC2 item 1, task 596. sendCode(): the add-on's own code SMS are stored
+                    // as source otp_code, the only ones the daily code cap counts (a third-party otp send is not).
+                    return $app['kwtsms.sms']->sendCode($phones, $text, $context);
                 },
                 $app['kwtsms.templates'],
                 $app['kwtsms.config'],

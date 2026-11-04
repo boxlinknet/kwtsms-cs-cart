@@ -188,7 +188,8 @@ class LogResender
         if (!in_array((string) $attempt['outcome'], self::RESENDABLE, true)) {
             return 'not_allowed';
         }
-        if ((string) $attempt['source'] === 'otp') {
+        // 2026-11-04 12:32 +03: Task RC2, task 596. otp_code is the add-on's own code SMS, masked like otp.
+        if (in_array((string) $attempt['source'], ['otp', 'otp_code'], true)) {
             return 'masked';
         }
         if (preg_match('/^[1-9][0-9]{6,14}$/D', (string) $attempt['phone']) !== 1) {

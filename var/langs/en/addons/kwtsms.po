@@ -5476,9 +5476,10 @@ msgid "Most SMS the store sends in one clock hour, codes included. Above it, sen
 msgstr "Most SMS the store sends in one clock hour, codes included. Above it, sending stops until the next hour and you get an alert. 0 turns the cap off."
 
 # 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Help of the code SMS daily cap.
+# 2026-11-04 12:34 +03: Task RC2 item 1, task 596. The code cap counts only the code SMS this add-on sends.
 msgctxt "Languages::kwtsms.settings.cap_code_day_help"
-msgid "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
-msgstr "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
+msgid "Most code SMS this add-on sends (verification codes, phone-change codes and notices) per day, counted from midnight. Codes that other add-ons send through the SMS interface are not counted. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
+msgstr "Most code SMS this add-on sends (verification codes, phone-change codes and notices) per day, counted from midnight. Codes that other add-ons send through the SMS interface are not counted. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
 
 msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
@@ -6407,9 +6408,10 @@ msgid "Mobile carriers share one address between many customers. If real custome
 msgstr "Mobile carriers share one address between many customers. If real customers are refused with \"Too many tries from your network\", raise the per-address numbers."
 
 # 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+# 2026-11-04 12:34 +03: Task RC2 item 1, task 596. The code cap counts only the code SMS this add-on sends.
 msgctxt "Languages::kwtsms.help.limits.p4"
-msgid "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
-msgstr "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+msgid "The code SMS this add-on sends also have their own daily cap for the whole store (default 300, in Settings); codes that other add-ons send through the SMS interface are not counted. When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+msgstr "The code SMS this add-on sends also have their own daily cap for the whole store (default 300, in Settings); codes that other add-ons send through the SMS interface are not counted. When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
 
 # 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
 msgctxt "Languages::kwtsms.help.limits.p5"

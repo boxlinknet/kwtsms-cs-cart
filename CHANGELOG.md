@@ -41,8 +41,10 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   per-address limits and an account gets at most 1 such SMS an hour.
 - Per-address limits on code requests (with trusted proxies for Cloudflare and load balancers), a store hourly cap, and
   a CAPTCHA provider for code requests: Cloudflare Turnstile, or the core reCAPTCHA add-on.
-- A store-wide daily cap for code SMS (default 300, in Settings), checked before the shared daily cap so a flood of code
-  requests cannot use up the order SMS budget. A code request refused by any limit is never let through under
+<!-- 2026-11-04 12:36 +03: Task RC2 item 1 (1.2.0-rc.2), task 596: the cap counts only this add-on's own code SMS -->
+- A store-wide daily cap for code SMS this add-on sends (default 300, in Settings), checked before the shared daily
+  cap so a flood of code requests cannot use up the order SMS budget. Codes that other add-ons send through the SMS
+  interface (source `otp`) are not counted and not capped by it. A code request refused by any limit is never let through under
   "When SMS codes can't be sent: Continue".
 - Pause or continue when the store cannot send SMS, with an alert in both cases.
 - Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a

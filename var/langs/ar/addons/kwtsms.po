@@ -5479,9 +5479,10 @@ msgid "Most SMS the store sends in one clock hour, codes included. Above it, sen
 msgstr "أقصى عدد من الرسائل يرسله المتجر في ساعة واحدة، بما فيها رموز التحقق. بعد هذا الحد يتوقف الإرسال حتى الساعة التالية ويصلك تنبيه. القيمة 0 تعطل الحد."
 
 # 2026-10-29 20:08 +03: Task 596 (branch review I2, ruling P3-R15). Help of the code SMS daily cap.
+# 2026-11-04 12:34 +03: Task RC2 item 1, task 596. The code cap counts only the code SMS this add-on sends.
 msgctxt "Languages::kwtsms.settings.cap_code_day_help"
-msgid "Most code SMS (verification codes, phone-change codes and notices) the store sends per day, counted from midnight. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
-msgstr "أقصى عدد من رسائل الرموز (رموز التحقق ورموز وإشعارات تغيير الرقم) يرسله المتجر في اليوم، يُحتسب من منتصف الليل. بعد هذا الحد تُرفض الرموز الجديدة حتى الغد ويصلك تنبيه. تحتفظ رسائل الطلبات بحدها الخاص، فلا يستطيع سيل من طلبات الرموز استهلاكه. الافتراضي 300."
+msgid "Most code SMS this add-on sends (verification codes, phone-change codes and notices) per day, counted from midnight. Codes that other add-ons send through the SMS interface are not counted. Above it, new codes are refused until tomorrow and you get an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up. Default 300."
+msgstr "أقصى عدد من رسائل الرموز التي ترسلها هذه الإضافة (رموز التحقق ورموز وإشعارات تغيير الرقم) في اليوم، يُحتسب من منتصف الليل. الرموز التي ترسلها إضافات أخرى عبر واجهة الرسائل لا تُحتسب. بعد هذا الحد تُرفض الرموز الجديدة حتى الغد ويصلك تنبيه. تحتفظ رسائل الطلبات بحدها الخاص، فلا يستطيع سيل من طلبات الرموز استهلاكه. الافتراضي 300."
 
 msgctxt "Languages::kwtsms.settings.trusted_proxies_help"
 msgid "One IP address or CIDR block per line, such as the load balancer in front of the store. Leave empty when visitors reach the store directly. Behind Cloudflare, list its IP ranges. The forwarded address is only believed from these proxies."
@@ -6413,9 +6414,10 @@ msgid "Mobile carriers share one address between many customers. If real custome
 msgstr "تتشارك شركات الاتصالات عنوانا واحدا بين عدد كبير من العملاء. إذا رُفض عملاء حقيقيون برسالة «محاولات كثيرة من شبكتك»، فارفع أرقام الحدود لكل عنوان."
 
 # 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
+# 2026-11-04 12:34 +03: Task RC2 item 1, task 596. The code cap counts only the code SMS this add-on sends.
 msgctxt "Languages::kwtsms.help.limits.p4"
-msgid "Code SMS also have their own daily cap for the whole store (default 300, in Settings). When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
-msgstr "لرسائل الرموز أيضا حد يومي خاص للمتجر كله (الافتراضي 300، في الإعدادات). عند بلوغه تُرفض الرموز الجديدة حتى اليوم التالي ويصلك تنبيه، وتحتفظ رسائل الطلبات بحدها الخاص. طلب الرمز المرفوض بسبب حد لا يمر بدون تحقق: خيار \"عند تعذر إرسال رموز التحقق\" ينطبق فقط عندما يتعذر الإرسال نفسه، وليس بسبب حد."
+msgid "The code SMS this add-on sends also have their own daily cap for the whole store (default 300, in Settings); codes that other add-ons send through the SMS interface are not counted. When it is reached, new codes are refused until the next day and you get an alert, and order SMS keep their own cap. A code request refused by a limit never goes through unverified: the setting \"When SMS codes can't be sent\" applies only when sending itself is off-line, never to a limit."
+msgstr "لرسائل الرموز التي ترسلها هذه الإضافة أيضا حد يومي خاص للمتجر كله (الافتراضي 300، في الإعدادات)، ولا تُحتسب الرموز التي ترسلها إضافات أخرى عبر واجهة الرسائل. عند بلوغه تُرفض الرموز الجديدة حتى اليوم التالي ويصلك تنبيه، وتحتفظ رسائل الطلبات بحدها الخاص. طلب الرمز المرفوض بسبب حد لا يمر بدون تحقق: خيار \"عند تعذر إرسال رموز التحقق\" ينطبق فقط عندما يتعذر الإرسال نفسه، وليس بسبب حد."
 
 # 2026-10-29 20:10 +03: Task 596 (branch review I1/I2, rulings P3-R14, P3-R15). Help line.
 msgctxt "Languages::kwtsms.help.limits.p5"
