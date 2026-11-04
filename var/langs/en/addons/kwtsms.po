@@ -6354,6 +6354,21 @@ msgctxt "Languages::kwtsms.help.codes.p8"
 msgid "The notice to the old number goes out after every change of the phone number made in the storefront: a change confirmed with a code, a change saved while codes are unavailable (Continue), and removing the number. It needs the change code switch. It names no new number and has no link, and the customer's order SMS opt-out doesn't stop it. Edit its text under Templates."
 msgstr "The notice to the old number goes out after every change of the phone number made in the storefront: a change confirmed with a code, a change saved while codes are unavailable (Continue), and removing the number. It needs the change code switch. It names no new number and has no link, and the customer's order SMS opt-out doesn't stop it. Edit its text under Templates."
 
+# 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
+msgctxt "Languages::kwtsms.help.codes.p9"
+msgid "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings."
+msgstr "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings."
+
+# 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
+msgctxt "Languages::kwtsms.help.codes.p10"
+msgid "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional can't sign in while the code SMS can't be sent, for example when the kwtSMS balance is empty, until backup codes arrive in the next release. Until then, use the constant or the command."
+msgstr "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional can't sign in while the code SMS can't be sent, for example when the kwtSMS balance is empty, until backup codes arrive in the next release. Until then, use the constant or the command."
+
+# 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
+msgctxt "Languages::kwtsms.help.codes.p11"
+msgid "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code."
+msgstr "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.phones.title"
 msgid "Phone numbers and accounts"

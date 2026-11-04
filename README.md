@@ -250,6 +250,19 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   has to learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA
   provider (Cloudflare Turnstile or the core reCAPTCHA add-on) and keep the per-network limits. The sign-in and
   recovery code requests answer the same for every number and do not have this path.
+<!-- 2026-11-05 02:38 +03: review fix 1 of Task M2.2a (M3, I2, C1), task 596 -->
+- Two-step sign-in with an SMS code after the password (1.3.0, off until you turn it on). Every code belongs to one
+  account and one number, so another account that saved the same number cannot cancel, replace or lock the code of an
+  administrator. A number that another account uses for its second step, or that belongs to an administrator or vendor
+  account, is refused at opt-in.
+- Break-glass: add `define('KWTSMS_2FA_OFF', true);` to `config.local.php` to turn every second step off, or run
+  `php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID` on the server (`--types=admins|vendors|customers`
+  turns one switch off). An administrator who opted in under Optional cannot sign in while the code SMS cannot be sent
+  (for example an empty kwtSMS balance) until backup codes arrive in the next release; use the constant or the
+  command until then.
+- The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. This add-on
+  refuses (401) an account that needs a second step when commerceml is installed. The REST API (e-mail and API key,
+  a separate secret) is not held for a code.
 
 ## Build the package
 

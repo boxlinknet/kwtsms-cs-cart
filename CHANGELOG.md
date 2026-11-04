@@ -35,6 +35,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Notes
 
+<!-- 2026-11-05 02:38 +03: review fix 1 of Task M2.2a, task 596 -->
+- Two-step sign-in: a code and its wrong-attempt count belong to one account, so another account that saved the same
+  number can no longer cancel the code of an administrator or lock the administrator out. A number that another account
+  uses for its second step, or that belongs to an administrator or vendor account, is refused at opt-in. "Required" for
+  vendors is refused on save, like administrators, until its safeguards ship.
+- The commerceml add-on's HTTP Basic sign-in is refused (401) for an account that needs a second step. The REST API
+  (e-mail and API key, a separate secret) is not held for a code. An exception while the sign-in is held can no longer
+  let core log the account in, and core's "successfully logged in" notice is dropped for a held account.
+- An administrator who opted in under Optional cannot sign in while the code SMS cannot be sent, until backup codes
+  arrive in the next release; Help and README name the break-glass constant and command.
+
 <!-- 2026-11-04 23:19 +03: Task M2.2a, task 596. The code sign-in now asks the one two-step policy. -->
 - Sign-in by code asks the same two-step policy as the password sign-in: an account that must use the second step
   (it opted in, or its type requires it) cannot sign in by code. A third-party add-on's own two-step sign-in is still

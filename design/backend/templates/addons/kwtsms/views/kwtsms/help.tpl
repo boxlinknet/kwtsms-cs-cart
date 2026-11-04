@@ -166,6 +166,10 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p id="kwtsms_help_codes_register">{__("kwtsms.help.codes.p6")}</p>
                 <p id="kwtsms_help_codes_change">{__("kwtsms.help.codes.p7")}</p>
                 <p id="kwtsms_help_codes_notice">{__("kwtsms.help.codes.p8")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                {* 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Two-step sign-in, its break-glass, commerceml and the REST API. *}
+                <p id="kwtsms_help_codes_twofa">{__("kwtsms.help.codes.p9")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_signin" pages=$h.pages}</p>
+                <p id="kwtsms_help_codes_breakglass">{__("kwtsms.help.codes.p10")}</p>
+                <p id="kwtsms_help_codes_api">{__("kwtsms.help.codes.p11")}</p>
             </section>
 
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_phones" aria-labelledby="kwtsms_help_phones_title">
