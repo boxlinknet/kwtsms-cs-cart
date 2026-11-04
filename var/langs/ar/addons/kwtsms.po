@@ -6561,3 +6561,13 @@ msgstr "[name] نشطة لكنها لا تحمي نموذج رمز التحقق 
 msgctxt "Languages::kwtsms.settings.info_turnstile_idle"
 msgid "Cloudflare Turnstile is saved but not used: [name] is the active CAPTCHA provider. Turn that add-on off to use Turnstile."
 msgstr "تم حفظ Cloudflare Turnstile لكنه غير مستخدم: [name] هو مزود CAPTCHA النشط. أوقف تلك الإضافة لاستخدام Turnstile."
+
+# 2026-11-04 14:35 +03: RC2 fix1 item 1, task 596. The active third-party CAPTCHA driver is not set up: it protects nothing.
+msgctxt "Languages::kwtsms.settings.warn_captcha_unconfigured"
+msgid "[name] is the active CAPTCHA but is not set up, so the code form has no CAPTCHA. Anyone can request code SMS; only the rate limits protect your balance, and the store sends at most [cap] code SMS a day (then new codes are refused until tomorrow). Finish setting up [name], or set up Cloudflare Turnstile below."
+msgstr "[name] هي إضافة CAPTCHA النشطة لكنها غير مهيأة، لذلك لا يوجد CAPTCHA على نموذج الرمز. يمكن لأي شخص طلب رموز بالرسائل؛ ولا يحمي رصيدك سوى حدود المعدل، ويرسل المتجر [cap] رسالة رمز كحد أقصى يوميا (ثم تُرفض الرموز الجديدة حتى الغد). أكمل إعداد [name] أو أعد Cloudflare Turnstile أدناه."
+
+# 2026-11-04 14:35 +03: RC2 fix1 item 1, task 596. Integrations line for the same state.
+msgctxt "Languages::kwtsms.integrations.captcha.unconfigured"
+msgid "[name] is the active CAPTCHA but is not set up, so it does not protect the SMS code form."
+msgstr "[name] هي إضافة CAPTCHA النشطة لكنها غير مهيأة، لذلك لا تحمي نموذج رمز التحقق بالرسالة."

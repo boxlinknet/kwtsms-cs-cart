@@ -475,7 +475,14 @@ class SettingsPage
                     'no_captcha',
                     'danger',
                     // 2026-10-29 20:08 +03: Task 596 (branch review I2c, ruling P3-R15). States the daily code cap.
-                    $this->text('kwtsms.settings.warn_no_captcha', ['[cap]' => $this->config->capCodeDay()]),
+                    // 2026-11-04 14:37 +03: RC2 fix1 item 1, task 596. A third-party driver that is the active one but
+                    // not set up protects nothing: same red warning, naming the add-on (escaped).
+                    !empty($captcha['unconfigured'])
+                        ? $this->text('kwtsms.settings.warn_captcha_unconfigured', [
+                            '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                            '[cap]' => $this->config->capCodeDay(),
+                        ])
+                        : $this->text('kwtsms.settings.warn_no_captcha', ['[cap]' => $this->config->capCodeDay()]),
                     '#kwtsms_turnstile',
                     $this->text('kwtsms.settings.link_turnstile')
                 );
@@ -607,7 +614,7 @@ class SettingsPage
      * driver, 'turnstile', 'recaptcha', 'native') and whether the scenario kwtsms_sms_code is ticked in Settings >
      * Image verification. Overridable in a test.
      *
-     * @return array{provider:string,unticked:string[],name?:string} 2026-11-04 12:40 +03: name = third_party owner
+     * @return array{provider:string,unticked:string[],name?:string,unconfigured?:bool} 2026-11-04 12:40 +03: name = third_party owner
      */
     protected function captchaState(): array
     {
@@ -618,7 +625,10 @@ class SettingsPage
         $provider = $found['provider'];
         $unticked = in_array($provider, ['recaptcha', 'third_party'], true) ? $this->storefrontsWithoutTick() : [];
 
-        return ['provider' => $provider, 'unticked' => $unticked, 'name' => $found['name']];
+        return [
+            'provider' => $provider, 'unticked' => $unticked, 'name' => $found['name'],
+            'unconfigured' => $found['unconfigured'], // 2026-11-04 14:37 +03: RC2 fix1 item 1, task 596
+        ];
     }
 
     /**

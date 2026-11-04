@@ -261,6 +261,9 @@ class IntegrationsPage
                 // text: the template escapes it (fn_html_escape).
                 'driver_name' => $driver['name'],
                 'driver_class' => $driver['class'],
+                // 2026-11-04 14:37 +03: RC2 fix1 item 1, task 596. The active third-party driver is not set up: it
+                // protects nothing, so the provider above is 'none' and the template says why.
+                'driver_unconfigured' => !empty($driver['unconfigured']),
                 'inactive' => $this->inactiveCaptchaAddons(),
                 'checkout' => $this->captchaForCheckout(),
                 'recaptcha' => $this->addonActive('recaptcha'),

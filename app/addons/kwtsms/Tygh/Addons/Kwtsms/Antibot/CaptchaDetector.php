@@ -43,32 +43,45 @@ final class CaptchaDetector
     /**
      * @param object|null $driver The active antibot driver (null = none)
      *
-     * @return array{provider:string,name:string,class:string}
+     * @return array{provider:string,name:string,class:string,unconfigured:bool}
      */
     public static function classify($driver): array
     {
         if (!is_object($driver)) {
-            return ['provider' => self::NONE, 'name' => '', 'class' => ''];
+            return ['provider' => self::NONE, 'name' => '', 'class' => '', 'unconfigured' => false];
         }
         $class = get_class($driver);
         $lower = strtolower($class);
         if ($driver instanceof TurnstileDriver) {
-            return ['provider' => self::TURNSTILE, 'name' => 'kwtsms', 'class' => $class];
+            return ['provider' => self::TURNSTILE, 'name' => 'kwtsms', 'class' => $class, 'unconfigured' => false];
         }
         if ($lower === self::CORE_RECAPTCHA) {
-            return ['provider' => self::RECAPTCHA, 'name' => 'recaptcha', 'class' => $class];
+            return ['provider' => self::RECAPTCHA, 'name' => 'recaptcha', 'class' => $class, 'unconfigured' => false];
         }
         // Exact class names only: an anonymous class is named after its interface and must not read as core.
         if ($lower === self::CORE_NAMESPACE . 'nulldriver') {
-            return ['provider' => self::NONE, 'name' => '', 'class' => $class];
+            return ['provider' => self::NONE, 'name' => '', 'class' => $class, 'unconfigured' => false];
         }
         if ($lower === self::CORE_NAMESPACE . 'nativecaptchadriver') {
-            return ['provider' => self::NATIVE, 'name' => '', 'class' => $class];
+            return ['provider' => self::NATIVE, 'name' => '', 'class' => $class, 'unconfigured' => false];
         }
 
         $owner = self::addonOf($driver);
+        $name = $owner !== '' ? $owner : $class;
+        // 2026-11-04 14:37 +03: RC2 fix1 item 1, task 596 (review I1, fail-open). Core's
+        // Antibot::isValidationRequiredForScenario() needs the driver's isSetUp(): a third-party driver that is not set
+        // up (or throws) validates nothing, so the code form has NO CAPTCHA. It is not a provider ('none'), and the
+        // flag `unconfigured` lets Settings and Integrations name the add-on in the warning.
+        try {
+            $set_up = method_exists($driver, 'isSetUp') && (bool) $driver->isSetUp();
+        } catch (\Throwable $e) {
+            $set_up = false;
+        }
+        if (!$set_up) {
+            return ['provider' => self::NONE, 'name' => $name, 'class' => $class, 'unconfigured' => true];
+        }
 
-        return ['provider' => self::THIRD_PARTY, 'name' => $owner !== '' ? $owner : $class, 'class' => $class];
+        return ['provider' => self::THIRD_PARTY, 'name' => $name, 'class' => $class, 'unconfigured' => false];
     }
 
     /**
@@ -94,7 +107,7 @@ final class CaptchaDetector
 
     /**
      * True when $driver is a third-party driver that is set up (it protects forms now). Turnstile does not replace it.
-     * A driver that throws from isSetUp() counts as not set up.
+     * A driver that throws from isSetUp() counts as not set up (classify() already says so, 2026-11-04 14:37 +03).
      *
      * @param object|null $driver
      */
@@ -168,7 +181,9 @@ final class CaptchaDetector
 
             return self::inactiveAddons(
                 (array) \Tygh\Registry::get('addons'),
-                $current['provider'] === self::THIRD_PARTY ? $current['name'] : ''
+                // 2026-11-04 14:37 +03: RC2 fix1 item 1, task 596. An unconfigured driver's owner is named by its own
+                // warning, so it is not listed again as "inactive".
+                $current['provider'] === self::THIRD_PARTY || $current['unconfigured'] ? $current['name'] : ''
             );
         } catch (\Throwable $e) {
             return [];
