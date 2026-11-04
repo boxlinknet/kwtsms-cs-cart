@@ -21,9 +21,10 @@
 defined('BOOTSTRAP') or die('Access denied');
 
 $kwtsms_from = (string) fn_get_addon_version('kwtsms');
-// 2026-11-04 14:45 +03: Task RC2-refresh, task 596. A store that already holds 1.2.0 (a release candidate) and takes the
-// refresh package (1.2.0 -> 1.2.0) runs PostRefresh, a class of the new files: the Upgrade Center request has the old
-// PostUpgrade loaded, which would tick the SMS code CAPTCHA scenario again and knows none of the new wording.
+// 2026-11-04 14:45 +03: Task RC2-refresh, task 596. A store that already holds 1.2.0 (a release candidate) and takes
+// the refresh package (1.2.0 -> 1.2.0) runs PostRefresh, a class of the new files: the Upgrade Center request has
+// the old PostUpgrade loaded, which would tick the SMS code CAPTCHA scenario again and knows none of the new wording.
+// 2026-11-04 17:09 +03: comment re-wrapped to 120 columns for phpcs (no code change), task 596.
 if ($kwtsms_from === '1.2.0') {
     \Tygh\Addons\Kwtsms\Upgrade\PostRefresh::runReported();
 
