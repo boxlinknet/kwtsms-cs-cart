@@ -53,6 +53,10 @@ class CodeRequest
     // M2.3 recover, M2.4 checkout, M2.6 vendor_phone); until then handle() answers "unavailable" for them.
     public const PURPOSE_LOGIN = 'login';
     public const PURPOSE_2FA = '2fa';
+    // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. The code of an opt-in / opt-out on the profile page. A purpose
+    // of its own, so it never cancels, replaces or counts against a sign-in code. It is NOT in PURPOSES / FEATURE: the
+    // public code endpoint never serves it, only TwoFactorFlow does, behind the signed-in account.
+    public const PURPOSE_2FA_ENROLL = '2fa_enroll';
     public const PURPOSE_RECOVER = 'recover';
     public const PURPOSE_CHECKOUT = 'checkout';
     public const PURPOSE_VENDOR_PHONE = 'vendor_phone';
@@ -278,6 +282,10 @@ class CodeRequest
      * from the request. No CAPTCHA (the password was right; a staff member cannot solve one on the code page), no
      * per-IP bucket and no per-phone cap for staff, never an unverified bypass (P3-45). Every refusal says wait or
      * unavailable; the answer never names an account. A staff code is counted by cap_code_day, never refused by it.
+     * 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. $purpose is 2fa (sign-in) or 2fa_enroll (profile); $subject
+     * is the code's key in the engine (TwoFactorFlow::subject(): '<user_id>:<phone>'), so the cancel-all, the resend
+     * step and the wrong-attempt buckets belong to one account and another account that saved the same number cannot
+     * touch them. '' = the phone (the pre-fix key; no caller does that any more).
      *
      * @return array<string,mixed> The JSON body of handle()
      */
@@ -288,8 +296,13 @@ class CodeRequest
         string $session_hash,
         string $ip,
         int $storefront_id,
-        string $lang
+        string $lang,
+        string $purpose = self::PURPOSE_2FA,
+        string $subject = ''
     ): array {
+        if ($purpose !== self::PURPOSE_2FA && $purpose !== self::PURPOSE_2FA_ENROLL) {
+            return $this->error('invalid', 'kwtsms.code.unavailable', $lang);
+        }
         if ($user_id <= 0 || \Tygh\Addons\Kwtsms\Phones\PhoneFormat::canonical($phone) !== $phone || $phone === '') {
             return $this->error('invalid', 'kwtsms.code.unavailable', $lang);
         }
@@ -312,7 +325,17 @@ class CodeRequest
             }
         }
 
-        return $this->deliver(self::PURPOSE_2FA, $phone, $user_id, $session_hash, $ip, $storefront_id, $lang, $staff);
+        return $this->deliver(
+            $purpose,
+            $phone,
+            $user_id,
+            $session_hash,
+            $ip,
+            $storefront_id,
+            $lang,
+            $staff,
+            $subject === '' ? $phone : $subject
+        );
     }
 
     /**
@@ -328,8 +351,12 @@ class CodeRequest
         string $ip,
         int $storefront_id,
         string $lang,
-        bool $staff
+        bool $staff,
+        string $subject = ''
     ): array {
+        // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. $subject is the engine key of the code (the phone unless
+        // the caller scopes it to an account); the SMS and the per-phone cap still use the phone.
+        $subject = $subject === '' ? $phone : $subject;
         // 6. Can a code SMS leave at all? (P3-13, P3-24; the gate raises the alert)
         $gate = $this->availability->gate($storefront_id);
         if ($gate['action'] === 'bypass') {
@@ -368,7 +395,7 @@ class CodeRequest
         }
 
         // 8. The code: resend step and lockout are decided here (P3-19, P3-29).
-        $issued = $this->otp->issue($purpose, $phone, $user_id, $session_hash, $ip, $storefront_id);
+        $issued = $this->otp->issue($purpose, $subject, $user_id, $session_hash, $ip, $storefront_id);
         if ($issued->status !== OtpResult::ISSUED) {
             return $this->wait($issued->retry_after, $lang);
         }

@@ -128,6 +128,16 @@ class TwoFactorFlow
         return "\u{2066}" . self::mask($phone) . "\u{2069}";
     }
 
+    /**
+     * 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. The key of a 2FA code in the engine: the account and the
+     * phone. Cancel-all, the resend step, the wrong-attempt buckets and the lockout are all keyed by it, so another
+     * account that saved the same number shares none of them. At most 11 + 16 characters (the column holds 32).
+     */
+    public static function subject(int $user_id, string $phone): string
+    {
+        return $user_id . ':' . $phone;
+    }
+
     /** The phone as shown on the page: +965****3402 (the calling code and the last four digits). */
     public static function mask(string $phone): string
     {
@@ -260,7 +270,8 @@ class TwoFactorFlow
             }
             $env = $this->environment();
             $count = $this->pending->countSubmission();
-            $result = $this->otp->verify(CodeRequest::PURPOSE_2FA, $phone, $raw_code, $uid, $env['hash'], $env['ip']);
+            $subject = self::subject($uid, $phone);
+            $result = $this->otp->verify(CodeRequest::PURPOSE_2FA, $subject, $raw_code, $uid, $env['hash'], $env['ip']);
             $refused = $result->status !== OtpResult::OK && $result->status !== OtpResult::MALFORMED;
             if ($refused && $count >= PendingLogin::MAX_SUBMISSIONS) {
                 // 2026-11-04 23:00 +03: Task M2.2a (P3-51), task 596. The fifth submission that is not accepted ends
@@ -285,7 +296,7 @@ class TwoFactorFlow
                 default:
                     return $this->answer('wrong', (int) $result->attempts_left);
             }
-            if (!$this->otp->consume(CodeRequest::PURPOSE_2FA, $phone, $uid, $env['hash'])) {
+            if (!$this->otp->consume(CodeRequest::PURPOSE_2FA, $subject, $uid, $env['hash'])) {
                 return $this->answer('wrong', $this->config->otpMaxAttempts());
             }
 
@@ -349,7 +360,7 @@ class TwoFactorFlow
             }
             $user = $this->readUser($user_id);
 
-            return $this->sendPlain($user, $phone);
+            return $this->sendPlain($user, $phone, CodeRequest::PURPOSE_2FA_ENROLL);
         } catch (\Throwable $e) {
             $this->debug('twofa.profile_send', ['error' => get_class($e)]);
 
@@ -380,9 +391,10 @@ class TwoFactorFlow
                 return $out;
             }
             $env = $this->environment();
+            $subject = self::subject($user_id, $phone);
             $result = $this->otp->verify(
-                CodeRequest::PURPOSE_2FA,
-                $phone,
+                CodeRequest::PURPOSE_2FA_ENROLL,
+                $subject,
                 $raw_code,
                 $user_id,
                 $env['hash'],
@@ -397,7 +409,7 @@ class TwoFactorFlow
 
                 return $out;
             }
-            if (!$this->otp->consume(CodeRequest::PURPOSE_2FA, $phone, $user_id, $env['hash'])) {
+            if (!$this->otp->consume(CodeRequest::PURPOSE_2FA_ENROLL, $subject, $user_id, $env['hash'])) {
                 $out['status'] = 'wrong';
 
                 return $out;
@@ -467,6 +479,14 @@ class TwoFactorFlow
             return '';
         }
         if ((string) $user['user_type'] === 'C' && $this->index->ownerOf($phone, $user_id) > 0) {
+            $refusal = 'in_use';
+
+            return '';
+        }
+        // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. Whoever the account is, a number that another account
+        // already uses for its second step (an enrolled 2FA phone) or that belongs to an administrator or a vendor is
+        // refused with the same neutral answer as a number in use: nobody enrols somebody else's number.
+        if ($this->store->phoneHeldByAnother($user_id, $phone, $this->config->defaultCountryCode())) {
             $refusal = 'in_use';
 
             return '';
@@ -582,7 +602,7 @@ class TwoFactorFlow
      *
      * @return array<string,mixed>
      */
-    private function sendPlain(array $user, string $phone): array
+    private function sendPlain(array $user, string $phone, string $purpose = CodeRequest::PURPOSE_2FA): array
     {
         $env = $this->environment();
         $staff = (string) $user['user_type'] !== 'C';
@@ -595,7 +615,9 @@ class TwoFactorFlow
             $env['hash'],
             $env['ip'],
             $env['storefront_id'],
-            $lang
+            $lang,
+            $purpose,
+            self::subject((int) $user['user_id'], $phone)
         );
     }
 

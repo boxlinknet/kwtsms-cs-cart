@@ -69,6 +69,31 @@ class TwoFactorStore
         }
     }
 
+    /**
+     * 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. True when the number is the enabled 2FA phone of another
+     * account, or the phone of an administrator or vendor account other than $user_id. The staff phone is stored as
+     * typed, so the rows are narrowed by a LIKE on the last seven digits (a '%' between the digits) and then compared
+     * in canonical form with the store's default country.
+     */
+    public function phoneHeldByAnother(int $user_id, string $phone, string $default_cc): bool
+    {
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+        if (!is_string($digits) || strlen($digits) < 7) {
+            return false;
+        }
+        if ($this->countOtherEnrolled($user_id, $phone) > 0) {
+            return true;
+        }
+        $pattern = '%' . implode('%', str_split(substr($digits, -7))) . '%';
+        foreach ($this->staffPhones($user_id, $pattern) as $raw) {
+            if (\Tygh\Addons\Kwtsms\Phones\PhoneFormat::fromRaw((string) $raw, $default_cc) === $phone) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Active root administrators (company 0) other than $except_user_id that have an enabled row. */
     public function enrolledRootAdmins(int $except_user_id): int
     {
@@ -88,6 +113,25 @@ class TwoFactorStore
         );
 
         return is_array($row) && $row !== [] ? $row : null;
+    }
+
+    protected function countOtherEnrolled(int $user_id, string $phone): int
+    {
+        return (int) db_get_field(
+            "SELECT COUNT(*) FROM ?:kwtsms_twofa WHERE enabled = 'Y' AND phone = ?s AND user_id <> ?i",
+            $phone,
+            $user_id
+        );
+    }
+
+    /** @return array<int,string> the raw phone column of the other administrators and vendors that may match */
+    protected function staffPhones(int $user_id, string $pattern): array
+    {
+        return (array) db_get_fields(
+            "SELECT phone FROM ?:users WHERE user_type IN ('A', 'V') AND user_id <> ?i AND phone LIKE ?s",
+            $user_id,
+            $pattern
+        );
     }
 
     protected function writeEnable(int $user_id, string $phone, int $now): void
