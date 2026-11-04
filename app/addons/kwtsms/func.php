@@ -972,7 +972,7 @@ function fn_kwtsms_login_user_pre(&$user_id = null, &$udata = [], &$auth = [], &
 
 /**
  * 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. True when KWTSMS_2FA_OFF is set or the three 2FA switches
- * read "off" straight from the add-on settings registry (no service, no database). Anything unreadable is not off.
+ * read "off" straight from the settings backend (no service container). Anything unreadable is not off.
  */
 function fn_kwtsms_twofa_switches_off_raw(): bool
 {
@@ -981,7 +981,9 @@ function fn_kwtsms_twofa_switches_off_raw(): bool
     }
     try {
         foreach (['twofa_customers', 'twofa_vendors', 'twofa_admins'] as $key) {
-            $value = Registry::get('addons.kwtsms.' . $key);
+            // 2026-11-05 02:35 +03: Task M2.2a fix 1 (I1), task 596. Read through the settings backend the Config uses, not the
+            // registry copy, which can be stale within a request.
+            $value = (new \Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend())->read($key);
             // twofa_vendors does not exist outside Multi-Vendor: an absent value there is off.
             if ($value === null || $value === '') {
                 if ($key === 'twofa_vendors') {
