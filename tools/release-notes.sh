@@ -41,4 +41,4 @@ for s in Features Requirements Installation Configuration; do
   printf '\n'
 done
 # 2026-11-04 12:47 +03: Task RC2 item 4, task 596. SHA256SUMS lists the upgrade packages too (CONTRIBUTING.md, Releasing step 6).
-printf 'Check the download against `SHA256SUMS`, which lists the full package and every upgrade package of this release. All changes: [CHANGELOG.md](https://github.com/boxlinknet/kwtsms-cs-cart/blob/v%s/CHANGELOG.md).\n' "$release"
+printf 'Check the download against `SHA256SUMS`, which lists the full package and every upgrade package of this release (a store already on an earlier release candidate of the same version takes the `kwtsms-upgrade-<candidate>-<version>.zip` refresh package). All changes: [CHANGELOG.md](https://github.com/boxlinknet/kwtsms-cs-cart/blob/v%s/CHANGELOG.md).\n' "$release"

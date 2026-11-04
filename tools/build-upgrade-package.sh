@@ -27,6 +27,10 @@
 #              --src DIR       tree to package (default: the repo root)
 #              --out DIR       where the zip goes (default: <src>/dist)
 #              --from-ref REF  git ref of the old release (default: tag v<from>, else the newest v<from>-rc.N)
+#            REFRESH (2026-11-04 14:37 +03, Task RC2-refresh, task 596): --from X --to X --from-ref vX-rc.N. Allowed
+#            only with an explicit --from-ref (a release candidate and a later build share a version). The ref needs a
+#            line "X-rc.N ..." in tools/released-zips.txt. The zip is dist/kwtsms-upgrade-X-rc.N-X.zip, schema
+#            from_version and to_version both X, no migration, the post script of upgrades/X (PostUpgrade, idempotent).
 #              --no-lint74     skip the PHP 7.4 syntax pass (needs Docker image php:7.4-cli)
 #            Upload it in Administration > Upgrade Center > Upload upgrade package. The Upgrade Center takes the
 #            package id from the FILE NAME (kwtsms.zip), so upload a copy named kwtsms.zip, not the long name.
@@ -50,6 +54,17 @@ done
 case "$from" in [0-9]*.[0-9]*.[0-9]*) ;; *) echo "usage: --from <x.y.z> --to <x.y.z>" >&2; exit 2 ;; esac
 case "$to" in [0-9]*.[0-9]*.[0-9]*) ;; *) echo "usage: --from <x.y.z> --to <x.y.z>" >&2; exit 2 ;; esac
 [ -n "$out" ] || out="$src/dist"
+# 2026-11-04 14:37 +03: Task RC2-refresh, task 596. REFRESH MODE: --from equal to --to is allowed only with an explicit
+# --from-ref (a release candidate and the final build share a version, e.g. 1.2.0-rc.1 and 1.2.0-rc.2). The package
+# then carries the changed files and the post script of upgrades/<to>, no migration, and is named after the ref:
+# kwtsms-upgrade-<ref without the leading v>-<to>.zip. The ref must have a line in tools/released-zips.txt under that name.
+refresh=0; refname="$from"
+if [ "$from" = "$to" ]; then
+  [ -n "$from_ref" ] || { echo "--from equals --to ($from): a refresh package needs an explicit --from-ref (the release candidate tag)" >&2; exit 2; }
+  refname="${from_ref#v}"
+  case "$refname" in ''|*[!A-Za-z0-9._-]*) echo "--from-ref '$from_ref' is not usable in a file name (letters, digits, . _ - only)" >&2; exit 2 ;; esac
+  refresh=1
+fi
 patterns="$here/docs/private-patterns.txt"
 
 # The same gates, the same stage as the add-on zip (the staged tree is $pkg).
@@ -58,7 +73,7 @@ patterns="$here/docs/private-patterns.txt"
 echo "-- upgrade gates"
 version_check() {
   [ "$version" = "$to" ] || echo "the tree's addon.xml version is $version, not --to $to"
-  [ "$from" != "$to" ] || echo "--from and --to are both $from"
+  [ "$from" != "$to" ] || [ "$refresh" = 1 ] || echo "--from and --to are both $from"
   [ "$(printf '%s\n%s\n' "$from" "$to" | sort -V | head -1)" = "$from" ] || echo "--from $from is newer than --to $to"
   echo "CHECKED 3"
 }
@@ -77,6 +92,9 @@ for upd in $(ls -d "$src"/upgrades/[0-9]*/ 2>/dev/null); do
   upvers="$upvers $v"
 done
 upvers="$(printf '%s\n' $upvers | sort -V | tr '\n' ' ')"
+# 2026-11-04 14:37 +03: Task RC2-refresh, task 596. Refresh: only upgrades/<to> is gated and supplies post.php; its
+# migrations are NOT packaged (the schema is already at <to>), see the layout step.
+[ "$refresh" = 0 ] || upvers="$to"
 for uv in $upvers; do
 updir="$src/upgrades/$uv"
 upgrades_check() { # upgrades/<to>: migrations are named <14 digits>_<name>.php, the scripts are post.php only
@@ -191,7 +209,7 @@ gate "the old release ($ref) holds version $from" old_tree_check
 # commit the ref points to, the hash of every file of the tree, and (when a local dist/kwtsms-<from>.zip exists) the sha256
 # of that zip must equal the line of tools/released-zips.txt. A stale local zip is refused, nothing is downloaded.
 old_release_check() {
-  py "$oldtree" "$here/tools/released-zips.txt" "$from" "$src/dist/kwtsms-$from.zip" "$(git -C "$here" rev-parse -q --verify "$ref^{commit}" 2>/dev/null)" <<'PY'
+  py "$oldtree" "$here/tools/released-zips.txt" "$refname" "$src/dist/kwtsms-$refname.zip" "$(git -C "$here" rev-parse -q --verify "$ref^{commit}" 2>/dev/null)" <<'PY'
 import hashlib, os, sys
 old, manifest, frm, zipf, commit = sys.argv[1:6]
 line = [l.split() for l in open(manifest) if l.strip() and not l.startswith('#') and l.split()[0] == frm]
@@ -231,14 +249,15 @@ updirs="${updirs#:}"
 up_epoch="$(git -C "$src" log -1 --format=%ct -- $SHIP $upaths 2>/dev/null || true)"
 [ -n "$up_epoch" ] || up_epoch="$(date +%s)"
 up="$stage/up"; mkdir -p "$up/content/package" "$up/content/migrations" "$up/content/scripts" || exit 2
-zipname="kwtsms-upgrade-$from-$to.zip"
+zipname="kwtsms-upgrade-$refname-$to.zip"   # 2026-11-04 14:37 +03: Task RC2-refresh, task 596 ($refname is $from unless refresh)
 # 2026-10-22 14:07 +03: Upgrade::getPackages() lists an uploaded package as installable only when the file named by schema.json "file"
 # exists next to schema.json (App.php: is_file($pack_path . $package_id . '/' . $schema['file'])); the Upgrade Center
 # unpacks nothing from it for an uploaded package (the files are in content/), so it is a one-line marker, Task A1, task 596.
-markername="kwtsms-upgrade-$from-$to.txt"
-build_layout() { py "$pkg" "$oldtree" "$updirs" "$up" "$from" "$to" "$markername" "$up_epoch" <<'PY'
+markername="kwtsms-upgrade-$refname-$to.txt"
+build_layout() { py "$pkg" "$oldtree" "$updirs" "$up" "$from" "$to" "$markername" "$up_epoch" "$refresh" "$refname" <<'PY'
 import hashlib, json, os, shutil, sys
-new, old, updirs, up, frm, to, markername, epoch = sys.argv[1:9]
+new, old, updirs, up, frm, to, markername, epoch, refresh, refname = sys.argv[1:11]
+refresh = refresh == '1'   # 2026-11-04 14:37 +03: Task RC2-refresh, task 596
 updirs = [d for d in updirs.split(':') if d]   # 2026-10-23 17:35 +03: Task M1.1b (chained package), task 596
 def tree(root):
     out = {}
@@ -274,7 +293,7 @@ package = {'files': files}
 # 2026-10-23 17:35 +03: Task M1.1b, task 596. Migrations of every version in the chain, sorted by their 14-digit
 # timestamp (the file name starts with it); the post script is the newest version's.
 mig_files = {}
-for updir in updirs:
+for updir in ([] if refresh else updirs):   # 2026-11-04 14:37 +03: Task RC2-refresh, task 596: a refresh runs no migration
     mig_src = os.path.join(updir, 'migrations')
     for f in (os.listdir(mig_src) if os.path.isdir(mig_src) else []):
         mig_files[f] = os.path.join(mig_src, f)
@@ -298,12 +317,14 @@ for sub in ('migrations', 'scripts'):          # empty directories are not part 
         os.rmdir(p)
 json.dump(package, open(os.path.join(up, 'content', 'package.json'), 'w'), indent=1, sort_keys=True)
 schema = {
-    'id': 'kwtsms', 'type': 'addon', 'file': markername, 'name': 'kwtSMS ' + to, 'addon_name': 'kwtSMS',
-    'description': 'Upgrade of the kwtSMS add-on from ' + frm + ' to ' + to + '. Edited SMS templates, notification switches, settings and the saved login are kept.',
+    'id': 'kwtsms', 'type': 'addon', 'file': markername, 'name': 'kwtSMS ' + to + (' (refresh from ' + refname + ')' if refresh else ''), 'addon_name': 'kwtSMS',
+    'description': ('Refresh of the kwtSMS add-on ' + to + ' installed from ' + refname + ' to the current ' + to + ' build: updated files and new language texts, no database change. Edited SMS templates, notification switches, settings and the saved login are kept.'
+                    if refresh else
+                    'Upgrade of the kwtSMS add-on from ' + frm + ' to ' + to + '. Edited SMS templates, notification switches, settings and the saved login are kept.'),
     'from_version': frm, 'to_version': to, 'timestamp': int(epoch), 'size': size,
 }
 json.dump(schema, open(os.path.join(up, 'schema.json'), 'w'), indent=1, sort_keys=True)
-open(os.path.join(up, markername), 'w').write('kwtSMS upgrade package ' + frm + ' to ' + to + '. The files are in content/.\n')
+open(os.path.join(up, markername), 'w').write('kwtSMS upgrade package ' + (refname if refresh else frm) + ' to ' + to + '. The files are in content/.\n')
 print('CHECKED', len(files) + len(mig))
 PY
 }
@@ -318,10 +339,11 @@ must "clear the old upgrade zip" rm -f "$zipf"
 check="$(mktemp -d "${TMPDIR:-/tmp}/kwtsms-upcheck.XXXXXX")" || exit 2
 mkdir "$check/z" || exit 2
 must "unzip" unzip -q "$zipf" -d "$check/z"
-verify_package() { py "$check/z" "$oldtree" "$pkg" "$from" "$to" "$updirs" <<'PY'
+verify_package() { py "$check/z" "$oldtree" "$pkg" "$from" "$to" "$updirs" "$refresh" <<'PY'
 import hashlib, json, os, re, shutil, sys, tempfile
 z, old, new, frm, to = sys.argv[1:6]
 updirs = [d for d in sys.argv[6].split(':') if d]
+refresh = sys.argv[7] == '1'   # 2026-11-04 14:37 +03: Task RC2-refresh, task 596
 bad = []
 def md5(p):
     return hashlib.md5(open(p, 'rb').read()).hexdigest()
@@ -352,12 +374,14 @@ if mig != sorted(pj.get('migrations', [])):
     bad.append('migrations in the directory and in package.json differ')
 # 2026-10-23 17:35 +03: Task M1.1b, task 596. The chain: every migration of every upgrades/<v> from --from (exclusive) to
 # --to is in the package, in timestamp order, and the post script is the newest version's.
-want_mig = sorted(f for d in updirs for f in (os.listdir(os.path.join(d, 'migrations')) if os.path.isdir(os.path.join(d, 'migrations')) else []))
+want_mig = [] if refresh else sorted(f for d in updirs for f in (os.listdir(os.path.join(d, 'migrations')) if os.path.isdir(os.path.join(d, 'migrations')) else []))
 if pj.get('migrations', []) != want_mig:
     bad.append('package.json migrations %r are not the chain %r' % (pj.get('migrations', []), want_mig))
 posts = [os.path.join(d, 'scripts', 'post.php') for d in updirs if os.path.isfile(os.path.join(d, 'scripts', 'post.php'))]
 if posts and open(os.path.join(z, 'content', 'scripts', 'post.php'), 'rb').read() != open(posts[-1], 'rb').read():
     bad.append('content/scripts/post.php is not the newest version post script: ' + posts[-1])
+if refresh and (not posts or pj.get('scripts') != {'post': 'post.php'} or pj.get('migrations')):
+    bad.append('a refresh package must carry the post script and no migration')   # 2026-11-04 14:37 +03: Task RC2-refresh, task 596
 scr_dir = os.path.join(z, 'content', 'scripts')
 scr = sorted(os.listdir(scr_dir)) if os.path.isdir(scr_dir) else []
 want = [v for v in (pj.get('scripts') or {}).values()]

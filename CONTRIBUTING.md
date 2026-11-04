@@ -100,9 +100,15 @@ screenshot that shows the API password, the cron key or a customer phone number.
    bash tools/build-package.sh
    bash tools/build-upgrade-package.sh --from 1.1.0 --to X.Y.Z     # once per supported older version
    bash tools/build-upgrade-package.sh --from 1.0.0 --to X.Y.Z
+   # 2026-11-04 14:40 +03: Task RC2-refresh, task 596. Only for a release candidate that SafatMall (or anyone) runs under
+   # the SAME version: a refresh package, 1.2.0 -> 1.2.0, files and language texts only, no migration. It needs the
+   # explicit --from-ref and a line for that tag in tools/released-zips.txt.
+   bash tools/build-upgrade-package.sh --from X.Y.Z --to X.Y.Z --from-ref vX.Y.Z-rc.N    # dist/kwtsms-upgrade-X.Y.Z-rc.N-X.Y.Z.zip
    cat dist/SHA256SUMS                                             # full zip, tgz, every upgrade zip
    gh release upload vX.Y.Z dist/kwtsms-upgrade-*-X.Y.Z.zip dist/SHA256SUMS --clobber
    ```
-   Each build refreshes `dist/SHA256SUMS` through `tools/write-checksums.sh`, so the order does not matter. The
+   Each build refreshes `dist/SHA256SUMS` through `tools/write-checksums.sh`. Build the full package first:
+   `tools/build-package.sh` deletes the `dist/kwtsms-upgrade-*-X.Y.Z.zip` of an earlier build, so a stale upgrade zip
+   is never listed or uploaded. The
    rebuilt full zip must have the same sha256 as the one the workflow published (the build is reproducible); if it
    differs, upload nothing and find out why.

@@ -14,4 +14,8 @@
 #            hash it the way the builder does (see old_release_check in the builder).
 # DEPENDS:   Nothing.
 1.0.0 7a039e705ee69800d7eaea9a2da8f86b770ffd1d6786964ef431b7f3fdfa8878 da3f7ba065030ac5171165fa9da4cd89dac49ee7 0f9b06cc558d49f97a79bc70cfb5ecdb681106c95dc32ba269330d74270d6ac5
+# 2026-11-04 14:38 +03: Task RC2-refresh, task 596. The 1.2.0 release candidate that SafatMall runs, keyed by its tag name
+# without the v: the refresh package (--from 1.2.0 --to 1.2.0 --from-ref v1.2.0-rc.1) checks the old tree against this
+# line. The zip is rebuilt byte for byte from the tag by tools/build-package.sh (sha256 311418f9..., 190 files).
+1.2.0-rc.1 311418f9bc4364e3fa02fd9c67c1c00439b076929bcd37005e442cf318837266 23dbcf6d0a84925f64881cb6c308d9983544596d 4344493d754086f9d797b36acf9991c335d75ae438e73cc9ff2840f57045d3e8
 1.1.0 de13bf4fee42197da98b4738eeec87add8e5dc8829a99c533461f494c20e60e4 e3000f53f7c0e5f60e8fd02b1f9df53065923acf 87ee8346289487cdb1d676c5051b0e559468a288f9e6ed4804d9d0dd4fbb27f3
