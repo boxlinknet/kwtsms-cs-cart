@@ -17,6 +17,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+<!-- 2026-11-04 21:20 +03: review fixes of Task M2.1 (sign-in with a phone and an SMS code), task 596 -->
+### Added
+
+- Sign-in with a verified phone number and an SMS code (off until you turn it on under Settings > Sign-in and
+  security). Whether a number has an account is never revealed: the request answers the same for every number, the
+  CAPTCHA asks for a token on the same schedule for every number, and the answer takes the same time.
+
+### Notes
+
+- Sign-in by code consults only this add-on's own two-step sign-in. The two-step sign-in of a third-party add-on is not
+  consulted. A later release routes the code sign-in through one two-step policy.
+- With one account per phone on, the code to create an account still answers "already in use" for a number that
+  another account has (the 1.2.0 behaviour). It is a known, accepted path; set a CAPTCHA provider to slow probing.
+
 <!-- 2026-10-29 18:29 +03: the Unreleased entries became the 1.2.0 release, Task M1.13b, task 596 -->
 ## [1.2.0] - 2026-10-29
 

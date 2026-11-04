@@ -238,6 +238,19 @@ Cloudflare Turnstile installs itself as the driver only when no third-party driv
 third-party driver active, a saved Turnstile setup stays idle and Settings says so. (With the core reCAPTCHA add-on,
 Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
 
+### Security notes for phones and SMS codes
+
+<!-- 2026-11-04 21:20 +03: review fixes M2 and M5 of Task M2.1, task 596 -->
+- Sign-in with a phone and an SMS code (1.3.0, off until you turn it on under Settings > Sign-in and security) consults
+  only this add-on's own two-step sign-in. A customer with a two-step sign-in from this add-on is refused the code
+  sign-in, silently; the two-step sign-in of a third-party add-on is not consulted, so with such an add-on active the
+  code sign-in can bypass it. Turn the code sign-in off if a third-party two-step add-on must always apply.
+- With one account per phone on, the code to create an account answers "already in use" when another account has the
+  number. That tells a visitor that the number has an account. It is a known and accepted path, because a customer
+  has to learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA
+  provider (Cloudflare Turnstile or the core reCAPTCHA add-on) and keep the per-network limits. The sign-in and
+  recovery code requests answer the same for every number and do not have this path.
+
 ## Build the package
 
 `bash tools/build-package.sh` runs the release gates (security greps, language parity, `php -l`, package content
