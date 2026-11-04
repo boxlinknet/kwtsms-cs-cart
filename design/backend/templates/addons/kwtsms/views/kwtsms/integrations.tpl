@@ -270,6 +270,7 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: the "Phone
                     {if $i.captcha.checkout}{__("kwtsms.integrations.captcha.on")}{else}{__("kwtsms.integrations.captcha.off")}{/if}
                 </p>
                 {* 2026-10-29 04:19 +03: Task M1.12, task 596. Which provider protects the SMS code requests. *}
+                {* 2026-11-04 14:41 +03: RC2 fix1 item 6, task 596. The provider text gained [name] (the add-on id of a third-party driver) for the third_party states. *}
                 <p class="kwtsms-check__text" id="kwtsms_captcha_provider" data-kwtsms-provider="{$i.captcha.provider}">{__("kwtsms.integrations.captcha.provider.`$i.captcha.provider`", ["[name]" => $i.captcha.driver_name|fn_html_escape])}</p>
                 {* 2026-11-04 12:41 +03: Task RC2 item 3, task 596. The active antibot driver class and its add-on, to report; the CAPTCHA add-ons that are active but did not register as the driver. *}
                 {if $i.captcha.driver_class}<p class="muted description" id="kwtsms_captcha_driver">{__("kwtsms.integrations.captcha.driver", ["[class]" => $i.captcha.driver_class|fn_html_escape])}</p>{/if}

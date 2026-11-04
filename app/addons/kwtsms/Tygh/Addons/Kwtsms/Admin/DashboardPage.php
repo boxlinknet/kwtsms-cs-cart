@@ -604,6 +604,8 @@ class DashboardPage
         if (!empty($f['code_feature_on'])) {
             $steps[] = self::step(
                 'captcha',
+                // 2026-11-04 14:41 +03: RC2 fix1 item 6, task 596. third_party joined the list when any active antibot
+                // driver became a provider (RC2 item 3); a driver that is not set up arrives here as 'none'.
                 in_array((string) ($f['captcha_provider'] ?? 'none'), ['turnstile', 'recaptcha', 'third_party'], true),
                 '',
                 'settings',
