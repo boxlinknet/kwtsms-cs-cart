@@ -64,7 +64,75 @@ class PostUpgrade
     ];
 
     /**
-     * 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Copy of Kwtsms110::SHIPPED_1_0_0 (the four texts 1.0.0
+     * 2026-11-04 14:40 +03: Task RC2-refresh, task 596. The two language variables whose text 1.2.0-rc.2 reworded after
+     * 1.2.0-rc.1 (the code cap now counts only this add-on's code SMS), with the text rc.1 shipped, per language. Both
+     * releases are version 1.2.0, so a store on rc.1 that takes the rc.2 refresh package only gets the new wording
+     * through this map: a stored value that still equals it is refreshed, an edited one stays (same rule as
+     * SHIPPED_1_1_0). ASCII only (\u{} escapes).
+     */
+    private const SHIPPED_1_2_0_RC1 = [
+        'kwtsms.settings.cap_code_day_help' => [
+            'en' => "Most code SMS (verification codes, phone-change codes and notices) the store sends per"
+                . " day, counted from midnight. Above it, new codes are refused until tomorrow and you get"
+                . " an alert. Order SMS keep their own limit, so a flood of code requests cannot use it up."
+                . " Default 300.",
+            'ar' => "\u{623}\u{642}\u{635}\u{649} \u{639}\u{62f}\u{62f} \u{645}\u{646}"
+                . " \u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{631}\u{645}\u{648}\u{632}"
+                . " (\u{631}\u{645}\u{648}\u{632} \u{627}\u{644}\u{62a}\u{62d}\u{642}\u{642}"
+                . " \u{648}\u{631}\u{645}\u{648}\u{632}"
+                . " \u{648}\u{625}\u{634}\u{639}\u{627}\u{631}\u{627}\u{62a}"
+                . " \u{62a}\u{63a}\u{64a}\u{64a}\u{631} \u{627}\u{644}\u{631}\u{642}\u{645})"
+                . " \u{64a}\u{631}\u{633}\u{644}\u{647} \u{627}\u{644}\u{645}\u{62a}\u{62c}\u{631}"
+                . " \u{641}\u{64a} \u{627}\u{644}\u{64a}\u{648}\u{645}\u{60c}"
+                . " \u{64a}\u{64f}\u{62d}\u{62a}\u{633}\u{628} \u{645}\u{646}"
+                . " \u{645}\u{646}\u{62a}\u{635}\u{641} \u{627}\u{644}\u{644}\u{64a}\u{644}."
+                . " \u{628}\u{639}\u{62f} \u{647}\u{630}\u{627} \u{627}\u{644}\u{62d}\u{62f}"
+                . " \u{62a}\u{64f}\u{631}\u{641}\u{636} \u{627}\u{644}\u{631}\u{645}\u{648}\u{632}"
+                . " \u{627}\u{644}\u{62c}\u{62f}\u{64a}\u{62f}\u{629} \u{62d}\u{62a}\u{649}"
+                . " \u{627}\u{644}\u{63a}\u{62f} \u{648}\u{64a}\u{635}\u{644}\u{643}"
+                . " \u{62a}\u{646}\u{628}\u{64a}\u{647}. \u{62a}\u{62d}\u{62a}\u{641}\u{638}"
+                . " \u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{637}\u{644}\u{628}\u{627}\u{62a}"
+                . " \u{628}\u{62d}\u{62f}\u{647}\u{627} \u{627}\u{644}\u{62e}\u{627}\u{635}\u{60c}"
+                . " \u{641}\u{644}\u{627} \u{64a}\u{633}\u{62a}\u{637}\u{64a}\u{639} \u{633}\u{64a}\u{644}"
+                . " \u{645}\u{646} \u{637}\u{644}\u{628}\u{627}\u{62a}"
+                . " \u{627}\u{644}\u{631}\u{645}\u{648}\u{632}"
+                . " \u{627}\u{633}\u{62a}\u{647}\u{644}\u{627}\u{643}\u{647}."
+                . " \u{627}\u{644}\u{627}\u{641}\u{62a}\u{631}\u{627}\u{636}\u{64a} 300.",
+        ],
+        'kwtsms.help.limits.p4' => [
+            'en' => "Code SMS also have their own daily cap for the whole store (default 300, in Settings)."
+                . " When it is reached, new codes are refused until the next day and you get an alert, and"
+                . " order SMS keep their own cap. A code request refused by a limit never goes through"
+                . " unverified: the setting \"When SMS codes can't be sent\" applies only when sending"
+                . " itself is off-line, never to a limit.",
+            'ar' => "\u{644}\u{631}\u{633}\u{627}\u{626}\u{644} \u{627}\u{644}\u{631}\u{645}\u{648}\u{632}"
+                . " \u{623}\u{64a}\u{636}\u{627} \u{62d}\u{62f} \u{64a}\u{648}\u{645}\u{64a}"
+                . " \u{62e}\u{627}\u{635} \u{644}\u{644}\u{645}\u{62a}\u{62c}\u{631} \u{643}\u{644}\u{647}"
+                . " (\u{627}\u{644}\u{627}\u{641}\u{62a}\u{631}\u{627}\u{636}\u{64a} 300\u{60c}"
+                . " \u{641}\u{64a} \u{627}\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a})."
+                . " \u{639}\u{646}\u{62f} \u{628}\u{644}\u{648}\u{63a}\u{647}"
+                . " \u{62a}\u{64f}\u{631}\u{641}\u{636} \u{627}\u{644}\u{631}\u{645}\u{648}\u{632}"
+                . " \u{627}\u{644}\u{62c}\u{62f}\u{64a}\u{62f}\u{629} \u{62d}\u{62a}\u{649}"
+                . " \u{627}\u{644}\u{64a}\u{648}\u{645} \u{627}\u{644}\u{62a}\u{627}\u{644}\u{64a}"
+                . " \u{648}\u{64a}\u{635}\u{644}\u{643} \u{62a}\u{646}\u{628}\u{64a}\u{647}\u{60c}"
+                . " \u{648}\u{62a}\u{62d}\u{62a}\u{641}\u{638} \u{631}\u{633}\u{627}\u{626}\u{644}"
+                . " \u{627}\u{644}\u{637}\u{644}\u{628}\u{627}\u{62a} \u{628}\u{62d}\u{62f}\u{647}\u{627}"
+                . " \u{627}\u{644}\u{62e}\u{627}\u{635}. \u{637}\u{644}\u{628}"
+                . " \u{627}\u{644}\u{631}\u{645}\u{632} \u{627}\u{644}\u{645}\u{631}\u{641}\u{648}\u{636}"
+                . " \u{628}\u{633}\u{628}\u{628} \u{62d}\u{62f} \u{644}\u{627} \u{64a}\u{645}\u{631}"
+                . " \u{628}\u{62f}\u{648}\u{646} \u{62a}\u{62d}\u{642}\u{642}: \u{62e}\u{64a}\u{627}\u{631}"
+                . " \"\u{639}\u{646}\u{62f} \u{62a}\u{639}\u{630}\u{631}"
+                . " \u{625}\u{631}\u{633}\u{627}\u{644} \u{631}\u{645}\u{648}\u{632}"
+                . " \u{627}\u{644}\u{62a}\u{62d}\u{642}\u{642}\" \u{64a}\u{646}\u{637}\u{628}\u{642}"
+                . " \u{641}\u{642}\u{637} \u{639}\u{646}\u{62f}\u{645}\u{627}"
+                . " \u{64a}\u{62a}\u{639}\u{630}\u{631} \u{627}\u{644}\u{625}\u{631}\u{633}\u{627}\u{644}"
+                . " \u{646}\u{641}\u{633}\u{647}\u{60c} \u{648}\u{644}\u{64a}\u{633}"
+                . " \u{628}\u{633}\u{628}\u{628} \u{62d}\u{62f}.",
+        ],
+    ];
+
+    /**
+     * 2026-10-23 18:31 +03: M1.1b fix round 1 (I1), task 596. Copy of Kwtsms110::SHIPPED_1_0_0(the four texts 1.0.0
      * shipped and 1.1.0 changed). Used only when a store at 1.0.0 is healed without the 1.1.0 migration file (the file
      * lives in the upgrade package, not in the add-on tree); a unit test compares it with the original.
      */
@@ -179,7 +247,9 @@ class PostUpgrade
         // no customer data is processed and no form of the 1.1.0 store changes (the scenario has no form yet).
         // 2026-10-29 19:47 +03: M1.13b fix round 1, task 596. Through the class (autoloaded from the new files), not
         // fn_kwtsms_tick_sms_code_scenario(), which the old func.php of the Upgrade Center request does not have.
-        if (!SmsCodeScenario::tick()) {
+        // 2026-11-04 14:40 +03: Task RC2-refresh, task 596. Only for a store coming from before 1.2.0: the refresh
+        // package (1.2.0 rc.1 -> rc.2, $from_version 1.2.0) must not tick again what an admin may have unticked.
+        if (version_compare($from_version, self::VERSION, '<') && !SmsCodeScenario::tick()) {
             throw new \RuntimeException('the image verification scenario kwtsms_sms_code was not ticked');
         }
 
@@ -421,6 +491,9 @@ class PostUpgrade
     private static function languageValues($scheme): void
     {
         self::refreshUneditedValues((array) $scheme->getLanguageValues(false));
+        // 2026-11-04 14:40 +03: Task RC2-refresh, task 596. The rc.1 -> rc.2 rewording of two existing variables
+        // (same version 1.2.0, so the refresh package runs this step too); an edited value stays.
+        self::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::SHIPPED_1_2_0_RC1);
         // 2026-10-29 00:07 +03: Task M1.11s item 3, task 596. The stored template texts follow, same rule.
         self::refreshUneditedTemplateBodies((array) $scheme->getLanguageValues(false));
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
