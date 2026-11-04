@@ -6625,3 +6625,70 @@ msgstr "تنبيه عند فشل الإرسال دفعة واحدة"
 msgctxt "SettingsOptions::kwtsms::fail_spike_threshold"
 msgid "Failures in 15 minutes before the alert"
 msgstr "عدد حالات الفشل خلال 15 دقيقة قبل التنبيه"
+
+# 2026-11-04 19:06 +03: Task M2.1 (sign-in with a phone and an SMS code, P3-42, P3-46), task 596. Neutral request message, blind wrong-code copy, the
+# sign-in link and page, and the Settings field.
+msgctxt "Languages::kwtsms.code.blind_login"
+msgid "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or sign in with your email."
+msgstr "إذا كان هذا الرقم مرتبطاً بحساب فسيصلك رمز قريباً. لم تصلك رسالة خلال دقيقة؟ تحقق من الرقم أو سجّل الدخول ببريدك الإلكتروني."
+
+msgctxt "Languages::kwtsms.code.blind_recover"
+msgid "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or reset your password by email."
+msgstr "إذا كان هذا الرقم مرتبطاً بحساب فسيصلك رمز قريباً. لم تصلك رسالة خلال دقيقة؟ تحقق من الرقم أو أعد تعيين كلمة المرور بالبريد الإلكتروني."
+
+msgctxt "Languages::kwtsms.code.blind_wrong"
+msgid "The code is not correct or has expired. You have [n] tries left."
+msgstr "الرمز غير صحيح أو انتهت صلاحيته. لديك [n] محاولات متبقية."
+
+msgctxt "Languages::kwtsms.login.link"
+msgid "Sign in with an SMS code"
+msgstr "تسجيل الدخول برمز SMS"
+
+msgctxt "Languages::kwtsms.login.title"
+msgid "Sign in with your mobile number"
+msgstr "تسجيل الدخول برقم الجوال"
+
+msgctxt "Languages::kwtsms.login.intro"
+msgid "Enter your mobile number and ask for a code, then type the code below."
+msgstr "أدخل رقم جوالك واطلب رمزاً، ثم اكتب الرمز أدناه."
+
+msgctxt "Languages::kwtsms.login.phone_label"
+msgid "Mobile number"
+msgstr "رقم الجوال"
+
+msgctxt "Languages::kwtsms.login.submit"
+msgid "Sign in"
+msgstr "تسجيل الدخول"
+
+msgctxt "Languages::kwtsms.login.password_link"
+msgid "Sign in with your email and password instead"
+msgstr "تسجيل الدخول بالبريد الإلكتروني وكلمة المرور بدلاً من ذلك"
+
+msgctxt "Languages::kwtsms.login.enter_both"
+msgid "Enter your mobile number and the 6-digit code."
+msgstr "أدخل رقم جوالك والرمز المكوّن من 6 أرقام."
+
+msgctxt "Languages::kwtsms.login.failed"
+msgid "We could not sign you in. Try again in a few minutes."
+msgstr "تعذّر تسجيل دخولك. حاول مرة أخرى بعد دقائق."
+
+msgctxt "Languages::kwtsms.settings.field.login_code"
+msgid "Sign in with an SMS code"
+msgstr "تسجيل الدخول برمز SMS"
+
+msgctxt "Languages::kwtsms.settings.login_code_label"
+msgid "Let customers sign in with a verified mobile number and an SMS code"
+msgstr "السماح للعملاء بتسجيل الدخول برقم جوال متحقق منه ورمز SMS"
+
+msgctxt "Languages::kwtsms.settings.login_code_help"
+msgid "When on, the login form links to a page where a customer signs in with a mobile number and a code. Only active customer accounts whose number was verified by a code, with no two-step sign-in, can use it. The page never says whether a number has an account."
+msgstr "عند التفعيل يحتوي نموذج تسجيل الدخول على رابط إلى صفحة يسجّل فيها العميل دخوله برقم جوال ورمز. يستطيع استخدامها فقط أصحاب حسابات العملاء النشطة التي تم التحقق من رقمها برمز ولا يفعّلون تسجيل الدخول بخطوتين. لا تذكر الصفحة أبداً ما إذا كان الرقم مرتبطاً بحساب."
+
+msgctxt "Languages::kwtsms.settings.signin_verified_note"
+msgid "Sign-in and recovery by code work only for numbers verified by a code: [n] accounts have one."
+msgstr "يعمل تسجيل الدخول واستعادة الحساب بالرمز فقط مع الأرقام التي تم التحقق منها برمز. عدد الحسابات التي لديها رقم متحقق منه: [n]."
+
+# 2026-11-04 19:56 +03: Task M2.1 (e2e screenshot review), task 596. The save button of the Sign-in and security section.
+msgctxt "Languages::kwtsms.settings.signin_save"
+msgid "Save sign-in settings"
+msgstr "حفظ إعدادات تسجيل الدخول"

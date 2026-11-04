@@ -675,6 +675,25 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
     <section class="kwtsms-section" id="kwtsms_signin" aria-labelledby="kwtsms_signin_title">
         <h4 class="subheader" id="kwtsms_signin_title">{__("kwtsms.settings.signin_title")}</h4>
         <p class="muted description" id="kwtsms_signin_help">{__("kwtsms.settings.signin_help")}</p>
+        {* 2026-11-04 19:14 +03: Task M2.1 (SafatMall B2, P3-58), task 596. The sign-in by code switch (default OFF): its own form, saved through update_codes, back to #kwtsms_signin. While it is ON the number of accounts with a verified phone is shown: only those accounts can sign in this way. *}
+        <form action="{""|fn_url}" method="post" name="kwtsms_signin_form" id="kwtsms_signin_form" class="form-horizontal form-edit" autocomplete="off">
+            <input type="hidden" name="kwtsms_anchor" value="kwtsms_signin">
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.login_code")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[login_code]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_login_code" name="kwtsms_codes[login_code]" value="Y"{if $kwtsms.codes.login_code == "Y"} checked="checked"{/if} aria-describedby="kwtsms_login_code_help"> {__("kwtsms.settings.login_code_label")}</label>
+                    {* 2026-11-04 19:54 +03: Task M2.1 (e2e AA contrast), task 596: the verified-accounts note below is a plain description paragraph, not an alert-info box (3.14:1 measured). *}
+                    <p class="muted description" id="kwtsms_login_code_help">{__("kwtsms.settings.login_code_help")}</p>
+                    {if $kwtsms.codes.login_code == "Y"}<p class="description" id="kwtsms_login_verified_note" role="status">{__("kwtsms.settings.signin_verified_note", ["[n]" => $kwtsms.codes.login_verified|fn_html_escape])}</p>{/if}
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls kwtsms-actions">
+                    <input type="submit" class="btn btn-primary" id="kwtsms_signin_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.signin_save")}">
+                </div>
+            </div>
+        </form>
     </section>
 
     {* 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15, P3-R7, P3-32), task 596. The "CAPTCHA (Cloudflare Turnstile)" section: its own

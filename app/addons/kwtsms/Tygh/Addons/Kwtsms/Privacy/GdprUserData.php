@@ -38,8 +38,8 @@
  *            session_hash); anonymize() deletes both by the exact user id (P3-31).
  *            2026-11-04 18:21 +03, Task M2.0 (1.3.0), task 596: collect() also lists the account's two-step sign-in
  *            row ('twofa': user_id, enabled, the 2FA phone, enrolled_at, updated_at) and the number of backup codes
- *            ('backup_codes': total and unused counts, NEVER a hash or a salt); anonymize() deletes both tables' rows by the exact user
- *            id.
+ *            ('backup_codes': total and unused counts, NEVER a hash or a salt); anonymize() deletes both tables'
+ *            rows by the exact user id.
  * USAGE:     $gdpr = GdprUserData::fromContainer(Tygh::$app);
  *            $data = $gdpr->collect($user_info);   // ['phones' => [...], 'messages' => [...], 'attempts' => [...],
  *            'outbox' => [...]]

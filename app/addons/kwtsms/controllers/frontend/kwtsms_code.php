@@ -21,13 +21,21 @@
  */
 
 use Tygh\Addons\Kwtsms\Antibot\SuspicionGate;
+use Tygh\Addons\Kwtsms\Codes\BlindCodeRequest; // 2026-11-04 19:13 +03: Task M2.1, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeRequest;
+use Tygh\Addons\Kwtsms\Codes\CodeTiming; // 2026-11-04 19:13 +03: Task M2.1, task 596
+use Tygh\Addons\Kwtsms\Orders\AfterResponse; // 2026-11-04 19:13 +03: Task M2.1, task 596
 use Tygh\Addons\Kwtsms\Security\ClientIp;
 use Tygh\Tygh;
 
 defined('BOOTSTRAP') or die('Access denied');
 
 /** @var string $mode */
+
+// 2026-11-04 19:13 +03: Task M2.1 (P3-43), task 596. The request start for the padding of the sign-in and recovery
+// answers (every answer of those purposes lasts at least CodeTiming::FLOOR_MS when the work runs in the request).
+$kwtsms_timing = new CodeTiming();
+$kwtsms_timing->start();
 
 // Before any work: a verb other than POST gets 405 and "Allow: POST".
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -89,6 +97,35 @@ try {
     $kwtsms_checked = $kwtsms_scenario === true;
 
     $kwtsms_phone = isset($_POST['phone']) && is_string($_POST['phone']) ? $_POST['phone'] : '';
+
+    // 2026-11-04 19:13 +03: Task M2.1 (P3-42, P3-43, P3-45), task 596. The purposes login and recover are answered by
+    // the blind request: the body is decided before any account lookup and is the same for every valid phone; the work
+    // for a phone that has an eligible account (issue and send) runs after the response (fpm, litespeed) or in the
+    // request with every answer padded to 3000 ms (no finish function). Never a bypass.
+    if (in_array($kwtsms_purpose, BlindCodeRequest::PURPOSES, true)) {
+        $kwtsms_blind = $kwtsms_app['kwtsms.blind_code_request'];
+        $kwtsms_body = $kwtsms_blind->handle(
+            $kwtsms_purpose,
+            $kwtsms_phone,
+            $_REQUEST,
+            CodeRequest::sessionHash(),
+            ClientIp::current(),
+            $kwtsms_storefront_id,
+            $kwtsms_lang,
+            $kwtsms_checked
+        );
+        $kwtsms_mode = $kwtsms_blind->mode();
+        if (AfterResponse::afterResponse($kwtsms_mode)) {
+            register_shutdown_function(static function () use ($kwtsms_blind, $kwtsms_mode): void {
+                AfterResponse::finish($kwtsms_mode);
+                $kwtsms_blind->afterResponse();
+            });
+        } else {
+            $kwtsms_blind->finishInline($kwtsms_timing);
+        }
+        fn_kwtsms_code_json(200, $kwtsms_body);
+    }
+
     $kwtsms_body = $kwtsms_app['kwtsms.code_request']->handle(
         $kwtsms_purpose,
         $kwtsms_phone,

@@ -196,6 +196,8 @@ class Config implements ConfigInterface
             // 2026-10-28 20:27 +03: Task M1.10b (SafatMall B5, P3-17), task 596. The phone change code and the
             // notice to the old number.
             'phone_change_code', 'phone_change_notice',
+            // 2026-11-04 19:15 +03: Task M2.1 (SafatMall B2), task 596. Sign-in with a phone and an SMS code.
+            'login_code',
         ],
     ];
 

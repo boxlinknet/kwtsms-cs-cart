@@ -6620,3 +6620,70 @@ msgstr "Alert when sends fail in a burst"
 msgctxt "SettingsOptions::kwtsms::fail_spike_threshold"
 msgid "Failures in 15 minutes before the alert"
 msgstr "Failures in 15 minutes before the alert"
+
+# 2026-11-04 19:06 +03: Task M2.1 (sign-in with a phone and an SMS code, P3-42, P3-46), task 596. Neutral request message, blind wrong-code copy, the
+# sign-in link and page, and the Settings field.
+msgctxt "Languages::kwtsms.code.blind_login"
+msgid "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or sign in with your email."
+msgstr "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or sign in with your email."
+
+msgctxt "Languages::kwtsms.code.blind_recover"
+msgid "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or reset your password by email."
+msgstr "If this number belongs to an account, a code is on its way. No SMS within a minute? Check the number or reset your password by email."
+
+msgctxt "Languages::kwtsms.code.blind_wrong"
+msgid "The code is not correct or has expired. You have [n] tries left."
+msgstr "The code is not correct or has expired. You have [n] tries left."
+
+msgctxt "Languages::kwtsms.login.link"
+msgid "Sign in with an SMS code"
+msgstr "Sign in with an SMS code"
+
+msgctxt "Languages::kwtsms.login.title"
+msgid "Sign in with your mobile number"
+msgstr "Sign in with your mobile number"
+
+msgctxt "Languages::kwtsms.login.intro"
+msgid "Enter your mobile number and ask for a code, then type the code below."
+msgstr "Enter your mobile number and ask for a code, then type the code below."
+
+msgctxt "Languages::kwtsms.login.phone_label"
+msgid "Mobile number"
+msgstr "Mobile number"
+
+msgctxt "Languages::kwtsms.login.submit"
+msgid "Sign in"
+msgstr "Sign in"
+
+msgctxt "Languages::kwtsms.login.password_link"
+msgid "Sign in with your email and password instead"
+msgstr "Sign in with your email and password instead"
+
+msgctxt "Languages::kwtsms.login.enter_both"
+msgid "Enter your mobile number and the 6-digit code."
+msgstr "Enter your mobile number and the 6-digit code."
+
+msgctxt "Languages::kwtsms.login.failed"
+msgid "We could not sign you in. Try again in a few minutes."
+msgstr "We could not sign you in. Try again in a few minutes."
+
+msgctxt "Languages::kwtsms.settings.field.login_code"
+msgid "Sign in with an SMS code"
+msgstr "Sign in with an SMS code"
+
+msgctxt "Languages::kwtsms.settings.login_code_label"
+msgid "Let customers sign in with a verified mobile number and an SMS code"
+msgstr "Let customers sign in with a verified mobile number and an SMS code"
+
+msgctxt "Languages::kwtsms.settings.login_code_help"
+msgid "When on, the login form links to a page where a customer signs in with a mobile number and a code. Only active customer accounts whose number was verified by a code, with no two-step sign-in, can use it. The page never says whether a number has an account."
+msgstr "When on, the login form links to a page where a customer signs in with a mobile number and a code. Only active customer accounts whose number was verified by a code, with no two-step sign-in, can use it. The page never says whether a number has an account."
+
+msgctxt "Languages::kwtsms.settings.signin_verified_note"
+msgid "Sign-in and recovery by code work only for numbers verified by a code: [n] accounts have one."
+msgstr "Sign-in and recovery by code work only for numbers verified by a code: [n] accounts have one."
+
+# 2026-11-04 19:56 +03: Task M2.1 (e2e screenshot review), task 596. The save button of the Sign-in and security section.
+msgctxt "Languages::kwtsms.settings.signin_save"
+msgid "Save sign-in settings"
+msgstr "Save sign-in settings"

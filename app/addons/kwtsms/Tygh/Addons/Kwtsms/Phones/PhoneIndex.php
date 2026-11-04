@@ -58,10 +58,14 @@ class PhoneIndex
         $this->clock = $clock;
     }
 
-    /** True when any of the three features that need the index is ON (P3-31). */
+    /**
+     * True when any of the features that need the index is ON (P3-31).
+     * 2026-11-04 19:09 +03: Task M2.1 (P3-58), task 596. login_code joins (sign-in by code reads the verified column);
+     * the later Milestone 2 switches add theirs.
+     */
     public static function anyFeatureOn(ConfigInterface $config): bool
     {
-        return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode();
+        return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode() || $config->loginCode();
     }
 
     public function active(): bool
@@ -102,6 +106,19 @@ class PhoneIndex
         }
 
         return $this->readOwner($phone, $except_user_id);
+    }
+
+    /**
+     * 2026-11-04 19:09 +03: Task M2.1 (P3-44), task 596. The account whose VERIFIED number is exactly $phone, or 0
+     * ('' is nobody's). One SELECT on the UNIQUE key verified_phone.
+     */
+    public function verifiedOwner(string $phone): int
+    {
+        if ($phone === '') {
+            return 0;
+        }
+
+        return $this->readVerifiedOwner($phone);
     }
 
     /** True when the account's verified number is exactly $phone. */
@@ -171,6 +188,12 @@ class PhoneIndex
             $phone,
             $except_user_id
         );
+    }
+
+    // 2026-11-04 19:09 +03: Task M2.1 (P3-44), task 596. The SELECT of verifiedOwner() (ANALYZE evidence in M2.1).
+    protected function readVerifiedOwner(string $phone): int
+    {
+        return (int) db_get_field('SELECT user_id FROM ?:kwtsms_phone_index WHERE verified_phone = ?s', $phone);
     }
 
     protected function readVerified(int $user_id): string

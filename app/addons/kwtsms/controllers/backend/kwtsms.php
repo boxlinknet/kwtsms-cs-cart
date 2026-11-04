@@ -201,8 +201,12 @@ try {
 
                 // 2026-10-24 21:11 +03: Task M1.7b, task 596. The Turnstile section posts to this mode too and names
                 // its own anchor; any other value goes back to the "Phone and codes" section.
-                $kwtsms_anchor = isset($_POST['kwtsms_anchor']) && $_POST['kwtsms_anchor'] === 'kwtsms_turnstile'
-                    ? 'kwtsms_turnstile' : 'kwtsms_codes';
+                // 2026-11-04 19:14 +03: Task M2.1, task 596. The "Sign-in and security" section names its anchor too.
+                $kwtsms_anchor = isset($_POST['kwtsms_anchor']) && in_array(
+                    $_POST['kwtsms_anchor'],
+                    ['kwtsms_turnstile', 'kwtsms_signin'],
+                    true
+                ) ? $_POST['kwtsms_anchor'] : 'kwtsms_codes';
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#' . $kwtsms_anchor];
 

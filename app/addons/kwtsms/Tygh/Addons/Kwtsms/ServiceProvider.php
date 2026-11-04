@@ -44,6 +44,8 @@ use Pimple\ServiceProviderInterface;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\SuspicionGate; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeRequest; // 2026-10-24 23:51 +03: Task M1.8a, task 596
+use Tygh\Addons\Kwtsms\Auth\LoginByCode; // 2026-11-04 19:12 +03: Task M2.1, task 596
+use Tygh\Addons\Kwtsms\Codes\BlindCodeRequest; // 2026-11-04 19:12 +03: Task M2.1, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneRules; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 19:42 +03: Task M1.7a, task 596
@@ -450,6 +452,34 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.code_availability'],
                 $app['kwtsms.otp'],
                 $app['kwtsms.code_sender'],
+                $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-11-04 19:12 +03: Task M2.1 (SafatMall B2, P3-42 to P3-47), task 596. The blind code request of sign-in
+        // (and later recovery) and the sign-in by code that checks the code blind and logs the owner in.
+        $app['kwtsms.blind_code_request'] = function (Container $app): BlindCodeRequest {
+            return new BlindCodeRequest(
+                $app['kwtsms.config'],
+                $app['kwtsms.rate_limiter'],
+                $app['kwtsms.suspicion_gate'],
+                $app['kwtsms.phone_rules'],
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.code_availability'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.code_sender'],
+                new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']),
+                $app['kwtsms.logs.debug']
+            );
+        };
+        $app['kwtsms.login_by_code'] = function (Container $app): LoginByCode {
+            return new LoginByCode(
+                $app['kwtsms.config'],
+                $app['kwtsms.phone_rules'],
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.blind_code_request'],
+                null,
+                null,
                 $app['kwtsms.logs.debug']
             );
         };

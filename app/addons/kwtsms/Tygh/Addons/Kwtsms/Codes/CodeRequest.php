@@ -92,6 +92,18 @@ class CodeRequest
         return false;
     }
 
+    /**
+     * 2026-11-04 19:12 +03: Task M2.1 (P3-45, amends P3-13), task 596. otp_unreachable = continue lets a form go on
+     * unverified only for these purposes. login, recover, 2fa and vendor_phone answer "unavailable" when no code can be
+     * sent: a sign-in is never granted without a check.
+     */
+    public const CONTINUE_PURPOSES = [self::PURPOSE_REGISTER, self::PURPOSE_PHONE_CHANGE, self::PURPOSE_CHECKOUT];
+
+    public static function continuesUnverified(string $purpose): bool
+    {
+        return in_array($purpose, self::CONTINUE_PURPOSES, true);
+    }
+
     /** The session key of a "continue" bypass: [purpose][canonical phone] => Unix time it is valid until. */
     public const BYPASS_KEY = 'kwtsms_code_bypass';
 
@@ -258,6 +270,11 @@ class CodeRequest
         // 6. Can a code SMS leave at all? (P3-13, P3-24; the gate raises the alert)
         $gate = $this->availability->gate($storefront_id);
         if ($gate['action'] === 'bypass') {
+            // 2026-11-04 19:12 +03: Task M2.1 (P3-45), task 596. Only the purposes that may continue unverified.
+            if (!self::continuesUnverified($purpose)) {
+                return $this->error('unavailable', 'kwtsms.code.unavailable', $lang);
+            }
+
             return $this->bypassBody($purpose, $phone, $storefront_id);
         }
         if ($gate['action'] !== 'send') {
@@ -332,7 +349,11 @@ class CodeRequest
         }
         // 2026-10-29 20:07 +03: Task 596 (branch review I2b, ruling P3-R15). Never when one of our own limits refused
         // the send.
-        if ($this->config->otpUnreachable() === 'continue' && $this->availability->bypassAllowed($outcome, $reason)) {
+        // 2026-11-04 19:12 +03: Task M2.1 (P3-45), task 596. continuesUnverified() joins the condition.
+        if (
+            $this->config->otpUnreachable() === 'continue' && self::continuesUnverified($purpose)
+            && $this->availability->bypassAllowed($outcome, $reason)
+        ) {
             return $this->bypassBody($purpose, $phone, $storefront_id);
         }
 

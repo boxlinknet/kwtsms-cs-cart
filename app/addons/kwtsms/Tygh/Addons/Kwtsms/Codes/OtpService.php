@@ -197,6 +197,39 @@ class OtpService
         string $session_hash,
         string $ip
     ): OtpResult {
+        return $this->check(false, $purpose, $subject, $raw_code, $user_id, $session_hash, $ip);
+    }
+
+    /**
+     * 2026-11-04 19:09 +03: Task M2.1 (P3-46), task 596. The blind check for the purposes login and recover: a wrong
+     * code, an expired, cancelled or used code and a phone without any code row get the same answer and the same
+     * counting. The two wrong-attempt counters (otp_fail, otp_failp) are hit exactly as for a wrong code, a dummy HMAC
+     * runs when there is nothing to compare, and the answer is "wrong" with the tries left or "locked". The per-IP
+     * ip_v limit and the lockout checks are those of verify(). A malformed entry counts nothing and answers malformed
+     * (the format is not about any account).
+     */
+    public function verifyBlind(
+        string $purpose,
+        string $subject,
+        #[\SensitiveParameter]
+        string $raw_code,
+        int $user_id,
+        string $session_hash,
+        string $ip
+    ): OtpResult {
+        return $this->check(true, $purpose, $subject, $raw_code, $user_id, $session_hash, $ip);
+    }
+
+    private function check(
+        bool $blind,
+        string $purpose,
+        string $subject,
+        #[\SensitiveParameter]
+        string $raw_code,
+        int $user_id,
+        string $session_hash,
+        string $ip
+    ): OtpResult {
         $code = CodeInput::normalize($raw_code);
         if ($code === null) {
             return OtpResult::of(OtpResult::MALFORMED);
@@ -227,11 +260,16 @@ class OtpService
         if ($row === null) {
             // A stranger without a code row of this session spends only its own ip_v budget.
             $this->hasher->dummy($code);
-
-            return OtpResult::of(OtpResult::NONE);
-        }
-        if ((int) $row['expires_at'] <= $now) {
-            return OtpResult::of(OtpResult::EXPIRED);
+            if (!$blind) {
+                return OtpResult::of(OtpResult::NONE);
+            }
+        } elseif ((int) $row['expires_at'] <= $now) {
+            if (!$blind) {
+                return OtpResult::of(OtpResult::EXPIRED);
+            }
+            // Blind: an expired code is a wrong one (same HMAC work, same counting below).
+            $this->hasher->dummy($code);
+            $row = null;
         }
 
         $fail_ip = self::failIpBucket($purpose, $subject, $ip_part);
@@ -253,14 +291,15 @@ class OtpService
             return OtpResult::locked($left > 0 ? $left : $lockout);
         }
 
-        $match = $this->hasher->matches(
+        // 2026-11-04 19:09 +03: Task M2.1 (P3-46), task 596. A blind check without a usable row is a mismatch.
+        $match = $row !== null && $this->hasher->matches(
             (string) $row['code_hash'],
             $purpose,
             $subject,
             $code,
             (string) $row['salt']
         );
-        if ($match) {
+        if ($match && $row !== null) {
             $won = $this->run(
                 "UPDATE ?:kwtsms_otp_codes SET status = 'V' WHERE code_id = ?i AND status = 'A' AND expires_at > ?i",
                 [(int) $row['code_id'], $now]
@@ -274,8 +313,9 @@ class OtpService
                 return OtpResult::of(OtpResult::OK);
             }
 
-            // A cancelled, used or already verified code, or another request verified it first.
-            return OtpResult::of(OtpResult::NONE);
+            // A cancelled, used or already verified code, or another request verified it first. Blind: a wrong code
+            // (the attempt is already counted above).
+            return $blind ? OtpResult::wrong($max - (int) $n) : OtpResult::of(OtpResult::NONE);
         }
 
         $ceiling_reached = $m >= $ceiling;

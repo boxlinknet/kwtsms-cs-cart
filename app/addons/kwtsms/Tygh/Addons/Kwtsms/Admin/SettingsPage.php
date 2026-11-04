@@ -414,7 +414,26 @@ class SettingsPage
             // 2026-10-28 20:27 +03: Task M1.10b (B5, P3-17), task 596. The phone change code and the notice ('Y'/'N').
             'phone_change_code' => $this->config->phoneChangeCode() ? 'Y' : 'N',
             'phone_change_notice' => $this->config->phoneChangeNotice() ? 'Y' : 'N',
+            // 2026-11-04 19:15 +03: Task M2.1 (B2, P3-58), task 596. The sign-in code switch and, while it is ON, how
+            // many accounts have a number verified by a code ("Sign-in ... work only for numbers verified by a code").
+            'login_code' => $this->config->loginCode() ? 'Y' : 'N',
+            'login_verified' => $this->config->loginCode() ? $this->verifiedAccounts() : 0,
         ];
+    }
+
+    /**
+     * 2026-11-04 19:15 +03: Task M2.1 (P3-58), task 596. Accounts that have a verified phone (the unique column of the
+     * phone index; an index-only count). 0 when the table cannot be read.
+     */
+    private function verifiedAccounts(): int
+    {
+        try {
+            return (int) db_get_field('SELECT COUNT(*) FROM ?:kwtsms_phone_index WHERE verified_phone IS NOT NULL');
+        } catch (\Throwable $e) {
+            $this->log->log('error', 'settings.verified_count_failed', self::describeThrowable($e));
+
+            return 0;
+        }
     }
 
     /**

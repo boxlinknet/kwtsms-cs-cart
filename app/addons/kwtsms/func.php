@@ -1096,6 +1096,22 @@ function fn_kwtsms_register_code_on($unused = '')
 }
 
 /**
+ * 2026-11-04 19:14 +03: Task M2.1 (SafatMall B2), task 596. For hooks/index/login_buttons.post.tpl (modifier
+ * |fn_kwtsms_login_code_on): true while login_code is ON (the login form then links to the sign-in by code page).
+ * Settings only. Never throws; false on any error.
+ */
+function fn_kwtsms_login_code_on($unused = '')
+{
+    try {
+        return isset(Tygh::$app['kwtsms.config']) && Tygh::$app['kwtsms.config']->loginCode();
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('login_code_on', $e);
+
+        return false;
+    }
+}
+
+/**
  * 2026-10-24 21:13 +03: Task M1.7b (ruling P3-R7), task 596. Hook init_templater_post (fn.init.php:143): in the
  * storefront,
  * while Turnstile is the active antibot driver and the reCAPTCHA add-on is active (without keys, or its driver would

@@ -139,6 +139,32 @@ code_controller_check() {
   echo "CHECKED 1"
 }
 gate "kwtsms_code controller: POST first, then hash_equals" code_controller_check
+# 2026-11-04 19:15 +03: Task M2.1 (SafatMall B2, PRD 10), task 596. The sign-in by code controller ships, refuses any verb but
+# GET and POST (405) and a feature that is OFF (404) before anything else, and checks the session security hash itself with
+# hash_equals() before it counts or reads anything (login CSRF); the login template and the form link ship in both theme
+# trees (the diff gate below compares them).
+auth_controller_check() {
+  local f="$A/controllers/frontend/kwtsms_auth.php" verb hash off t
+  [ -f "$f" ] || { echo "controllers/frontend/kwtsms_auth.php missing"; return 0; }
+  verb="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep "REQUEST_METHOD" | head -1 | cut -d: -f1)"
+  off="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'loginCode()' | head -1 | cut -d: -f1)"
+  hash="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'hash_equals(' | head -1 | cut -d: -f1)"
+  [ -n "$verb" ] || echo "no REQUEST_METHOD check"
+  [ -n "$off" ] || echo "no feature switch check"
+  [ -n "$hash" ] || echo "no hash_equals"
+  if [ -n "$verb" ] && [ -n "$off" ] && [ -n "$hash" ]; then
+    { [ "$verb" -lt "$off" ] && [ "$off" -lt "$hash" ]; } || echo "the order is not verb, feature switch, hash"
+  fi
+  grep -q "http_response_code(405)" "$f" || echo "no 405 answer"
+  grep -q "http_response_code(403)" "$f" || echo "no 403 answer"
+  grep -q "ReturnUrl::safe" "$f" || echo "return_url is not checked"
+  for t in views/kwtsms_auth/login.tpl hooks/index/login_buttons.post.tpl; do
+    [ -f "$src/design/themes/responsive/templates/addons/kwtsms/$t" ] || echo "template $t missing"
+    [ -f "$src/var/themes_repository/responsive/templates/addons/kwtsms/$t" ] || echo "repository copy of $t missing"
+  done
+  echo "CHECKED 1"
+}
+gate "kwtsms_auth controller: verb, feature switch, hash_equals; templates ship" auth_controller_check
 sensitive_check() { py "$1" <<'PY'
 import os, re, sys
 # Parameter names that hold pass, secret or key but are not secrets (setting, storage, dispatch and template keys,
