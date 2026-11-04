@@ -104,12 +104,24 @@ class SuspicionGate
         if (!is_object($antibot) || !method_exists($antibot, 'isValidationRequiredForScenario')) {
             return null;
         }
-        if (!$antibot->isValidationRequiredForScenario(self::SCENARIO)) {
+        try {
+            $required = (bool) $antibot->isValidationRequiredForScenario(self::SCENARIO);
+        } catch (\Throwable $e) {
+            // 2026-11-04 14:40 +03: RC2 fix1 item 2, task 596. Core asks the driver's isSetUp(); a throw fails closed.
+            return false;
+        }
+        if (!$required) {
             return null;
         }
         $driver = $antibot->getDriver();
 
-        return $driver !== null && (bool) $driver->validateHttpRequest($request);
+        // 2026-11-04 14:40 +03: RC2 fix1 item 2, task 596. A third-party driver can throw (provider down, bad
+        // config): that is a failed CAPTCHA (fail closed, same JSON captcha error), not a 500 from the controller.
+        try {
+            return $driver !== null && (bool) $driver->validateHttpRequest($request);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
