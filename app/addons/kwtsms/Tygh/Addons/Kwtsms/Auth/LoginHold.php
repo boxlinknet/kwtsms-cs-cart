@@ -105,8 +105,32 @@ class LoginHold
         if ($user_id <= 0) {
             return;
         }
-        $env = $this->environment();
-        if ($env['console'] || !$this->policy->anyOn()) {
+        // 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. Rewritten so no exception can release an account that
+        // needs a code. Before the account is known only a switch read that throws may leave the login to core, and
+        // only when every switch is proved off (holdUnknown()). From the moment the requirement is known, the user id
+        // is set to 0 first and everything after it (done mark, log, pending state, cookie) runs inside its own guard.
+        try {
+            $env = $this->environment();
+            if ($env['console']) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            // The environment could not be read: CONSOLE is unknown, so the account is held (nothing reads a DB here).
+            $user_id = 0;
+
+            return;
+        }
+        try {
+            if (!$this->policy->anyOn()) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            $this->debug('twofa.hold', ['reason' => 'switch_read_failed', 'error' => get_class($e)]);
+            if ($this->switchesProvablyOff()) {
+                return;
+            }
+            $user_id = 0;
+
             return;
         }
         $user = [];
@@ -119,8 +143,8 @@ class LoginHold
             $need = $this->policy->requirement($user);
         } catch (\Throwable $e) {
             // Fail closed for the account that could not be checked; nobody else is touched.
-            $this->debug('twofa.hold', ['reason' => 'check_failed', 'error' => get_class($e)]);
             $user_id = 0;
+            $this->debug('twofa.hold', ['reason' => 'check_failed', 'error' => get_class($e)]);
 
             return;
         }
@@ -128,10 +152,15 @@ class LoginHold
             return;
         }
         if ($need === TwoFactorPolicy::CODE || $need === TwoFactorPolicy::ENROLL) {
-            if ($this->pending->useDone($user_id)) {
-                $this->debug('twofa.pass', ['user_id' => $user_id]);
+            try {
+                if ($this->pending->useDone($user_id)) {
+                    $this->debug('twofa.pass', ['user_id' => $user_id]);
 
-                return;
+                    return;
+                }
+            } catch (\Throwable $e) {
+                // A done mark that cannot be read is no pass: the account stays held.
+                $this->debug('twofa.hold', ['reason' => 'done_mark_failed', 'error' => get_class($e)]);
             }
         }
         $held = $user_id;
@@ -149,6 +178,16 @@ class LoginHold
             $this->pending->start($user, $env['area'], false, '', true, $need);
         } catch (\Throwable $e) {
             $this->debug('twofa.hold', ['reason' => 'pending_failed', 'error' => get_class($e)]);
+        }
+    }
+
+    /** After a switch read threw: true only when every switch reads off one by one (never throws). */
+    private function switchesProvablyOff(): bool
+    {
+        try {
+            return $this->policy->switchesProvablyOff();
+        } catch (\Throwable $e) {
+            return false;
         }
     }
 
@@ -358,8 +397,13 @@ class LoginHold
      */
     private function debug(string $action, array $context): void
     {
-        if ($this->log !== null) {
-            $this->log->log('debug', $action, $action, $context);
+        // 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. A log that throws must never change a hold.
+        try {
+            if ($this->log !== null) {
+                $this->log->log('debug', $action, $action, $context);
+            }
+        } catch (\Throwable $e) {
+            return;
         }
     }
 }

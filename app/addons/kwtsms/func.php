@@ -960,7 +960,45 @@ function fn_kwtsms_login_user_pre(&$user_id = null, &$udata = [], &$auth = [], &
         }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('login_user_pre', $e);
+        // 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. The hold itself never throws once it knows the
+        // account; this catch is for a failure before that (the service could not be built). The login is left to
+        // core only when the break-glass constant is set or the three stored switches read off; otherwise the
+        // account is held. $id above is a copy, so the id is zeroed here, not by the hold.
+        if (!fn_kwtsms_twofa_switches_off_raw()) {
+            $user_id = 0;
+        }
     }
+}
+
+/**
+ * 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. True when KWTSMS_2FA_OFF is set or the three 2FA switches
+ * read "off" straight from the add-on settings registry (no service, no database). Anything unreadable is not off.
+ */
+function fn_kwtsms_twofa_switches_off_raw(): bool
+{
+    if (defined('KWTSMS_2FA_OFF') && (bool) constant('KWTSMS_2FA_OFF')) {
+        return true;
+    }
+    try {
+        foreach (['twofa_customers', 'twofa_vendors', 'twofa_admins'] as $key) {
+            $value = Registry::get('addons.kwtsms.' . $key);
+            // twofa_vendors does not exist outside Multi-Vendor: an absent value there is off.
+            if ($value === null || $value === '') {
+                if ($key === 'twofa_vendors') {
+                    continue;
+                }
+
+                return false;
+            }
+            if ($value !== 'off') {
+                return false;
+            }
+        }
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    return true;
 }
 
 /**

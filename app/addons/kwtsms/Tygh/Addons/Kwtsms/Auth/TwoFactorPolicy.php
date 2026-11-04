@@ -81,6 +81,29 @@ class TwoFactorPolicy
                 || $this->config->twofaAdmins() !== 'off');
     }
 
+    /**
+     * 2026-11-05 02:15 +03: Task M2.2a fix 1 (I1), task 596. True only when the break-glass constant is set or every
+     * switch was READ and is off. Each switch is read on its own, so one that cannot be read is not off: the hook
+     * calls this after anyOn() threw, and a login goes to core only when this proves there is nothing to hold.
+     */
+    public function switchesProvablyOff(): bool
+    {
+        if ($this->breakGlass()) {
+            return true;
+        }
+        foreach (['twofaCustomers', 'twofaVendors', 'twofaAdmins'] as $getter) {
+            try {
+                if ($this->config->{$getter}() !== 'off') {
+                    return false;
+                }
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /** The phone index the customer enrolment checks (kept for the callers that need the unique-number rule). */
     public function index(): PhoneIndex
     {
