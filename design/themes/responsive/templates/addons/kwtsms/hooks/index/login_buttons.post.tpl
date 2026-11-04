@@ -13,7 +13,9 @@
  *}
 {* 2026-11-04 19:43 +03: Task M2.1 (e2e AA contrast, 3.29:1 for the theme's link colour), task 596: the link carries its own colour (6.4:1 on white) and an underline. *}
 {if ""|fn_kwtsms_login_code_on}
+    {* 2026-11-04 21:19 +03: review fix M4 of Task M2.1, task 596. fn_url builds the whole address, so the separator before return_url is right whatever the URL mode (it was appended with a hard-coded "&"). *}
+    {$kwtsms_back = $smarty.request.return_url|default:$config.current_url|escape:"url"}
     <div class="ty-login-reglink ty-center kwtsms-login-link">
-        <a class="ty-login-reglink__a" style="color: #1a56c4; text-decoration: underline;" href="{"kwtsms_auth.login"|fn_url}&amp;return_url={$smarty.request.return_url|default:$config.current_url|escape:"url"}" rel="nofollow">{__("kwtsms.login.link")|fn_html_escape}</a>
+        <a class="ty-login-reglink__a" style="color: #1a56c4; text-decoration: underline;" href="{"kwtsms_auth.login?return_url=`$kwtsms_back`"|fn_url}" rel="nofollow">{__("kwtsms.login.link")|fn_html_escape}</a>
     </div>
 {/if}
