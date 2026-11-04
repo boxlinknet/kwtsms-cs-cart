@@ -917,6 +917,8 @@ function fn_kwtsms_twofa_pending_redirect()
         if (defined('CONSOLE') || empty(Tygh::$app['session'][\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
             return;
         }
+        // 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Core's "successfully logged in" notice of a login the hook held.
+        fn_kwtsms_twofa_drop_login_notice();
         $to = Tygh::$app['kwtsms.twofa_hold']->pendingRedirect(
             (string) Registry::get('runtime.controller'),
             (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
@@ -927,6 +929,32 @@ function fn_kwtsms_twofa_pending_redirect()
         }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('twofa_pending_redirect', $e);
+    }
+}
+
+/**
+ * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Drops core's "You have been successfully logged in" notice while this session
+ * holds a pending second step that the hook path started (the visitor is not logged in). Nothing else is touched; with no
+ * pending state, or a state the password form started, it returns at once. Never throws.
+ */
+function fn_kwtsms_twofa_drop_login_notice()
+{
+    try {
+        $session = Tygh::$app['session'];
+        $state = $session[\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY];
+        if (empty($state) || !is_array($state) || empty($state['hook'])) {
+            return;
+        }
+        $notices = $session['notifications'];
+        if (!is_array($notices) || $notices === []) {
+            return;
+        }
+        $left = \Tygh\Addons\Kwtsms\Auth\LoginHold::withoutLoginNotice($notices, (string) __('successful_login'));
+        if (count($left) !== count($notices)) {
+            $session['notifications'] = $left;
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('twofa_drop_login_notice', $e);
     }
 }
 

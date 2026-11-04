@@ -196,6 +196,33 @@ class LoginHold
         }
     }
 
+    // ------------------------------------------------------------------ the "successful login" notice of a held login
+
+    /**
+     * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. When the pre-controller could not judge the password (authenticateRequest()
+     * threw), core runs its own login, the hook holds the account, and core still sets its notice "You have been
+     * successfully logged in" (app/controllers/common/auth.php, after fn_login_user()). While a hook-held state is pending
+     * the next request drops exactly that notice from the session list. Pure: the caller reads and writes the session.
+     *
+     * @param array<string|int,mixed> $notifications The session notifications (key => ['type','message',...])
+     * @param string                  $message       The text of core's __('successful_login') in the current language
+     *
+     * @return array<string|int,mixed>
+     */
+    public static function withoutLoginNotice(array $notifications, string $message): array
+    {
+        if ($message === '') {
+            return $notifications;
+        }
+        foreach ($notifications as $key => $notice) {
+            if (is_array($notice) && ($notice['type'] ?? '') === 'N' && (string) ($notice['message'] ?? '') === $message) {
+                unset($notifications[$key]);
+            }
+        }
+
+        return $notifications;
+    }
+
     // ------------------------------------------------------------------ HTTP Basic sign-in of other add-ons
 
     /**
