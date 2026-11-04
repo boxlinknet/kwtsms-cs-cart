@@ -80,7 +80,8 @@ must "clear the old dist files" rm -rf "$out/kwtsms" "$zipf" "$tgzf" "$out/SHA25
 # 2026-11-04 14:36 +03: Task RC2 (coordinator item), task 596. Upgrade zips of this version left by an earlier build (an older
 # RC) would be listed in SHA256SUMS by write-checksums.sh and uploaded by the release step; the upgrade builder makes
 # them again after this script (CONTRIBUTING, Releasing). Other versions' zips stay.
-must "clear stale upgrade zips of $version" rm -f "$out"/kwtsms-upgrade-*-"$version".zip
+# 2026-11-04 17:09 +03: Task RC2, task 596. The delete lives in tools/clean-stale-upgrade-zips.sh (unit-tested alone).
+must "clear stale upgrade zips of $version" bash "$here/tools/clean-stale-upgrade-zips.sh" "$out" "$version"
 must "copy the stage to dist/kwtsms" cp -r "$pkg" "$out/kwtsms"
 # 2026-10-22 12:37 +03: zip writes each entry time as zone-less local time, so a UTC runner gave the same files with
 # other times and another hash; pinned to Asia/Kuwait (no DST), the zone the 1.0.0 RC zip was built in, task 596.
