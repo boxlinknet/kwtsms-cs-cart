@@ -279,6 +279,9 @@ class SmsService
     /** @var ApiClient|null The client of the current send() */
     private $client = null;
 
+    /** @var bool 2026-11-04 21:17 +03: M1 fix of Task M2.1, task 596. True while an inline blind code send runs (short timeouts). */
+    private $blind_inline = false;
+
     /** @var bool The test flag of the current send (2026-10-21 01:04 +03, ruling R26, task 596) */
     private $test = true;
 
@@ -2360,6 +2363,12 @@ class SmsService
     private function client(array $context): ApiClient
     {
         if ($this->client === null) {
+            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. An inline blind code send uses the short blind_inline timeouts.
+            if ($this->blind_inline && $this->webContext()) {
+                $this->client = call_user_func($this->client_factory, ApiClient::BLIND_INLINE);
+
+                return $this->client;
+            }
             // 2026-10-21 02:29 +03: webContext() replaces isWebRequest(): a cron drain uses the cli timeouts even
             // over the URL mode, Task 1.7 fix round 1 item 7, task 596.
             // 2026-10-23 03:45 +03: Task A12 item 5 (R53), task 596. Not interactive in the admin area (the Dashboard
@@ -2373,6 +2382,16 @@ class SmsService
         }
 
         return $this->client;
+    }
+
+    /**
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. Switches the short timeouts of the inline blind code send on or off
+     * (the next send() builds its client under the new setting; a send in progress keeps the client it has).
+     */
+    public function blindInlineTimeouts(bool $on): void
+    {
+        $this->blind_inline = $on;
+        $this->client = null;
     }
 
     /**

@@ -458,7 +458,7 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-11-04 19:12 +03: Task M2.1 (SafatMall B2, P3-42 to P3-47), task 596. The blind code request of sign-in
         // (and later recovery) and the sign-in by code that checks the code blind and logs the owner in.
         $app['kwtsms.blind_code_request'] = function (Container $app): BlindCodeRequest {
-            return new BlindCodeRequest(
+            $blind = new BlindCodeRequest(
                 $app['kwtsms.config'],
                 $app['kwtsms.rate_limiter'],
                 $app['kwtsms.suspicion_gate'],
@@ -470,6 +470,12 @@ class ServiceProvider implements ServiceProviderInterface
                 new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']),
                 $app['kwtsms.logs.debug']
             );
+            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The inline send runs under the short gateway timeouts.
+            $blind->gatewayScope(static function (bool $on) use ($app): void {
+                $app['kwtsms.sms']->blindInlineTimeouts($on);
+            });
+
+            return $blind;
         };
         $app['kwtsms.login_by_code'] = function (Container $app): LoginByCode {
             return new LoginByCode(

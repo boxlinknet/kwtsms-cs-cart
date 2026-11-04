@@ -88,6 +88,12 @@ class ApiGuard
     public const WEB_MAX_WAIT_MS = 1000;
 
     /**
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The longest slot wait of the inline blind code send: with the 2 s
+     * total timeout of ApiClient::BLIND_INLINE the gateway side stays at 2.5 s, below the 3000 ms answer floor.
+     */
+    public const BLIND_MAX_WAIT_MS = 500;
+
+    /**
      * The longest slot wait of a non-interactive admin web call (the Dashboard drain, a sync an admin page runs on
      * open): a page load must not sleep longer than that for the slot. 2026-10-23 03:45 +03: Task A12 item 5 (R53),
      * task 596. An interactive admin call (a human waits on that very call) keeps MAX_WAIT_MS, the storefront keeps

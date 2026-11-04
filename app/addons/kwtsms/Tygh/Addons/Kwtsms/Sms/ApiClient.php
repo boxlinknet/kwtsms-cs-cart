@@ -82,8 +82,15 @@ class ApiClient
     /** The context name of a non-interactive admin web call (2026-10-23 03:45 +03: Task A12 item 5, task 596). */
     public const ADMIN_BACKGROUND = 'admin_background';
 
+    /**
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The context of the code SMS a sign-in request sends INSIDE the request
+     * (a host without a finish function): the slot wait (ApiGuard::BLIND_MAX_WAIT_MS) plus the timeouts below stay under
+     * the 3000 ms floor the answer is padded to, so a known phone cannot answer slower than an unknown one.
+     */
+    public const BLIND_INLINE = 'blind_inline';
+
     /** Connect and total timeout in seconds by context. */
-    private const TIMEOUTS = ['web' => [3, 8], 'admin' => [5, 20], 'cli' => [5, 30]];
+    private const TIMEOUTS = ['web' => [3, 8], 'admin' => [5, 20], 'cli' => [5, 30], 'blind_inline' => [1, 2]];
 
     /**
      * Errors about one chunk only: the next chunk may still go. ERR006, ERR025 and ERR026 are about that
@@ -517,6 +524,9 @@ class ApiClient
      */
     private function slotCap(): int
     {
+        if ($this->context === self::BLIND_INLINE) {
+            return ApiGuard::BLIND_MAX_WAIT_MS; // 2026-11-04 21:17 +03: M1 fix, task 596
+        }
         if ($this->context === 'web') {
             return ApiGuard::WEB_MAX_WAIT_MS;
         }

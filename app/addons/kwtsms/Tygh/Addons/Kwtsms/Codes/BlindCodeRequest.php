@@ -92,6 +92,9 @@ class BlindCodeRequest
     /** @var callable|null */
     private $clock;
 
+    /** @var callable|null 2026-11-04 21:17 +03: M1 fix, task 596. (bool $on): void, the short gateway timeouts of an inline send */
+    private $gateway_scope;
+
     /** @var array<string,mixed>|null The work after the response; set only by an answer that is the neutral body */
     private $pending;
 
@@ -217,6 +220,16 @@ class BlindCodeRequest
     }
 
     /**
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The hook that switches the gateway timeouts for an inline send:
+     * called with true before the work and with false after it (always), so slot wait plus gateway time stay below the
+     * 3000 ms floor of the padded answer.
+     */
+    public function gatewayScope(?callable $scope): void
+    {
+        $this->gateway_scope = $scope;
+    }
+
+    /**
      * fpm, litespeed or inline. The cron mode of AfterResponse is inline here: a code SMS never waits for the cron.
      */
     public function mode(): string
@@ -318,7 +331,17 @@ class BlindCodeRequest
     public function finishInline(CodeTiming $timing): void
     {
         $purpose = $this->pending['purpose'] ?? '';
-        $this->afterResponse();
+        // 2026-11-04 21:17 +03: review fix M1, task 596. Short gateway timeouts for the inline send, put back whatever happens.
+        if ($this->gateway_scope !== null) {
+            call_user_func($this->gateway_scope, true);
+        }
+        try {
+            $this->afterResponse();
+        } finally {
+            if ($this->gateway_scope !== null) {
+                call_user_func($this->gateway_scope, false);
+            }
+        }
         $timing->pad(CodeTiming::FLOOR_MS);
         if ($timing->overran()) {
             $this->debug('otp.timing_overrun', ['purpose' => $purpose, 'elapsed_ms' => $timing->elapsedMs()]);
