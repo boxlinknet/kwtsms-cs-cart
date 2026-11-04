@@ -702,6 +702,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         </select>
                     </div>
                 </div>
+                {* 2026-11-05 02:31 +03: Task M2.2a fix 1 (M2), task 596. "Required" for vendors is disabled until M2.2b, like administrators. *}
                 {if $kwtsms.codes.twofa_vendors_shown}
                 <div class="control-group">
                     <label class="control-label" for="kwtsms_twofa_vendors">{__("kwtsms.settings.field.twofa_vendors")}:</label>
@@ -709,7 +710,7 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         <select name="kwtsms_codes[twofa_vendors]" id="kwtsms_twofa_vendors" class="input-xlarge" style="min-width: 22em; max-width: 100%;">
                             <option value="off"{if $kwtsms.codes.twofa_vendors == "off"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
                             <option value="optional"{if $kwtsms.codes.twofa_vendors == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional")}</option>
-                            <option value="required"{if $kwtsms.codes.twofa_vendors == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
+                            <option value="required" disabled="disabled"{if $kwtsms.codes.twofa_vendors == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
                         </select>
                     </div>
                 </div>

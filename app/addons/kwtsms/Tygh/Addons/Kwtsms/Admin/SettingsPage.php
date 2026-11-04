@@ -905,6 +905,11 @@ class SettingsPage
             unset($posted['twofa_admins']);
             $reasons['twofa_admins'] = 'required_later';
         }
+        // 2026-11-05 02:31 +03: Task M2.2a fix 1 (M2), task 596. The same guard for vendors: no save of "required" until M2.2b.
+        if (isset($posted['twofa_vendors']) && $posted['twofa_vendors'] === 'required') {
+            unset($posted['twofa_vendors']);
+            $reasons['twofa_vendors'] = 'required_later';
+        }
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
         $this->startBackfillWhenFirstOn($was_on);
         foreach ($rejected_keys as $key) {
