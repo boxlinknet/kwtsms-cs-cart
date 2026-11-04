@@ -46,6 +46,9 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   cap so a flood of code requests cannot use up the order SMS budget. Codes that other add-ons send through the SMS
   interface (source `otp`) are not counted and not capped by it. A code request refused by any limit is never let through under
   "When SMS codes can't be sent: Continue".
+<!-- 2026-11-04 14:41 +03: Task RC2 fix1 item 7, task 596 -->
+- Release candidate testers only: on the day a store moves from 1.2.0-rc.1 to 1.2.0-rc.2, code SMS sent under rc.1
+  are not counted by the daily code cap (rc.1 stored them as `otp`); the count is right from the next day.
 <!-- 2026-11-04 12:40 +03: Task RC2 item 2 (1.2.0-rc.2), task 596 -->
 - A documented public interface for other add-ons: `Tygh::$app['kwtsms.sms']->send($phones, $message, $context)`
   returns a `SendResult`. README "For developers" lists the number formats, every context key, the sources (including
@@ -57,7 +60,8 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   CAPTCHA add-on that registers with CS-Cart's image verification protects the SMS code form (validated through its
   driver on every request, fail closed), is named in the CAPTCHA row with its driver class, and the red "no CAPTCHA"
   warning no longer shows. An active CAPTCHA add-on that did not register as the driver (for example
-  `google_recaptcha`) is named in an info line. Cloudflare Turnstile never replaces a set-up third-party driver.
+  `google_recaptcha`) is named in an info line. Cloudflare Turnstile never replaces a set-up third-party driver. A third-party driver that is
+  active but not set up protects nothing: the red warning stays and names the add-on.
 - Pause or continue when the store cannot send SMS, with an alert in both cases.
 - Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a
   "Coming in 1.3" list. The Dashboard go-live list gains "Set a CAPTCHA provider for SMS codes" while a code feature
