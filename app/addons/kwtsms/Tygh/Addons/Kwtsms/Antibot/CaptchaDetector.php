@@ -50,7 +50,13 @@ final class CaptchaDetector
         if (!is_object($driver)) {
             return ['provider' => self::NONE, 'name' => '', 'class' => '', 'unconfigured' => false];
         }
+        // 2026-11-04 14:41 +03: RC2 fix1 item 3, task 596. An anonymous class is named "<parent>@anonymous\0<file>:<line>":
+        // cut at the NUL so the server file path never reaches a page, a log or a report.
         $class = get_class($driver);
+        $nul = strpos($class, "\0");
+        if ($nul !== false) {
+            $class = substr($class, 0, $nul);
+        }
         $lower = strtolower($class);
         if ($driver instanceof TurnstileDriver) {
             return ['provider' => self::TURNSTILE, 'name' => 'kwtsms', 'class' => $class, 'unconfigured' => false];
