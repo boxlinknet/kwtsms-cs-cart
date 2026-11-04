@@ -23,4 +23,19 @@ $schema['kwtsms_cron'] = [
     ],
 ];
 
+// 2026-11-04 22:49 +03: Task M2.2a (SafatMall B3, P3-50), task 596. The code page of the second step is reached by an
+// administrator
+// who has not signed in yet: exactly these four modes are anonymous (verify, send, cancel and the backup-code mode of
+// M2.2b, which has no controller code yet and answers 404). Every other mode, profile included, needs a login. Each
+// POST checks the session security hash itself (the page has no core CSRF cover), and every mode answers only when
+// this session holds a pending second step.
+$schema['kwtsms_twofa'] = [
+    'allow' => [
+        'verify' => true,
+        'send' => true,
+        'cancel' => true,
+        'backup' => true,
+    ],
+];
+
 return $schema;

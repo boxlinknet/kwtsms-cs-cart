@@ -45,6 +45,12 @@ use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\SuspicionGate; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeRequest; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Auth\LoginByCode; // 2026-11-04 19:12 +03: Task M2.1, task 596
+// 2026-11-04 22:44 +03: Task M2.2a, task 596. The second-step classes.
+use Tygh\Addons\Kwtsms\Auth\LoginHold;
+use Tygh\Addons\Kwtsms\Auth\PendingLogin;
+use Tygh\Addons\Kwtsms\Auth\TwoFactorFlow;
+use Tygh\Addons\Kwtsms\Auth\TwoFactorPolicy;
+use Tygh\Addons\Kwtsms\Auth\TwoFactorStore;
 use Tygh\Addons\Kwtsms\Codes\BlindCodeRequest; // 2026-11-04 19:12 +03: Task M2.1, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneRules; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
@@ -468,7 +474,12 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.otp'],
                 $app['kwtsms.code_sender'],
                 new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']),
-                $app['kwtsms.logs.debug']
+                $app['kwtsms.logs.debug'],
+                null,
+                null,
+                null,
+                // 2026-11-04 22:44 +03: Task M2.2a, task 596. One policy for every second-step source.
+                $app['kwtsms.twofa_policy']
             );
             // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The inline send runs under the short
             // gateway timeouts.
@@ -487,6 +498,39 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.blind_code_request'],
                 null,
                 null,
+                $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-11-04 22:44 +03: Task M2.2a (SafatMall B3, P3-48 to P3-52), task 596. The second step of the sign-in:
+        // the 2FA table,
+        // the one policy (also used by BlindCodeRequest::readOwner()), the session seam, the login hold (hook and
+        // pre-controller bodies) and the flow behind the controllers kwtsms_twofa.
+        $app['kwtsms.twofa_store'] = function (Container $app): TwoFactorStore {
+            return new TwoFactorStore();
+        };
+        $app['kwtsms.twofa_policy'] = function (Container $app): TwoFactorPolicy {
+            return new TwoFactorPolicy($app['kwtsms.config'], $app['kwtsms.twofa_store'], $app['kwtsms.phone_index']);
+        };
+        $app['kwtsms.twofa_pending'] = function (Container $app): PendingLogin {
+            return new PendingLogin();
+        };
+        $app['kwtsms.twofa_flow'] = function (Container $app): TwoFactorFlow {
+            return new TwoFactorFlow(
+                $app['kwtsms.config'],
+                $app['kwtsms.twofa_policy'],
+                $app['kwtsms.twofa_store'],
+                $app['kwtsms.twofa_pending'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.code_request'],
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.logs.debug']
+            );
+        };
+        $app['kwtsms.twofa_hold'] = function (Container $app): LoginHold {
+            return new LoginHold(
+                $app['kwtsms.config'],
+                $app['kwtsms.twofa_policy'],
+                $app['kwtsms.twofa_pending'],
                 $app['kwtsms.logs.debug']
             );
         };

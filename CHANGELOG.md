@@ -24,10 +24,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   security). Whether a number has an account is never revealed: the request answers the same for every number, the
   CAPTCHA asks for a token on the same schedule for every number, and the answer takes the same time.
 
+- Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
+  administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
+  their own profile with a code to their own mobile number). The administrator "required" value is not available yet.
+  Every other way into an account (password recovery link, one-time password, the remember-me session, social login,
+  the storefront REST API token) is held for the code as well. Break-glass: add `define('KWTSMS_2FA_OFF', true);` to
+  `config.local.php` to turn every second step off, or run
+  `php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=<id>` (one account) or `--types=admins|vendors|customers`
+  (one switch off) on the server.
+
 ### Notes
 
-- Sign-in by code consults only this add-on's own two-step sign-in. The two-step sign-in of a third-party add-on is not
-  consulted. A later release routes the code sign-in through one two-step policy.
+<!-- 2026-11-04 23:19 +03: Task M2.2a, task 596. The code sign-in now asks the one two-step policy. -->
+- Sign-in by code asks the same two-step policy as the password sign-in: an account that must use the second step
+  (it opted in, or its type requires it) cannot sign in by code. A third-party add-on's own two-step sign-in is still
+  not consulted.
 - With one account per phone on, the code to create an account still answers "already in use" for a number that
   another account has (the 1.2.0 behaviour). It is a known, accepted path; set a CAPTCHA provider to slow probing.
 

@@ -153,7 +153,7 @@ integer key reads a non-numeric value as 0.
 | `caller` | empty | Name of your add-on, stored in the log context. |
 
 Internal keys, not for external use (they are read, but their meaning can change without notice): `outbox_id` (always
-dropped), `retry_of`, `resend_outbox_id`. The stored source `otp_code` is reserved for the code SMS this add-on sends
+dropped), `retry_of`, `resend_outbox_id`, `staff_code`. The stored source `otp_code` is reserved for the code SMS this add-on sends
 itself; passing it is read as `manual`. `SmsService::sendCode()` is the sender of that code SMS; it is public in PHP
 only because the add-on's own classes call it, it is internal and not part of the interface above, and it can change
 without notice. Call `send()`.

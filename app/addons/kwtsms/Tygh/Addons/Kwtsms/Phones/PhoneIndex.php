@@ -65,7 +65,11 @@ class PhoneIndex
      */
     public static function anyFeatureOn(ConfigInterface $config): bool
     {
-        return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode() || $config->loginCode();
+        // 2026-11-04 22:49 +03: Task M2.2a (P3-58), task 596. twofa_customers != off joins (a customer's opt-in marks
+        // the number
+        // verified in the index, and the sign-in by code asks the 2FA policy).
+        return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode() || $config->loginCode()
+            || $config->twofaCustomers() !== 'off';
     }
 
     public function active(): bool

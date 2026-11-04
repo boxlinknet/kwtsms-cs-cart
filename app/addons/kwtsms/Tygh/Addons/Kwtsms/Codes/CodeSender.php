@@ -136,7 +136,12 @@ class CodeSender
         string $lang,
         int $storefront_id,
         int $user_id,
-        string $ip
+        string $ip,
+        // 2026-11-04 22:40 +03: Task M2.2a (P3-52 (2)), task 596. true for the code of a staff account (administrator
+        // or vendor):
+        // the Web OTP line carries the admin host, and the send context marks it so cap_code_day counts it but never
+        // refuses it.
+        bool $staff = false
     ): array {
         try {
             $resolved = $this->templates->resolve(
@@ -158,13 +163,17 @@ class CodeSender
                 'minutes' => (string) (int) ceil($ttl / 60),
             ]);
             // The Web OTP line: "@host #code", always the last line, never editable.
-            $host = self::hostOf((string) call_user_func($this->storefront_url, $storefront_id));
+            // 2026-11-04 22:40 +03: Task M2.2a, task 596. A staff code is typed on the admin host: that is the Web OTP
+            // origin.
+            $host = $staff
+                ? self::hostOf($this->staffHost())
+                : self::hostOf((string) call_user_func($this->storefront_url, $storefront_id));
             // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 5), task 596. No host, no line (never "@ #code").
             if ($host !== '') {
                 $text .= "\n@" . $host . ' #' . $code;
             }
 
-            $result = call_user_func($this->send, [$phone], $text, [
+            $context = [
                 'source' => 'otp',
                 'event_id' => 'otp.' . $purpose,
                 'receiver' => Defaults::RECEIVER_CUSTOMER,
@@ -176,12 +185,26 @@ class CodeSender
                 'user_id' => $user_id,
                 'ip' => $ip,
                 'lang_code' => $lang,
-            ]);
+            ];
+            // 2026-11-04 22:42 +03: Task M2.2a (P3-52 (2)), task 596. Counted by cap_code_day, never refused by it.
+            if ($staff) {
+                $context['staff_code'] = '1';
+            }
+            $result = call_user_func($this->send, [$phone], $text, $context);
 
             return $this->fromResult($result, $purpose);
         } catch (\Throwable $e) {
             return $this->failed($e, $purpose);
         }
+    }
+
+    /**
+     * 2026-11-04 22:40 +03: Task M2.2a, task 596. The host a staff code is typed on (config.current_host of the
+     * request).
+     */
+    protected function staffHost(): string
+    {
+        return class_exists('Tygh\\Registry') ? (string) \Tygh\Registry::get('config.current_host') : '';
     }
 
     /**

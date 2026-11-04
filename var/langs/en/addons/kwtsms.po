@@ -6692,3 +6692,189 @@ msgstr "Sign-in and recovery by code work only for numbers verified by a code: [
 msgctxt "Languages::kwtsms.settings.signin_save"
 msgid "Save sign-in settings"
 msgstr "Save sign-in settings"
+
+# 2026-11-04 22:50 +03: Task M2.2a (SafatMall B3), task 596. The code page, the opt-in page and the Settings fields of the two-step sign-in.
+msgctxt "Languages::kwtsms.twofa.title"
+msgid "Enter your code"
+msgstr "Enter your code"
+
+msgctxt "Languages::kwtsms.twofa.intro"
+msgid "Enter the code we sent to [phone]."
+msgstr "Enter the code we sent to [phone]."
+
+msgctxt "Languages::kwtsms.twofa.not_sent"
+msgid "We could not send the code. Press Send a new code."
+msgstr "We could not send the code. Press Send a new code."
+
+msgctxt "Languages::kwtsms.twofa.code_label"
+msgid "SMS code"
+msgstr "SMS code"
+
+msgctxt "Languages::kwtsms.twofa.submit"
+msgid "Sign in"
+msgstr "Sign in"
+
+msgctxt "Languages::kwtsms.twofa.resend"
+msgid "Send a new code"
+msgstr "Send a new code"
+
+msgctxt "Languages::kwtsms.twofa.cancel"
+msgid "Cancel and sign in again"
+msgstr "Cancel and sign in again"
+
+msgctxt "Languages::kwtsms.twofa.sent"
+msgid "A new code is on its way."
+msgstr "A new code is on its way."
+
+msgctxt "Languages::kwtsms.twofa.expired"
+msgid "The code is not correct or has expired. Send a new code."
+msgstr "The code is not correct or has expired. Send a new code."
+
+msgctxt "Languages::kwtsms.twofa.malformed"
+msgid "Enter the 6-digit code from the SMS."
+msgstr "Enter the 6-digit code from the SMS."
+
+msgctxt "Languages::kwtsms.twofa.exhausted"
+msgid "Too many wrong codes. Sign in again."
+msgstr "Too many wrong codes. Sign in again."
+
+msgctxt "Languages::kwtsms.twofa.start_again"
+msgid "Your sign-in could not be completed. Sign in again."
+msgstr "Your sign-in could not be completed. Sign in again."
+
+msgctxt "Languages::kwtsms.twofa.check_failed"
+msgid "Could not check the code. Try again."
+msgstr "Could not check the code. Try again."
+
+msgctxt "Languages::kwtsms.twofa.refused"
+msgid "Ask a store administrator to add your mobile number."
+msgstr "Ask a store administrator to add your mobile number."
+
+msgctxt "Languages::kwtsms.twofa.resend_unavailable"
+msgid "We could not send a code right now. Try again in a moment."
+msgstr "We could not send a code right now. Try again in a moment."
+
+msgctxt "Languages::kwtsms.twofa.optin_label"
+msgid "Ask for an SMS code when I sign in"
+msgstr "Ask for an SMS code when I sign in"
+
+msgctxt "Languages::kwtsms.twofa.box_on"
+msgid "On."
+msgstr "On."
+
+msgctxt "Languages::kwtsms.twofa.box_off"
+msgid "Off."
+msgstr "Off."
+
+msgctxt "Languages::kwtsms.twofa.box_manage"
+msgid "Manage"
+msgstr "Manage"
+
+msgctxt "Languages::kwtsms.twofa.profile_title"
+msgid "SMS code at sign-in"
+msgstr "SMS code at sign-in"
+
+msgctxt "Languages::kwtsms.twofa.state_on"
+msgid "An SMS code is asked at sign-in. Codes go to [phone]."
+msgstr "An SMS code is asked at sign-in. Codes go to [phone]."
+
+msgctxt "Languages::kwtsms.twofa.state_off"
+msgid "No SMS code is asked at sign-in."
+msgstr "No SMS code is asked at sign-in."
+
+msgctxt "Languages::kwtsms.twofa.profile_enable_hint"
+msgid "We will send a code to [phone], the mobile number on your account. Enter it to turn this on."
+msgstr "We will send a code to [phone], the mobile number on your account. Enter it to turn this on."
+
+msgctxt "Languages::kwtsms.twofa.profile_disable_hint"
+msgid "We will send a code to your current number. Enter it to turn this off."
+msgstr "We will send a code to your current number. Enter it to turn this off."
+
+msgctxt "Languages::kwtsms.twofa.profile_send"
+msgid "Send me a code"
+msgstr "Send me a code"
+
+msgctxt "Languages::kwtsms.twofa.turn_on"
+msgid "Turn on"
+msgstr "Turn on"
+
+msgctxt "Languages::kwtsms.twofa.turn_off"
+msgid "Turn off"
+msgstr "Turn off"
+
+msgctxt "Languages::kwtsms.twofa.turned_on"
+msgid "SMS code at sign-in is on."
+msgstr "SMS code at sign-in is on."
+
+msgctxt "Languages::kwtsms.twofa.turned_off"
+msgid "SMS code at sign-in is off."
+msgstr "SMS code at sign-in is off."
+
+msgctxt "Languages::kwtsms.twofa.no_phone"
+msgid "Add a mobile number to your account first."
+msgstr "Add a mobile number to your account first."
+
+msgctxt "Languages::kwtsms.twofa.no_phone_admin"
+msgid "Add a mobile number in the Phone field of your account first."
+msgstr "Add a mobile number in the Phone field of your account first."
+
+msgctxt "Languages::kwtsms.twofa.in_use"
+msgid "This number belongs to another account."
+msgstr "This number belongs to another account."
+
+msgctxt "Languages::kwtsms.twofa.required"
+msgid "Your store requires an SMS code at sign-in. You cannot turn it off."
+msgstr "Your store requires an SMS code at sign-in. You cannot turn it off."
+
+msgctxt "Languages::kwtsms.twofa.back_to_profile"
+msgid "Back to my profile"
+msgstr "Back to my profile"
+
+msgctxt "Languages::kwtsms.settings.twofa_title"
+msgid "Two-step sign-in"
+msgstr "Two-step sign-in"
+
+msgctxt "Languages::kwtsms.settings.twofa_help"
+msgid "Ask for an SMS code after the password. Every option is off until you turn it on."
+msgstr "Ask for an SMS code after the password. Every option is off until you turn it on."
+
+msgctxt "Languages::kwtsms.settings.field.twofa_customers"
+msgid "Two-step sign-in for customers"
+msgstr "Two-step sign-in for customers"
+
+msgctxt "Languages::kwtsms.settings.field.twofa_vendors"
+msgid "Two-step sign-in for vendors"
+msgstr "Two-step sign-in for vendors"
+
+msgctxt "Languages::kwtsms.settings.field.twofa_admins"
+msgid "Two-step sign-in for administrators"
+msgstr "Two-step sign-in for administrators"
+
+msgctxt "Languages::kwtsms.settings.twofa_off"
+msgid "Off"
+msgstr "Off"
+
+msgctxt "Languages::kwtsms.settings.twofa_optional"
+msgid "Optional: each user turns it on for themselves"
+msgstr "Optional: each user turns it on for themselves"
+
+msgctxt "Languages::kwtsms.settings.twofa_optional_customers"
+msgid "Optional: each customer turns it on for themselves"
+msgstr "Optional: each customer turns it on for themselves"
+
+msgctxt "Languages::kwtsms.settings.twofa_required"
+msgid "Required for every user of this type"
+msgstr "Required for every user of this type"
+
+msgctxt "Languages::kwtsms.settings.twofa_admins_help"
+msgid "Required stays unavailable for administrators until its safeguards ship. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
+msgstr "Required stays unavailable for administrators until its safeguards ship. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
+
+msgctxt "Languages::kwtsms.settings.twofa_required_later"
+msgid "Required for administrators is not available yet."
+msgstr "Required for administrators is not available yet."
+
+msgctxt "Languages::kwtsms.settings.twofa_break_glass"
+msgid "KWTSMS_2FA_OFF is set in config.local.php: no sign-in is held for a code. Remove the line to use the second step again."
+msgstr "KWTSMS_2FA_OFF is set in config.local.php: no sign-in is held for a code. Remove the line to use the second step again."
+

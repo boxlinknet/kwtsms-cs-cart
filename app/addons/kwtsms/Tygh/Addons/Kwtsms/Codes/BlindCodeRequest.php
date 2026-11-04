@@ -98,6 +98,9 @@ class BlindCodeRequest
     /** @var array<string,mixed>|null The work after the response; set only by an answer that is the neutral body */
     private $pending;
 
+    /** @var \Tygh\Addons\Kwtsms\Auth\TwoFactorPolicy|null 2026-11-04 22:40 +03: Task M2.2a (controller ruling 22:31), task 596. */
+    private $twofa;
+
     /**
      * @param callable|null $owner_reader (int $user_id): array{user_type,status,company_id,twofa}; null = database
      * @param callable|null $session      (?array $write): array; null = the Tygh session
@@ -116,8 +119,12 @@ class BlindCodeRequest
         ?DebugLog $log = null,
         ?callable $owner_reader = null,
         ?callable $session = null,
-        ?callable $clock = null
+        ?callable $clock = null,
+        // 2026-11-04 22:40 +03: Task M2.2a (ruling 2026-11-04 22:31, R8: nullable and last), task 596. The one 2FA
+        // policy.
+        ?\Tygh\Addons\Kwtsms\Auth\TwoFactorPolicy $twofa = null
     ) {
+        $this->twofa = $twofa;
         $this->config = $config;
         $this->limiter = $limiter;
         $this->gate = $gate;
@@ -480,12 +487,20 @@ class BlindCodeRequest
         if ($this->owner_reader !== null) {
             return (array) call_user_func($this->owner_reader, $user_id);
         }
-        $row = db_get_row('SELECT user_type, status, company_id FROM ?:users WHERE user_id = ?i', $user_id);
+        $row = db_get_row(
+            'SELECT user_id, user_type, status, company_id, is_root, phone FROM ?:users WHERE user_id = ?i',
+            $user_id
+        );
         if (!is_array($row) || $row === []) {
             return [];
         }
-        $enabled = db_get_field('SELECT enabled FROM ?:kwtsms_twofa WHERE user_id = ?i', $user_id);
-        $row['twofa'] = (string) $enabled === 'Y';
+        // 2026-11-04 22:40 +03: Task M2.2a (controller ruling 2026-11-04 22:31), task 596. The account's second-step
+        // need comes
+        // from TwoFactorPolicy (this add-on's row, the switches, the break-glass constant), not from a direct read of
+        // kwtsms_twofa: a user who must use 2FA (required, no row yet) is also refused sign-in by code. A policy that
+        // cannot be built or asked throws: eligibleOwner() then answers nobody (fail closed).
+        $policy = $this->twofa ?? \Tygh\Tygh::$app['kwtsms.twofa_policy'];
+        $row['twofa'] = $policy->requirement($row) !== 'none';
 
         return $row;
     }

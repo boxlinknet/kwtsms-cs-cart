@@ -165,6 +165,48 @@ auth_controller_check() {
   echo "CHECKED 1"
 }
 gate "kwtsms_auth controller: verb, feature switch, hash_equals; templates ship" auth_controller_check
+# 2026-11-04 23:16 +03: Task M2.2a (SafatMall B3, P3-50, P3-52 (4)), task 596. The two-step sign-in ships whole: the hook login_user_pre is
+# registered, the pre-controller and both kwtsms_twofa controllers exist, the shared controller body checks the verb (405)
+# before the mode (404) before the session security hash (hash_equals) and has the command line reset behind
+# PHP_SAPI = cli and CONSOLE, the policy honours KWTSMS_2FA_OFF, the backend trusted_controllers entry opens exactly
+# verify, send, cancel and backup, and the storefront templates ship in both theme trees.
+twofa_check() {
+  local f="$A/Tygh/Addons/Kwtsms/Auth/TwoFactorController.php" verb mode hash t
+  for t in controllers/common/auth.pre.php controllers/frontend/kwtsms_twofa.php controllers/backend/kwtsms_twofa.php \
+    Tygh/Addons/Kwtsms/Auth/TwoFactorPolicy.php Tygh/Addons/Kwtsms/Auth/LoginHold.php Tygh/Addons/Kwtsms/Auth/PendingLogin.php \
+    Tygh/Addons/Kwtsms/Auth/TwoFactorStore.php Tygh/Addons/Kwtsms/Auth/TwoFactorCli.php; do
+    [ -f "$A/$t" ] || echo "$t missing"
+  done
+  [ -f "$f" ] || { echo "TwoFactorController.php missing"; return 0; }
+  verb="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep "REQUEST_METHOD" | head -1 | cut -d: -f1)"
+  mode="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'in_array($mode, self::MODES' | head -1 | cut -d: -f1)"
+  hash="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'hash_equals(' | head -1 | cut -d: -f1)"
+  [ -n "$verb" ] || echo "no REQUEST_METHOD check"
+  [ -n "$mode" ] || echo "no mode check"
+  [ -n "$hash" ] || echo "no hash_equals"
+  if [ -n "$verb" ] && [ -n "$mode" ] && [ -n "$hash" ]; then
+    { [ "$verb" -lt "$mode" ] && [ "$mode" -lt "$hash" ]; } || echo "the order is not verb, mode, hash"
+  fi
+  grep -q "http_response_code(405)" "$f" || echo "no 405 answer"
+  grep -q "http_response_code(403)" "$f" || echo "no 403 answer"
+  grep -q "PHP_SAPI !== 'cli' || !defined('CONSOLE')" "$f" || echo "the command line reset is not limited to cli and CONSOLE"
+  grep -q "KWTSMS_2FA_OFF" "$A/Tygh/Addons/Kwtsms/Auth/TwoFactorPolicy.php" || echo "the policy does not honour KWTSMS_2FA_OFF"
+  grep -q "'login_user_pre'" "$A/init.php" || echo "the hook login_user_pre is not registered"
+  grep -q "fn_kwtsms_login_user_pre(&\$user_id" "$A/func.php" || echo "the hook handler takes the user id by reference"
+  for t in verify send cancel backup; do
+    grep -q "'$t' => true" "$A/schemas/permissions/trusted_controllers.post.php" || echo "trusted_controllers lacks $t"
+  done
+  [ "$(grep -c "=> true" "$A/schemas/permissions/trusted_controllers.post.php")" -eq 5 ] || echo "trusted_controllers allows more than run plus the four modes"
+  for t in views/kwtsms_twofa/verify.tpl views/kwtsms_twofa/profile.tpl hooks/profiles/account_update.post.tpl; do
+    [ -f "$src/design/themes/responsive/templates/addons/kwtsms/$t" ] || echo "template $t missing"
+    [ -f "$src/var/themes_repository/responsive/templates/addons/kwtsms/$t" ] || echo "repository copy of $t missing"
+  done
+  for t in views/kwtsms_twofa/verify.tpl views/kwtsms_twofa/profile.tpl hooks/profiles/general_content.post.tpl; do
+    [ -f "$src/design/backend/templates/addons/kwtsms/$t" ] || echo "backend template $t missing"
+  done
+  echo "CHECKED 1"
+}
+gate "two-step sign-in: hook, controllers, break-glass, anonymous modes, templates" twofa_check
 sensitive_check() { py "$1" <<'PY'
 import os, re, sys
 # Parameter names that hold pass, secret or key but are not secrets (setting, storage, dispatch and template keys,

@@ -418,6 +418,14 @@ class SettingsPage
             // many accounts have a number verified by a code ("Sign-in ... work only for numbers verified by a code").
             'login_code' => $this->config->loginCode() ? 'Y' : 'N',
             'login_verified' => $this->config->loginCode() ? $this->verifiedAccounts() : 0,
+            // 2026-11-04 22:49 +03: Task M2.2a (B3, P3-48), task 596. The two-step sign-in switches (off | optional |
+            // required), the
+            // edition (vendors exist in Multi-Vendor only) and whether the break-glass constant is set.
+            'twofa_customers' => $this->config->twofaCustomers(),
+            'twofa_vendors' => $this->config->twofaVendors(),
+            'twofa_admins' => $this->config->twofaAdmins(),
+            'twofa_vendors_shown' => function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'),
+            'twofa_break_glass' => defined('KWTSMS_2FA_OFF') && (bool) constant('KWTSMS_2FA_OFF'),
         ];
     }
 
@@ -887,6 +895,15 @@ class SettingsPage
                 unset($posted['turnstile_enabled']);
                 $reasons['turnstile_enabled'] = 'recaptcha_active';
             }
+        }
+        // 2026-11-04 22:49 +03: Task M2.2a (P3-52 (1)), task 596. "required" for administrators needs the proof of
+        // possession and the
+        // list of administrators without a mobile of M2.2b: until that guard exists it is refused here (the field shows
+        // it
+        // disabled), so no save can lock the administrators out.
+        if (isset($posted['twofa_admins']) && $posted['twofa_admins'] === 'required') {
+            unset($posted['twofa_admins']);
+            $reasons['twofa_admins'] = 'required_later';
         }
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
         $this->startBackfillWhenFirstOn($was_on);
@@ -1454,6 +1471,10 @@ class SettingsPage
         }
         if ($reason === 'kwtsms_ack') {
             return $this->text('kwtsms.settings.ack_required');
+        }
+        // 2026-11-04 22:49 +03: Task M2.2a, task 596. The administrators' "required" is not available yet.
+        if ($reason === 'required_later') {
+            return $this->text('kwtsms.settings.twofa_required_later');
         }
         // 2026-10-21 03:16 +03: KWT-SMS chosen while test mode is already off (Task 1.10 fix round 1 item 4), task 596.
         if ($reason === 'kwtsms_ack_sender') {

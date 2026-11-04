@@ -72,7 +72,11 @@ fn_register_hooks(
     // verification; and, while Turnstile is the active driver, core's template override map points
     // common/image_verification.tpl at our template instead of the reCAPTCHA add-on's native image.
     'settings_variants_image_verification_use_for',
-    'init_templater_post'
+    'init_templater_post',
+    // 2026-11-04 22:45 +03: Task M2.2a (SafatMall B3, P3-50), task 596. The second step of the sign-in: every
+    // fn_login_user() caller
+    // that is not the password form passes this hook; it changes nothing while the 2FA switches are off.
+    'login_user_pre'
 );
 ServiceProvider::extendNotifications(Tygh::$app);
 

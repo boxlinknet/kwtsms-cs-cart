@@ -688,6 +688,44 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     {if $kwtsms.codes.login_code == "Y"}<p class="description" id="kwtsms_login_verified_note" role="status">{__("kwtsms.settings.signin_verified_note", ["[n]" => $kwtsms.codes.login_verified|fn_html_escape])}</p>{/if}
                 </div>
             </div>
+            {* 2026-11-04 22:50 +03: Task M2.2a (SafatMall B3, P3-48, P3-52), task 596. The three two-step sign-in switches (default Off). "Required" for administrators is disabled until its safeguards exist (M2.2b); the break-glass constant shows a red note. *}
+            {if $kwtsms.codes.twofa_break_glass}<div class="alert alert-error" id="kwtsms_twofa_break_glass" role="alert">{__("kwtsms.settings.twofa_break_glass")}</div>{/if}
+            <fieldset class="kwtsms-twofa-settings" id="kwtsms_twofa_settings">
+                <legend class="kwtsms-legend">{__("kwtsms.settings.twofa_title")}</legend>
+                <p class="muted description" id="kwtsms_twofa_help">{__("kwtsms.settings.twofa_help")}</p>
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_twofa_customers">{__("kwtsms.settings.field.twofa_customers")}:</label>
+                    <div class="controls">
+                        <select name="kwtsms_codes[twofa_customers]" id="kwtsms_twofa_customers" class="input-xlarge" style="min-width: 22em; max-width: 100%;">
+                            <option value="off"{if $kwtsms.codes.twofa_customers != "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
+                            <option value="optional"{if $kwtsms.codes.twofa_customers == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional_customers")}</option>
+                        </select>
+                    </div>
+                </div>
+                {if $kwtsms.codes.twofa_vendors_shown}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_twofa_vendors">{__("kwtsms.settings.field.twofa_vendors")}:</label>
+                    <div class="controls">
+                        <select name="kwtsms_codes[twofa_vendors]" id="kwtsms_twofa_vendors" class="input-xlarge" style="min-width: 22em; max-width: 100%;">
+                            <option value="off"{if $kwtsms.codes.twofa_vendors == "off"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
+                            <option value="optional"{if $kwtsms.codes.twofa_vendors == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional")}</option>
+                            <option value="required"{if $kwtsms.codes.twofa_vendors == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
+                        </select>
+                    </div>
+                </div>
+                {/if}
+                <div class="control-group">
+                    <label class="control-label" for="kwtsms_twofa_admins">{__("kwtsms.settings.field.twofa_admins")}:</label>
+                    <div class="controls">
+                        <select name="kwtsms_codes[twofa_admins]" id="kwtsms_twofa_admins" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_twofa_admins_help">
+                            <option value="off"{if $kwtsms.codes.twofa_admins == "off"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
+                            <option value="optional"{if $kwtsms.codes.twofa_admins == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional")}</option>
+                            <option value="required" disabled="disabled"{if $kwtsms.codes.twofa_admins == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
+                        </select>
+                        <p class="muted description" id="kwtsms_twofa_admins_help">{__("kwtsms.settings.twofa_admins_help")}</p>
+                    </div>
+                </div>
+            </fieldset>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_signin_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.signin_save")}">

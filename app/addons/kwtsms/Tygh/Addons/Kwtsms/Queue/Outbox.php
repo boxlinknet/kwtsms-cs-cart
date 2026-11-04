@@ -101,6 +101,8 @@ class Outbox
         'hook_ran' => 's',
         // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. The ttl of the original send, seconds.
         'ttl' => 'i',
+        // 2026-11-04 22:40 +03: Task M2.2a (P3-52 (2)), task 596. A retried staff code keeps its cap exemption.
+        'staff_code' => 's',
     ];
 
     /** @var callable|null returns the current Unix time */

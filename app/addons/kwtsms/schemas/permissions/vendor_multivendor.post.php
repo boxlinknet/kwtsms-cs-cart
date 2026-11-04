@@ -21,4 +21,19 @@ $schema['controllers']['kwtsms'] = [
     'permissions' => false,
 ];
 
+// 2026-11-04 22:49 +03: Task M2.2a (SafatMall B3, P3-48), task 596. A vendor administrator signs in with a code
+// (verify, send, cancel)
+// and turns the code on or off for the own account (profile, profile_send). The controller is closed for every other
+// mode of the vendor panel.
+$schema['controllers']['kwtsms_twofa'] = [
+    'permissions' => false,
+    'modes' => [
+        'verify' => ['permissions' => true],
+        'send' => ['permissions' => true],
+        'cancel' => ['permissions' => true],
+        'profile' => ['permissions' => true],
+        'profile_send' => ['permissions' => true],
+    ],
+];
+
 return $schema;

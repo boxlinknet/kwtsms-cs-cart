@@ -599,6 +599,12 @@ function fn_kwtsms_post_delete_user($user_id = null, $user_data = [], $result = 
             $index->delete($id);
             OtpService::deleteUserCodes($id);
         }
+        // 2026-11-04 22:45 +03: Task M2.2a (P3-48), task 596. The account's 2FA row and backup codes go with it,
+        // whatever the
+        // switches say (an exact-id delete of our own rows; the table is empty on a store that never enrolled).
+        if ($id > 0) {
+            Tygh::$app['kwtsms.twofa_store']->delete($id);
+        }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('post_delete_user', $e);
     }
@@ -885,6 +891,11 @@ function fn_kwtsms_log_hook_error(string $hook, \Throwable $e): void
  */
 function fn_kwtsms_before_dispatch()
 {
+    // 2026-11-04 22:45 +03: Task M2.2a (P3-50), task 596. A login held by the hook path (recovery key, e-mail OTP,
+    // social login...)
+    // continues on the code page: the next page view of that area is redirected there. Session only, no query; a
+    // request without a pending state (every request while the 2FA switches are off) returns at the first line.
+    fn_kwtsms_twofa_pending_redirect();
     if (!defined('AREA') || AREA !== 'A') {
         return;
     }
@@ -892,6 +903,84 @@ function fn_kwtsms_before_dispatch()
         \Tygh\Addons\Kwtsms\Upgrade\PostUpgrade::selfHeal();
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('before_dispatch', $e);
+    }
+}
+
+/**
+ * 2026-11-04 22:45 +03: Task M2.2a (P3-50), task 596. Redirects a page view to the code page while this session holds a
+ * pending
+ * second step started by a fn_login_user() path. Never throws; never in CONSOLE.
+ */
+function fn_kwtsms_twofa_pending_redirect()
+{
+    try {
+        if (defined('CONSOLE') || empty(Tygh::$app['session'][\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
+            return;
+        }
+        $to = Tygh::$app['kwtsms.twofa_hold']->pendingRedirect(
+            (string) Registry::get('runtime.controller'),
+            (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
+            defined('AJAX_REQUEST')
+        );
+        if ($to !== null) {
+            fn_redirect(fn_url($to));
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('twofa_pending_redirect', $e);
+    }
+}
+
+/**
+ * 2026-11-04 22:45 +03: Task M2.2a (SafatMall B3, P3-50), task 596. Hook login_user_pre (fn.users.php:3550), the second
+ * net of the
+ * second step: every fn_login_user() caller that is not the password form (recovery key, e-mail one-time password,
+ * remember-me cookie, social login, REST token, the code pages of this add-on) passes here. The arguments are by
+ * reference: a user id of 0 makes core log nobody in. While the three 2FA switches are off (or KWTSMS_2FA_OFF is
+ * set) this reads nothing and changes nothing. A core that passes fewer arguments than 4.21.2 does not disable the
+ * hold (the user id is the first argument and still arrives by reference); the shortfall is recorded for the Settings
+ * warning. An error while the hold decides leaves the login to core and is logged (the hold itself fails closed for
+ * an account it knows needs a code).
+ *
+ * @param int|string|null      $user_id   By reference
+ * @param array<string,mixed>  $udata     Unused
+ * @param array<string,mixed>  $auth      Unused
+ * @param string               $condition Unused
+ */
+function fn_kwtsms_login_user_pre(&$user_id = null, &$udata = [], &$auth = [], &$condition = '')
+{
+    fn_kwtsms_hook_args_missing('login_user_pre', func_num_args(), 4);
+    if (func_num_args() < 1 || empty($user_id)) {
+        return;
+    }
+    try {
+        $id = (int) $user_id;
+        Tygh::$app['kwtsms.twofa_hold']->onLoginUserPre($id);
+        if ($id === 0) {
+            $user_id = 0;
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('login_user_pre', $e);
+    }
+}
+
+/**
+ * 2026-11-04 22:45 +03: Task M2.2a (SafatMall B3), task 596. For the profile page hook templates (storefront
+ * hooks/profiles/account_update.post.tpl, backend hooks/profiles/general_content.post.tpl; modifier
+ * |fn_kwtsms_twofa_box): what the opt-in box shows for the signed-in account. Never throws; unavailable on any error.
+ *
+ * @param int|string $user_id The signed-in account (never read from the request)
+ *
+ * @return array{available:bool,enabled:bool,masked:string,usable_phone:bool,can_disable:bool,type:string}
+ */
+function fn_kwtsms_twofa_box($user_id)
+{
+    try {
+        return Tygh::$app['kwtsms.twofa_flow']->profileInfo((int) $user_id);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('twofa_box', $e);
+
+        return ['available' => false, 'enabled' => false, 'masked' => '', 'masked_ltr' => '', 'usable_phone' => false,
+            'can_disable' => false, 'type' => ''];
     }
 }
 

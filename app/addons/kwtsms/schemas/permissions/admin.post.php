@@ -82,4 +82,11 @@ $schema['kwtsms'] = [
     ],
 ];
 
+// 2026-11-04 22:49 +03: Task M2.2a (SafatMall B3), task 596. Every administrator manages the second step of the OWN
+// account
+// (the controller reads the account from the session, never from the request): no privilege of this add-on is needed.
+$schema['kwtsms_twofa'] = [
+    'permissions' => true,
+];
+
 return $schema;

@@ -54,3 +54,14 @@
         {include file="addons/kwtsms/components/code_field.tpl" purpose="phone_change" phone_input_name=$kwtsms_pc.phone_name show_on_change=true}
     {/if}
 {/if}
+{* 2026-11-04 22:48 +03: Task M2.2a (SafatMall B3, P3-49), task 596. The opt-in box of the two-step sign-in on the profile page of a signed-in customer (shown only while twofa_customers is optional): the state and a link to the page that turns it on or off with a code. A link, not a form: this hook sits inside the profile form. *}
+{if $runtime.mode == "update" && $auth.user_id}
+    {$kwtsms_tf = $auth.user_id|fn_kwtsms_twofa_box}
+    {if $kwtsms_tf.available}
+        <div class="ty-control-group kwtsms-twofa-box" id="kwtsms_twofa_box">
+            <span class="ty-control-group__title">{__("kwtsms.twofa.optin_label")|fn_html_escape}</span>
+            <div class="ty-control-group__help kwtsms-twofa-box__state" style="margin-top: 4px; font-size: 13px;">{if $kwtsms_tf.enabled}{__("kwtsms.twofa.box_on")|fn_html_escape}{else}{__("kwtsms.twofa.box_off")|fn_html_escape}{/if}
+                <a class="kwtsms-twofa-box__link" style="color: #1a56c4; text-decoration: underline;" href="{"kwtsms_twofa.profile"|fn_url}">{__("kwtsms.twofa.box_manage")|fn_html_escape}</a></div>
+        </div>
+    {/if}
+{/if}

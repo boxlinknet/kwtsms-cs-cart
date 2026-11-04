@@ -198,6 +198,8 @@ class Config implements ConfigInterface
             'phone_change_code', 'phone_change_notice',
             // 2026-11-04 19:15 +03: Task M2.1 (SafatMall B2), task 596. Sign-in with a phone and an SMS code.
             'login_code',
+            // 2026-11-04 22:49 +03: Task M2.2a (SafatMall B3, P3-48), task 596. The three two-step sign-in switches.
+            'twofa_customers', 'twofa_vendors', 'twofa_admins',
         ],
     ];
 

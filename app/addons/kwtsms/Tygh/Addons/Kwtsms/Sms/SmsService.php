@@ -206,6 +206,10 @@ class SmsService
         // 2026-10-22 19:08 +03: Task A6 (ruling R19), task 596. Seconds an outbox row stays valid (0 = the default
         // 1800).
         'ttl' => 0,
+        // 2026-11-04 22:40 +03: Task M2.2a (P3-52 (2)), task 596. '1' = the code of a staff account: counted by
+        // cap_code_day, never
+        // refused by it.
+        'staff_code' => '',
     ];
 
     private const INT_KEYS = [
@@ -1678,7 +1682,10 @@ class SmsService
                 if (!$rcpt[$i]['valid'] || isset($code_passed[$rcpt[$i]['phone']])) {
                     continue;
                 }
-                if (count($code_passed) >= $code_left) {
+                // 2026-11-04 22:40 +03: Task M2.2a (P3-52 (2)), task 596. A staff 2FA code is counted (its attempt row
+                // is) but never
+                // refused here: storefront code pumping cannot lock an administrator or a vendor out.
+                if (count($code_passed) >= $code_left && ($context['staff_code'] ?? '') !== '1') {
                     $rcpt[$i] = $this->decided($rcpt[$i], 'blocked_daily_cap', 'cap_code_day');
                     $code_blocked++;
                     continue;

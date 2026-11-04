@@ -267,6 +267,69 @@ class CodeRequest
             return $refused;
         }
 
+        // 2026-11-04 22:40 +03: Task M2.2a, task 596. Steps 6 to 9 moved to deliver() so the 2FA request shares them.
+        return $this->deliver($purpose, $phone, $user_id, $session_hash, $ip, $storefront_id, $lang, false);
+    }
+
+    /**
+     * 2026-11-04 22:40 +03: Task M2.2a (SafatMall B3, P3-49, P3-52 (2)), task 596. The code request of the second step:
+     * the phone is
+     * the 2FA phone of the pending sign-in or of the logged-in account, read by the caller from the database and never
+     * from the request. No CAPTCHA (the password was right; a staff member cannot solve one on the code page), no
+     * per-IP bucket and no per-phone cap for staff, never an unverified bypass (P3-45). Every refusal says wait or
+     * unavailable; the answer never names an account. A staff code is counted by cap_code_day, never refused by it.
+     *
+     * @return array<string,mixed> The JSON body of handle()
+     */
+    public function handleTwoFactor(
+        string $phone,
+        int $user_id,
+        bool $staff,
+        string $session_hash,
+        string $ip,
+        int $storefront_id,
+        string $lang
+    ): array {
+        if ($user_id <= 0 || \Tygh\Addons\Kwtsms\Phones\PhoneFormat::canonical($phone) !== $phone || $phone === '') {
+            return $this->error('invalid', 'kwtsms.code.unavailable', $lang);
+        }
+        if (!$staff) {
+            // Customers keep the per-IP buckets (P3-6): the code page of a storefront account is a public surface.
+            $ip_part = ClientIp::bucketKey($ip);
+            $buckets = [
+                ['ip_h', self::HOUR, $this->config->capIpHour()],
+                ['ip_d', self::DAY, $this->config->capIpDay()],
+            ];
+            foreach ($buckets as $b) {
+                $bucket = $b[0] . ':' . $ip_part;
+                if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
+                    $this->debug('otp.ip_limited', [
+                        'bucket' => $b[0], 'ip' => $ip_part, 'purpose' => self::PURPOSE_2FA,
+                    ]);
+
+                    return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
+                }
+            }
+        }
+
+        return $this->deliver(self::PURPOSE_2FA, $phone, $user_id, $session_hash, $ip, $storefront_id, $lang, $staff);
+    }
+
+    /**
+     * Steps 6 to 9 of handle(): can a code leave at all, the per-phone cap, the code, the SMS and the answer.
+     *
+     * @return array<string,mixed>
+     */
+    private function deliver(
+        string $purpose,
+        string $phone,
+        int $user_id,
+        string $session_hash,
+        string $ip,
+        int $storefront_id,
+        string $lang,
+        bool $staff
+    ): array {
         // 6. Can a code SMS leave at all? (P3-13, P3-24; the gate raises the alert)
         $gate = $this->availability->gate($storefront_id);
         if ($gate['action'] === 'bypass') {
@@ -282,7 +345,7 @@ class CodeRequest
         }
 
         // 7. Per-phone cap (P3-34), read only: a code that goes out is counted below.
-        $cap = $this->config->capPhoneHour();
+        $cap = $staff ? PHP_INT_MAX : $this->config->capPhoneHour();
         // 2026-10-25 01:59 +03: Task M1.8a fix round 2 (review M4), task 596. A failed read of the counter fails closed
         // like RateLimiter::hit(): wait for the whole window and a log row (no phone), never a code.
         try {
@@ -312,7 +375,16 @@ class CodeRequest
 
         // 9. The SMS. Nothing may leave a live code behind when it fails.
         try {
-            $sent = $this->sender->sendCode($phone, $issued->code(), $purpose, $lang, $storefront_id, $user_id, $ip);
+            $sent = $this->sender->sendCode(
+                $phone,
+                $issued->code(),
+                $purpose,
+                $lang,
+                $storefront_id,
+                $user_id,
+                $ip,
+                $staff
+            );
         } catch (\Throwable $e) {
             $this->otp->revoke($issued);
 
