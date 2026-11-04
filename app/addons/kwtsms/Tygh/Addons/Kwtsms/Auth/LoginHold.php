@@ -70,6 +70,9 @@ class LoginHold
     /** @var callable|null */
     private $regenerate;
 
+    /** @var callable|null 2026-11-05 02:30 +03: Task M2.2a fix 1 (I2), task 596. (string $login, string $password): array */
+    private $basic;
+
     public function __construct(
         ConfigInterface $config,
         TwoFactorPolicy $policy,
@@ -80,7 +83,8 @@ class LoginHold
         ?callable $cookie_cleaner = null,
         ?callable $authenticate = null,
         ?callable $first_code = null,
-        ?callable $regenerate = null
+        ?callable $regenerate = null,
+        ?callable $basic = null
     ) {
         $this->config = $config;
         $this->policy = $policy;
@@ -92,6 +96,7 @@ class LoginHold
         $this->authenticate = $authenticate;
         $this->first_code = $first_code;
         $this->regenerate = $regenerate;
+        $this->basic = $basic;
     }
 
     // ------------------------------------------------------------------ the hook login_user_pre
@@ -189,6 +194,77 @@ class LoginHold
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    // ------------------------------------------------------------------ HTTP Basic sign-in of other add-ons
+
+    /**
+     * 2026-11-05 02:30 +03: Task M2.2a fix 1 (I2), task 596. The commerceml add-on signs an administrator or vendor in
+     * with e-mail and password over HTTP Basic and fn_fill_auth(), never through fn_login_user(), so neither hook sees it
+     * (controllers/frontend/commerceml.php:60, src/Commands/AuthCommandHandler.php:76). Its pre-controller asks here.
+     * True = answer 401 with no detail: the password is right and the account needs a second step that a Basic request
+     * cannot give. A wrong password or an unknown login is false (core answers its own error, so nothing is revealed
+     * about 2FA to somebody without the password), and so is every case where the account is not known. Once the
+     * password is right, any failure refuses. Never throws.
+     */
+    public function refusesBasicAuth(string $login, string $password): bool
+    {
+        try {
+            $env = $this->environment();
+            if ($env['console'] || !$this->policy->anyOn()) {
+                return false;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+        try {
+            $r = $this->basicAuthenticate($login, $password);
+            if (empty($r['status']) || empty($r['verified']) || empty($r['user']) || !is_array($r['user'])) {
+                return false;
+            }
+            $user = $r['user'];
+        } catch (\Throwable $e) {
+            $this->debug('twofa.hold', ['reason' => 'basic_authenticate_failed', 'error' => get_class($e)]);
+
+            return false;
+        }
+        try {
+            $need = $this->policy->requirement($user);
+        } catch (\Throwable $e) {
+            $this->debug('twofa.hold', ['reason' => 'check_failed', 'path' => 'basic', 'error' => get_class($e)]);
+
+            return true;
+        }
+        if ($need === TwoFactorPolicy::NONE || $need === TwoFactorPolicy::LET_IN) {
+            return false;
+        }
+        $this->debug('twofa.hold', [
+            'user_id' => (int) ($user['user_id'] ?? 0), 'need' => $need, 'path' => 'basic',
+        ]);
+
+        return true;
+    }
+
+    /**
+     * @return array<string,mixed> status, verified, user (the same shape as authenticateRequest())
+     */
+    private function basicAuthenticate(
+        string $login,
+        #[\SensitiveParameter]
+        string $password
+    ): array {
+        if ($this->basic !== null) {
+            return (array) call_user_func($this->basic, $login, $password);
+        }
+        // The calls commerceml makes (AuthCommandHandler::handle()), nothing else.
+        list($status, $user_data, $user_login, , $salt) = fn_auth_routines(['user_login' => $login], []);
+        $verified = $status !== false
+            && !empty($user_data)
+            && $login === $user_login
+            && !empty($user_data['password'])
+            && fn_user_password_verify((int) $user_data['user_id'], $password, (string) $user_data['password'], (string) $salt);
+
+        return ['status' => $status !== false, 'verified' => $verified, 'user' => is_array($user_data) ? $user_data : []];
     }
 
     // ------------------------------------------------------------------ the pre-controller (POST auth.login)
