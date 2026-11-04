@@ -175,6 +175,8 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.phones.p3")}</p>
                 <p>{__("kwtsms.help.phones.p4")}</p>
                 <p id="kwtsms_help_phones_busy">{__("kwtsms.help.phones.p5")}</p>
+                {* 2026-11-04 21:20 +03: review fix M5 of Task M2.1, task 596. The accepted enumeration path of the register code. *}
+                <p id="kwtsms_help_phones_inuse">{__("kwtsms.help.phones.p6")}</p>
             </section>
 
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_limits" aria-labelledby="kwtsms_help_limits_title">

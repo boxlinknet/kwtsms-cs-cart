@@ -6391,6 +6391,11 @@ msgctxt "Languages::kwtsms.help.phones.p5"
 msgid "When two requests save the same number at the same moment, the store makes the second wait up to 2 seconds. If the number is still busy after that, it refuses the save and asks the customer to try again."
 msgstr "عندما يحفظ طلبان الرقم نفسه في اللحظة نفسها، ينتظر الطلب الثاني حتى 2 ثانية. وإذا بقي الرقم مشغولا بعد ذلك، يرفض المتجر الحفظ ويطلب من العميل المحاولة مجددا."
 
+# 2026-11-04 21:20 +03: review fix M5 of Task M2.1, task 596. Help: the register code answers "in use" for an indexed phone (accepted enumeration path).
+msgctxt "Languages::kwtsms.help.phones.p6"
+msgid "With one account per phone on, the sign-up code form tells a visitor that a number is already used when another account has it. That reveals that the number has an account. It is a known and accepted path: a customer must learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
+msgstr "عند تفعيل حساب واحد لكل رقم، يخبر نموذج رمز إنشاء الحساب الزائر بأن الرقم مستخدم إذا كان لحساب آخر. وهذا يكشف أن للرقم حسابا. وهو مسار معروف ومقبول لأن العميل يحتاج أن يعرف أن عليه تسجيل الدخول بدلا من إنشاء حساب ثان. لإبطاء أي برنامج يجرب الأرقام، فعّل مزود CAPTCHA وأبق حدود الطلبات لكل شبكة."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.title"
 msgid "Limits and proxies"
