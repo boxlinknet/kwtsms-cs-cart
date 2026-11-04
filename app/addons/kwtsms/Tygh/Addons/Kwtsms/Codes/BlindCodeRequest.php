@@ -174,8 +174,10 @@ class BlindCodeRequest
         $check = $this->rules->check($raw_phone, $hint);
         $phone = $check['ok'] ? $check['phone'] : '';
 
+        // 2026-11-04 21:16 +03: review fix C1, task 596. The purpose is passed so the subject counter is a bucket every valid
+        // request hits, not the code rows of the phone (those exist only for an account's phone).
         // 3. Suspicion: a CAPTCHA token from the 4th request of an IP, the 3rd code of a phone, the 31st of the store.
-        if (!$captcha_checked && $this->gate->requiresToken($ip, $phone) && !$this->gate->verify($request, $ip)) {
+        if (!$captcha_checked && $this->gate->requiresToken($ip, $phone, $purpose) && !$this->gate->verify($request, $ip)) {
             return $this->failure('captcha', (string) __('kwtsms.code.captcha', [], $lang));
         }
 
