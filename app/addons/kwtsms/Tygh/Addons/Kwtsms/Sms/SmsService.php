@@ -358,6 +358,9 @@ class SmsService
      * 2026-11-04 12:32 +03: Task RC2 item 1, task 596. send() for the code SMS this add-on issues itself (CodeSender
      * only): the same pipeline, stored with source otp_code so the daily code cap counts these and nothing else.
      * NOT part of the public interface; third-party add-ons call send().
+     * 2026-11-04 14:45 +03: RC2 fix1 item 4, task 596. It is public in PHP only because CodeSender calls it.
+     *
+     * @internal Not a stable interface; it can change without notice. Call send().
      *
      * @param array<int,mixed>|string $phones
      * @param array<string,mixed>     $context See send()

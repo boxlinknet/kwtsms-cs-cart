@@ -141,7 +141,7 @@ integer key reads a non-numeric value as 0.
 | --- | --- | --- |
 | `source` | `manual` | `event`, `manual`, `api`, `cron` or `otp`; anything else is read as `manual`. See below. |
 | `event_id` | empty | A label for the Logs page, for example `myaddon.order_verified`. |
-| `receiver` | empty | `C` customer, `A` admin, `V` vendor. `C`, `A` and `V` sends are capped per number. Quiet hours (Settings) hold a `C` send of source `manual`, `api` or `cron`, never an `otp` send or one with a `ttl`. |
+| `receiver` | empty | `C` customer, `A` admin, `V` vendor. `C`, `A` and `V` sends are capped per number. Quiet hours (Settings) hold only a `C` send, and of those only one with source `manual`, `api` or `cron`, or any source other than `otp` whose `audience` is `admin` (so `event` + `admin` is held, `event` + `storefront` is not). Never held: an `otp` send, a send with a `ttl`, an `event_id` starting `kwtsms.order_placed`, an `A` or `V` send. |
 | `audience` | `storefront` | `admin` or `storefront` (anything else is `storefront`). Decides how an error is worded for an interactive caller. |
 | `interactive` | `false` | `true` when a person waits for the answer: `errorMessage()` then carries text to show. |
 | `order_id`, `parent_order_id`, `company_id`, `storefront_id`, `user_id`, `actor_user_id`, `actor_company_id` | `0` | Ids stored with the log row so the send shows up on the right order, vendor and customer. |
@@ -154,7 +154,13 @@ integer key reads a non-numeric value as 0.
 
 Internal keys, not for external use (they are read, but their meaning can change without notice): `outbox_id` (always
 dropped), `retry_of`, `resend_outbox_id`. The stored source `otp_code` is reserved for the code SMS this add-on sends
-itself; passing it is read as `manual`.
+itself; passing it is read as `manual`. `SmsService::sendCode()` is the sender of that code SMS; it is public in PHP
+only because the add-on's own classes call it, it is internal and not part of the interface above, and it can change
+without notice. Call `send()`.
+
+**Hook handlers are trusted code.** `send()` runs the `kwtsms_send_pre` hook first; a handler of that hook (any active
+add-on) can edit the phones, the text and the whole context, including `source`, `receiver` and `secret_values`, or
+cancel the send. Only install add-ons you trust; the context you pass is a request, not a guarantee.
 
 ### Sources
 
@@ -164,8 +170,9 @@ itself; passing it is read as `manual`.
   job does not use up the customer caps.
 - `cron`: a scheduled job.
 - `otp`: a one-time code of your add-on. The values in `secret_values` are masked in every stored copy, the send is
-  exempt from quiet hours (a code must arrive now), it may use 2 pages whatever the notification page limit is, and a
-  Logs resend of the row is refused. It keeps the ordinary caps: the per-number hourly and daily caps, the store
+  exempt from quiet hours (a code must arrive now), it may use 2 pages whatever the notification page limit is (the
+  2-page floor applies only when `secret_values` is non-empty; an `otp` send without secret values keeps the
+  notification page limit), and a Logs resend of the row is refused. It keeps the ordinary caps: the per-number hourly and daily caps, the store
   hourly and daily caps. It is not counted by, and not blocked by, the daily cap on the code SMS this add-on sends
   itself (Settings > Phone and codes).
 
