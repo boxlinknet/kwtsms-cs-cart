@@ -85,7 +85,13 @@ if (interface_exists('Tygh\\Web\\Antibot\\IAntibotDriver') && isset(Tygh::$app['
             // A failure here never breaks a storefront page: the null driver stays.
             try {
                 $driver = $app['kwtsms.turnstile_driver'];
-                if ($driver->isSetUp()) {
+                // 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Turnstile never replaces a working third-party
+                // driver: another CAPTCHA add-on that registered and is set up keeps the form (Settings says
+                // Turnstile idles).
+                $third_party = \Tygh\Addons\Kwtsms\Antibot\CaptchaDetector::isActiveThirdParty(
+                    $antibot->getDriver()
+                );
+                if ($driver->isSetUp() && !$third_party) {
                     // 2026-10-24 22:56 +03: M1.7b fix round 1 (I1), task 596. Kept for the swap fallback.
                     \Tygh\Addons\Kwtsms\Antibot\TurnstileDriver::rememberReplaced($antibot->getDriver());
                     $antibot->setDriver($driver);

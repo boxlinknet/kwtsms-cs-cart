@@ -26,6 +26,7 @@
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
+use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 21:10 +03: Task M1.7b, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 21:10 +03: Task M1.7b, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
@@ -478,6 +479,21 @@ class SettingsPage
                     '#kwtsms_turnstile',
                     $this->text('kwtsms.settings.link_turnstile')
                 );
+            } elseif ($captcha['provider'] === 'third_party' && $captcha['unticked'] !== []) {
+                // 2026-11-04 12:40 +03: Task RC2 item 3, task 596. A third-party driver protects the form only with
+                // the scenario ticked, like reCAPTCHA; the name is escaped (it is HTML in the note).
+                $note(
+                    'captcha_tick',
+                    'warning',
+                    $this->text('kwtsms.settings.warn_captcha_tick', [
+                        '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                    ]) . ' ' . $this->text(
+                        'kwtsms.settings.warn_recaptcha_tick_for',
+                        ['[names]' => implode(', ', $captcha['unticked'])]
+                    ),
+                    $this->settingsUrl('settings.manage&section_id=Image_verification'),
+                    $this->text('kwtsms.settings.link_image_verification')
+                );
             } elseif ($captcha['provider'] === 'recaptcha' && $captcha['unticked'] !== []) {
                 // 2026-10-29 03:27 +03: Task M1.11 fix round 1 (review I2), task 596. Per storefront: the sentence of
                 // P3-8, then the storefront(s) whose list lacks the tick.
@@ -491,6 +507,19 @@ class SettingsPage
                     $this->settingsUrl('settings.manage&section_id=Image_verification'),
                     $this->text('kwtsms.settings.link_image_verification')
                 );
+            }
+            // 2026-11-04 12:40 +03: Task RC2 item 3, task 596. A CAPTCHA add-on that is active but did not register as
+            // the antibot driver does not protect the SMS code form: name it (info, never the red warning).
+            foreach ($this->inactiveCaptchaAddons() as $addon_id) {
+                $note('captcha_addon_' . $addon_id, 'info', $this->text('kwtsms.settings.info_captcha_addon', [
+                    '[name]' => htmlspecialchars($addon_id, ENT_QUOTES, 'UTF-8'),
+                ]));
+            }
+            // Turnstile is saved but a third-party driver is the active one: Turnstile does not replace it.
+            if ($captcha['provider'] === 'third_party' && $this->config->turnstileEnabled()) {
+                $note('turnstile_idle', 'info', $this->text('kwtsms.settings.info_turnstile_idle', [
+                    '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                ]));
             }
         }
         // 2026-10-29 20:36 +03: Task 596 (4.20.1 hardening item 2). A hook that arrived with fewer arguments than it
@@ -578,33 +607,29 @@ class SettingsPage
      * driver, 'turnstile', 'recaptcha', 'native') and whether the scenario kwtsms_sms_code is ticked in Settings >
      * Image verification. Overridable in a test.
      *
-     * @return array{provider:string,scenario:bool}
+     * @return array{provider:string,unticked:string[],name?:string} 2026-11-04 12:40 +03: name = third_party owner
      */
     protected function captchaState(): array
     {
-        $provider = 'none';
-        try {
-            $app = \Tygh\Tygh::$app;
-            if (isset($app['antibot'])) {
-                $driver = $app['antibot']->getDriver();
-                $class = $driver === null ? '' : strtolower(get_class($driver));
-                if ($driver instanceof TurnstileDriver) {
-                    $provider = 'turnstile';
-                } elseif ($driver === null || substr($class, -10) === 'nulldriver') {
-                    $provider = 'none';
-                } elseif (strpos($class, 'recaptcha') !== false) {
-                    $provider = 'recaptcha';
-                } else {
-                    $provider = 'native';
-                }
-            }
-        } catch (\Throwable $e) {
-            $provider = 'none';
-        }
+        // 2026-11-04 12:44 +03: Task RC2 item 3, task 596. One detection from the active antibot driver, shared with
+        // Integrations and the Dashboard (CaptchaDetector): any other driver is 'third_party' with its name, and the
+        // per-storefront tick applies to it like to reCAPTCHA.
+        $found = CaptchaDetector::current();
+        $provider = $found['provider'];
+        $unticked = in_array($provider, ['recaptcha', 'third_party'], true) ? $this->storefrontsWithoutTick() : [];
 
-        $unticked = $provider === 'recaptcha' ? $this->storefrontsWithoutTick() : [];
+        return ['provider' => $provider, 'unticked' => $unticked, 'name' => $found['name']];
+    }
 
-        return ['provider' => $provider, 'unticked' => $unticked];
+    /**
+     * 2026-11-04 12:40 +03: Task RC2 item 3, task 596. Ids of active CAPTCHA-looking add-ons that are not the antibot
+     * driver. Overridable in a test.
+     *
+     * @return string[]
+     */
+    protected function inactiveCaptchaAddons(): array
+    {
+        return CaptchaDetector::inactiveForStore();
     }
 
     /**

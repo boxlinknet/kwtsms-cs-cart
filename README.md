@@ -212,6 +212,25 @@ if (isset(\Tygh::$app['kwtsms.sms'])) {
 }
 ```
 
+### CAPTCHA providers for the SMS code form
+
+The code form is protected by whichever driver is the active antibot driver of CS-Cart's image verification
+(`Tygh::$app['antibot']->getDriver()`), once "SMS code request" is ticked under Settings > Image verification:
+
+- Cloudflare Turnstile (this add-on's driver) and the core reCAPTCHA add-on, as before.
+- Any other add-on that registers a driver with `Tygh::$app->extend('antibot', ...)` and `setDriver()`, and whose
+  `isSetUp()` is true. The code request calls its `validateHttpRequest($_REQUEST)` on every request, exactly like the
+  reCAPTCHA path; no driver, or a driver that returns false, refuses the request (fail closed). Settings, Integrations
+  and the Dashboard name it (the add-on id found from the folder of its class under `app/addons/<id>/`, else the class
+  name) and never show the red "no CAPTCHA" warning while it is the active driver. The Integrations CAPTCHA row prints
+  the driver class so a merchant can report it.
+- An active add-on whose id contains `captcha` (for example `google_recaptcha`) that did not register as the driver
+  does not protect the form: Settings and Integrations say so.
+
+Cloudflare Turnstile installs itself as the driver only when no third-party driver is set up; it never replaces one. With a
+third-party driver active, a saved Turnstile setup stays idle and Settings says so. (With the core reCAPTCHA add-on,
+Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
+
 ## Build the package
 
 `bash tools/build-package.sh` runs the release gates (security greps, language parity, `php -l`, package content

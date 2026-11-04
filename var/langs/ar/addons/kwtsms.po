@@ -6526,3 +6526,38 @@ msgstr "يجعل ملف ⁦.po⁩ تالف في إضافة أخرى مركز ا�
 msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"
 msgid "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."
 msgstr "مزود CAPTCHA لرموز التحقق: لا يوجد. إضافة reCAPTCHA مفعلة لكن خيار «طلب رمز التحقق بالرسالة» غير مفعّل في الإعدادات > التحقق بالصورة."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.third_party"
+msgid "CAPTCHA provider for SMS codes: [name] (a third-party CAPTCHA add-on)."
+msgstr "مزود CAPTCHA لرموز التحقق: [name] (إضافة CAPTCHA من طرف ثالث)."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.third_party_unticked"
+msgid "CAPTCHA provider for SMS codes: none. [name] is the active CAPTCHA, but SMS code request isn't ticked under Settings > Image verification."
+msgstr "مزود CAPTCHA لرموز التحقق: لا يوجد. [name] هي إضافة CAPTCHA النشطة، لكن خيار «طلب رمز التحقق بالرسالة» غير مفعّل في الإعدادات > التحقق بالصورة."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.driver"
+msgid "Active CAPTCHA driver: [class]."
+msgstr "مشغل CAPTCHA النشط: [class]."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.inactive"
+msgid "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+msgstr "[name] نشطة لكنها لا تحمي نموذج رمز التحقق بالرسالة. استخدم Cloudflare Turnstile أو إضافة CAPTCHA تسجل نفسها في التحقق بالصورة في CS-Cart."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.warn_captcha_tick"
+msgid "Tick 'SMS code request' in Settings > Image verification to protect the code form with [name]."
+msgstr "فعّل «طلب رمز التحقق بالرسالة» في الإعدادات > التحقق بالصورة لحماية نموذج الرمز بواسطة [name]."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.info_captcha_addon"
+msgid "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+msgstr "[name] نشطة لكنها لا تحمي نموذج رمز التحقق بالرسالة. استخدم Cloudflare Turnstile أو إضافة CAPTCHA تسجل نفسها في التحقق بالصورة في CS-Cart."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.info_turnstile_idle"
+msgid "Cloudflare Turnstile is saved but not used: [name] is the active CAPTCHA provider. Turn that add-on off to use Turnstile."
+msgstr "تم حفظ Cloudflare Turnstile لكنه غير مستخدم: [name] هو مزود CAPTCHA النشط. أوقف تلك الإضافة لاستخدام Turnstile."

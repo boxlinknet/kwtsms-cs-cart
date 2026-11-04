@@ -33,6 +33,7 @@
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
+use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-29 04:12 +03: Task M1.12, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
@@ -419,7 +420,9 @@ class DashboardPage
                     (array) Registry::get('addons.recaptcha')
                 ),
                 // 2026-10-29 05:12 +03: Task M1.12 fix round 1 (I1), task 596. A provider only with the tick.
-                IntegrationsPage::smsCodeScenarioTicked()
+                IntegrationsPage::smsCodeScenarioTicked(),
+                // 2026-11-04 12:40 +03: Task RC2 item 3, task 596. A third-party antibot driver is a provider too.
+                $this->thirdPartyCaptcha()
             ),
             'edited_langs' => $edited,
             'live_accepted' => $this->stats->liveAccepted(),
@@ -601,7 +604,7 @@ class DashboardPage
         if (!empty($f['code_feature_on'])) {
             $steps[] = self::step(
                 'captcha',
-                in_array((string) ($f['captcha_provider'] ?? 'none'), ['turnstile', 'recaptcha'], true),
+                in_array((string) ($f['captcha_provider'] ?? 'none'), ['turnstile', 'recaptcha', 'third_party'], true),
                 '',
                 'settings',
                 'kwtsms_turnstile'
@@ -1173,6 +1176,17 @@ class DashboardPage
 
             return false;
         }
+    }
+
+    /**
+     * 2026-11-04 12:40 +03: Task RC2 item 3, task 596. The name of the active third-party antibot driver (the owning
+     * add-on id or the class), null when the driver is none, Turnstile, core reCAPTCHA or core's own. Test seam.
+     */
+    protected function thirdPartyCaptcha(): ?string
+    {
+        $found = CaptchaDetector::current();
+
+        return $found['provider'] === CaptchaDetector::THIRD_PARTY ? $found['name'] : null;
     }
 
     /** Whether this store is Multi-Vendor. 2026-10-23 04:23 +03: Task A13, task 596. */

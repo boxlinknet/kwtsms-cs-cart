@@ -33,6 +33,7 @@
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
+use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
@@ -218,6 +219,7 @@ class IntegrationsPage
             }
         }
 
+        $driver = $this->captchaDriver(); // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
         $is_mve = $this->isMultiVendor();
         $later = [];
         foreach (self::LATER_ADDONS as $id) {
@@ -251,8 +253,15 @@ class IntegrationsPage
                 'provider' => self::captchaProvider(
                     $this->turnstileReady(),
                     $this->recaptchaBlocks(),
-                    $this->recaptchaTicked()
+                    $this->recaptchaTicked(),
+                    $driver['provider'] === CaptchaDetector::THIRD_PARTY ? $driver['name'] : null
                 ),
+                // 2026-11-04 12:40 +03: Task RC2 item 3, task 596. The active driver class and the add-on that owns
+                // it, so a merchant can report them; the CAPTCHA add-ons that are active but not the driver. Raw
+                // text: the template escapes it (fn_html_escape).
+                'driver_name' => $driver['name'],
+                'driver_class' => $driver['class'],
+                'inactive' => $this->inactiveCaptchaAddons(),
                 'checkout' => $this->captchaForCheckout(),
                 'recaptcha' => $this->addonActive('recaptcha'),
                 'link' => $may_settings ? 'settings.manage?section_id=Image_verification' : '',
@@ -268,8 +277,15 @@ class IntegrationsPage
     public static function captchaProvider(
         bool $turnstile_ready,
         bool $recaptcha_blocks,
-        bool $recaptcha_ticked = true
+        bool $recaptcha_ticked = true,
+        ?string $third_party = null
     ): string {
+        // 2026-11-04 12:40 +03: Task RC2 item 3, task 596. The ACTIVE antibot driver is the truth: a third-party
+        // driver (its name in $third_party) means neither core reCAPTCHA nor Turnstile is installed. Like
+        // reCAPTCHA it protects the code form only with the scenario ticked.
+        if ($third_party !== null) {
+            return $recaptcha_ticked ? 'third_party' : 'third_party_unticked';
+        }
         // 2026-10-29 05:12 +03: Task M1.12 fix round 1 (I1), task 596. A configured reCAPTCHA protects the code
         // request only while "SMS code request" is ticked under Image verification; otherwise the request has no
         // CAPTCHA (SuspicionGate asks a token only of Turnstile in the other mode), so it is reported apart and
@@ -611,6 +627,26 @@ class IntegrationsPage
         }
 
         return true;
+    }
+
+    /**
+     * 2026-11-04 12:40 +03: Task RC2 item 3, task 596. The active antibot driver (CaptchaDetector). Test seam.
+     *
+     * @return array{provider:string,name:string,class:string}
+     */
+    protected function captchaDriver(): array
+    {
+        return CaptchaDetector::current();
+    }
+
+    /**
+     * 2026-11-04 12:40 +03: Task RC2 item 3, task 596. Active CAPTCHA add-ons that are not the driver. Test seam.
+     *
+     * @return string[]
+     */
+    protected function inactiveCaptchaAddons(): array
+    {
+        return CaptchaDetector::inactiveForStore();
     }
 
     protected function recaptchaTicked(): bool

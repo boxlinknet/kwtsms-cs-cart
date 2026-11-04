@@ -6520,3 +6520,38 @@ msgstr "A broken .po file of another add-on makes the Upgrade Center report erro
 msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"
 msgid "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."
 msgstr "CAPTCHA provider for SMS codes: none. reCAPTCHA is on, but SMS code request isn't ticked under Settings > Image verification."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.third_party"
+msgid "CAPTCHA provider for SMS codes: [name] (a third-party CAPTCHA add-on)."
+msgstr "CAPTCHA provider for SMS codes: [name] (a third-party CAPTCHA add-on)."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.provider.third_party_unticked"
+msgid "CAPTCHA provider for SMS codes: none. [name] is the active CAPTCHA, but SMS code request isn't ticked under Settings > Image verification."
+msgstr "CAPTCHA provider for SMS codes: none. [name] is the active CAPTCHA, but SMS code request isn't ticked under Settings > Image verification."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.driver"
+msgid "Active CAPTCHA driver: [class]."
+msgstr "Active CAPTCHA driver: [class]."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.integrations.captcha.inactive"
+msgid "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+msgstr "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.warn_captcha_tick"
+msgid "Tick 'SMS code request' in Settings > Image verification to protect the code form with [name]."
+msgstr "Tick 'SMS code request' in Settings > Image verification to protect the code form with [name]."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.info_captcha_addon"
+msgid "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+msgstr "[name] is active but does not protect the SMS code form; use Cloudflare Turnstile or a CAPTCHA that registers with CS-Cart's image verification."
+
+# 2026-11-04 12:42 +03: Task RC2 item 3, task 596. Any active CAPTCHA provider.
+msgctxt "Languages::kwtsms.settings.info_turnstile_idle"
+msgid "Cloudflare Turnstile is saved but not used: [name] is the active CAPTCHA provider. Turn that add-on off to use Turnstile."
+msgstr "Cloudflare Turnstile is saved but not used: [name] is the active CAPTCHA provider. Turn that add-on off to use Turnstile."

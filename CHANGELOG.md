@@ -52,6 +52,12 @@ stays off until you turn it on. Release candidate pre-release: v1.2.0-rc.1.
   what `otp` does), the result accessors and test mode. **Stability promise:** changes to this interface are
   announced in the release notes and in this CHANGELOG, and a contract test fails when the signature, the result
   accessors or the context keys change.
+<!-- 2026-11-04 12:45 +03: Task RC2 item 3 (1.2.0-rc.2), task 596 -->
+- Any active CAPTCHA provider counts. Settings, Integrations and the Dashboard now read the active antibot driver: a
+  CAPTCHA add-on that registers with CS-Cart's image verification protects the SMS code form (validated through its
+  driver on every request, fail closed), is named in the CAPTCHA row with its driver class, and the red "no CAPTCHA"
+  warning no longer shows. An active CAPTCHA add-on that did not register as the driver (for example
+  `google_recaptcha`) is named in an info line. Cloudflare Turnstile never replaces a set-up third-party driver.
 - Pause or continue when the store cannot send SMS, with an alert in both cases.
 - Integrations page: phone rules and SMS codes with the index progress and today's numbers, the CAPTCHA provider, and a
   "Coming in 1.3" list. The Dashboard go-live list gains "Set a CAPTCHA provider for SMS codes" while a code feature
