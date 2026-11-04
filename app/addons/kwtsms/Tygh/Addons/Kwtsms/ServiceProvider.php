@@ -470,7 +470,8 @@ class ServiceProvider implements ServiceProviderInterface
                 new AfterResponse(null, [$app['kwtsms.state'], 'lastCron']),
                 $app['kwtsms.logs.debug']
             );
-            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The inline send runs under the short gateway timeouts.
+            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The inline send runs under the short
+            // gateway timeouts.
             $blind->gatewayScope(static function (bool $on) use ($app): void {
                 $app['kwtsms.sms']->blindInlineTimeouts($on);
             });

@@ -23,7 +23,8 @@ namespace Tygh\Addons\Kwtsms\Auth;
 
 final class ReturnUrl
 {
-    // 2026-11-04 21:18 +03: review fix M3 of Task M2.1, task 596. $secure = the request is https: then only an https absolute URL is kept
+    // 2026-11-04 21:18 +03: review fix M3 of Task M2.1, task 596. $secure = the request is https: then only an https
+    // absolute URL is kept
     // (an http one of the same host would leave the secure site); a relative URL is kept either way.
     public static function safe(string $url, string $current_host, string $fallback, bool $secure = false): string
     {

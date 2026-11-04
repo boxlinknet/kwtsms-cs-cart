@@ -16,7 +16,8 @@
  *            if ($gate->requiresToken($ip, '+96550123401') && !$gate->verify($_REQUEST, $ip)) { ... answer captcha }
  *            requiresToken(): buckets ip_s:<ip or /64> (3600 s) and store_s (600 s) through RateLimiter::hit(); the
  *            subject count is a read of kwtsms_otp_codes (purpose in the code purposes, subject, last 3600 s) + 1.
- *            2026-11-04 21:16 +03 (C1 fix, task 596): requiresToken($ip, $subject, $counted_purpose): a non-empty purpose
+ *            2026-11-04 21:16 +03 (C1 fix, task 596): requiresToken($ip, $subject, $counted_purpose): a non-empty
+ *            purpose
  *            counts the subject in the bucket subj_s:<purpose>:<subject> (3600 s) instead of reading code rows.
  *            All three are taken on every call (no short circuit), a subject '' reads no codes, and a counter that
  *            fails closed (PHP_INT_MAX) is suspicious. false and nothing counted when Turnstile is not the driver.
@@ -74,8 +75,10 @@ class SuspicionGate
         // hit() answers PHP_INT_MAX when it could not count: that is over every threshold.
         $ip_hits = $this->limiter->hit('ip_s:' . ClientIp::bucketKey($ip), self::IP_WINDOW);
         $by_ip = $ip_hits > $this->config->captchaAfterIp();
-        // 2026-11-04 21:16 +03: review fix C1 of Task M2.1, task 596. A blind purpose (login, recover) counts the subject in
-        // a bucket that every valid request hits, whatever the phone's account: the code rows exist only for a phone with
+        // 2026-11-04 21:16 +03: review fix C1 of Task M2.1, task 596. A blind purpose (login, recover) counts the
+        // subject in
+        // a bucket that every valid request hits, whatever the phone's account: the code rows exist only for a
+        // phone with
         // an eligible account, so counting them made the 3rd request of a KNOWN phone answer "captcha" while an unknown
         // phone kept answering ok (account enumeration). The other purposes keep the code-row read (M1 behaviour).
         if ($subject === '') {
@@ -84,7 +87,8 @@ class SuspicionGate
             $by_subject = $this->limiter->hit('subj_s:' . $counted_purpose . ':' . $subject, self::SUBJECT_WINDOW)
                 > $this->config->captchaAfterSubject();
         } else {
-            $by_subject = $this->issuedCount($subject, $now - self::SUBJECT_WINDOW) + 1 > $this->config->captchaAfterSubject();
+            $by_subject = $this->issuedCount($subject, $now - self::SUBJECT_WINDOW) + 1
+                > $this->config->captchaAfterSubject();
         }
         $by_store = $this->limiter->hit('store_s', self::STORE_WINDOW) > $this->config->captchaAfterStore();
 

@@ -2363,7 +2363,8 @@ class SmsService
     private function client(array $context): ApiClient
     {
         if ($this->client === null) {
-            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. An inline blind code send uses the short blind_inline timeouts.
+            // 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. An inline blind code send uses the short
+            // blind_inline timeouts.
             if ($this->blind_inline && $this->webContext()) {
                 $this->client = call_user_func($this->client_factory, ApiClient::BLIND_INLINE);
 
@@ -2385,7 +2386,8 @@ class SmsService
     }
 
     /**
-     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. Switches the short timeouts of the inline blind code send on or off
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. Switches the short timeouts of the inline blind
+     * code send on or off
      * (the next send() builds its client under the new setting; a send in progress keeps the client it has).
      */
     public function blindInlineTimeouts(bool $on): void

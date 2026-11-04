@@ -177,10 +177,15 @@ class BlindCodeRequest
         $check = $this->rules->check($raw_phone, $hint);
         $phone = $check['ok'] ? $check['phone'] : '';
 
-        // 2026-11-04 21:16 +03: review fix C1, task 596. The purpose is passed so the subject counter is a bucket every valid
+        // 2026-11-04 21:16 +03: review fix C1, task 596. The purpose is passed so the subject counter is a bucket
+        // every valid
         // request hits, not the code rows of the phone (those exist only for an account's phone).
         // 3. Suspicion: a CAPTCHA token from the 4th request of an IP, the 3rd code of a phone, the 31st of the store.
-        if (!$captcha_checked && $this->gate->requiresToken($ip, $phone, $purpose) && !$this->gate->verify($request, $ip)) {
+        if (
+            !$captcha_checked
+            && $this->gate->requiresToken($ip, $phone, $purpose)
+            && !$this->gate->verify($request, $ip)
+        ) {
             return $this->failure('captcha', (string) __('kwtsms.code.captcha', [], $lang));
         }
 
@@ -220,7 +225,8 @@ class BlindCodeRequest
     }
 
     /**
-     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The hook that switches the gateway timeouts for an inline send:
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The hook that switches the gateway timeouts for an
+     * inline send:
      * called with true before the work and with false after it (always), so slot wait plus gateway time stay below the
      * 3000 ms floor of the padded answer.
      */
@@ -331,7 +337,8 @@ class BlindCodeRequest
     public function finishInline(CodeTiming $timing): void
     {
         $purpose = $this->pending['purpose'] ?? '';
-        // 2026-11-04 21:17 +03: review fix M1, task 596. Short gateway timeouts for the inline send, put back whatever happens.
+        // 2026-11-04 21:17 +03: review fix M1, task 596. Short gateway timeouts for the inline send, put back
+        // whatever happens.
         if ($this->gateway_scope !== null) {
             call_user_func($this->gateway_scope, true);
         }

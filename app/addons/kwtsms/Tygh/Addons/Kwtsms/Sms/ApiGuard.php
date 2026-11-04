@@ -88,7 +88,8 @@ class ApiGuard
     public const WEB_MAX_WAIT_MS = 1000;
 
     /**
-     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The longest slot wait of the inline blind code send: with the 2 s
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The longest slot wait of the inline blind code
+     * send: with the 2 s
      * total timeout of ApiClient::BLIND_INLINE the gateway side stays at 2.5 s, below the 3000 ms answer floor.
      */
     public const BLIND_MAX_WAIT_MS = 500;

@@ -83,8 +83,10 @@ class ApiClient
     public const ADMIN_BACKGROUND = 'admin_background';
 
     /**
-     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The context of the code SMS a sign-in request sends INSIDE the request
-     * (a host without a finish function): the slot wait (ApiGuard::BLIND_MAX_WAIT_MS) plus the timeouts below stay under
+     * 2026-11-04 21:17 +03: review fix M1 of Task M2.1, task 596. The context of the code SMS a sign-in request sends
+     * INSIDE the request
+     * (a host without a finish function): the slot wait (ApiGuard::BLIND_MAX_WAIT_MS) plus the timeouts below stay
+     * under
      * the 3000 ms floor the answer is padded to, so a known phone cannot answer slower than an unknown one.
      */
     public const BLIND_INLINE = 'blind_inline';
