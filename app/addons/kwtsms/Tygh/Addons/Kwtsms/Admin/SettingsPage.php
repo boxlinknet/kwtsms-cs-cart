@@ -479,7 +479,7 @@ class SettingsPage
                     // not set up protects nothing: same red warning, naming the add-on (escaped).
                     !empty($captcha['unconfigured'])
                         ? $this->text('kwtsms.settings.warn_captcha_unconfigured', [
-                            '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                            '[name]' => (string) ($captcha['name'] ?? ''), // 2026-11-04 14:43 +03: item 5, 596
                             '[cap]' => $this->config->capCodeDay(),
                         ])
                         : $this->text('kwtsms.settings.warn_no_captcha', ['[cap]' => $this->config->capCodeDay()]),
@@ -493,7 +493,7 @@ class SettingsPage
                     'captcha_tick',
                     'warning',
                     $this->text('kwtsms.settings.warn_captcha_tick', [
-                        '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                        '[name]' => (string) ($captcha['name'] ?? ''), // 2026-11-04 14:43 +03: item 5, 596
                     ]) . ' ' . $this->text(
                         'kwtsms.settings.warn_recaptcha_tick_for',
                         ['[names]' => implode(', ', $captcha['unticked'])]
@@ -519,13 +519,13 @@ class SettingsPage
             // the antibot driver does not protect the SMS code form: name it (info, never the red warning).
             foreach ($this->inactiveCaptchaAddons() as $addon_id) {
                 $note('captcha_addon_' . $addon_id, 'info', $this->text('kwtsms.settings.info_captcha_addon', [
-                    '[name]' => htmlspecialchars($addon_id, ENT_QUOTES, 'UTF-8'),
+                    '[name]' => $addon_id, // 2026-11-04 14:43 +03: item 5, 596
                 ]));
             }
             // Turnstile is saved but a third-party driver is the active one: Turnstile does not replace it.
             if ($captcha['provider'] === 'third_party' && $this->config->turnstileEnabled()) {
                 $note('turnstile_idle', 'info', $this->text('kwtsms.settings.info_turnstile_idle', [
-                    '[name]' => htmlspecialchars((string) ($captcha['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                    '[name]' => (string) ($captcha['name'] ?? ''), // 2026-11-04 14:43 +03: item 5, 596
                 ]));
             }
         }
@@ -614,10 +614,12 @@ class SettingsPage
      * driver, 'turnstile', 'recaptcha', 'native') and whether the scenario kwtsms_sms_code is ticked in Settings >
      * Image verification. Overridable in a test.
      *
-     * @return array{provider:string,unticked:string[],name?:string,unconfigured?:bool} 2026-11-04 12:40 +03: name = third_party owner
+     * @return array{provider:string,unticked:string[],name?:string,unconfigured?:bool} name = owner
      */
     protected function captchaState(): array
     {
+        // 2026-11-04 14:43 +03: RC2 fix1 items 1 and 5, task 596: text() escapes every placeholder once, so the
+        // add-on name is passed raw to it (no second escape).
         // 2026-11-04 12:44 +03: Task RC2 item 3, task 596. One detection from the active antibot driver, shared with
         // Integrations and the Dashboard (CaptchaDetector): any other driver is 'third_party' with its name, and the
         // per-storefront tick applies to it like to reCAPTCHA.
