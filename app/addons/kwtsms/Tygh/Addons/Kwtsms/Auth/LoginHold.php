@@ -234,8 +234,12 @@ class LoginHold
      * about 2FA to somebody without the password), and so is every case where the account is not known. Once the
      * password is right, any failure refuses. Never throws.
      */
-    public function refusesBasicAuth(string $login, string $password): bool
-    {
+    // 2026-11-05 07:20 +03: fix 1 (I2), task 596. #[\SensitiveParameter] on the password (release gate).
+    public function refusesBasicAuth(
+        string $login,
+        #[\SensitiveParameter]
+        string $password
+    ): bool {
         try {
             $env = $this->environment();
             if ($env['console'] || !$this->policy->anyOn()) {
