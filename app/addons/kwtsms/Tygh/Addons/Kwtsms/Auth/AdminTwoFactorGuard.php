@@ -67,6 +67,9 @@ class AdminTwoFactorGuard
     /** @var BackupCodes|null 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596 */
     private $backup;
 
+    /** @var callable|null 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. (): array of vendor administrator rows */
+    private $vendors;
+
     public function __construct(
         ConfigInterface $config,
         TwoFactorPolicy $policy,
@@ -76,9 +79,11 @@ class AdminTwoFactorGuard
         ?DebugLog $log = null,
         ?callable $users = null,
         ?callable $admins = null,
-        ?BackupCodes $backup = null
+        ?BackupCodes $backup = null,
+        ?callable $vendors = null
     ) {
         $this->backup = $backup;
+        $this->vendors = $vendors;
         $this->config = $config;
         $this->policy = $policy;
         $this->store = $store;
@@ -267,8 +272,53 @@ class AdminTwoFactorGuard
      */
     public function withoutMobile(): array
     {
+        return $this->listWithoutMobile($this->administrators());
+    }
+
+    /**
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators (user_type V) that could
+     * not get a code, with the name of their company: the list shown before "required" for vendors is saved.
+     *
+     * @return array<int,array{user_id:int,email:string,name:string,company:string}>
+     */
+    public function vendorsWithoutMobile(): array
+    {
+        return $this->listWithoutMobile($this->vendorAdministrators());
+    }
+
+    /**
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Whether the save of twofa_vendors = required may go
+     * through: no proof code (a vendor administrator cannot lock the store out; the root administrators sign in on the
+     * admin panel), but a tick when vendor administrators without a mobile are listed. Anything unreadable refuses.
+     *
+     * @return array{ok:bool,error:string,without_mobile:array<int,array<string,mixed>>}
+     */
+    public function canRequireVendors(bool $ack): array
+    {
+        try {
+            $list = $this->vendorsWithoutMobile();
+            if ($list !== [] && !$ack) {
+                return ['ok' => false, 'error' => 'ack_missing', 'without_mobile' => $list];
+            }
+            $this->debug('twofa.required_vendors', ['without_mobile' => count($list)]);
+
+            return ['ok' => true, 'error' => '', 'without_mobile' => $list];
+        } catch (\Throwable $e) {
+            $this->debug('twofa.required_vendors_refused', ['error' => get_class($e)]);
+
+            return ['ok' => false, 'error' => 'error', 'without_mobile' => []];
+        }
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     *
+     * @return array<int,array{user_id:int,email:string,name:string,company:string}>
+     */
+    private function listWithoutMobile(array $rows): array
+    {
         $out = [];
-        foreach ($this->administrators() as $row) {
+        foreach ($rows as $row) {
             $id = (int) ($row['user_id'] ?? 0);
             $enrolled = $this->store->row($id);
             $has_row = $enrolled !== null && (string) $enrolled['enabled'] === 'Y';
@@ -282,6 +332,7 @@ class AdminTwoFactorGuard
                 'user_id' => $id,
                 'email' => (string) ($row['email'] ?? ''),
                 'name' => trim((string) ($row['firstname'] ?? '') . ' ' . (string) ($row['lastname'] ?? '')),
+                'company' => (string) ($row['company'] ?? ''),
             ];
         }
 
@@ -347,6 +398,25 @@ class AdminTwoFactorGuard
         return (array) db_get_array(
             "SELECT user_id, email, firstname, lastname, phone FROM ?:users WHERE user_type = 'A' AND status = 'A'"
             . ' ORDER BY user_id'
+        );
+    }
+
+    /**
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators with their company name
+     * (Multi-Vendor; no row exists elsewhere).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function vendorAdministrators(): array
+    {
+        if ($this->vendors !== null) {
+            return (array) call_user_func($this->vendors);
+        }
+
+        return (array) db_get_array(
+            "SELECT u.user_id, u.email, u.firstname, u.lastname, u.phone, c.company FROM ?:users u"
+            . " LEFT JOIN ?:companies c ON c.company_id = u.company_id"
+            . " WHERE u.user_type = 'V' AND u.status = 'A' ORDER BY u.user_id"
         );
     }
 

@@ -437,7 +437,26 @@ class SettingsPage
             // ("cannot sign in until a
             // mobile number is added"), listed only while the choice can still be made.
             'twofa_without_mobile' => $this->twofaWithoutMobile(),
+            // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. The vendor administrators without a mobile
+            // (name and company), listed before "required" for vendors can be saved (Multi-Vendor only).
+            'twofa_vendors_without_mobile' => $this->twofaVendorsWithoutMobile(),
         ];
+    }
+
+    /**
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. [] outside Multi-Vendor, when the guard is absent or
+     * the list cannot be read (the save is then still guarded).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function twofaVendorsWithoutMobile(): array
+    {
+        try {
+            return $this->twofa_guard === null || !function_exists('fn_allowed_for') || !fn_allowed_for('MULTIVENDOR')
+                ? [] : $this->twofa_guard->vendorsWithoutMobile();
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -946,6 +965,22 @@ class SettingsPage
                     $enrol_phone = $verdict['phone'];
                 } else {
                     $reasons['twofa_admins'] = 'twofa_req:' . $verdict['error'];
+                }
+            }
+        }
+        // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Going TO "required" for vendors needs no proof but
+        // the tick, when vendor administrators without a mobile are listed; any refusal keeps the stored value.
+        if (isset($posted['twofa_vendors']) && $posted['twofa_vendors'] === 'required') {
+            if ($this->config->twofaVendors() === 'required') {
+                unset($posted['twofa_vendors']);
+            } elseif ($this->twofa_guard === null) {
+                unset($posted['twofa_vendors']);
+                $reasons['twofa_vendors'] = 'twofa_vend:error';
+            } else {
+                $vend = $this->twofa_guard->canRequireVendors(!empty($twofa['ack_vendors']));
+                if (!$vend['ok']) {
+                    unset($posted['twofa_vendors']);
+                    $reasons['twofa_vendors'] = 'twofa_vend:' . $vend['error'];
                 }
             }
         }
@@ -1587,6 +1622,10 @@ class SettingsPage
         }
         // 2026-11-05 07:28 +03: Task M2.2b, task 596. The refusals of the guard of "required for administrators" have
         // their own texts.
+        // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. The refusals of "required for vendors".
+        if (strpos($reason, 'twofa_vend:') === 0) {
+            return $this->text('kwtsms.settings.twofa_vend.' . (substr($reason, strlen('twofa_vend:')) === 'ack_missing' ? 'ack_missing' : 'error'));
+        }
         if (strpos($reason, 'twofa_req:') === 0) {
             $known = ['not_root', 'no_mobile', 'ack_missing', 'proof_missing', 'proof_malformed', 'proof_wrong',
                 'proof_locked', 'proof_expired'];

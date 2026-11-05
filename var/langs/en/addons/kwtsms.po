@@ -6356,8 +6356,8 @@ msgstr "The notice to the old number goes out after every change of the phone nu
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p9"
-msgid "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings."
-msgstr "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings."
+msgid "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings. When Required is saved for vendors, the vendor administrators without a mobile number are listed and you tick a box to confirm. They sign in again once a phone is added to their account, or after you switch Vendors back to Optional."
+msgstr "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings. When Required is saved for vendors, the vendor administrators without a mobile number are listed and you tick a box to confirm. They sign in again once a phone is added to their account, or after you switch Vendors back to Optional."
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p10"
@@ -7090,3 +7090,23 @@ msgstr "Backup codes are being guessed"
 msgctxt "Languages::kwtsms.alert.twofa_backup_guessing.text"
 msgid "Ten wrong backup codes were entered for account [user] within an hour. If this was not the owner, reset the account's two-step sign-in and change its password."
 msgstr "Ten wrong backup codes were entered for account [user] within an hour. If this was not the owner, reset the account's two-step sign-in and change its password."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_title"
+msgid "Vendor administrators without a mobile number"
+msgstr "Vendor administrators without a mobile number"
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_note"
+msgid "These vendor administrators cannot sign in until a mobile number is added to their account, or Vendors is switched back to Optional:"
+msgstr "These vendor administrators cannot sign in until a mobile number is added to their account, or Vendors is switched back to Optional:"
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_ack"
+msgid "I understand that the vendor administrators listed above cannot sign in until a number is added."
+msgstr "I understand that the vendor administrators listed above cannot sign in until a number is added."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend.ack_missing"
+msgid "Some vendor administrators have no mobile number. Tick the box to confirm they cannot sign in, or add their numbers first. Nothing was changed."
+msgstr "Some vendor administrators have no mobile number. Tick the box to confirm they cannot sign in, or add their numbers first. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend.error"
+msgid "Required for vendors could not be checked, so nothing was changed. Try again."
+msgstr "Required for vendors could not be checked, so nothing was changed. Try again."

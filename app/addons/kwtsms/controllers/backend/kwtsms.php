@@ -202,15 +202,18 @@ try {
                 $kwtsms_twofa_proof = isset($_POST['kwtsms_twofa_proof']) && is_string($_POST['kwtsms_twofa_proof'])
                     ? $_POST['kwtsms_twofa_proof'] : '';
                 $kwtsms_twofa_ack = !empty($_POST['kwtsms_twofa_ack']);
+                // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. The tick of "required for vendors".
+                $kwtsms_twofa_ack_vendors = !empty($_POST['kwtsms_twofa_ack_vendors']);
                 unset($_POST['kwtsms_twofa_proof'], $_REQUEST['kwtsms_twofa_proof']);
                 $kwtsms_saved = $kwtsms_page->saveCodes($kwtsms_codes, [
                     'saver_id' => isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
                     'proof' => $kwtsms_twofa_proof,
                     'ack' => $kwtsms_twofa_ack,
+                    'ack_vendors' => $kwtsms_twofa_ack_vendors,
                     'session_hash' => \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash(),
                     'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
                 ]);
-                unset($kwtsms_codes, $kwtsms_twofa_proof, $kwtsms_twofa_ack);
+                unset($kwtsms_codes, $kwtsms_twofa_proof, $kwtsms_twofa_ack, $kwtsms_twofa_ack_vendors);
                 // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who saved "required"
                 // was enrolled by that save: the ten backup codes are shown once, in this response (no-store, nothing in
                 // the session), with a button to Settings.

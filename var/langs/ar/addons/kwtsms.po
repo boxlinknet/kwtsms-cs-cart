@@ -6362,8 +6362,8 @@ msgstr "يُرسل الإشعار إلى الرقم القديم بعد كل ت�
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p9"
-msgid "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings."
-msgstr "يطلب تسجيل الدخول بخطوتين رمزا نصيا بعد كلمة المرور. يفعّله العملاء ومديرو البائعين والمديرون من ملفهم الشخصي برمز يصل إلى رقم جوالهم. ولا يجوز أن يكون الرقم مستخدما في الخطوة الثانية لحساب آخر أو تابعا لحساب مدير أو بائع. فعّله من قسم الدخول والأمان في الإعدادات."
+msgid "Two-step sign-in asks for an SMS code after the password. Customers, vendor administrators and administrators opt in on their own profile with a code sent to their own mobile number. The number can't be one that another account uses for its second step or one that belongs to an administrator or vendor account. Turn it on under Sign-in and security in Settings. When Required is saved for vendors, the vendor administrators without a mobile number are listed and you tick a box to confirm. They sign in again once a phone is added to their account, or after you switch Vendors back to Optional."
+msgstr "يطلب تسجيل الدخول بخطوتين رمزا نصيا بعد كلمة المرور. يفعّله العملاء ومديرو البائعين والمديرون من ملفهم الشخصي برمز يصل إلى رقم جوالهم. ولا يجوز أن يكون الرقم مستخدما في الخطوة الثانية لحساب آخر أو تابعا لحساب مدير أو بائع. فعّله من قسم الدخول والأمان في الإعدادات. عند حفظ خيار الإلزام للبائعين تُعرض أسماء مديري البائعين بلا رقم جوال وتؤكد بعلامة في خانة. يعودون إلى الدخول بعد إضافة رقم إلى حساباتهم، أو بعد إعادة خيار البائعين إلى اختياري."
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p10"
@@ -7095,3 +7095,23 @@ msgstr "يجري تخمين الرموز الاحتياطية"
 msgctxt "Languages::kwtsms.alert.twofa_backup_guessing.text"
 msgid "Ten wrong backup codes were entered for account [user] within an hour. If this was not the owner, reset the account's two-step sign-in and change its password."
 msgstr "أُدخل عشرة رموز احتياطية خاطئة للحساب [user] خلال ساعة. إن لم يكن المالك، فأعد ضبط الدخول بخطوتين لهذا الحساب وغيّر كلمة مروره."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_title"
+msgid "Vendor administrators without a mobile number"
+msgstr "مديرو بائعين بلا رقم جوال"
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_note"
+msgid "These vendor administrators cannot sign in until a mobile number is added to their account, or Vendors is switched back to Optional:"
+msgstr "لا يستطيع مديرو البائعين هؤلاء الدخول حتى يُضاف رقم جوال إلى حساباتهم، أو يُعاد خيار البائعين إلى اختياري:"
+
+msgctxt "Languages::kwtsms.settings.twofa_vend_without_ack"
+msgid "I understand that the vendor administrators listed above cannot sign in until a number is added."
+msgstr "أفهم أن مديري البائعين المذكورين أعلاه لا يستطيعون الدخول حتى يُضاف رقم."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend.ack_missing"
+msgid "Some vendor administrators have no mobile number. Tick the box to confirm they cannot sign in, or add their numbers first. Nothing was changed."
+msgstr "بعض مديري البائعين بلا رقم جوال. ضع علامة في الخانة لتأكيد أنهم لن يستطيعوا الدخول، أو أضف أرقامهم أولا. لم يتغير شيء."
+
+msgctxt "Languages::kwtsms.settings.twofa_vend.error"
+msgid "Required for vendors could not be checked, so nothing was changed. Try again."
+msgstr "تعذّر التحقق من خيار الإلزام للبائعين فلم يتغير شيء. أعد المحاولة."

@@ -715,6 +715,21 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         </select>
                     </div>
                 </div>
+                {* 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Before "Required" for vendors is saved: the vendor administrators without a mobile number (name, company) and a tick. No proof code. *}
+                {if $kwtsms.codes.twofa_vendors != "required" && $kwtsms.codes.twofa_vendors_without_mobile}
+                <div class="control-group" id="kwtsms_twofa_vendors_without">
+                    <span class="control-label">{__("kwtsms.settings.twofa_vend_without_title")}:</span>
+                    <div class="controls">
+                        <p class="muted description">{__("kwtsms.settings.twofa_vend_without_note")}</p>
+                        <ul id="kwtsms_twofa_vendors_without_list">
+                            {foreach $kwtsms.codes.twofa_vendors_without_mobile as $kwtsms_vm}
+                                <li>{if $kwtsms_vm.name}{$kwtsms_vm.name|fn_html_escape}{else}{$kwtsms_vm.email|fn_html_escape}{/if}{if $kwtsms_vm.company} ({$kwtsms_vm.company|fn_html_escape}){/if}</li>
+                            {/foreach}
+                        </ul>
+                        <label for="kwtsms_twofa_ack_vendors"><input type="checkbox" id="kwtsms_twofa_ack_vendors" name="kwtsms_twofa_ack_vendors" value="Y" style="margin: 0 0.5em; margin-inline: 0 0.5em;"> {__("kwtsms.settings.twofa_vend_without_ack")}</label>
+                    </div>
+                </div>
+                {/if}
                 {/if}
                 <div class="control-group">
                     <label class="control-label" for="kwtsms_twofa_admins">{__("kwtsms.settings.field.twofa_admins")}:</label>
