@@ -203,7 +203,7 @@ try {
                     ? $_POST['kwtsms_twofa_proof'] : '';
                 $kwtsms_twofa_ack = !empty($_POST['kwtsms_twofa_ack']);
                 unset($_POST['kwtsms_twofa_proof'], $_REQUEST['kwtsms_twofa_proof']);
-                $kwtsms_page->saveCodes($kwtsms_codes, [
+                $kwtsms_saved = $kwtsms_page->saveCodes($kwtsms_codes, [
                     'saver_id' => isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
                     'proof' => $kwtsms_twofa_proof,
                     'ack' => $kwtsms_twofa_ack,
@@ -211,6 +211,16 @@ try {
                     'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
                 ]);
                 unset($kwtsms_codes, $kwtsms_twofa_proof, $kwtsms_twofa_ack);
+                // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who saved "required"
+                // was enrolled by that save: the ten backup codes are shown once, in this response (no-store, nothing in
+                // the session), with a button to Settings.
+                if (!empty($kwtsms_saved['backup_codes']) && is_array($kwtsms_saved['backup_codes'])) {
+                    \Tygh\Addons\Kwtsms\Auth\TwoFactorController::showBackupCodes($kwtsms_saved['backup_codes'], false, $kwtsms_settings_url . '#kwtsms_signin');
+                    unset($kwtsms_saved);
+
+                    return [CONTROLLER_STATUS_OK];
+                }
+                unset($kwtsms_saved);
 
                 // 2026-10-24 21:11 +03: Task M1.7b, task 596. The Turnstile section posts to this mode too and names
                 // its own anchor; any other value goes back to the "Phone and codes" section.

@@ -904,7 +904,7 @@ class SettingsPage
      * none
      *                                    given, so the save of "required" is refused.
      *
-     * @return array{saved: string[], rejected: array<string,string>}
+     * @return array{saved: string[], rejected: array<string,string>, backup_codes: string[]}
      */
     public function saveCodes(
         #[\SensitiveParameter]
@@ -929,6 +929,7 @@ class SettingsPage
                 $reasons['turnstile_enabled'] = 'recaptcha_active';
             }
         }
+        $enrol_phone = '';
         // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. Going TO "required" for administrators needs the
         // guard: a root administrator
         // with a usable mobile who types the code sent to it, and a tick when administrators without a mobile exist.
@@ -942,6 +943,7 @@ class SettingsPage
                 $verdict = $this->twofaVerdict($twofa);
                 if ($verdict['ok']) {
                     $posted['twofa_admins'] = 'required';
+                    $enrol_phone = $verdict['phone'];
                 } else {
                     $reasons['twofa_admins'] = 'twofa_req:' . $verdict['error'];
                 }
@@ -953,6 +955,12 @@ class SettingsPage
         // refused
         // at sign-in with the "ask an administrator" notice.
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
+        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. "required" is stored and the saver has just proved
+        // the phone: the saver is enrolled on it now and holds backup codes (returned once, for the caller to show).
+        $backup_codes = [];
+        if ($enrol_phone !== '' && !in_array('twofa_admins', $rejected_keys, true) && $this->twofa_guard !== null) {
+            $backup_codes = $this->twofa_guard->enrolSaver((int) $twofa['saver_id'], $enrol_phone);
+        }
         $this->startBackfillWhenFirstOn($was_on);
         foreach ($rejected_keys as $key) {
             $reasons[$key] = $this->rejectionReason($key);
@@ -987,7 +995,7 @@ class SettingsPage
             }
         }
 
-        return ['saved' => $saved, 'rejected' => $reasons];
+        return ['saved' => $saved, 'rejected' => $reasons, 'backup_codes' => $backup_codes];
     }
 
     /**
@@ -995,14 +1003,14 @@ class SettingsPage
      *
      * @param array<string,mixed> $twofa saver_id, proof, ack, session_hash, ip
      *
-     * @return array{ok:bool,error:string}
+     * @return array{ok:bool,error:string,phone:string}
      */
     private function twofaVerdict(
         #[\SensitiveParameter]
         array $twofa
     ): array {
         if ($this->twofa_guard === null || !isset($twofa['saver_id'])) {
-            return ['ok' => false, 'error' => 'error'];
+            return ['ok' => false, 'error' => 'error', 'phone' => ''];
         }
         $r = $this->twofa_guard->canRequire(
             (int) $twofa['saver_id'],
@@ -1012,7 +1020,7 @@ class SettingsPage
             !empty($twofa['ack'])
         );
 
-        return ['ok' => (bool) $r['ok'], 'error' => (string) $r['error']];
+        return ['ok' => (bool) $r['ok'], 'error' => (string) $r['error'], 'phone' => (string) ($r['phone'] ?? '')];
     }
 
     /**

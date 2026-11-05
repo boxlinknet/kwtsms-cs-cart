@@ -16,5 +16,5 @@
     <ol class="kwtsms-backup-codes__list" id="kwtsms_backup_codes_list" dir="ltr" style="font-family: monospace; font-size: 1em; letter-spacing: 0.04em; white-space: nowrap; list-style-position: inside; padding: 0; margin: 1em 0;">
         {foreach $kwtsms_backup_codes as $kwtsms_bc}<li>{$kwtsms_bc|fn_html_escape}</li>{/foreach}
     </ol>
-    <p>{if $kwtsms_backup_after_login}<a class="btn btn-primary" id="kwtsms_backup_codes_continue" href="{"index.index"|fn_url}">{__("kwtsms.twofa.backup_codes_continue")|fn_html_escape}</a>{else}<a class="btn btn-primary" id="kwtsms_backup_codes_back" href="{"kwtsms_twofa.profile"|fn_url}">{__("kwtsms.twofa.backup_codes_back")|fn_html_escape}</a>{/if}</p>
+    <p>{if $kwtsms_backup_after_login}<a class="btn btn-primary" id="kwtsms_backup_codes_continue" href="{"index.index"|fn_url}">{__("kwtsms.twofa.backup_codes_continue")|fn_html_escape}</a>{elseif $kwtsms_backup_next}<a class="btn btn-primary" id="kwtsms_backup_codes_next" href="{$kwtsms_backup_next|fn_url}">{__("kwtsms.twofa.backup_codes_continue")|fn_html_escape}</a>{else}<a class="btn btn-primary" id="kwtsms_backup_codes_back" href="{"kwtsms_twofa.profile"|fn_url}">{__("kwtsms.twofa.backup_codes_back")|fn_html_escape}</a>{/if}</p>
 </div>

@@ -376,7 +376,7 @@ class TwoFactorController
      *
      * @param array<int,string> $codes
      */
-    private static function showBackupCodes(array $codes, bool $after_login): void
+    public static function showBackupCodes(array $codes, bool $after_login, string $next = ''): void
     {
         if (!headers_sent()) {
             header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -385,6 +385,9 @@ class TwoFactorController
         $view = Tygh::$app['view'];
         $view->assign('kwtsms_backup_codes', array_values(array_map('strval', $codes)));
         $view->assign('kwtsms_backup_after_login', $after_login);
+        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. Where the button leads when the codes were made by
+        // the Settings save of "required" ('' = the profile page); showBackupCodes() is public for that caller.
+        $view->assign('kwtsms_backup_next', $next);
         $view->assign('content_tpl', 'addons/kwtsms/views/kwtsms_twofa/backup_codes.tpl');
     }
 

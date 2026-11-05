@@ -553,7 +553,10 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.twofa_store'],
                 $app['kwtsms.otp'],
                 $app['kwtsms.code_request'],
-                $app['kwtsms.logs.debug']
+                $app['kwtsms.logs.debug'],
+                null,
+                null,
+                $app['kwtsms.backup_codes'] // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596
             );
         };
         $app['kwtsms.twofa_hold'] = function (Container $app): LoginHold {

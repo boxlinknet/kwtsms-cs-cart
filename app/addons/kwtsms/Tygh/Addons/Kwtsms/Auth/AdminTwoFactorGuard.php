@@ -64,6 +64,9 @@ class AdminTwoFactorGuard
     /** @var callable|null */
     private $admins;
 
+    /** @var BackupCodes|null 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596 */
+    private $backup;
+
     public function __construct(
         ConfigInterface $config,
         TwoFactorPolicy $policy,
@@ -72,8 +75,10 @@ class AdminTwoFactorGuard
         ?CodeRequest $codes = null,
         ?DebugLog $log = null,
         ?callable $users = null,
-        ?callable $admins = null
+        ?callable $admins = null,
+        ?BackupCodes $backup = null
     ) {
+        $this->backup = $backup;
         $this->config = $config;
         $this->policy = $policy;
         $this->store = $store;
@@ -97,7 +102,10 @@ class AdminTwoFactorGuard
     /**
      * Whether the save of twofa_admins = required may go through.
      *
-     * @return array{ok:bool,error:string,without_mobile:array<int,array<string,mixed>>}
+     * 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596. A successful check also names the phone the code
+     * proved ('phone', canonical), for enrolSaver().
+     *
+     * @return array{ok:bool,error:string,without_mobile:array<int,array<string,mixed>>,phone?:string}
      */
     public function canRequire(
         int $saver_id,
@@ -161,6 +169,7 @@ class AdminTwoFactorGuard
             }
             $out['ok'] = true;
             $out['error'] = '';
+            $out['phone'] = $phone;
             $this->debug('twofa.required_allowed', [
                 'user_id' => $saver_id, 'without_mobile' => count($out['without_mobile']),
             ]);
@@ -174,6 +183,41 @@ class AdminTwoFactorGuard
             $out['error'] = 'error';
 
             return $out;
+        }
+    }
+
+    /**
+     * 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who just proved the phone by
+     * saving "required" is enrolled on that phone, so the last root administrator always holds backup codes. A saver who
+     * is enrolled already keeps the set it has; a new set is made only when none is left. Never throws: a failure here
+     * leaves the (already allowed) save as it is and returns no codes.
+     *
+     * @return string[] The plain codes to show once; empty when none were made
+     */
+    public function enrolSaver(int $saver_id, string $phone): array
+    {
+        try {
+            if ($saver_id <= 0 || $phone === '') {
+                return [];
+            }
+            $row = $this->store->row($saver_id);
+            $enrolled = $row !== null && (string) $row['enabled'] === 'Y';
+            if (!$enrolled) {
+                $this->store->enable($saver_id, $phone);
+                $this->debug('twofa.enrolled', ['user_id' => $saver_id, 'type' => 'A', 'path' => 'required_save']);
+            }
+            if ($this->backup === null) {
+                return [];
+            }
+            if ($enrolled && $this->backup->remaining($saver_id) > 0) {
+                return [];
+            }
+
+            return $this->backup->generate($saver_id);
+        } catch (\Throwable $e) {
+            $this->debug('twofa.enrol_saver', ['user_id' => $saver_id, 'error' => get_class($e)]);
+
+            return [];
         }
     }
 
