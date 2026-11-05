@@ -55,6 +55,12 @@ class CsCartSettingsBackend implements SettingsBackendInterface
         if (self::$allow_twofa > 0 || $old_data === []) {
             return false;
         }
+        // 2026-11-05 12:06 +03: Task M2.2b fix 1 (review I1), task 596. A row without a stored value yet is core's own
+        // install or upgrade code (fn_update_addon_settings() creates the row, then writes the value, a merchant's
+        // "required" included): nothing to protect, so it goes through. After that every switch holds a value.
+        if (!isset($old_data['value']) || $old_data['value'] === '') {
+            return false;
+        }
         $ours = isset($old_data['section_name'], $old_data['name'])
             && strtolower((string) $old_data['section_name']) === self::SECTION
             && in_array((string) $old_data['name'], self::TWOFA_KEYS, true)
