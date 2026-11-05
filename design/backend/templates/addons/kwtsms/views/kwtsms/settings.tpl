@@ -779,6 +779,29 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     {if $kwtsms.codes.recover_code == "Y"}<p class="description" id="kwtsms_recover_verified_note" role="status">{__("kwtsms.settings.signin_verified_note", ["[n]" => $kwtsms.codes.signin_verified|fn_html_escape])}</p>{/if}
                 </div>
             </div>
+            {* 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code before an order is placed (default Off): the mode, and for the cash on delivery mode the payments that count; both saved with the same form through update_codes. The hidden empty value keeps "nothing ticked" posting an empty list. *}
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_checkout_code">{__("kwtsms.settings.field.checkout_code")}:</label>
+                <div class="controls">
+                    <select name="kwtsms_codes[checkout_code]" id="kwtsms_checkout_code" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_checkout_code_help">
+                        <option value="off"{if $kwtsms.codes.checkout_code == "off"} selected="selected"{/if}>{__("kwtsms.settings.checkout_off")}</option>
+                        <option value="all"{if $kwtsms.codes.checkout_code == "all"} selected="selected"{/if}>{__("kwtsms.settings.checkout_all")}</option>
+                        <option value="guest"{if $kwtsms.codes.checkout_code == "guest"} selected="selected"{/if}>{__("kwtsms.settings.checkout_guest")}</option>
+                        <option value="cod"{if $kwtsms.codes.checkout_code == "cod"} selected="selected"{/if}>{__("kwtsms.settings.checkout_cod")}</option>
+                    </select>
+                    <p class="muted description" id="kwtsms_checkout_code_help">{__("kwtsms.settings.checkout_code_help")}</p>
+                </div>
+            </div>
+            <div class="control-group" id="kwtsms_checkout_cod_group">
+                <span class="control-label">{__("kwtsms.settings.field.checkout_cod_payments")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[checkout_cod_payment_ids]" value="">
+                    {foreach $kwtsms.codes.checkout_payments as $kwtsms_pay}
+                        <label class="checkbox" for="kwtsms_checkout_cod_{$kwtsms_pay.id|intval}"><input type="checkbox" id="kwtsms_checkout_cod_{$kwtsms_pay.id|intval}" name="kwtsms_codes[checkout_cod_payment_ids][]" value="{$kwtsms_pay.id|intval}"{if $kwtsms_pay.id|in_array:$kwtsms.codes.checkout_cod_payment_ids} checked="checked"{/if}> {$kwtsms_pay.name|fn_html_escape}{if $kwtsms_pay.cod} <span class="muted">({__("kwtsms.settings.checkout_cod_marked")})</span>{/if}</label>
+                    {/foreach}
+                    <p class="muted description" id="kwtsms_checkout_cod_help">{__("kwtsms.settings.checkout_cod_payments_help")}</p>
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_signin_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.signin_save")}">

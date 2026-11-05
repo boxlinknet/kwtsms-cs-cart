@@ -37,6 +37,7 @@
 
 namespace Tygh\Addons\Kwtsms\Profiles;
 
+use Tygh\Addons\Kwtsms\Orders\CheckoutCode; // 2026-11-05 20:55 +03: Task M2.4, task 596
 use Tygh\Addons\Kwtsms\Phones\AccountPhone;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
 use Tygh\Addons\Kwtsms\Phones\PhoneLock;
@@ -121,6 +122,9 @@ final class ProfileHooks
      */
     private $held = [];
 
+    /** @var CheckoutCode|null 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. Null = no checkout code. */
+    private $checkout;
+
     public function __construct(
         callable $dispatch,
         callable $storefront_id,
@@ -138,8 +142,10 @@ final class ProfileHooks
         ?PhoneLock $lock = null,
         ?callable $stored_loader = null,
         ?callable $notify = null,
-        ?callable $checkout_profile = null
+        ?callable $checkout_profile = null,
+        ?CheckoutCode $checkout = null // 2026-11-05 20:55 +03: Task M2.4 (R8), task 596
     ) {
+        $this->checkout = $checkout;
         $this->config = $config;
         $this->rules = $rules;
         $this->lock = $lock;
@@ -452,8 +458,83 @@ final class ProfileHooks
      */
     public function onPrePlaceOrder(array &$cart, bool &$allow): void
     {
+        if ((string) call_user_func($this->area) !== 'C') {
+            return;
+        }
+        $this->checkPhoneAtCheckout($cart, $allow);
+        // 2026-11-05 20:55 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code of the checkout comes after the
+        // country check: a refusal of C3 is the first one and the code is not asked for then.
+        if ($allow) {
+            $this->checkCodeAtCheckout($cart, $allow);
+        }
+    }
+
+    /**
+     * 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. The checkout code check of onPrePlaceOrder(): null-safe,
+     * inactive while checkout_code is off. Fail closed: an internal error refuses the order with "Could not check the
+     * code. Try again." before any order row exists (the cart is untouched), only while the mode is on.
+     *
+     * @param array<string,mixed> $cart
+     */
+    private function checkCodeAtCheckout(array $cart, bool &$allow): void
+    {
+        if ($this->checkout === null || $this->config === null || $this->config->checkoutCode() === 'off') {
+            return;
+        }
+        $lang = $this->lang();
+        try {
+            $actor = $this->actor === null ? 0 : (int) call_user_func($this->actor);
+            $request = $this->request_context === null ? [] : (array) call_user_func($this->request_context);
+            $refusal = $this->checkout->refusal(
+                $cart,
+                ['user_id' => $actor],
+                (string) ($request['session_hash'] ?? ''),
+                (string) ($request['ip'] ?? ''),
+                $lang
+            );
+            if ($refusal !== null) {
+                $allow = false;
+                $this->tell('E', $refusal);
+            }
+        } catch (\Throwable $e) {
+            error_log('kwtsms: checkout code check failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+            $allow = false;
+            $this->tell('E', (string) __('kwtsms.code.check_failed', [], $lang));
+        }
+    }
+
+    /**
+     * 2026-11-05 20:55 +03: Task M2.4 (P3-49, P3-54), task 596. A signed-in customer proved the unchanged account phone
+     * with a checkout code: the phone index marks it verified, through the ONE writer (writePhoneIndex()), so the
+     * sign-in and recovery by code and Open 6 work for that number afterwards. Never throws.
+     */
+    public function recordCheckoutProof(int $user_id, string $phone): void
+    {
+        if ($this->index === null || $user_id <= 1 || $phone === '') {
+            return;
+        }
+        try {
+            if (!$this->index->active() || $this->account_loader === null) {
+                return;
+            }
+            $account = call_user_func($this->account_loader, $user_id);
+            if (is_array($account)) {
+                $this->writePhoneIndex('update', ['user_id' => $user_id] + $account, [], $phone);
+            }
+        } catch (\Throwable $e) {
+            error_log('kwtsms: checkout proof failed: ' . get_class($e) . ': ' . $e->getMessage()
+                . ' in ' . basename($e->getFile()) . ':' . $e->getLine());
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $cart
+     */
+    private function checkPhoneAtCheckout(array &$cart, bool &$allow): void
+    {
         if (
-            $this->config === null || $this->rules === null || (string) call_user_func($this->area) !== 'C'
+            $this->config === null || $this->rules === null
             || empty($cart['user_data']) || !is_array($cart['user_data']) || !$this->config->phoneCountryCheck()
         ) {
             return;
@@ -739,8 +820,12 @@ final class ProfileHooks
      * @param array<string,mixed> $user_data         The saved data (core merges the stored profile into it)
      * @param array<string,mixed> $current_user_data
      */
-    private function writePhoneIndex(string $action, array $user_data, array $current_user_data): void
-    {
+    private function writePhoneIndex(
+        string $action,
+        array $user_data,
+        array $current_user_data,
+        string $proved = ''
+    ): void {
         if ($this->index === null) {
             return;
         }
@@ -772,7 +857,9 @@ final class ProfileHooks
                 'storefront_id' => max(0, (int) call_user_func($this->storefront_id)),
                 'lang' => (string) ($request['lang'] ?? ''),
             ];
-            $verified = $this->code_checks->afterSave($ctx, $user_data);
+            // 2026-11-05 20:55 +03: Task M2.4 (P3-49), task 596. $proved: the phone a checkout code verified for the
+            // signed-in customer's unchanged account phone; no other code step runs for that write.
+            $verified = $proved !== '' ? $proved : $this->code_checks->afterSave($ctx, $user_data);
             $this->index->upsert($user_id, $phone, $phone !== '' && $verified === $phone);
         } catch (\Throwable $e) {
             error_log('kwtsms: phone index write failed: ' . get_class($e) . ': ' . $e->getMessage()

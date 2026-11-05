@@ -202,6 +202,9 @@ class Config implements ConfigInterface
             'twofa_customers', 'twofa_vendors', 'twofa_admins',
             // 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4), task 596. Recovery by an SMS code.
             'recover_code',
+            // 2026-11-05 20:57 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code before an order and the
+            // cash on delivery payments.
+            'checkout_code', 'checkout_cod_payment_ids',
         ],
     ];
 

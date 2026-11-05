@@ -103,6 +103,7 @@ use Tygh\Addons\Kwtsms\Notifications\SmsTransport;
 use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
 // 2026-10-21 16:53 +03: AfterResponse decides the order SMS send mode (final review I2), task 596.
 use Tygh\Addons\Kwtsms\Orders\AfterResponse;
+use Tygh\Addons\Kwtsms\Orders\CheckoutCode; // 2026-11-05 20:54 +03: Task M2.4, task 596
 use Tygh\Addons\Kwtsms\Orders\CheckoutRules;
 use Tygh\Addons\Kwtsms\Orders\Diagnostics;
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
@@ -344,7 +345,16 @@ class ServiceProvider implements ServiceProviderInterface
                     null,
                     null,
                     null,
-                    $app['kwtsms.phone_lock'] // 2026-10-28 18:50 +03: fix round 1 (I3), task 596
+                    $app['kwtsms.phone_lock'], // 2026-10-28 18:50 +03: fix round 1 (I3), task 596
+                    null,
+                    // 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596. Was this phone verified by a checkout code for
+                    // this order in this session? (create_profile of that order passes the registration code.)
+                    static function (string $phone, int $order_id) use ($app): bool {
+                        return $app['kwtsms.checkout_code']->verifiedForOrder($order_id, $phone);
+                    },
+                    static function (int $order_id) use ($app): void {
+                        $app['kwtsms.checkout_code']->forgetOrder($order_id);
+                    }
                 ),
                 // 2026-10-28 20:26 +03: Task M1.10b (B5, P3-17), task 596. The phone change code and the notice to
                 // the old number; the actor is the logged-in user of the request.
@@ -502,6 +512,40 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.blind_code_request'],
                 null,
                 null,
+                $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-11-05 20:54 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code before an order is placed. The
+        // exempt test: the admin order editor, the API, the console and the payment provider returns are never asked.
+        // The proof callable tells the phone index that a signed-in customer proved the unchanged account phone.
+        $app['kwtsms.checkout_code'] = function (Container $app): CheckoutCode {
+            return new CheckoutCode(
+                $app['kwtsms.config'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.phone_index'],
+                [$app['kwtsms.config'], 'defaultCountryCode'],
+                null,
+                null,
+                null,
+                null,
+                null,
+                static function (int $user_id): string {
+                    if (!function_exists('fn_get_user_info')) {
+                        return '';
+                    }
+                    $user = fn_get_user_info($user_id, false);
+
+                    return is_array($user) && $user !== []
+                        ? \Tygh\Addons\Kwtsms\Phones\AccountPhone::canonicalOf(
+                            $user,
+                            $user,
+                            (string) \Tygh\Tygh::$app['kwtsms.config']->defaultCountryCode()
+                        ) : '';
+                },
+                static function (int $user_id, string $phone) use ($app): void {
+                    $app['kwtsms.profile_hooks']->recordCheckoutProof($user_id, $phone);
+                },
+                [CheckoutCode::class, 'requestExempt'],
                 $app['kwtsms.logs.debug']
             );
         };
@@ -1038,7 +1082,11 @@ class ServiceProvider implements ServiceProviderInterface
                     );
 
                     return is_array($row) && $row !== [] ? $row : null;
-                }
+                },
+                null, // $notify: core's fn_set_notification
+                null, // $checkout_profile: the backtrace test
+                // 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. The SMS code before an order is placed.
+                $app['kwtsms.checkout_code']
             );
         };
     }

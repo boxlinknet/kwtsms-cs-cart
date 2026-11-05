@@ -11,7 +11,10 @@
  * WHY:       Task M1.8b (SafatMall B1, P3-25, P3-39). One component for the registration page (Task M1.10a) and the
  *            phone change (Task M1.10b); the script posts to kwtsms_code.send and shows the answer.
  * USAGE:     {include file="addons/kwtsms/components/code_field.tpl" purpose="register" phone_input_name="user_data[phone]"}
- *            purpose: register | phone_change.  phone_input_name: the name attribute of the phone input of the same form.
+ *            purpose: register | phone_change | checkout.  phone_input_name: the name attribute of the phone input of the same form.
+ *            2026-11-05 20:58 +03, Task M2.4 (SafatMall B6), task 596: checkout also passes phone_alt_name (the phone input read
+ *            when the first one is empty), field_label (the label text), verified_phone and default_cc (the box hides while
+ *            the phone of the form is the signed-in customer's verified one).
  *            The code box is name="kwtsms_code"; events on the root: kwtsms:sent, kwtsms:bypass.
  * DEPENDS:   js/addons/kwtsms/code.js (loaded by hooks/index/scripts.post.tpl), func.php fn_kwtsms_turnstile_widget,
  *            common/image_verification.tpl, kwtsms_code.send (controllers/frontend/kwtsms_code.php).
@@ -28,6 +31,7 @@
 {literal}
 <style>
 .kwtsms-code { margin-bottom: 16px; }
+.kwtsms-checkout-code[hidden], .kwtsms-code[hidden] { display: none; }
 .kwtsms-code__row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; max-width: 28em; }
 .kwtsms-code__row[hidden], .kwtsms-code__slot[hidden], .kwtsms-code__label[hidden] { display: none; }
 .kwtsms-code__input { flex: 1 1 9em; min-width: 0; box-sizing: border-box; min-height: 44px; font-size: 1.25em; letter-spacing: .3em; text-indent: .3em; text-align: center; font-variant-numeric: tabular-nums; }
@@ -44,14 +48,14 @@
 {/literal}
 {/if}
 {* 2026-10-25 03:06 +03: Task M1.8b fix round 1 (review Important 1, stored XSS), task 596. Every value printed in an attribute or as text goes through |fn_html_escape (|escape:"html" is dropped by core's Smarty in some expressions; the other add-on templates use fn_html_escape for __() values). Proved by tests/Store/CodeFieldEscapingStoreTest. *}
-<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id|fn_html_escape}" data-ca-kwtsms-code="{$purpose|fn_html_escape}" data-purpose="{$purpose|fn_html_escape}" data-phone-name="{$phone_input_name|fn_html_escape}" data-state="idle"{if $show_on_change} data-show-on-change="1" hidden{/if}
+<div class="kwtsms-code ty-control-group" id="{$kwtsms_cf_id|fn_html_escape}" data-ca-kwtsms-code="{$purpose|fn_html_escape}" data-purpose="{$purpose|fn_html_escape}" data-phone-name="{$phone_input_name|fn_html_escape}"{if $phone_alt_name} data-phone-alt="{$phone_alt_name|fn_html_escape}"{/if}{if $verified_phone} data-verified-phone="{$verified_phone|fn_html_escape}" data-default-cc="{$default_cc|default:"965"|fn_html_escape}"{/if} data-state="idle"{if $show_on_change} data-show-on-change="1" hidden{/if}
      data-url="{"kwtsms_code.send"|fn_url|fn_html_escape}"
      data-sitekey="{$kwtsms_cf_ts.site_key|default:""|fn_html_escape}" data-action="{$kwtsms_cf_ts.action|default:"kwtsms_sms_code"|fn_html_escape}" data-language="{$kwtsms_cf_ts.language|default:$smarty.const.CART_LANGUAGE|fn_html_escape}"
      data-t-send="{__("kwtsms.code.send")|fn_html_escape}" data-t-resend="{__("kwtsms.code.resend")|fn_html_escape}" data-t-resend-in="{__("kwtsms.code.resend_in")|fn_html_escape}"
      data-t-sending="{__("kwtsms.code.sending")|fn_html_escape}" data-t-phone-required="{__("kwtsms.code.phone_required")|fn_html_escape}"
      data-t-offline="{__("kwtsms.code.offline")|fn_html_escape}" data-t-server-error="{__("kwtsms.code.server_error")|fn_html_escape}"
      data-t-bypass="{__("kwtsms.code.bypass")|fn_html_escape}">
-    <label class="ty-control-group__title kwtsms-code__label" for="{$kwtsms_cf_id|fn_html_escape}_input">{__("kwtsms.code.field_label")|fn_html_escape}</label>
+    <label class="ty-control-group__title kwtsms-code__label" for="{$kwtsms_cf_id|fn_html_escape}_input">{if $field_label}{$field_label|fn_html_escape}{else}{__("kwtsms.code.field_label")|fn_html_escape}{/if}</label>
     {include file="common/image_verification.tpl" option="kwtsms_sms_code"}
     <div class="kwtsms-code__slot" hidden></div>
     <div class="kwtsms-code__row">

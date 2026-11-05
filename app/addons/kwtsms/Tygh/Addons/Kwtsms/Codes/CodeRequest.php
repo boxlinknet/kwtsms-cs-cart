@@ -486,6 +486,11 @@ class CodeRequest
             if ($this->currentPhone($user_id) === $phone) {
                 return $this->error('unchanged', 'kwtsms.code.unchanged', $lang);
             }
+        } elseif ($purpose === self::PURPOSE_CHECKOUT) {
+            // 2026-11-05 20:56 +03: Task M2.4 (B6, P3-54), task 596. A guest or a signed-in customer asks a code for
+            // the phone of the order; C3 (allowed country, mobile) was decided above. C4 is not asked: a number
+            // another account holds is an ordinary checkout phone (PhoneUnique tests keep that rule).
+            return null;
         } elseif ($purpose !== self::PURPOSE_REGISTER) {
             return $this->error('unavailable', 'kwtsms.code.unavailable', $lang);
         }

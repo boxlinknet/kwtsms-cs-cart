@@ -547,6 +547,136 @@ function fn_kwtsms_pre_place_order(&$cart = null, &$allow = null, $product_group
         }
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('pre_place_order', $e);
+        // 2026-11-05 21:10 +03: Task M2.4 (B6, P3-54), task 596. Fail closed while the checkout code is on: when the
+        // check cannot even be built, the order is not placed (nothing exists yet, the cart is kept), except in the
+        // requests that are never asked. The phone rules (C3) stay fail open as before.
+        try {
+            if (
+                isset(Tygh::$app['kwtsms.config']) && Tygh::$app['kwtsms.config']->checkoutCode() !== 'off'
+                && !\Tygh\Addons\Kwtsms\Orders\CheckoutCode::requestExempt()
+            ) {
+                $allow = false;
+                fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.code.check_failed')));
+            }
+        } catch (\Throwable $inner) {
+            fn_kwtsms_log_hook_error('pre_place_order.closed', $inner);
+        }
+    }
+}
+
+/**
+ * 2026-11-05 20:54 +03: Task M2.4 (SafatMall B6, P3-54), task 596. Hook place_order (fn.cart.php, fn_place_order(),
+ * after the order row exists): the SMS code of the checkout (checkout_code) is used up for the PARENT order only, and
+ * the verified phone is remembered for this order (create_profile of that order). Inactive while checkout_code is
+ * off. Never throws; an older core that passes fewer arguments makes it inactive (platform_missing).
+ *
+ * @param mixed $order_id
+ * @param mixed $action       Unused
+ * @param mixed $order_status Unused
+ * @param mixed $cart
+ * @param mixed $auth
+ */
+function fn_kwtsms_place_order($order_id = null, $action = '', $order_status = '', $cart = [], $auth = [])
+{
+    if (fn_kwtsms_hook_args_missing('place_order', func_num_args(), 5)) {
+        return;
+    }
+    try {
+        if (!is_array($cart) || !is_array($auth) || (int) $order_id <= 0) {
+            return;
+        }
+        $kwtsms_sid = Tygh::$app['session']->getID();
+        Tygh::$app['kwtsms.checkout_code']->consume(
+            (int) $order_id,
+            $cart,
+            $auth,
+            \Tygh\Addons\Kwtsms\Codes\CodeRequest::hashOfSessionId((string) $kwtsms_sid)
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('place_order', $e);
+    }
+}
+
+/**
+ * 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. For hooks/checkout/
+ * final_section_customer_notes.post.tpl (modifier |fn_kwtsms_checkout_code_form, the cart as the value): whether the
+ * checkout shows the SMS code box now. mode all: always; guest: only while nobody is signed in; cod: only while the
+ * chosen payment is one of the listed ones (the payment change re-renders the final section, so this decides again).
+ * 'verified_phone' = the digits of the signed-in customer's account phone that a code verified (the box hides itself
+ * while the phone of the form is that one; the server decides, never the browser), '' otherwise. Settings and the
+ * phone index only; never throws; hidden on any error (the server still asks for the code).
+ *
+ * @param mixed $cart
+ *
+ * @return array{show:bool,verified_phone:string,default_cc:string}
+ */
+function fn_kwtsms_checkout_code_form($cart = [])
+{
+    $none = ['show' => false, 'verified_phone' => '', 'default_cc' => '965'];
+    try {
+        if (!isset(Tygh::$app['kwtsms.config']) || !defined('AREA') || AREA !== 'C' || defined('ORDER_MANAGEMENT')) {
+            return $none;
+        }
+        $config = Tygh::$app['kwtsms.config'];
+        $mode = $config->checkoutCode();
+        if ($mode === 'off') {
+            return $none;
+        }
+        $user_id = (int) (Tygh::$app['session']['auth']['user_id'] ?? 0);
+        $payment_id = is_array($cart) ? (int) ($cart['payment_id'] ?? 0) : 0;
+        if (
+            ($mode === 'guest' && $user_id > 0)
+            || ($mode === 'cod' && !in_array($payment_id, $config->checkoutCodPaymentIds(), true))
+        ) {
+            return $none;
+        }
+        $verified = '';
+        if ($user_id > 1) {
+            $verified = (string) preg_replace('/\D/', '', (string) db_get_field(
+                'SELECT phone FROM ?:kwtsms_phone_index WHERE user_id = ?i AND verified_phone IS NOT NULL',
+                $user_id
+            ));
+        }
+
+        return ['show' => true, 'verified_phone' => $verified, 'default_cc' => (string) $config->defaultCountryCode()];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('checkout_code_form', $e);
+
+        return $none;
+    }
+}
+
+/**
+ * 2026-11-05 20:54 +03: Task M2.4 (SafatMall B6, P3-54, ruling P3-R12), task 596. For hooks/index/head_scripts.post.tpl
+ * (modifier |fn_kwtsms_hide_create_account): true while the "create account" block of the order confirmation page must
+ * stay hidden, that is while register_code is ON and the order of the page was not verified by a checkout code in
+ * this session. Never throws; false on any error (the block then shows, and its submit is still checked by P3-28).
+ *
+ * @param mixed $order_id The order of the page (request order_id), 0 elsewhere
+ */
+function fn_kwtsms_hide_create_account($order_id = 0)
+{
+    try {
+        if (!isset(Tygh::$app['kwtsms.config']) || !Tygh::$app['kwtsms.config']->registerCode()) {
+            return false;
+        }
+        $phone = '';
+        if ((int) $order_id > 0 && Tygh::$app['kwtsms.config']->checkoutCode() !== 'off') {
+            $phone = (string) db_get_field('SELECT phone FROM ?:orders WHERE order_id = ?i', (int) $order_id);
+        }
+        if ($phone === '') {
+            return true;
+        }
+        $canonical = \Tygh\Addons\Kwtsms\Phones\PhoneFormat::fromRaw(
+            $phone,
+            (string) Tygh::$app['kwtsms.config']->defaultCountryCode()
+        );
+
+        return !Tygh::$app['kwtsms.checkout_code']->verifiedForOrder((int) $order_id, $canonical);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('hide_create_account', $e);
+
+        return false;
     }
 }
 

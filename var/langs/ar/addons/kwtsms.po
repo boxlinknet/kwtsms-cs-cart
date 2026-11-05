@@ -7158,3 +7158,56 @@ msgstr "السماح للعملاء باستعادة حساباتهم برقم �
 msgctxt "Languages::kwtsms.settings.recover_code_help"
 msgid "When on, the login form links to a page where a customer asks for a code on a mobile number and then sets a new password. Only active customer accounts whose number was verified by a code can use it. The page never says whether a number has an account. The email reset stays as it is."
 msgstr "عند التفعيل يحتوي نموذج تسجيل الدخول على رابط إلى صفحة يطلب فيها العميل رمزاً على رقم جوال ثم يعيّن كلمة مرور جديدة. يستطيع استخدامها فقط أصحاب حسابات العملاء النشطة التي تم التحقق من رقمها برمز. لا تذكر الصفحة أبداً ما إذا كان الرقم مرتبطاً بحساب. تبقى إعادة التعيين بالبريد الإلكتروني كما هي."
+
+# 2026-11-05 20:52 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code before an order is placed.
+msgctxt "Languages::kwtsms.checkout.code_required"
+msgid "Verify your mobile number with the SMS code to place your order."
+msgstr "تحقق من رقم جوالك برمز SMS لإتمام طلبك."
+
+msgctxt "Languages::kwtsms.checkout.field_label"
+msgid "SMS code for this order"
+msgstr "رمز SMS لهذا الطلب"
+
+msgctxt "Languages::kwtsms.settings.field.checkout_code"
+msgid "SMS code before an order"
+msgstr "رمز SMS قبل إتمام الطلب"
+
+msgctxt "Languages::kwtsms.settings.checkout_off"
+msgid "Off"
+msgstr "متوقف"
+
+msgctxt "Languages::kwtsms.settings.checkout_all"
+msgid "Every order"
+msgstr "كل الطلبات"
+
+msgctxt "Languages::kwtsms.settings.checkout_guest"
+msgid "Orders of guests who are not signed in"
+msgstr "طلبات الزوار غير المسجلين"
+
+msgctxt "Languages::kwtsms.settings.checkout_cod"
+msgid "Cash on delivery orders only"
+msgstr "طلبات الدفع عند الاستلام فقط"
+
+msgctxt "Languages::kwtsms.settings.checkout_code_help"
+msgid "The customer asks for a code on the mobile number of the order and types it on the checkout page before the order is placed. A code works for that number and that browser session, and for one order. A signed-in customer whose account number was verified by a code is not asked. Orders placed in the admin panel, through the API and by a payment provider that returns to the store are never asked."
+msgstr "يطلب العميل رمزاً على رقم جوال الطلب ويكتبه في صفحة إتمام الطلب قبل تسجيل الطلب. يصلح الرمز لذلك الرقم ولجلسة المتصفح نفسها ولطلب واحد. لا يُطلب الرمز من عميل مسجل الدخول إذا كان رقم حسابه قد تم التحقق منه برمز. لا تُطلب الرموز للطلبات التي تُسجَّل من لوحة الإدارة أو عبر واجهة API أو من مزود دفع يعيد العميل إلى المتجر."
+
+msgctxt "Languages::kwtsms.settings.field.checkout_cod_payments"
+msgid "Cash on delivery payments"
+msgstr "طرق الدفع عند الاستلام"
+
+msgctxt "Languages::kwtsms.settings.checkout_cod_payments_help"
+msgid "Used by the cash on delivery mode: only an order paid with a ticked payment is asked for a code. A payment that uses the cash on delivery template of the store is marked."
+msgstr "تُستخدم في وضع الدفع عند الاستلام: يُطلب الرمز فقط للطلب المدفوع بإحدى الطرق المحددة. وتُعلَّم طريقة الدفع التي تستخدم قالب الدفع عند الاستلام في المتجر."
+
+msgctxt "Languages::kwtsms.settings.checkout_cod_marked"
+msgid "cash on delivery"
+msgstr "الدفع عند الاستلام"
+
+msgctxt "Languages::kwtsms.settings.checkout_cod_none"
+msgid "Cash on delivery mode with no payment selected: no order is checked."
+msgstr "وضع الدفع عند الاستلام دون تحديد أي طريقة دفع: لا يُفحص أي طلب."
+
+msgctxt "Languages::kwtsms.settings.checkout_no_phone_field"
+msgid "The checkout shows no phone field. With this switch on, every order that needs a code is refused because no number can be verified. Add a phone field under Administration > Profile fields first."
+msgstr "لا تعرض صفحة إتمام الطلب حقل هاتف. مع تفعيل هذا الخيار يُرفض كل طلب يحتاج إلى رمز لأنه لا يمكن التحقق من أي رقم. أضف حقل هاتف أولاً من الإدارة > حقول الملف الشخصي."

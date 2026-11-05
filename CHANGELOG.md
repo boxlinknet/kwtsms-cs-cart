@@ -37,6 +37,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   when core cannot read it, the key limit is checked before the code is used up, and no key is minted without a
   session id. -->
 
+- <!-- 2026-11-05 21:04 +03: Task M2.4 (SMS code before an order is placed), task 596 -->
+  SMS code before an order is placed (off until you choose a mode under Settings > Sign-in and security): every
+  order, the orders of guests, or the orders paid with the cash on delivery payments you tick. The customer asks for a
+  code on the mobile number of the order and types it on the checkout page ("SMS code for this order"). A code works
+  for that number, that browser session and one order. A signed-in customer whose account number a code already
+  verified is not asked. A refusal never loses the cart; orders placed in the admin panel, through the API, by the
+  console and by a payment provider that returns to the store are never asked, and in a Multi-Vendor checkout one code
+  covers the parent and its child orders. After a verified guest order the "create account" block of the order page
+  creates the account with that verified number. Texts in English and Arabic.
+
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
   their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,

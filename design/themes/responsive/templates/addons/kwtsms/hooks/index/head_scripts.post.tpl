@@ -11,6 +11,7 @@
  * USAGE:     Loaded by core as a hook template (index:head_scripts) while the add-on is active.
  * DEPENDS:   func.php fn_kwtsms_register_code_on.
  *}
-{if ""|fn_kwtsms_register_code_on}
+{* 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The block is shown again for the order whose phone a checkout code verified in this session (that account is then created with the verified phone); every other order keeps it hidden while register_code is ON. *}
+{if $smarty.request.order_id|default:0|fn_kwtsms_hide_create_account}
 <style>.ty-checkout-complete__create-account { display: none; }</style>
 {/if}

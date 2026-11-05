@@ -70,8 +70,10 @@ class PhoneIndex
         // verified in the index, and the sign-in by code asks the 2FA policy).
         // 2026-11-05 16:28 +03: Task M2.3 (P3-58), task 596. recover_code joins (recovery by code reads the verified
         // column).
+        // 2026-11-05 20:56 +03: Task M2.4 (P3-58), task 596. checkout_code != off joins (a signed-in customer's
+        // checkout proof marks the account phone verified in the index, and a verified phone skips the code).
         return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode() || $config->loginCode()
-            || $config->recoverCode() || $config->twofaCustomers() !== 'off';
+            || $config->recoverCode() || $config->twofaCustomers() !== 'off' || $config->checkoutCode() !== 'off';
     }
 
     public function active(): bool

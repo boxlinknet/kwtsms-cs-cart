@@ -37,6 +37,7 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 // 2026-10-23 15:14 +03: Config::MODE_KEYS for saveCodes() (Task M1.1a, task 596).
 // 2026-10-24 15:28 +03: PhoneRules::GCC for the "Add GCC countries" button (Task M1.5, task 596).
+use Tygh\Addons\Kwtsms\Phones\AccountPhone; // 2026-11-05 20:57 +03: Task M2.4, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex; // 2026-10-24 17:20 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:20 +03: Task M1.6, task 596
 use Tygh\Addons\Kwtsms\Phones\PhoneRules;
@@ -428,6 +429,11 @@ class SettingsPage
             // 2026-11-05 16:30 +03: Task M2.3 (B4, P3-58), task 596. The recovery code switch; the verified count of
             // the note is the one the sign-in switch shows (shown while either is ON).
             'recover_code' => $this->config->recoverCode() ? 'Y' : 'N',
+            // 2026-11-05 20:57 +03: Task M2.4 (B6, P3-54), task 596. The checkout code mode (off | all | guest |
+            // cod), the chosen cash on delivery payments and the active payments to choose from (id, name, cod).
+            'checkout_code' => $this->config->checkoutCode(),
+            'checkout_cod_payment_ids' => $this->config->checkoutCodPaymentIds(),
+            'checkout_payments' => $this->checkoutPayments(),
             'signin_verified' => $this->config->loginCode() || $this->config->recoverCode()
                 ? $this->verifiedAccounts() : 0,
             // 2026-11-04 22:49 +03: Task M2.2a (B3, P3-48), task 596. The two-step sign-in switches (off | optional |
@@ -483,6 +489,44 @@ class SettingsPage
      * 2026-11-04 19:15 +03: Task M2.1 (P3-58), task 596. Accounts that have a verified phone (the unique column of the
      * phone index; an index-only count). 0 when the table cannot be read.
      */
+    /**
+     * 2026-11-05 20:58 +03: Task M2.4 (B6, P3-54), task 596. The active payments of the store to choose the cash on
+     * delivery ones from: id, name, and cod = the payment uses core's cash on delivery template (cod.tpl). Read only,
+     * through core's fn_get_payments(); [] when it cannot be read.
+     *
+     * @return array<int,array{id:int,name:string,cod:bool}>
+     */
+    private function checkoutPayments(): array
+    {
+        try {
+            if (!function_exists('fn_get_payments')) {
+                return [];
+            }
+            $rows = fn_get_payments([
+                'area' => 'A',
+                'status' => 'A',
+                'lang_code' => defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en',
+            ]);
+            $out = [];
+            foreach (is_array($rows) ? $rows : [] as $id => $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $out[] = [
+                    'id' => (int) ($row['payment_id'] ?? $id),
+                    'name' => (string) ($row['payment'] ?? ''),
+                    'cod' => basename((string) ($row['template'] ?? '')) === 'cod.tpl',
+                ];
+            }
+
+            return $out;
+        } catch (\Throwable $e) {
+            $this->log->log('error', 'settings.payments_failed', self::describeThrowable($e));
+
+            return [];
+        }
+    }
+
     private function verifiedAccounts(): int
     {
         try {
@@ -618,6 +662,11 @@ class SettingsPage
             $needed[] = 'update_user_pre';
             $needed[] = 'pre_place_order';
         }
+        // 2026-11-05 20:57 +03: Task M2.4 (B6, P3-54), task 596. The checkout code needs both order hooks.
+        if ($this->config->checkoutCode() !== 'off') {
+            $needed[] = 'pre_place_order';
+            $needed[] = 'place_order';
+        }
         $missing = array_values(array_intersect(array_unique($needed), $this->platformMissing()));
         if ($missing !== []) {
             $note('platform_missing', 'danger', $this->text('kwtsms.settings.warn_platform_missing', [
@@ -651,6 +700,15 @@ class SettingsPage
         }
         if ($code_on && !$this->config->enabled()) {
             $note('sending_off', 'warning', $this->text('kwtsms.settings.warn_sending_off'));
+        }
+        // 2026-11-05 20:57 +03: Task M2.4 (B6, P3-54), task 596. A cash on delivery mode that lists no payment
+        // checks no order; a checkout without a phone field cannot verify any number, so every order that needs a
+        // code is refused.
+        if ($this->config->checkoutCode() === 'cod' && $this->config->checkoutCodPaymentIds() === []) {
+            $note('checkout_cod_none', 'warning', $this->text('kwtsms.settings.checkout_cod_none'));
+        }
+        if ($this->config->checkoutCode() !== 'off' && !AccountPhone::formHasPhone('O')) {
+            $note('checkout_no_phone', 'danger', $this->text('kwtsms.settings.checkout_no_phone_field'));
         }
         if ($this->config->captchaAfterIp() >= $this->config->capIpHour()) {
             $note('captcha_threshold', 'warning', $this->text('kwtsms.settings.warn_captcha_threshold', [

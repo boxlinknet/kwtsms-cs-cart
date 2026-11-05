@@ -58,6 +58,9 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
 
         stopCountdown(root);
         setState(root, state);
+        // 2026-11-05 20:58 +03: Task M2.4 (B6), task 596. Kept so the checkout box can restore the countdown after the
+        // checkout re-renders its final section (payment or shipping change).
+        root.data('kwtsmsUntil', until);
         function tick() {
             var left = Math.ceil((until - Date.now()) / 1000);
             if (left <= 0) {
@@ -79,6 +82,29 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         var name = root.attr('data-phone-name') || '';
         var form = root.closest('form');
         var scope = form.length ? form : $(document);
+
+        // 2026-11-05 20:58 +03: Task M2.4 (B6, P3-54), task 596. The lite checkout keeps its phone inputs outside the
+        // form element that holds the code box (HTML form attribute), so the checkout box looks in the whole page, and
+        // reads the account phone the way the server does: user_data[phone] when filled, else user_data[b_phone].
+        if (root.attr('data-purpose') === 'checkout') {
+            var byName = function (n) {
+                return $(document).find('input').filter(function () {
+                    return this.name === n;
+                }).first();
+            };
+            var first = byName(name);
+            var alt = root.attr('data-phone-alt') || '';
+
+            if ($.trim(first.val() || '') === '' && alt) {
+                var second = byName(alt);
+
+                if ($.trim(second.val() || '') !== '') {
+                    return second;
+                }
+            }
+
+            return first;
+        }
 
         return scope.find('input, select, textarea').filter(function () {
             return this.name === name;
@@ -264,7 +290,8 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         body.set('phone', phone);
         // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The form's country, so a local number is read with
         // the calling code the save will use.
-        var country = root.closest('form').find('select[name="user_data[b_country]"], input[name="user_data[b_country]"]').first().val();
+        var countryScope = root.attr('data-purpose') === 'checkout' ? $(document) : root.closest('form');
+        var country = countryScope.find('select[name="user_data[b_country]"], input[name="user_data[b_country]"]').first().val();
         if (country) {
             body.set('country', String(country));
         }
@@ -373,6 +400,85 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         $('.kwtsms-code[data-show-on-change][hidden]').each(function () {
             $(this).removeData('kwtsmsInitial');
             syncChange($(this));
+        });
+    });
+
+    // 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The checkout box lives in the final section of
+    // the lite checkout, which core re-renders (AJAX) when the payment or the shipping method changes: the typed code,
+    // the "sent" state and the resend countdown are kept in this closure and put back into the new box. The box also
+    // hides while the phone of the form is the signed-in customer's number that a code already verified (the server
+    // decides; this only spares the customer a field they are never asked for).
+    var ck = {code: '', sent: false, until: 0, status: ''};
+    var CK = '.kwtsms-code[data-purpose="checkout"]';
+
+    function asciiDigits(value) {
+        var f = String.fromCharCode;
+        var out = String(value || '').replace(new RegExp('[' + f(0x660) + '-' + f(0x669) + ']', 'g'), function (c) {
+            return String(c.charCodeAt(0) - 0x660);
+        }).replace(new RegExp('[' + f(0x6f0) + '-' + f(0x6f9) + ']', 'g'), function (c) {
+            return String(c.charCodeAt(0) - 0x6f0);
+        });
+
+        return out.replace(/\D/g, '');
+    }
+
+    function syncVerified(root) {
+        var verified = root.attr('data-verified-phone') || '';
+        var typed;
+        var same;
+
+        if (!verified) {
+            return;
+        }
+        typed = asciiDigits(phoneInput(root).val()).replace(/^00/, '');
+        same = typed !== '' && (typed === verified || (typed.length >= 8 && verified.slice(-typed.length) === typed));
+        root.closest('.kwtsms-checkout-code').prop('hidden', same);
+    }
+
+    function restoreCheckout(root) {
+        var left;
+
+        if (ck.code) {
+            root.find('.kwtsms-code__input').val(ck.code);
+        }
+        if (ck.sent) {
+            root.data('kwtsmsSent', true);
+            setStatus(root, ck.status);
+            left = Math.ceil((ck.until - Date.now()) / 1000);
+            if (left > 0) {
+                startCountdown(root, left, 'sent');
+            } else {
+                setButton(root, text(root, 'resend'), false);
+            }
+        }
+        syncVerified(root);
+    }
+
+    $(document).on('input', CK + ' .kwtsms-code__input', function () {
+        ck.code = this.value;
+    });
+    $(document).on('kwtsms:sent', CK, function () {
+        var root = $(this);
+
+        ck.sent = true;
+        ck.until = root.data('kwtsmsUntil') || 0;
+        ck.status = root.find('.kwtsms-code__status').text();
+    });
+    $(document).on('input change keyup', 'input[name="user_data[phone]"], input[name="user_data[b_phone]"]', function () {
+        $(CK).each(function () {
+            syncVerified($(this));
+        });
+    });
+    if ($.ceEvent) {
+        $.ceEvent('on', 'ce.commoninit', function (context) {
+            $(context).find(CK).addBack(CK).each(function () {
+                restoreCheckout($(this));
+            });
+        });
+    }
+    $(function () {
+        $(CK).each(function () {
+            syncVerified($(this));
         });
     });
 

@@ -64,6 +64,9 @@ fn_register_hooks(
     // (update_user_pre) and before an order is placed (pre_place_order); both inactive while their switches are OFF.
     'update_user_pre',
     'pre_place_order',
+    // 2026-11-05 20:56 +03: Task M2.4 (SafatMall B6, P3-54), task 596. After the order row exists: the checkout code is
+    // used up for the parent order only (inactive while checkout_code is off).
+    'place_order',
     // 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review I2, ruling P3-R12), task 596. Core's social login
     // (hybrid_auth) hook before it
     // creates an account; inactive while register_code is OFF, and never fires when that add-on is not installed.

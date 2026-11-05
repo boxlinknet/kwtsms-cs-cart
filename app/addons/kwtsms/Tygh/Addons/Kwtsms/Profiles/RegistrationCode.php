@@ -68,6 +68,18 @@ final class RegistrationCode implements CodeCheckInterface
     private $clear_skip;
 
     /**
+     * @var callable|null 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596. fn(string $phone, int $order_id): bool, was
+     *                    the phone verified by a checkout code for that order in this session
+     */
+    private $checkout_verified;
+
+    /** @var callable|null 2026-11-05 20:54 +03: Task M2.4, task 596. fn(int $order_id): void, forgets that proof */
+    private $checkout_forget;
+
+    /** @var callable|null 2026-11-05 20:54 +03: Task M2.4, task 596. fn(): int, test seam of createProfileOrderId() */
+    public $create_profile_order;
+
+    /**
      * @param callable      $default_cc fn(): string
      * @param callable|null $posted     null = the request field kwtsms_code
      * @param callable|null $skip_until null = the session key CodeRequest::BYPASS_KEY
@@ -81,8 +93,12 @@ final class RegistrationCode implements CodeCheckInterface
         ?callable $skip_until = null,
         ?callable $clock = null,
         ?PhoneLock $lock = null, // 2026-10-28 18:50 +03: fix round 1 (I3, R8), task 596
-        ?callable $clear_skip = null
+        ?callable $clear_skip = null,
+        ?callable $checkout_verified = null, // 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596
+        ?callable $checkout_forget = null
     ) {
+        $this->checkout_verified = $checkout_verified;
+        $this->checkout_forget = $checkout_forget;
         $this->config = $config;
         $this->otp = $otp;
         $this->default_cc = $default_cc;
@@ -131,6 +147,12 @@ final class RegistrationCode implements CodeCheckInterface
         if ($this->otp->hasVerified(self::PURPOSE, $phone, 0, $session)) {
             return null;
         }
+        // 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596. The account created from the order confirmation page
+        // (checkout.create_profile) of an order whose phone a checkout code verified in this session passes; it is
+        // bound to that order id and that phone, so it cannot be replayed for another order or another number.
+        if ($this->verifiedAtCheckout($phone)) {
+            return null;
+        }
         $code = $this->postedCode();
         if ($code === '') {
             return $this->bypassed($phone) ? null : $required;
@@ -150,6 +172,16 @@ final class RegistrationCode implements CodeCheckInterface
             return '';
         }
 
+        // 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596. The phone a checkout code proved for this order is the
+        // verified phone of the new account; the proof is used up (one account per order).
+        if ($this->verifiedAtCheckout($phone)) {
+            $order_id = $this->createProfileOrderId();
+            if ($this->checkout_forget !== null) {
+                call_user_func($this->checkout_forget, $order_id);
+            }
+
+            return $phone;
+        }
         $used = $this->otp->consume(self::PURPOSE, $phone, 0, (string) ($ctx['session_hash'] ?? ''));
         // 2026-10-28 18:50 +03: Task M1.10a fix round 1 (review M2), task 596. A "continue" bypass lets ONE
         // account through.
@@ -178,6 +210,37 @@ final class RegistrationCode implements CodeCheckInterface
             }
         }
         $this->held = [];
+    }
+
+    /**
+     * 2026-11-05 20:54 +03: Task M2.4 (P3-54), task 596. The order id of a checkout.create_profile request, 0 for any
+     * other request (the registration page, the profile, the admin panel).
+     */
+    private function createProfileOrderId(): int
+    {
+        if ($this->create_profile_order !== null) {
+            return (int) call_user_func($this->create_profile_order);
+        }
+        if (
+            !class_exists('Tygh\\Registry')
+            || (string) \Tygh\Registry::get('runtime.controller') !== 'checkout'
+            || (string) \Tygh\Registry::get('runtime.mode') !== 'create_profile'
+        ) {
+            return 0;
+        }
+        $order_id = $_REQUEST['order_id'] ?? 0;
+
+        return is_scalar($order_id) && ctype_digit((string) $order_id) ? (int) $order_id : 0;
+    }
+
+    private function verifiedAtCheckout(string $phone): bool
+    {
+        if ($this->checkout_verified === null) {
+            return false;
+        }
+        $order_id = $this->createProfileOrderId();
+
+        return $order_id > 0 && (bool) call_user_func($this->checkout_verified, $phone, $order_id);
     }
 
     private function clearBypass(string $phone): void

@@ -251,6 +251,15 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   recovery time core sets, and only in the browser session that proved the number; the e-mail key is unchanged. A
   customer with this add-on's two-step sign-in passes the code step only when the recovery number is the two-step
   number. Like the code sign-in, it does not consult a third-party two-step add-on.
+<!-- 2026-11-05 21:05 +03: Task M2.4 (SMS code before an order is placed), task 596 -->
+- The SMS code before an order (1.3.0, off until you choose a mode under Settings > Sign-in and security) is checked
+  when the storefront checkout places an order (`checkout.place_order`, and any other storefront code that calls
+  `fn_place_order()`, such as a one-click buy add-on, which has no code box and is refused while the mode applies to
+  it). It is not asked for orders placed in the admin panel (the order editor), through the REST API, by the console
+  and by a payment provider returning to the store (`payment_notification`), because refusing there would lose an order
+  that is already paid. A refusal happens before the order exists; the cart is kept. One code works for one order, for
+  the number it was sent to and for the browser session that asked for it; a Multi-Vendor checkout uses it once for the
+  parent order and its child orders.
 <!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->
 - A customer whose two-step number differs from the number they recovered with: core uses the recovery key up and the
   customer lands on the code page for the two-step number, with no way back to the key. They sign in with the password
