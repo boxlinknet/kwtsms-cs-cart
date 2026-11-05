@@ -22,6 +22,13 @@
  *            $area): bool (true = a code was sent), regenerate (): void.
  * DEPENDS:   Settings\ConfigInterface, Auth\{TwoFactorPolicy,PendingLogin,ReturnUrl}, Log\DebugLog (optional), core
  *            fn_auth_routines(), fn_user_password_verify(), fn_set_notification() when not injected.
+ *
+ * 2026-11-05 07:27 +03: Task M2.2b (P3-52 (4), (5)), task 596. The let-in of the last root administrator raises the
+ * alert twofa_degraded
+ * and, on the password path, takeLetIn() tells auth.pre.php to send the administrator to the own profile; the
+ * break-glass constant with a switch on raises twofa_disabled_by_config on both paths. The alert callable (string
+ * $condition, array $params, bool $email, int $every_seconds): void is the 12th constructor argument (null = the
+ * store's AdminAlerts). An alert that throws changes nothing.
  */
 
 namespace Tygh\Addons\Kwtsms\Auth;
@@ -73,6 +80,12 @@ class LoginHold
     /** @var callable|null 2026-11-05 02:30 +03: Task M2.2a fix 1 (I2), task 596. (string $login, string $password): array */
     private $basic;
 
+    /** @var callable|null 2026-11-05 07:27 +03: Task M2.2b, task 596. (string $condition, array $params, bool $email, int $every): void */
+    private $alert;
+
+    /** @var bool 2026-11-05 07:27 +03: Task M2.2b, task 596. The password path just let a last root administrator in. */
+    private $let_in = false;
+
     public function __construct(
         ConfigInterface $config,
         TwoFactorPolicy $policy,
@@ -84,8 +97,10 @@ class LoginHold
         ?callable $authenticate = null,
         ?callable $first_code = null,
         ?callable $regenerate = null,
-        ?callable $basic = null
+        ?callable $basic = null,
+        ?callable $alert = null
     ) {
+        $this->alert = $alert;
         $this->config = $config;
         $this->policy = $policy;
         $this->pending = $pending;
@@ -127,6 +142,8 @@ class LoginHold
         }
         try {
             if (!$this->policy->anyOn()) {
+                $this->alertIfDisabledByConfig();
+
                 return;
             }
         } catch (\Throwable $e) {
@@ -152,6 +169,11 @@ class LoginHold
             $this->debug('twofa.hold', ['reason' => 'check_failed', 'error' => get_class($e)]);
 
             return;
+        }
+        if ($need === TwoFactorPolicy::LET_IN) {
+            // 2026-11-05 07:27 +03: Task M2.2b (P3-52 (5)), task 596. The last root administrator without a usable
+            // mobile gets in.
+            $this->raise('twofa_degraded', true);
         }
         if ($need === TwoFactorPolicy::NONE || $need === TwoFactorPolicy::LET_IN) {
             return;
@@ -199,9 +221,11 @@ class LoginHold
     // ------------------------------------------------------------------ the "successful login" notice of a held login
 
     /**
-     * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. When the pre-controller could not judge the password (authenticateRequest()
+     * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. When the pre-controller could not judge the password
+     * (authenticateRequest()
      * threw), core runs its own login, the hook holds the account, and core still sets its notice "You have been
-     * successfully logged in" (app/controllers/common/auth.php, after fn_login_user()). While a hook-held state is pending
+     * successfully logged in" (app/controllers/common/auth.php, after fn_login_user()). While a hook-held state is
+     * pending
      * the next request drops exactly that notice from the session list. Pure: the caller reads and writes the session.
      *
      * @param array<string|int,mixed> $notifications The session notifications (key => ['type','message',...])
@@ -215,7 +239,8 @@ class LoginHold
             return $notifications;
         }
         foreach ($notifications as $key => $notice) {
-            if (is_array($notice) && ($notice['type'] ?? '') === 'N' && (string) ($notice['message'] ?? '') === $message) {
+            $same = is_array($notice) && (string) ($notice['message'] ?? '') === $message;
+            if ($same && ($notice['type'] ?? '') === 'N') {
                 unset($notifications[$key]);
             }
         }
@@ -227,7 +252,8 @@ class LoginHold
 
     /**
      * 2026-11-05 02:30 +03: Task M2.2a fix 1 (I2), task 596. The commerceml add-on signs an administrator or vendor in
-     * with e-mail and password over HTTP Basic and fn_fill_auth(), never through fn_login_user(), so neither hook sees it
+     * with e-mail and password over HTTP Basic and fn_fill_auth(), never through fn_login_user(), so neither hook sees
+     * it
      * (controllers/frontend/commerceml.php:60, src/Commands/AuthCommandHandler.php:76). Its pre-controller asks here.
      * True = answer 401 with no detail: the password is right and the account needs a second step that a Basic request
      * cannot give. A wrong password or an unknown login is false (core answers its own error, so nothing is revealed
@@ -293,9 +319,18 @@ class LoginHold
             && !empty($user_data)
             && $login === $user_login
             && !empty($user_data['password'])
-            && fn_user_password_verify((int) $user_data['user_id'], $password, (string) $user_data['password'], (string) $salt);
+            && fn_user_password_verify(
+                (int) $user_data['user_id'],
+                $password,
+                (string) $user_data['password'],
+                (string) $salt
+            );
 
-        return ['status' => $status !== false, 'verified' => $verified, 'user' => is_array($user_data) ? $user_data : []];
+        return [
+            'status' => $status !== false,
+            'verified' => $verified,
+            'user' => is_array($user_data) ? $user_data : [],
+        ];
     }
 
     // ------------------------------------------------------------------ the pre-controller (POST auth.login)
@@ -309,7 +344,13 @@ class LoginHold
     public function intercept(array $request, array $auth, string $area): ?array
     {
         $env = $this->environment();
-        if ($env['console'] || !$this->policy->anyOn()) {
+        $this->let_in = false;
+        if ($env['console']) {
+            return null;
+        }
+        if (!$this->policy->anyOn()) {
+            $this->alertIfDisabledByConfig();
+
             return null;
         }
         try {
@@ -332,7 +373,19 @@ class LoginHold
 
             return [self::REDIRECT, self::LOGIN_FORM];
         }
-        if ($need === TwoFactorPolicy::NONE || $need === TwoFactorPolicy::LET_IN) {
+        if ($need === TwoFactorPolicy::LET_IN) {
+            // 2026-11-05 07:27 +03: Task M2.2b (P3-52 (5)), task 596. Let in with the password only; the alert says
+            // why, and the caller
+            // sends the administrator to the profile (takeLetIn()).
+            $this->let_in = true;
+            $this->raise('twofa_degraded', true);
+            $this->debug('twofa.hold', [
+                'user_id' => (int) ($user['user_id'] ?? 0), 'need' => 'let_in', 'path' => 'password',
+            ]);
+
+            return null;
+        }
+        if ($need === TwoFactorPolicy::NONE) {
             return null;
         }
         if ($need === TwoFactorPolicy::REFUSE) {
@@ -369,6 +422,48 @@ class LoginHold
         }
 
         return [self::REDIRECT, self::VERIFY];
+    }
+
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b, task 596. True once after intercept() let a last root administrator in:
+     * auth.pre.php then sets
+     * the return URL of core's login to the own profile page (the enrolment box). Read once.
+     */
+    public function takeLetIn(): bool
+    {
+        $was = $this->let_in;
+        $this->let_in = false;
+
+        return $was;
+    }
+
+    // ------------------------------------------------------------------ alerts
+
+    /** The break-glass constant is set while a switch is on: the alert twofa_disabled_by_config (once a day). */
+    private function alertIfDisabledByConfig(): void
+    {
+        try {
+            if ($this->policy->disabledByConfig()) {
+                $this->raise('twofa_disabled_by_config', false);
+            }
+        } catch (\Throwable $e) {
+            return;
+        }
+    }
+
+    /** An alert that throws never changes a hold (AdminAlerts dedupes: twofa_degraded once a day). */
+    private function raise(string $condition, bool $email): void
+    {
+        try {
+            if ($this->alert !== null) {
+                call_user_func($this->alert, $condition, [], $email, 86400);
+
+                return;
+            }
+            \Tygh\Tygh::$app['kwtsms.alerts']->raise($condition, [], $email, 86400);
+        } catch (\Throwable $e) {
+            $this->debug('twofa.hold', ['reason' => 'alert_failed', 'error' => get_class($e)]);
+        }
     }
 
     // ------------------------------------------------------------------ before_dispatch

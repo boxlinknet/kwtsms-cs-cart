@@ -917,7 +917,8 @@ function fn_kwtsms_twofa_pending_redirect()
         if (defined('CONSOLE') || empty(Tygh::$app['session'][\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
             return;
         }
-        // 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Core's "successfully logged in" notice of a login the hook held.
+        // 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Core's "successfully logged in" notice of a login the
+        // hook held.
         fn_kwtsms_twofa_drop_login_notice();
         $to = Tygh::$app['kwtsms.twofa_hold']->pendingRedirect(
             (string) Registry::get('runtime.controller'),
@@ -933,8 +934,10 @@ function fn_kwtsms_twofa_pending_redirect()
 }
 
 /**
- * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Drops core's "You have been successfully logged in" notice while this session
- * holds a pending second step that the hook path started (the visitor is not logged in). Nothing else is touched; with no
+ * 2026-11-05 02:34 +03: Task M2.2a fix 1 (M4), task 596. Drops core's "You have been successfully logged in" notice
+ * while this session
+ * holds a pending second step that the hook path started (the visitor is not logged in). Nothing else is touched; with
+ * no
  * pending state, or a state the password form started, it returns at once. Never throws.
  */
 function fn_kwtsms_twofa_drop_login_notice()
@@ -1009,7 +1012,8 @@ function fn_kwtsms_twofa_switches_off_raw(): bool
     }
     try {
         foreach (['twofa_customers', 'twofa_vendors', 'twofa_admins'] as $key) {
-            // 2026-11-05 02:35 +03: Task M2.2a fix 1 (I1), task 596. Read through the settings backend the Config uses, not the
+            // 2026-11-05 02:35 +03: Task M2.2a fix 1 (I1), task 596. Read through the settings backend the Config uses,
+            // not the
             // registry copy, which can be stale within a request.
             $value = (new \Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend())->read($key);
             // twofa_vendors does not exist outside Multi-Vendor: an absent value there is off.
@@ -1049,6 +1053,43 @@ function fn_kwtsms_twofa_box($user_id)
 
         return ['available' => false, 'enabled' => false, 'masked' => '', 'masked_ltr' => '', 'usable_phone' => false,
             'can_disable' => false, 'type' => ''];
+    }
+}
+
+/**
+ * 2026-11-05 07:34 +03: Task M2.2b (P3-49), task 596. For the backend profile hook template
+ * (hooks/profiles/general_content.post.tpl;
+ * modifier |fn_kwtsms_twofa_reset_box): whether a root administrator with the gateway privilege sees the "Reset the
+ * second
+ * step" button on ANOTHER account's profile: the account has an enabled second step and is not the viewer. Never
+ * throws.
+ *
+ * @param int|string          $target_id The profile being viewed
+ * @param array<string,mixed> $auth      The viewer's auth array
+ *
+ * @return array{show:bool}
+ */
+function fn_kwtsms_twofa_reset_box($target_id, $auth = [])
+{
+    $none = ['show' => false];
+    try {
+        $actor = (int) ($auth['user_id'] ?? 0);
+        $target = (int) $target_id;
+        $allowed = fn_check_current_user_access('manage_kwtsms_gateway') === true;
+        if ($actor <= 0 || $target <= 0 || $actor === $target || !$allowed) {
+            return $none;
+        }
+        $root = db_get_row('SELECT user_type, is_root, company_id, status FROM ?:users WHERE user_id = ?i', $actor);
+        if (empty($root) || $root['user_type'] !== 'A' || $root['is_root'] !== 'Y' || (int) $root['company_id'] !== 0) {
+            return $none;
+        }
+        $row = Tygh::$app['kwtsms.twofa_store']->row($target);
+
+        return ['show' => $row !== null && (string) $row['enabled'] === 'Y'];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('twofa_reset_box', $e);
+
+        return $none;
     }
 }
 

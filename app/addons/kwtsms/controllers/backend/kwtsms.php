@@ -196,8 +196,21 @@ try {
                     ? $_POST['kwtsms_codes']
                     : [];
                 unset($_POST['kwtsms_codes'], $_REQUEST['kwtsms_codes']);
-                $kwtsms_page->saveCodes($kwtsms_codes);
-                unset($kwtsms_codes);
+                // 2026-11-05 07:29 +03: Task M2.2b (P3-52 (1)), task 596. The proof code and the tick of "required for
+                // administrators",
+                // from the POST body only; the saver is the signed-in account, never a request field.
+                $kwtsms_twofa_proof = isset($_POST['kwtsms_twofa_proof']) && is_string($_POST['kwtsms_twofa_proof'])
+                    ? $_POST['kwtsms_twofa_proof'] : '';
+                $kwtsms_twofa_ack = !empty($_POST['kwtsms_twofa_ack']);
+                unset($_POST['kwtsms_twofa_proof'], $_REQUEST['kwtsms_twofa_proof']);
+                $kwtsms_page->saveCodes($kwtsms_codes, [
+                    'saver_id' => isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                    'proof' => $kwtsms_twofa_proof,
+                    'ack' => $kwtsms_twofa_ack,
+                    'session_hash' => \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash(),
+                    'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
+                ]);
+                unset($kwtsms_codes, $kwtsms_twofa_proof, $kwtsms_twofa_ack);
 
                 // 2026-10-24 21:11 +03: Task M1.7b, task 596. The Turnstile section posts to this mode too and names
                 // its own anchor; any other value goes back to the "Phone and codes" section.
@@ -209,6 +222,19 @@ try {
                 ) ? $_POST['kwtsms_anchor'] : 'kwtsms_codes';
 
                 return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#' . $kwtsms_anchor];
+
+            // 2026-11-05 07:29 +03: Task M2.2b (P3-52 (1)), task 596. A code to the signed-in root administrator's own
+            // mobile number.
+            case 'twofa_proof_send':
+                $kwtsms_page->sendTwoFactorProof(
+                    isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                    \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash(),
+                    \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
+                    0,
+                    (string) CART_LANGUAGE
+                );
+
+                return [CONTROLLER_STATUS_REDIRECT, $kwtsms_settings_url . '#kwtsms_signin'];
 
             // 2026-10-24 21:11 +03: "Check keys" of the Turnstile section (Task M1.7b, task 596). The gate has asked
             // for POST, manage_kwtsms_gateway and the security hash. One siteverify call with the dummy token,

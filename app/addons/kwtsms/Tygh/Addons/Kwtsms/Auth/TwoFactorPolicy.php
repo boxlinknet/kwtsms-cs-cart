@@ -166,14 +166,39 @@ class TwoFactorPolicy
      */
     private function cannotGetCode(array $user): string
     {
+        return $this->letInAllowed($user) ? self::LET_IN : self::REFUSE;
+    }
+
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b (P3-52 (5)), task 596. True only for a root administrator (user_type A, is_root
+     * Y, company 0)
+     * while no OTHER active root administrator has an enrolled row: the one case where a user who needs a code and
+     * cannot get one is let in with the password only (the caller raises twofa_degraded). Never true for a staff
+     * administrator, a company administrator, a vendor or a customer, and never while another root administrator is
+     * enrolled (that one can reset this one's second step).
+     *
+     * @param array<string,mixed> $user
+     */
+    public function letInAllowed(array $user): bool
+    {
         $root = (string) ($user['user_type'] ?? '') === 'A'
             && (string) ($user['is_root'] ?? 'N') === 'Y'
             && (int) ($user['company_id'] ?? 0) === 0;
-        if ($root && $this->store->enrolledRootAdmins((int) ($user['user_id'] ?? 0)) === 0) {
-            return self::LET_IN;
-        }
 
-        return self::REFUSE;
+        return $root && $this->store->enrolledRootAdmins((int) ($user['user_id'] ?? 0)) === 0;
+    }
+
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b (P3-52 (4)), task 596. True when the break-glass constant is set while at least
+     * one switch is
+     * on: the state the alert twofa_disabled_by_config and the red Settings banner report. Settings only, no database.
+     */
+    public function disabledByConfig(): bool
+    {
+        return $this->breakGlass()
+            && ($this->config->twofaCustomers() !== 'off'
+                || $this->config->twofaVendors() !== 'off'
+                || $this->config->twofaAdmins() !== 'off');
     }
 
     private function usablePhone(string $raw): bool

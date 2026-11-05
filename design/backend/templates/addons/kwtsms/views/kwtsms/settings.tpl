@@ -710,7 +710,8 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         <select name="kwtsms_codes[twofa_vendors]" id="kwtsms_twofa_vendors" class="input-xlarge" style="min-width: 22em; max-width: 100%;">
                             <option value="off"{if $kwtsms.codes.twofa_vendors == "off"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
                             <option value="optional"{if $kwtsms.codes.twofa_vendors == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional")}</option>
-                            <option value="required" disabled="disabled"{if $kwtsms.codes.twofa_vendors == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
+                            {* 2026-11-05 07:34 +03: Task M2.2b, task 596. Vendors can be required without a proof: a vendor administrator cannot lock a store out. *}
+                            <option value="required"{if $kwtsms.codes.twofa_vendors == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
                         </select>
                     </div>
                 </div>
@@ -721,11 +722,37 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         <select name="kwtsms_codes[twofa_admins]" id="kwtsms_twofa_admins" class="input-xlarge" style="min-width: 22em; max-width: 100%;" aria-describedby="kwtsms_twofa_admins_help">
                             <option value="off"{if $kwtsms.codes.twofa_admins == "off"} selected="selected"{/if}>{__("kwtsms.settings.twofa_off")}</option>
                             <option value="optional"{if $kwtsms.codes.twofa_admins == "optional"} selected="selected"{/if}>{__("kwtsms.settings.twofa_optional")}</option>
-                            <option value="required" disabled="disabled"{if $kwtsms.codes.twofa_admins == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
+                            <option value="required"{if $kwtsms.codes.twofa_admins == "required"} selected="selected"{/if}>{__("kwtsms.settings.twofa_required")}</option>
                         </select>
                         <p class="muted description" id="kwtsms_twofa_admins_help">{__("kwtsms.settings.twofa_admins_help")}</p>
                     </div>
                 </div>
+                {* 2026-11-05 07:34 +03: Task M2.2b (SafatMall B3, P3-52 (1)), task 596. The guard of "Required" for administrators: shown while Required is not yet saved. A code sent to the signed-in root administrator's own mobile number proves the number works; administrators without a mobile number are listed and need a tick. The save is refused server-side without all of it. *}
+                {if $kwtsms.codes.twofa_admins != "required"}
+                <div class="control-group" id="kwtsms_twofa_proof">
+                    <span class="control-label">{__("kwtsms.settings.twofa_proof_title")}:</span>
+                    <div class="controls">
+                        <p class="muted description" id="kwtsms_twofa_proof_intro">{__("kwtsms.settings.twofa_proof_intro")}</p>
+                        <input type="submit" class="btn" id="kwtsms_twofa_proof_send" name="dispatch[kwtsms.twofa_proof_send]" value="{__("kwtsms.settings.twofa_proof_send")}">
+                        <div style="margin-top: 0.75em;">
+                            <label for="kwtsms_twofa_proof_code">{__("kwtsms.settings.twofa_proof_label")}:</label>
+                            <input type="text" id="kwtsms_twofa_proof_code" name="kwtsms_twofa_proof" value="" size="10" maxlength="16" autocomplete="one-time-code" inputmode="numeric" dir="ltr" class="input-small">
+                        </div>
+                        {if $kwtsms.codes.twofa_without_mobile}
+                        <div id="kwtsms_twofa_without" style="margin-top: 0.75em;">
+                            <p><strong>{__("kwtsms.settings.twofa_without_title")}</strong></p>
+                            <p class="muted description">{__("kwtsms.settings.twofa_without_note")}</p>
+                            <ul id="kwtsms_twofa_without_list">
+                                {foreach $kwtsms.codes.twofa_without_mobile as $kwtsms_nm}
+                                    <li>{$kwtsms_nm.email|fn_html_escape}{if $kwtsms_nm.name} ({$kwtsms_nm.name|fn_html_escape}){/if}</li>
+                                {/foreach}
+                            </ul>
+                            <label for="kwtsms_twofa_ack"><input type="checkbox" id="kwtsms_twofa_ack" name="kwtsms_twofa_ack" value="Y" style="margin: 0 0.5em; margin-inline: 0 0.5em;"> {__("kwtsms.settings.twofa_without_ack")}</label>
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+                {/if}
             </fieldset>
             <div class="control-group">
                 <div class="controls kwtsms-actions">

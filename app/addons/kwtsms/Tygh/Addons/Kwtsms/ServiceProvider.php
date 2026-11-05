@@ -46,6 +46,8 @@ use Tygh\Addons\Kwtsms\Antibot\SuspicionGate; // 2026-10-24 23:51 +03: Task M1.8
 use Tygh\Addons\Kwtsms\Codes\CodeRequest; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Auth\LoginByCode; // 2026-11-04 19:12 +03: Task M2.1, task 596
 // 2026-11-04 22:44 +03: Task M2.2a, task 596. The second-step classes.
+use Tygh\Addons\Kwtsms\Auth\AdminTwoFactorGuard; // 2026-11-05 07:28 +03: Task M2.2b, task 596
+use Tygh\Addons\Kwtsms\Auth\BackupCodes; // 2026-11-05 07:28 +03: Task M2.2b, task 596
 use Tygh\Addons\Kwtsms\Auth\LoginHold;
 use Tygh\Addons\Kwtsms\Auth\PendingLogin;
 use Tygh\Addons\Kwtsms\Auth\TwoFactorFlow;
@@ -523,6 +525,27 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.otp'],
                 $app['kwtsms.code_request'],
                 $app['kwtsms.phone_index'],
+                $app['kwtsms.logs.debug'],
+                null,
+                null,
+                null,
+                null,
+                $app['kwtsms.backup_codes']
+            );
+        };
+        // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1), (3)), task 596. The backup codes (keyed hash of the same hasher
+        // as the SMS codes)
+        // and the guard of the administrators' "required" save.
+        $app['kwtsms.backup_codes'] = function (Container $app): BackupCodes {
+            return new BackupCodes($app['kwtsms.otp_hasher']);
+        };
+        $app['kwtsms.twofa_guard'] = function (Container $app): AdminTwoFactorGuard {
+            return new AdminTwoFactorGuard(
+                $app['kwtsms.config'],
+                $app['kwtsms.twofa_policy'],
+                $app['kwtsms.twofa_store'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.code_request'],
                 $app['kwtsms.logs.debug']
             );
         };

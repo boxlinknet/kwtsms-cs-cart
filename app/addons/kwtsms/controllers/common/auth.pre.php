@@ -43,10 +43,23 @@ try {
     return;
 }
 if ($kwtsms_out === null) {
+    // 2026-11-05 07:27 +03: Task M2.2b (P3-52 (5)), task 596. A last root administrator let in with the password only
+    // is sent to the own
+    // profile (the enrolment box); core's login then redirects to the return URL. The admin area only.
+    try {
+        if (AREA !== 'C' && Tygh::$app['kwtsms.twofa_hold']->takeLetIn()) {
+            $_REQUEST['return_url'] = 'kwtsms_twofa.profile';
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('auth.pre', $e);
+    }
+
     return;
 }
-// 2026-11-04 23:25 +03: Task M2.2a, task 596. Found by the browser e2e: the real login form posts redirect_url, and core's redirect
-// prefers it to the URL a controller returns, so the visitor would land back on the sign-in form instead of the code page.
+// 2026-11-04 23:25 +03: Task M2.2a, task 596. Found by the browser e2e: the real login form posts redirect_url, and
+// core's redirect
+// prefers it to the URL a controller returns, so the visitor would land back on the sign-in form instead of the code
+// page.
 // Core drops it the same way after a successful login (auth.php:96). Plain HTTP clients do not post it.
 unset($_REQUEST['redirect_url'], $_POST['redirect_url']);
 if (AREA === 'C' && !empty($_REQUEST['quick_login']) && $kwtsms_out[1] === 'kwtsms_twofa.verify') {

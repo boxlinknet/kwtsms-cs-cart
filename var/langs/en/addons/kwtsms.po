@@ -6361,8 +6361,8 @@ msgstr "Two-step sign-in asks for an SMS code after the password. Customers, ven
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p10"
-msgid "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional can't sign in while the code SMS can't be sent, for example when the kwtSMS balance is empty, until backup codes arrive in the next release. Until then, use the constant or the command."
-msgstr "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional can't sign in while the code SMS can't be sent, for example when the kwtSMS balance is empty, until backup codes arrive in the next release. Until then, use the constant or the command."
+msgid "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional signs in with a backup code while the code SMS can't be sent, for example when the kwtSMS balance is empty. Locked out for good? Add the constant, sign in, fix the phone, then remove the line."
+msgstr "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off, or run php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID on the server to clear one account (add --types=admins, vendors or customers to turn one switch off). An administrator who has opted in under Optional signs in with a backup code while the code SMS can't be sent, for example when the kwtSMS balance is empty. Locked out for good? Add the constant, sign in, fix the phone, then remove the line."
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p11"
@@ -6882,14 +6882,203 @@ msgid "Required for every user of this type"
 msgstr "Required for every user of this type"
 
 msgctxt "Languages::kwtsms.settings.twofa_admins_help"
-msgid "Required stays unavailable for administrators until its safeguards ship. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
-msgstr "Required stays unavailable for administrators until its safeguards ship. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
-
-msgctxt "Languages::kwtsms.settings.twofa_required_later"
-msgid "Required for administrators is not available yet."
-msgstr "Required for administrators is not available yet."
+msgid "Required: every administrator enters an SMS code after the password. Turning it on asks for a code sent to your own mobile number. To use it, first save Optional so codes can be sent. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
+msgstr "Required: every administrator enters an SMS code after the password. Turning it on asks for a code sent to your own mobile number. To use it, first save Optional so codes can be sent. Break-glass: add define('KWTSMS_2FA_OFF', true); to config.local.php to turn every second step off."
 
 msgctxt "Languages::kwtsms.settings.twofa_break_glass"
 msgid "KWTSMS_2FA_OFF is set in config.local.php: no sign-in is held for a code. Remove the line to use the second step again."
 msgstr "KWTSMS_2FA_OFF is set in config.local.php: no sign-in is held for a code. Remove the line to use the second step again."
 
+
+# 2026-11-05 07:31 +03: Task M2.2b (SafatMall B3, P3-52), task 596. Backup codes, the guard of required, reset, alerts.
+msgctxt "Languages::kwtsms.twofa.backup_link"
+msgid "Use a backup code instead"
+msgstr "Use a backup code instead"
+
+msgctxt "Languages::kwtsms.twofa.sms_link"
+msgid "Use the SMS code instead"
+msgstr "Use the SMS code instead"
+
+msgctxt "Languages::kwtsms.twofa.backup_title"
+msgid "Sign in with a backup code"
+msgstr "Sign in with a backup code"
+
+msgctxt "Languages::kwtsms.twofa.backup_intro"
+msgid "Type one of your backup codes. Each code works once."
+msgstr "Type one of your backup codes. Each code works once."
+
+msgctxt "Languages::kwtsms.twofa.backup_label"
+msgid "Backup code"
+msgstr "Backup code"
+
+msgctxt "Languages::kwtsms.twofa.backup_none"
+msgid "This account has no backup codes. Use the SMS code."
+msgstr "This account has no backup codes. Use the SMS code."
+
+msgctxt "Languages::kwtsms.twofa.backup_low"
+msgid "You have [n] backup codes left. Create a new set on your two-step sign-in page."
+msgstr "You have [n] backup codes left. Create a new set on your two-step sign-in page."
+
+msgctxt "Languages::kwtsms.twofa.backup_new"
+msgid "New backup codes created. The old ones no longer work."
+msgstr "New backup codes created. The old ones no longer work."
+
+msgctxt "Languages::kwtsms.twofa.backup_codes_title"
+msgid "Your backup codes"
+msgstr "Your backup codes"
+
+msgctxt "Languages::kwtsms.twofa.backup_codes_intro"
+msgid "Save these codes somewhere safe, for example in a password manager. Each code works once, in place of an SMS code. They are shown only now."
+msgstr "Save these codes somewhere safe, for example in a password manager. Each code works once, in place of an SMS code. They are shown only now."
+
+msgctxt "Languages::kwtsms.twofa.backup_codes_continue"
+msgid "I saved them. Continue"
+msgstr "I saved them. Continue"
+
+msgctxt "Languages::kwtsms.twofa.backup_codes_back"
+msgid "I saved them. Back to my two-step sign-in"
+msgstr "I saved them. Back to my two-step sign-in"
+
+msgctxt "Languages::kwtsms.twofa.backup_section"
+msgid "Backup codes"
+msgstr "Backup codes"
+
+msgctxt "Languages::kwtsms.twofa.backup_remaining"
+msgid "Backup codes left: [n]"
+msgstr "Backup codes left: [n]"
+
+msgctxt "Languages::kwtsms.twofa.backup_regen_hint"
+msgid "Send yourself a code, type it, and create a new set. The old codes stop working at once."
+msgstr "Send yourself a code, type it, and create a new set. The old codes stop working at once."
+
+msgctxt "Languages::kwtsms.twofa.backup_create"
+msgid "Create new backup codes"
+msgstr "Create new backup codes"
+
+msgctxt "Languages::kwtsms.twofa.reset_label"
+msgid "Two-step sign-in"
+msgstr "Two-step sign-in"
+
+msgctxt "Languages::kwtsms.twofa.reset_state_on"
+msgid "On for this account"
+msgstr "On for this account"
+
+msgctxt "Languages::kwtsms.twofa.reset_button"
+msgid "Reset the second step"
+msgstr "Reset the second step"
+
+msgctxt "Languages::kwtsms.twofa.reset_confirm"
+msgid "Reset the SMS code sign-in of this account? Its backup codes are deleted and it must set the second step up again."
+msgstr "Reset the SMS code sign-in of this account? Its backup codes are deleted and it must set the second step up again."
+
+msgctxt "Languages::kwtsms.twofa.reset_done"
+msgid "The second step of this account was reset."
+msgstr "The second step of this account was reset."
+
+msgctxt "Languages::kwtsms.twofa.reset_self"
+msgid "You can't reset your own second step here. Ask another root administrator, or run the command on the server."
+msgstr "You can't reset your own second step here. Ask another root administrator, or run the command on the server."
+
+msgctxt "Languages::kwtsms.twofa.reset_failed"
+msgid "The second step could not be reset."
+msgstr "The second step could not be reset."
+
+msgctxt "Languages::kwtsms.settings.twofa_proof_title"
+msgid "Before you require it"
+msgstr "Before you require it"
+
+msgctxt "Languages::kwtsms.settings.twofa_proof_intro"
+msgid "Required makes every administrator enter an SMS code after the password. To be sure you can receive it yourself, send a code to your own mobile number and type it here when you save."
+msgstr "Required makes every administrator enter an SMS code after the password. To be sure you can receive it yourself, send a code to your own mobile number and type it here when you save."
+
+msgctxt "Languages::kwtsms.settings.twofa_proof_send"
+msgid "Send me a code"
+msgstr "Send me a code"
+
+msgctxt "Languages::kwtsms.settings.twofa_proof_label"
+msgid "Code sent to your mobile"
+msgstr "Code sent to your mobile"
+
+msgctxt "Languages::kwtsms.settings.twofa_without_title"
+msgid "Administrators without a mobile number"
+msgstr "Administrators without a mobile number"
+
+msgctxt "Languages::kwtsms.settings.twofa_without_note"
+msgid "These administrators cannot sign in until a mobile number is added to their account:"
+msgstr "These administrators cannot sign in until a mobile number is added to their account:"
+
+msgctxt "Languages::kwtsms.settings.twofa_without_ack"
+msgid "I understand that the administrators listed above cannot sign in until a number is added."
+msgstr "I understand that the administrators listed above cannot sign in until a number is added."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.sent"
+msgid "A code was sent to your mobile number. Type it in the box and save."
+msgstr "A code was sent to your mobile number. Type it in the box and save."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.not_root"
+msgid "Only a root administrator can require a code for administrators."
+msgstr "Only a root administrator can require a code for administrators."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.no_mobile"
+msgid "Add a mobile number to your own account first. You need it to receive the code."
+msgstr "Add a mobile number to your own account first. You need it to receive the code."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.ack_missing"
+msgid "Some administrators have no mobile number. Tick the box to confirm they cannot sign in, or add their numbers first. Nothing was changed."
+msgstr "Some administrators have no mobile number. Tick the box to confirm they cannot sign in, or add their numbers first. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.proof_missing"
+msgid "Send yourself a code and type it to require it for administrators. Nothing was changed."
+msgstr "Send yourself a code and type it to require it for administrators. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.proof_malformed"
+msgid "Type the 6 digits of the code. Nothing was changed."
+msgstr "Type the 6 digits of the code. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.proof_wrong"
+msgid "The code is not correct. Nothing was changed."
+msgstr "The code is not correct. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.proof_locked"
+msgid "Too many wrong codes. Wait a few minutes and try again. Nothing was changed."
+msgstr "Too many wrong codes. Wait a few minutes and try again. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.proof_expired"
+msgid "The code has expired or was not sent. Send a new one. Nothing was changed."
+msgstr "The code has expired or was not sent. Send a new one. Nothing was changed."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.error"
+msgid "The code could not be checked, so nothing was changed. Try again."
+msgstr "The code could not be checked, so nothing was changed. Try again."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.unavailable"
+msgid "A code can't be sent right now. If every two-step option is off, save Optional first. Check the SMS status on the Dashboard."
+msgstr "A code can't be sent right now. If every two-step option is off, save Optional first. Check the SMS status on the Dashboard."
+
+msgctxt "Languages::kwtsms.settings.twofa_req.wait"
+msgid "A code was sent a moment ago. Wait a little before asking for another."
+msgstr "A code was sent a moment ago. Wait a little before asking for another."
+
+msgctxt "Languages::kwtsms.alert.twofa_degraded.title"
+msgid "Your last root administrator signs in without a code"
+msgstr "Your last root administrator signs in without a code"
+
+msgctxt "Languages::kwtsms.alert.twofa_degraded.text"
+msgid "A root administrator signed in with the password only, because the account has no mobile number and no other root administrator has two-step sign-in. Add a mobile number on the profile page, then sign in again to set up the SMS code."
+msgstr "A root administrator signed in with the password only, because the account has no mobile number and no other root administrator has two-step sign-in. Add a mobile number on the profile page, then sign in again to set up the SMS code."
+
+msgctxt "Languages::kwtsms.alert.twofa_disabled_by_config.title"
+msgid "Two-step sign-in is switched off in the configuration"
+msgstr "Two-step sign-in is switched off in the configuration"
+
+msgctxt "Languages::kwtsms.alert.twofa_disabled_by_config.text"
+msgid "KWTSMS_2FA_OFF is set in config.local.php, so no sign-in asks for an SMS code. Remove the line once the problem is fixed."
+msgstr "KWTSMS_2FA_OFF is set in config.local.php, so no sign-in asks for an SMS code. Remove the line once the problem is fixed."
+
+msgctxt "Languages::kwtsms.alert.twofa_reset.title"
+msgid "A second step was reset"
+msgstr "A second step was reset"
+
+msgctxt "Languages::kwtsms.alert.twofa_reset.text"
+msgid "A root administrator cleared the two-step sign-in and the backup codes of account [user]. The account has to set it up again."
+msgstr "A root administrator cleared the two-step sign-in and the backup codes of account [user]. The account has to set it up again."

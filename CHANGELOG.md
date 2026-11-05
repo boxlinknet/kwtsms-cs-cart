@@ -26,25 +26,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
-  their own profile with a code to their own mobile number). The administrator "required" value is not available yet.
-  Every other way into an account (password recovery link, one-time password, the remember-me session, social login,
+  their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,
   the storefront REST API token) is held for the code as well. Break-glass: add `define('KWTSMS_2FA_OFF', true);` to
   `config.local.php` to turn every second step off, or run
   `php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=<id>` (one account) or `--types=admins|vendors|customers`
-  (one switch off) on the server.
+  (one switch off) on the server; the command fails with a non-zero status on a bad option or an unknown account.
+
+<!-- 2026-11-05 08:11 +03: Task M2.2b, task 596 -->
+- Backup codes for administrators and vendor administrators: ten one-time codes, shown once, stored only as salted
+  hashes, counted in the same wrong-attempt limits as an SMS code, replaced as a set after a code. They sign in an
+  enrolled administrator while the code SMS cannot be sent.
+- "Required" for administrators and vendors (Settings > Sign-in and security). For administrators it asks for a code
+  sent to the saver's own mobile number and a tick when administrators without a mobile number exist; the list is shown.
+  Under Required an account without a mobile number is refused, except the last root administrator, who is let in with
+  the password only and an alert (twofa_degraded). The alerts twofa_disabled_by_config and twofa_reset, and a "Reset the
+  second step" button for a root administrator on another account's profile, were added.
+- A second-step code to an administrator or vendor is no longer blocked by the list of allowed customer countries.
 
 ### Notes
 
 <!-- 2026-11-05 02:38 +03: review fix 1 of Task M2.2a, task 596 -->
 - Two-step sign-in: a code and its wrong-attempt count belong to one account, so another account that saved the same
   number can no longer cancel the code of an administrator or lock the administrator out. A number that another account
-  uses for its second step, or that belongs to an administrator or vendor account, is refused at opt-in. "Required" for
-  vendors is refused on save, like administrators, until its safeguards ship.
+  uses for its second step, or that belongs to an administrator or vendor account, is refused at opt-in.
 - The commerceml add-on's HTTP Basic sign-in is refused (401) for an account that needs a second step. The REST API
   (e-mail and API key, a separate secret) is not held for a code. An exception while the sign-in is held can no longer
   let core log the account in, and core's "successfully logged in" notice is dropped for a held account.
-- An administrator who opted in under Optional cannot sign in while the code SMS cannot be sent, until backup codes
-  arrive in the next release; Help and README name the break-glass constant and command.
+- An administrator who opted in under Optional signs in with a backup code while the code SMS cannot be sent; Help
+  and README name the break-glass constant and command.
 
 <!-- 2026-11-04 23:19 +03: Task M2.2a, task 596. The code sign-in now asks the one two-step policy. -->
 - Sign-in by code asks the same two-step policy as the password sign-in: an account that must use the second step

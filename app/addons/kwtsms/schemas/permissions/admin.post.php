@@ -79,6 +79,8 @@ $schema['kwtsms'] = [
         // 2026-10-24 21:11 +03: Task M1.7b (PRD 6.15), task 596. "Check keys" of the Turnstile section: one Cloudflare
         // call with the dummy token (same privilege as Admin\RequestGate::MODES).
         'turnstile_check'           => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-11-05 07:29 +03: Task M2.2b, task 596 (same privilege as Admin\RequestGate::MODES).
+        'twofa_proof_send'          => ['permissions' => 'manage_kwtsms_gateway'],
     ],
 ];
 
@@ -87,6 +89,14 @@ $schema['kwtsms'] = [
 // (the controller reads the account from the session, never from the request): no privilege of this add-on is needed.
 $schema['kwtsms_twofa'] = [
     'permissions' => true,
+    // 2026-11-05 07:29 +03: Task M2.2b (P3-49), task 596. Resetting ANOTHER account's second step needs the gateway
+    // privilege (the controller
+    // also asks for a root administrator and refuses the own account).
+    'modes' => [
+        'reset' => [
+            'permissions' => 'manage_kwtsms_gateway',
+        ],
+    ],
 ];
 
 return $schema;

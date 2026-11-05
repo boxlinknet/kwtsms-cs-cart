@@ -16,6 +16,11 @@
  *            $lines = $cli->run(['user_id' => '12']);  // ['kwtsms_twofa: account 12: 2FA cleared']
  *            Every change writes the debug row twofa.cli_reset (ids and switch names only).
  * DEPENDS:   Settings\ConfigInterface (save update_codes), Auth\TwoFactorStore, Log\DebugLog (optional).
+ *
+ * 2026-11-05 07:26 +03: Task M2.2b (P3-52 (4)), task 596. status() is the exit status of the last run (0 = every change
+ * done, 1 = a
+ * usage or error line); an account id that does not exist is one error line and nothing is deleted. The fourth
+ * constructor argument is the account lookup (int $user_id): bool, null = the users table.
  */
 
 namespace Tygh\Addons\Kwtsms\Auth;
@@ -40,11 +45,28 @@ class TwoFactorCli
     /** @var DebugLog|null */
     private $log;
 
-    public function __construct(ConfigInterface $config, TwoFactorStore $store, ?DebugLog $log = null)
-    {
+    /** @var callable|null (int $user_id): bool */
+    private $exists;
+
+    /** @var int */
+    private $status = 0;
+
+    public function __construct(
+        ConfigInterface $config,
+        TwoFactorStore $store,
+        ?DebugLog $log = null,
+        ?callable $exists = null
+    ) {
         $this->config = $config;
         $this->store = $store;
         $this->log = $log;
+        $this->exists = $exists;
+    }
+
+    /** 2026-11-05 07:26 +03: Task M2.2b, task 596. The exit status of the last run(): 0 = done, 1 = usage or error. */
+    public function status(): int
+    {
+        return $this->status;
     }
 
     /**
@@ -55,14 +77,21 @@ class TwoFactorCli
     public function run(array $request): array
     {
         $lines = [];
+        $this->status = 0;
         $user_id = isset($request['user_id']) && is_scalar($request['user_id']) ? (string) $request['user_id'] : '';
         $types = isset($request['types']) && is_scalar($request['types']) ? (string) $request['types'] : '';
         if ($user_id === '' && $types === '') {
+            $this->status = 1;
+
             return ['kwtsms_twofa: nothing to do. Use --user_id=<id> or --types=admins|vendors|customers'];
         }
         if ($user_id !== '') {
             if (preg_match('/^[1-9][0-9]{0,9}$/D', $user_id) !== 1) {
                 $lines[] = 'kwtsms_twofa: --user_id must be a positive whole number';
+                $this->status = 1;
+            } elseif (!$this->accountExists((int) $user_id)) {
+                $lines[] = 'kwtsms_twofa: no account ' . $user_id;
+                $this->status = 1;
             } else {
                 $this->store->delete((int) $user_id);
                 $lines[] = 'kwtsms_twofa: account ' . $user_id . ': 2FA cleared';
@@ -72,17 +101,28 @@ class TwoFactorCli
         if ($types !== '') {
             if (!isset(self::TYPES[$types])) {
                 $lines[] = 'kwtsms_twofa: --types must be admins, vendors or customers';
+                $this->status = 1;
             } else {
                 $key = self::TYPES[$types];
                 $rejected = $this->config->save('update_codes', [$key => 'off']);
                 $lines[] = $rejected === []
                     ? 'kwtsms_twofa: ' . $key . ' set to off'
                     : 'kwtsms_twofa: ' . $key . ' could not be set to off';
+                $this->status = $rejected === [] ? $this->status : 1;
                 $this->debug(['switch' => $key, 'saved' => $rejected === []]);
             }
         }
 
         return $lines;
+    }
+
+    private function accountExists(int $user_id): bool
+    {
+        if ($this->exists !== null) {
+            return (bool) call_user_func($this->exists, $user_id);
+        }
+
+        return (int) db_get_field('SELECT COUNT(*) FROM ?:users WHERE user_id = ?i', $user_id) > 0;
     }
 
     /**

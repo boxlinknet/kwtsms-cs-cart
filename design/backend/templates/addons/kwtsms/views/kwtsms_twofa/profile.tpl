@@ -40,6 +40,29 @@
             </div></div>
         </form>
     {/if}
+    {* 2026-11-05 07:34 +03: Task M2.2b (P3-52 (3)), task 596. Backup codes of an enrolled administrator or vendor administrator: how many are left, and a new set after a code sent to the enrolled mobile (the old set stops working). *}
+    {if $kwtsms_twofa.backup_available}
+    <div class="kwtsms-twofa-backup" id="kwtsms_twofa_backup">
+        <h4 class="subheader">{__("kwtsms.twofa.backup_section")|fn_html_escape}</h4>
+        <p id="kwtsms_twofa_backup_remaining" role="status">{__("kwtsms.twofa.backup_remaining", ["[n]" => $kwtsms_twofa.backup_remaining|fn_html_escape])}</p>
+        <p>{__("kwtsms.twofa.backup_regen_hint")|fn_html_escape}</p>
+        <form action="{""|fn_url}" method="post" name="kwtsms_twofa_backup_send" id="kwtsms_twofa_backup_send" class="form-horizontal">
+            <input type="hidden" name="profile_action" value="backup">
+            <input type="submit" class="btn" name="dispatch[kwtsms_twofa.profile_send]" value="{__("kwtsms.twofa.profile_send")|fn_html_escape}">
+        </form>
+        <form action="{""|fn_url}" method="post" name="kwtsms_twofa_backup_form" id="kwtsms_twofa_backup_form" class="form-horizontal form-edit">
+            <div class="control-group">
+                <label for="kwtsms_twofa_backup_code" class="control-label cm-required">{__("kwtsms.twofa.code_label")|fn_html_escape}:</label>
+                <div class="controls">
+                    <input type="text" id="kwtsms_twofa_backup_code" name="kwtsms_code" size="12" maxlength="16" value="" autocomplete="one-time-code" inputmode="numeric" dir="ltr">
+                </div>
+            </div>
+            <div class="control-group"><div class="controls">
+                <input type="submit" class="btn btn-primary" name="dispatch[kwtsms_twofa.backup_regenerate]" value="{__("kwtsms.twofa.backup_create")|fn_html_escape}">
+            </div></div>
+        </form>
+    </div>
+    {/if}
     <p><a href="{"profiles.update?user_id=`$auth.user_id`"|fn_url}">{__("kwtsms.twofa.back_to_profile")|fn_html_escape}</a></p>
 </div>
 {/capture}

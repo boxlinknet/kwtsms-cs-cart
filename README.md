@@ -257,9 +257,16 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   account, is refused at opt-in.
 - Break-glass: add `define('KWTSMS_2FA_OFF', true);` to `config.local.php` to turn every second step off, or run
   `php admin.php --dispatch=kwtsms_twofa.cli_reset --user_id=ID` on the server (`--types=admins|vendors|customers`
-  turns one switch off). An administrator who opted in under Optional cannot sign in while the code SMS cannot be sent
-  (for example an empty kwtSMS balance) until backup codes arrive in the next release; use the constant or the
-  command until then.
+  turns one switch off). The command prints one line per change and exits non-zero on a bad option or an unknown
+  account; on the web the mode answers 404 whatever the session.
+- Backup codes (administrators and vendor administrators; 2026-11-05 08:11 +03, task 596): ten one-time codes are shown once when the
+  second step is turned on, stored only as salted hashes, counted in the same wrong-attempt limits as an SMS code, and
+  replaced as a set from the own two-step page after a code. An enrolled administrator signs in with one while the code
+  SMS cannot be sent (empty balance, gateway down).
+- "Required for administrators" asks for a code sent to your own mobile number and a tick when administrators without a
+  mobile number exist. Such an administrator is refused ("Ask a store administrator to add your mobile number"); only
+  the last root administrator is let in with the password, with an alert, so the store can always be reached. A root
+  administrator with the gateway privilege can reset another account's second step, never the own.
 - The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. This add-on
   refuses (401) an account that needs a second step when commerceml is installed. The REST API (e-mail and API key,
   a separate secret) is not held for a code.

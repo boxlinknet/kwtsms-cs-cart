@@ -105,6 +105,10 @@ final class RequestGate
         // Cloudflare call, so it needs the gateway privilege like Settings, and it is POST only (a typed secret key
         // travels in the body).
         'turnstile_check'           => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-11-05 07:29 +03: Task M2.2b (P3-52 (1)), task 596. "Send me a code" of the Settings section Sign-in and
+        // security: the proof
+        // of possession for "required for administrators". POST, gateway privilege, All storefronts, security hash.
+        'twofa_proof_send'          => [self::POST, 'manage_kwtsms_gateway'],
     ];
 
     /**

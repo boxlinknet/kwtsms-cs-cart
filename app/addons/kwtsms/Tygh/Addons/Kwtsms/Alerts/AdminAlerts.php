@@ -64,6 +64,12 @@ class AdminAlerts
         // 2026-10-24 22:56 +03: Task M1.7b fix round 1 (I1), task 596. The Turnstile widget template could not be
         // put in place of the reCAPTCHA add-on's, so the previous CAPTCHA driver was kept: bell only, once per day.
         'captcha_template',
+        // 2026-11-05 07:30 +03: Task M2.2b (P3-52 (4), (5), P3-49), task 596. twofa_degraded: the last root
+        // administrator was let in with
+        // the password only (bell and e-mail, once a day); twofa_disabled_by_config: KWTSMS_2FA_OFF is set while a
+        // switch
+        // is on (bell, once a day); twofa_reset: a root administrator cleared another account's second step (bell).
+        'twofa_degraded', 'twofa_disabled_by_config', 'twofa_reset',
     ];
 
     /**

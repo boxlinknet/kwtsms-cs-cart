@@ -26,6 +26,7 @@
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
+use Tygh\Addons\Kwtsms\Auth\AdminTwoFactorGuard; // 2026-11-05 07:28 +03: Task M2.2b, task 596
 use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 21:10 +03: Task M1.7b, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 21:10 +03: Task M1.7b, task 596
@@ -108,6 +109,9 @@ class SettingsPage
     /** @var PhoneIndexBackfill|null 2026-10-24 17:20 +03: the phone index state and its reset, Task M1.6, task 596 */
     private $backfill;
 
+    /** @var AdminTwoFactorGuard|null 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. The guard of "required" for administrators */
+    private $twofa_guard;
+
     public function __construct(
         ConfigInterface $config,
         GatewayState $state,
@@ -117,8 +121,10 @@ class SettingsPage
         DebugLog $log,
         ?SenderResolver $senders = null,
         ?StorefrontRules $rules = null,
-        ?PhoneIndexBackfill $backfill = null // 2026-10-24 17:20 +03: Task M1.6 (R8), task 596
+        ?PhoneIndexBackfill $backfill = null, // 2026-10-24 17:20 +03: Task M1.6 (R8), task 596
+        ?AdminTwoFactorGuard $twofa_guard = null // 2026-11-05 07:28 +03: Task M2.2b (R8), task 596
     ) {
+        $this->twofa_guard = $twofa_guard;
         $this->backfill = $backfill;
         $this->config = $config;
         $this->state = $state;
@@ -144,7 +150,8 @@ class SettingsPage
             $app['kwtsms.logs.debug'],
             $app['kwtsms.sender_resolver'],
             $app['kwtsms.storefront_rules'],
-            $app['kwtsms.phone_index_backfill']
+            $app['kwtsms.phone_index_backfill'],
+            $app['kwtsms.twofa_guard']
         );
     }
 
@@ -426,7 +433,26 @@ class SettingsPage
             'twofa_admins' => $this->config->twofaAdmins(),
             'twofa_vendors_shown' => function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'),
             'twofa_break_glass' => defined('KWTSMS_2FA_OFF') && (bool) constant('KWTSMS_2FA_OFF'),
+            // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. The administrators who could not get a code
+            // ("cannot sign in until a
+            // mobile number is added"), listed only while the choice can still be made.
+            'twofa_without_mobile' => $this->twofaWithoutMobile(),
         ];
+    }
+
+    /**
+     * 2026-11-05 07:28 +03: Task M2.2b, task 596. [] when the guard is absent or the list cannot be read (the save is
+     * then still guarded).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function twofaWithoutMobile(): array
+    {
+        try {
+            return $this->twofa_guard === null ? [] : $this->twofa_guard->withoutMobile();
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -872,12 +898,19 @@ class SettingsPage
      * the stored one and counts as not posted. The log holds key names and reasons only, never a value.
      *
      * @param array<string,mixed> $posted kwtsms_codes of the request
+     * @param array<string,mixed> $twofa  2026-11-05 07:28 +03: Task M2.2b, task 596. What the guard of "required for
+     * administrators" needs:
+     *                                    saver_id, proof (the typed code), ack (the tick), session_hash, ip. Empty =
+     * none
+     *                                    given, so the save of "required" is refused.
      *
      * @return array{saved: string[], rejected: array<string,string>}
      */
     public function saveCodes(
         #[\SensitiveParameter]
-        array $posted
+        array $posted,
+        #[\SensitiveParameter]
+        array $twofa = []
     ): array {
         $started = microtime(true);
         // 2026-10-23 17:16 +03: the rule is Config::isBlankSecretPost(), shared with Config::save() (fix round 1, M7,
@@ -896,20 +929,29 @@ class SettingsPage
                 $reasons['turnstile_enabled'] = 'recaptcha_active';
             }
         }
-        // 2026-11-04 22:49 +03: Task M2.2a (P3-52 (1)), task 596. "required" for administrators needs the proof of
-        // possession and the
-        // list of administrators without a mobile of M2.2b: until that guard exists it is refused here (the field shows
-        // it
-        // disabled), so no save can lock the administrators out.
+        // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. Going TO "required" for administrators needs the
+        // guard: a root administrator
+        // with a usable mobile who types the code sent to it, and a tick when administrators without a mobile exist.
+        // A save that leaves it at "required" (the form posts every field) asks for nothing. Any refusal keeps the
+        // stored value and says why.
         if (isset($posted['twofa_admins']) && $posted['twofa_admins'] === 'required') {
-            unset($posted['twofa_admins']);
-            $reasons['twofa_admins'] = 'required_later';
+            if ($this->config->twofaAdmins() === 'required') {
+                unset($posted['twofa_admins']);
+            } else {
+                unset($posted['twofa_admins']);
+                $verdict = $this->twofaVerdict($twofa);
+                if ($verdict['ok']) {
+                    $posted['twofa_admins'] = 'required';
+                } else {
+                    $reasons['twofa_admins'] = 'twofa_req:' . $verdict['error'];
+                }
+            }
         }
-        // 2026-11-05 02:31 +03: Task M2.2a fix 1 (M2), task 596. The same guard for vendors: no save of "required" until M2.2b.
-        if (isset($posted['twofa_vendors']) && $posted['twofa_vendors'] === 'required') {
-            unset($posted['twofa_vendors']);
-            $reasons['twofa_vendors'] = 'required_later';
-        }
+        // 2026-11-05 07:28 +03: Task M2.2b, task 596. Vendor administrators cannot lock a store out (the root
+        // administrators sign in on
+        // the admin panel), so "required" for vendors needs no proof; a vendor administrator without a mobile is
+        // refused
+        // at sign-in with the "ask an administrator" notice.
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
         $this->startBackfillWhenFirstOn($was_on);
         foreach ($rejected_keys as $key) {
@@ -946,6 +988,64 @@ class SettingsPage
         }
 
         return ['saved' => $saved, 'rejected' => $reasons];
+    }
+
+    /**
+     * 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. The guard's verdict for the save of "required".
+     *
+     * @param array<string,mixed> $twofa saver_id, proof, ack, session_hash, ip
+     *
+     * @return array{ok:bool,error:string}
+     */
+    private function twofaVerdict(
+        #[\SensitiveParameter]
+        array $twofa
+    ): array {
+        if ($this->twofa_guard === null || !isset($twofa['saver_id'])) {
+            return ['ok' => false, 'error' => 'error'];
+        }
+        $r = $this->twofa_guard->canRequire(
+            (int) $twofa['saver_id'],
+            isset($twofa['proof']) && is_string($twofa['proof']) ? $twofa['proof'] : '',
+            isset($twofa['session_hash']) && is_string($twofa['session_hash']) ? $twofa['session_hash'] : '',
+            isset($twofa['ip']) && is_string($twofa['ip']) ? $twofa['ip'] : '',
+            !empty($twofa['ack'])
+        );
+
+        return ['ok' => (bool) $r['ok'], 'error' => (string) $r['error']];
+    }
+
+    /**
+     * 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. "Send me a code" of the Settings section: a code to the
+     * mobile number of
+     * the signed-in root administrator (read from the account, never from the request). The notice says where it went,
+     * or why not.
+     */
+    public function sendTwoFactorProof(
+        int $saver_id,
+        string $session_hash,
+        string $ip,
+        int $storefront_id,
+        string $lang
+    ): void {
+        if ($this->twofa_guard === null) {
+            $this->say('E', 'kwtsms.settings.twofa_req.error');
+
+            return;
+        }
+        $body = $this->twofa_guard->sendProof($saver_id, $session_hash, $ip, $storefront_id, $lang);
+        if (!empty($body['ok'])) {
+            $this->say('N', 'kwtsms.settings.twofa_req.sent');
+
+            return;
+        }
+        $error = (string) ($body['error'] ?? '');
+        if ($error === 'not_root' || $error === 'no_mobile') {
+            $this->say('E', 'kwtsms.settings.twofa_req.' . $error);
+
+            return;
+        }
+        $this->say('E', $error === 'wait' ? 'kwtsms.settings.twofa_req.wait' : 'kwtsms.settings.twofa_req.unavailable');
     }
 
     /**
@@ -1477,9 +1577,14 @@ class SettingsPage
         if ($reason === 'kwtsms_ack') {
             return $this->text('kwtsms.settings.ack_required');
         }
-        // 2026-11-04 22:49 +03: Task M2.2a, task 596. The administrators' "required" is not available yet.
-        if ($reason === 'required_later') {
-            return $this->text('kwtsms.settings.twofa_required_later');
+        // 2026-11-05 07:28 +03: Task M2.2b, task 596. The refusals of the guard of "required for administrators" have
+        // their own texts.
+        if (strpos($reason, 'twofa_req:') === 0) {
+            $known = ['not_root', 'no_mobile', 'ack_missing', 'proof_missing', 'proof_malformed', 'proof_wrong',
+                'proof_locked', 'proof_expired'];
+            $code = substr($reason, strlen('twofa_req:'));
+
+            return $this->text('kwtsms.settings.twofa_req.' . (in_array($code, $known, true) ? $code : 'error'));
         }
         // 2026-10-21 03:16 +03: KWT-SMS chosen while test mode is already off (Task 1.10 fix round 1 item 4), task 596.
         if ($reason === 'kwtsms_ack_sender') {

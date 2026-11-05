@@ -220,6 +220,25 @@ class OtpService
         return $this->check(true, $purpose, $subject, $raw_code, $user_id, $session_hash, $ip);
     }
 
+    /**
+     * 2026-11-05 07:22 +03: Task M2.2b (P3-52 (3)), task 596. A backup code is checked with the counting of an SMS
+     * code: the same
+     * per-IP submission counter, the same lockouts and the same two wrong-attempt counters (otp_fail, otp_failp of the
+     * purpose and subject), taken before the comparison. $normalized is the entry after BackupCodes::normalize();
+     * $matcher (string $normalized): bool decides and, on a match, uses the code up (the caller's compare-and-set).
+     * A malformed entry counts nothing (the caller answers malformed before calling).
+     */
+    public function verifyWith(
+        string $purpose,
+        string $subject,
+        #[\SensitiveParameter]
+        string $normalized,
+        string $ip,
+        callable $matcher
+    ): OtpResult {
+        return $this->check(false, $purpose, $subject, $normalized, 0, '', $ip, $matcher);
+    }
+
     private function check(
         bool $blind,
         string $purpose,
@@ -228,10 +247,15 @@ class OtpService
         string $raw_code,
         int $user_id,
         string $session_hash,
-        string $ip
+        string $ip,
+        ?callable $matcher = null
     ): OtpResult {
-        $code = CodeInput::normalize($raw_code);
-        if ($code === null) {
+        // 2026-11-05 07:22 +03: Task M2.2b (P3-52 (3)), task 596. With a $matcher the entry is already normalized by
+        // the caller (a backup
+        // code, not six digits) and the comparison is the matcher's: no code row is read, everything else (per-IP
+        // counter, lockouts, the two wrong-attempt counters BEFORE the comparison, the ceiling) is this method's.
+        $code = $matcher === null ? CodeInput::normalize($raw_code) : $raw_code;
+        if ($code === null || $code === '') {
             return OtpResult::of(OtpResult::MALFORMED);
         }
         $now = $this->now();
@@ -251,13 +275,15 @@ class OtpService
         if ($locked > 0) {
             return OtpResult::locked($locked);
         }
-        $row = $this->row(
+        $row = $matcher !== null ? null : $this->row(
             'SELECT code_id, code_hash, salt, status, expires_at FROM ?:kwtsms_otp_codes'
             . ' WHERE purpose = ?s AND subject = ?s AND session_hash = ?s AND user_id = ?i'
             . ' ORDER BY code_id DESC LIMIT 1',
             [$purpose, $subject, $session_hash, max(0, $user_id)]
         );
-        if ($row === null) {
+        if ($matcher !== null) {
+            $row = null;
+        } elseif ($row === null) {
             // A stranger without a code row of this session spends only its own ip_v budget.
             $this->hasher->dummy($code);
             if (!$blind) {
@@ -291,6 +317,19 @@ class OtpService
             return OtpResult::locked($left > 0 ? $left : $lockout);
         }
 
+        // 2026-11-05 07:22 +03: Task M2.2b, task 596. A backup code is judged by the caller's matcher (after the
+        // counters above).
+        if ($matcher !== null) {
+            if ((bool) call_user_func($matcher, $code)) {
+                $this->limiter->reset($fail_ip);
+                $this->limiter->reset($fail_phone);
+                $this->limiter->reset(self::sendBucket($purpose, $subject));
+                $this->debug('otp.verified', ['purpose' => $purpose, 'code_id' => 0]);
+
+                return OtpResult::of(OtpResult::OK);
+            }
+            $row = null;
+        }
         // 2026-11-04 19:09 +03: Task M2.1 (P3-46), task 596. A blind check without a usable row is a mismatch.
         $match = $row !== null && $this->hasher->matches(
             (string) $row['code_hash'],

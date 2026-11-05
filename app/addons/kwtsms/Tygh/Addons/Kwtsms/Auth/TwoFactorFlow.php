@@ -35,6 +35,16 @@
  *            OtpResult,CodeRequest,CodeInput}, Phones\{PhoneIndex,PhoneFormat,AccountPhone}, Log\DebugLog (optional),
  *            core
  *            fn_login_user(), db_get_row().
+ *
+ * 2026-11-05 07:27 +03: Task M2.2b (P3-52 (3), P3-49), task 596. Backup codes for administrators and vendor
+ * administrators:
+ * submitBackup($typed) signs in with a backup code instead of the SMS code (same pending-state rules, same
+ * wrong-attempt
+ * buckets through OtpService::verifyWith()); the answers of submit() and profileConfirm() gain 'backup_codes' (the
+ * plain
+ * set, only when one was just generated: at enrolment and on action 'backup'); profileInfo() gains backup_available and
+ * backup_remaining; reset($actor_id, $target_id) lets a root administrator clear another account's second step. The
+ * last constructor argument is the BackupCodes service (null = no backup codes).
  */
 
 namespace Tygh\Addons\Kwtsms\Auth;
@@ -90,6 +100,9 @@ class TwoFactorFlow
     /** @var callable|null */
     private $account_phone;
 
+    /** @var BackupCodes|null 2026-11-05 07:27 +03: Task M2.2b, task 596 */
+    private $backup;
+
     public function __construct(
         ConfigInterface $config,
         TwoFactorPolicy $policy,
@@ -102,8 +115,10 @@ class TwoFactorFlow
         ?callable $env = null,
         ?callable $users = null,
         ?callable $login = null,
-        ?callable $account_phone = null
+        ?callable $account_phone = null,
+        ?BackupCodes $backup = null
     ) {
+        $this->backup = $backup;
         $this->config = $config;
         $this->policy = $policy;
         $this->store = $store;
@@ -155,7 +170,7 @@ class TwoFactorFlow
     /**
      * What the code page shows; null = no pending state (the caller goes back to the sign-in form).
      *
-     * @return array{masked:string,masked_ltr:string,area:string,requirement:string,sent:bool,seconds_left:int}|null
+     * @return array<string,mixed>|null masked, masked_ltr, area, requirement, sent, seconds_left, backup_available
      */
     public function challenge(): ?array
     {
@@ -163,9 +178,14 @@ class TwoFactorFlow
         if ($state === null) {
             return null;
         }
+        $backup_available = false;
         try {
             $user = $this->readUser((int) $state['user_id']);
             $phone = $user === [] ? '' : $this->phoneFor($user, (string) $state['requirement']);
+            // 2026-11-05 07:34 +03: Task M2.2b, task 596. The link "Use a backup code instead" only for an enrolled
+            // staff account.
+            $backup_available = $user !== [] && (string) $state['requirement'] === TwoFactorPolicy::CODE
+                && $this->hasBackupCodes($user);
         } catch (\Throwable $e) {
             $this->debug('twofa.page', ['error' => get_class($e)]);
             $phone = '';
@@ -178,6 +198,7 @@ class TwoFactorFlow
             'requirement' => (string) $state['requirement'],
             'sent' => !empty($state['sent']),
             'seconds_left' => max(0, (int) $state['expires_at'] - time()),
+            'backup_available' => $backup_available,
         ];
     }
 
@@ -252,7 +273,8 @@ class TwoFactorFlow
 
                 return $this->answer('changed');
             }
-            // 2026-11-05 02:28 +03: Task M2.2a fix 1 (M1), task 596. A pending state belongs to the area that started it: a code typed
+            // 2026-11-05 02:28 +03: Task M2.2a fix 1 (M1), task 596. A pending state belongs to the area that started
+            // it: a code typed
             // on the other area's page does not complete it (and is not used up).
             if ((string) $state['area'] !== (string) $this->environment()['area']) {
                 return $this->answer('changed');
@@ -314,15 +336,169 @@ class TwoFactorFlow
         }
     }
 
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b (P3-52 (3)), task 596. A backup code typed on the code page instead of the SMS
+     * code. Only an
+     * administrator or vendor administrator whose second step is an enrolled row has backup codes (never a customer,
+     * never
+     * the first enrolment). Same order as submit(): pending state, still valid, area, requirement, the five-submission
+     * limit; the typed code is counted in the same otp_fail buckets as an SMS code (purpose 2fa, subject
+     * '<user>:<phone>'), BEFORE it is compared.
+     *
+     * @return array<string,mixed> status ok | wrong | locked | ip_limited | malformed | exhausted | changed | none |
+     *                             no_backup | error, attempts_left, retry_after, redirect, backup_left
+     */
+    public function submitBackup(
+        #[\SensitiveParameter]
+        string $raw_code
+    ): array {
+        $state = $this->pending->get();
+        if ($state === null) {
+            return $this->answer('none');
+        }
+        try {
+            $uid = (int) $state['user_id'];
+            $user = $this->readUser($uid);
+            if (!$this->stillValid($state, $user)) {
+                $this->pending->clear();
+
+                return $this->answer('changed');
+            }
+            if ((string) $state['area'] !== (string) $this->environment()['area']) {
+                return $this->answer('changed');
+            }
+            $need = $this->policy->requirement($user);
+            if ($need !== TwoFactorPolicy::CODE && $need !== TwoFactorPolicy::ENROLL) {
+                $this->pending->clear();
+
+                return $this->answer('changed');
+            }
+            $phone = $this->phoneFor($user, $need);
+            if ($phone === '') {
+                $this->pending->clear();
+
+                return $this->answer('changed');
+            }
+            if ($need !== TwoFactorPolicy::CODE || $this->backup === null || !$this->hasBackupCodes($user)) {
+                return $this->answer('no_backup');
+            }
+            $code = BackupCodes::normalize($raw_code);
+            if ($code === null) {
+                return $this->answer('malformed');
+            }
+            $env = $this->environment();
+            $count = $this->pending->countSubmission();
+            $backup = $this->backup;
+            $result = $this->otp->verifyWith(
+                CodeRequest::PURPOSE_2FA,
+                self::subject($uid, $phone),
+                $code,
+                $env['ip'],
+                static function (string $normalized) use ($backup, $uid): bool {
+                    return $backup->use($uid, $normalized);
+                }
+            );
+            if ($result->status !== OtpResult::OK && $count >= PendingLogin::MAX_SUBMISSIONS) {
+                $this->pending->clear();
+
+                return $this->answer('exhausted');
+            }
+            switch ($result->status) {
+                case OtpResult::OK:
+                    break;
+                case OtpResult::LOCKED:
+                    return $this->answer('locked', 0, $result->retry_after);
+                case OtpResult::IP_LIMITED:
+                    return $this->answer('ip_limited', 0, $result->retry_after);
+                case OtpResult::MALFORMED:
+                    return $this->answer('malformed');
+                default:
+                    return $this->answer('wrong', (int) $result->attempts_left);
+            }
+            $this->info('twofa.backup_used', ['user_id' => $uid, 'remaining' => $this->backup->remaining($uid)]);
+            $done = $this->complete($state, $user, $need, $phone);
+            if ($done['status'] === 'ok') {
+                $done['backup_left'] = $this->backup->remaining($uid);
+            }
+
+            return $done;
+        } catch (\Throwable $e) {
+            // Fail closed: nobody is logged in.
+            $this->debug('twofa.complete', ['reason' => 'exception', 'path' => 'backup', 'error' => get_class($e)]);
+
+            return $this->answer('error');
+        }
+    }
+
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b, task 596. True for an administrator or vendor administrator (the types that
+     * have backup codes).
+     *
+     * @param array<string,mixed> $user
+     */
+    private function staffType(array $user): bool
+    {
+        return in_array((string) ($user['user_type'] ?? ''), ['A', 'V'], true);
+    }
+
+    /**
+     * @param array<string,mixed> $user
+     */
+    private function hasBackupCodes(array $user): bool
+    {
+        return $this->backup !== null
+            && $this->staffType($user)
+            && $this->backup->remaining((int) $user['user_id']) > 0;
+    }
+
+    /**
+     * 2026-11-05 07:27 +03: Task M2.2b (P3-49), task 596. A root administrator (user_type A, is_root Y, company 0,
+     * status A) clears the
+     * second step of ANOTHER account: its row and backup codes and any code in the engine. Never the own account from
+     * here (the web); the controller checks the privilege and the security hash before calling.
+     *
+     * @return string ok | self | not_root | no_target | error
+     */
+    public function reset(int $actor_id, int $target_id): string
+    {
+        try {
+            if ($actor_id <= 0 || $target_id <= 0) {
+                return 'no_target';
+            }
+            if ($actor_id === $target_id) {
+                return 'self';
+            }
+            $actor = $this->readUser($actor_id);
+            $root = $actor !== [] && (string) $actor['user_type'] === 'A' && (string) $actor['is_root'] === 'Y'
+                && (int) $actor['company_id'] === 0 && (string) $actor['status'] === 'A';
+            if (!$root) {
+                return 'not_root';
+            }
+            if ($this->readUser($target_id) === []) {
+                return 'no_target';
+            }
+            $this->store->delete($target_id);
+            OtpService::deleteUserCodes($target_id);
+            $this->info('twofa.reset', ['actor' => $actor_id, 'user_id' => $target_id]);
+
+            return 'ok';
+        } catch (\Throwable $e) {
+            $this->debug('twofa.reset', ['error' => get_class($e)]);
+
+            return 'error';
+        }
+    }
+
     // ------------------------------------------------------------------ opt-in and opt-out of a logged-in account
 
     /**
-     * @return array{available:bool,enabled:bool,masked:string,usable_phone:bool,can_disable:bool,type:string}
+     * @return array<string,mixed> available, enabled, masked, masked_ltr, usable_phone, can_disable, type,
+     *                             backup_available, backup_remaining
      */
     public function profileInfo(int $user_id): array
     {
         $none = ['available' => false, 'enabled' => false, 'masked' => '', 'usable_phone' => false,
-            'can_disable' => false, 'type' => ''];
+            'can_disable' => false, 'type' => '', 'backup_available' => false, 'backup_remaining' => 0];
         try {
             $user = $user_id > 0 ? $this->readUser($user_id) : [];
             if ($user === [] || !$this->policy->anyOn() || $this->policy->typeSwitch($user) === 'off') {
@@ -342,6 +518,11 @@ class TwoFactorFlow
                 'usable_phone' => $account !== '',
                 'can_disable' => $this->policy->typeSwitch($user) !== 'required',
                 'type' => (string) $user['user_type'],
+                // 2026-11-05 07:27 +03: Task M2.2b, task 596. Backup codes exist for an enrolled administrator or
+                // vendor administrator.
+                'backup_available' => $enabled && $this->backup !== null && $this->staffType($user),
+                'backup_remaining' => $enabled && $this->backup !== null && $this->staffType($user)
+                    ? $this->backup->remaining($user_id) : 0,
             ];
         } catch (\Throwable $e) {
             $this->debug('twofa.profile', ['error' => get_class($e)]);
@@ -374,7 +555,7 @@ class TwoFactorFlow
     }
 
     /**
-     * @return array{status:string,attempts_left:int,retry_after:int}
+     * @return array<string,mixed> status, attempts_left, retry_after and, when a set was just generated, backup_codes
      */
     public function profileConfirm(
         int $user_id,
@@ -420,8 +601,20 @@ class TwoFactorFlow
                 return $out;
             }
             $user = $this->readUser($user_id);
+            if ($action === 'backup') {
+                // 2026-11-05 07:27 +03: Task M2.2b, task 596. The old set stops working the moment the new one exists.
+                $out['backup_codes'] = $this->backup === null ? [] : $this->backup->generate($user_id);
+                $this->info('twofa.backup_regenerated', ['user_id' => $user_id]);
+                $out['status'] = 'ok';
+
+                return $out;
+            }
             if ($action === 'enable') {
                 $this->store->enable($user_id, $phone);
+                if ($this->staffType($user) && $this->backup !== null) {
+                    // 2026-11-05 07:27 +03: Task M2.2b, task 596. Shown once, right now, by the caller.
+                    $out['backup_codes'] = $this->backup->generate($user_id);
+                }
                 if ((string) $user['user_type'] === 'C') {
                     // The proof of possession also verifies the number in the index (P3-49).
                     $this->index->upsert($user_id, $phone, true);
@@ -429,6 +622,9 @@ class TwoFactorFlow
                 $this->info('twofa.enrolled', ['user_id' => $user_id, 'type' => (string) $user['user_type']]);
             } else {
                 $this->store->disable($user_id);
+                if ($this->backup !== null) {
+                    $this->backup->clear($user_id);
+                }
                 $this->info('twofa.disabled', ['user_id' => $user_id, 'type' => (string) $user['user_type']]);
             }
             $out['status'] = 'ok';
@@ -450,7 +646,7 @@ class TwoFactorFlow
     private function profilePhone(int $user_id, string $action, ?string &$refusal = null): string
     {
         $refusal = 'error';
-        if ($user_id <= 0 || ($action !== 'enable' && $action !== 'disable')) {
+        if ($user_id <= 0 || !in_array($action, ['enable', 'disable', 'backup'], true)) {
             return '';
         }
         $user = $this->readUser($user_id);
@@ -463,6 +659,17 @@ class TwoFactorFlow
         }
         $row = $this->store->row($user_id);
         $enabled = $row !== null && (string) $row['enabled'] === 'Y';
+        if ($action === 'backup') {
+            // 2026-11-05 07:27 +03: Task M2.2b, task 596. New backup codes are proved with a code to the enrolled
+            // phone.
+            if (!$enabled || !$this->staffType($user) || $this->backup === null) {
+                $refusal = 'off';
+
+                return '';
+            }
+
+            return (string) $row['phone'];
+        }
         if ($action === 'disable') {
             if (!$enabled) {
                 $refusal = 'off';
@@ -504,17 +711,23 @@ class TwoFactorFlow
      * @param array<string,mixed> $state
      * @param array<string,mixed> $user
      *
-     * @return array{status:string,attempts_left:int,retry_after:int,redirect:string}
+     * @return array<string,mixed>
      */
     private function complete(array $state, array $user, string $need, string $phone): array
     {
         $uid = (int) $user['user_id'];
+        $codes = [];
         if ($need === TwoFactorPolicy::ENROLL) {
             // Required, no row yet: the first correct code proves the number and enrols it (P3-49).
             $this->store->enable($uid, $phone);
             $this->info('twofa.enrolled', [
                 'user_id' => $uid, 'type' => (string) $user['user_type'], 'path' => 'login',
             ]);
+            // 2026-11-05 07:27 +03: Task M2.2b, task 596. An administrator or vendor administrator is shown the backup
+            // codes once.
+            if ($this->staffType($user) && $this->backup !== null) {
+                $codes = $this->backup->generate($uid);
+            }
         }
         $this->assignOrders($uid);
         // The done mark lets exactly this fn_login_user() through the hook; it is used up either way.
@@ -536,7 +749,12 @@ class TwoFactorFlow
         $env = $this->environment();
         $return = ReturnUrl::safe((string) $state['return_url'], $env['host'], '', $env['secure']);
 
-        return $this->answer('ok', 0, 0, $return !== '' ? $return : 'index.index');
+        $done = $this->answer('ok', 0, 0, $return !== '' ? $return : 'index.index');
+        if ($codes !== []) {
+            $done['backup_codes'] = $codes;
+        }
+
+        return $done;
     }
 
     /**
@@ -705,7 +923,7 @@ class TwoFactorFlow
     }
 
     /**
-     * @return array{status:string,attempts_left:int,retry_after:int,redirect:string}
+     * @return array<string,mixed> status, attempts_left, retry_after, redirect
      */
     private function answer(string $status, int $attempts_left = 0, int $retry_after = 0, string $redirect = ''): array
     {

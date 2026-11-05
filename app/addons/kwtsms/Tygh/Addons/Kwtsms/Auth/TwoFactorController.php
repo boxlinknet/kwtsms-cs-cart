@@ -19,6 +19,17 @@
  *            Views: addons/kwtsms/views/kwtsms_twofa/verify.tpl and profile.tpl (variables kwtsms_twofa, kwtsms_area).
  * DEPENDS:   Tygh::$app['kwtsms.twofa_flow'|'kwtsms.twofa_policy'|'session'|'view'], core fn_set_notification(),
  *            fn_add_breadcrumb() (storefront), the language variables kwtsms.twofa.* and kwtsms.code.*.
+ *
+ * 2026-11-05 07:29 +03: Task M2.2b (P3-52 (3), P3-49, (4)), task 596. Four more modes, none for the storefront (404 in
+ * area C):
+ *            backup             GET the code page for a backup code, POST kwtsms_code=<backup code> (anonymous, a
+ * pending
+ *                               second step is required; counted in the same wrong-attempt buckets as an SMS code)
+ *            backup_regenerate  POST kwtsms_code=<SMS code> (signed in): a new set of ten backup codes, shown once
+ *            reset              POST user_id=<target> (a root administrator with manage_kwtsms_gateway, never the own
+ *                               account): clears the target's second step and backup codes
+ *            cli_reset          console only (unchanged)
+ *            A page that shows backup codes is sent with Cache-Control: no-store and is never a redirect target.
  */
 
 namespace Tygh\Addons\Kwtsms\Auth;
@@ -27,7 +38,13 @@ use Tygh\Tygh;
 
 class TwoFactorController
 {
-    private const MODES = ['verify', 'send', 'cancel', 'profile', 'profile_send'];
+    // 2026-11-05 07:29 +03: Task M2.2b, task 596. backup, backup_regenerate and reset added.
+    private const MODES = [
+        'verify', 'send', 'cancel', 'profile', 'profile_send', 'backup', 'backup_regenerate', 'reset',
+    ];
+
+    /** 2026-11-05 07:29 +03: Task M2.2b, task 596. Modes the storefront does not have (customers have no backup codes). */
+    private const STAFF_ONLY = ['backup', 'backup_regenerate', 'reset'];
 
     /**
      * @param array<string,mixed> $request
@@ -53,7 +70,10 @@ class TwoFactorController
         if (!in_array($mode, self::MODES, true)) {
             return [CONTROLLER_STATUS_NO_PAGE];
         }
-        $post_only = $mode === 'send' || $mode === 'cancel' || $mode === 'profile_send';
+        if ($area === 'C' && in_array($mode, self::STAFF_ONLY, true)) {
+            return [CONTROLLER_STATUS_NO_PAGE];
+        }
+        $post_only = in_array($mode, ['send', 'cancel', 'profile_send', 'backup_regenerate', 'reset'], true);
         if ($post_only && $method !== 'POST') {
             return [CONTROLLER_STATUS_NO_PAGE];
         }
@@ -74,7 +94,10 @@ class TwoFactorController
             }
         }
         try {
-            if ($mode === 'profile' || $mode === 'profile_send') {
+            if ($mode === 'reset') {
+                return self::reset($area);
+            }
+            if ($mode === 'profile' || $mode === 'profile_send' || $mode === 'backup_regenerate') {
                 return self::profile($mode, $area, $method);
             }
 
@@ -83,7 +106,7 @@ class TwoFactorController
             fn_kwtsms_log_hook_error('kwtsms_twofa.' . $mode, $e);
             self::say('E', 'kwtsms.twofa.check_failed');
 
-            $own = $mode === 'profile' || $mode === 'profile_send';
+            $own = $mode === 'profile' || $mode === 'profile_send' || $mode === 'backup_regenerate';
 
             return [CONTROLLER_STATUS_REDIRECT, $own ? 'kwtsms_twofa.profile' : 'auth.login_form'];
         }
@@ -103,9 +126,14 @@ class TwoFactorController
             Tygh::$app['kwtsms.config'],
             Tygh::$app['kwtsms.twofa_store'],
             Tygh::$app['kwtsms.logs.debug']
-        );
+        ); // 2026-11-05 07:29 +03: Task M2.2b, task 596. The CLI's account lookup is its own (the users table).
         foreach ($cli->run($request) as $line) {
             echo $line . PHP_EOL;
+        }
+        // 2026-11-05 07:29 +03: Task M2.2b, task 596. A usage or error line is a failed command: the exit status says
+        // so.
+        if ($cli->status() !== 0) {
+            exit($cli->status());
         }
 
         return [CONTROLLER_STATUS_OK];
@@ -150,9 +178,10 @@ class TwoFactorController
         }
         if ($method === 'POST') {
             $typed = isset($_POST['kwtsms_code']) && is_string($_POST['kwtsms_code']) ? $_POST['kwtsms_code'] : '';
-            $r = $flow->submit($typed);
+            // 2026-11-05 07:29 +03: Task M2.2b, task 596. The backup-code page posts to the mode backup.
+            $r = $mode === 'backup' ? $flow->submitBackup($typed) : $flow->submit($typed);
 
-            return self::afterSubmit($r, $area);
+            return self::afterSubmit($r, $area, $mode);
         }
         if (defined('AREA') && AREA === 'C' && function_exists('fn_add_breadcrumb')) {
             fn_add_breadcrumb(__('kwtsms.twofa.title'));
@@ -160,21 +189,39 @@ class TwoFactorController
         $view = Tygh::$app['view'];
         $view->assign('kwtsms_twofa', $challenge);
         $view->assign('kwtsms_area', $area);
+        if ($mode === 'backup') {
+            // 2026-11-05 07:29 +03: Task M2.2b, task 596. The same page shell asks for a backup code.
+            $view->assign('kwtsms_backup_mode', true);
+            $view->assign('content_tpl', 'addons/kwtsms/views/kwtsms_twofa/verify.tpl');
+        }
 
         return null;
     }
 
     /**
-     * @param array{status:string,attempts_left:int,retry_after:int,redirect:string} $r
+     * @param array<string,mixed> $r
      *
-     * @return array<int,string>
+     * @return array<int,string>|null
      */
-    private static function afterSubmit(array $r, string $area): array
+    private static function afterSubmit(array $r, string $area, string $mode = 'verify'): ?array
     {
         switch ($r['status']) {
             case 'ok':
                 if ($area === 'C') {
                     fn_set_notification('N', (string) __('notice'), (string) __('successful_login'));
+                }
+                // 2026-11-05 07:29 +03: Task M2.2b, task 596. A first enrolment at sign-in shows the backup codes once,
+                // in this very
+                // response (nothing is stored or put in the session), and the way on is a link.
+                if (!empty($r['backup_codes']) && is_array($r['backup_codes'])) {
+                    self::showBackupCodes($r['backup_codes'], true);
+
+                    return null;
+                }
+                if (isset($r['backup_left']) && (int) $r['backup_left'] <= 3) {
+                    fn_set_notification('W', (string) __('warning'), __('kwtsms.twofa.backup_low', [
+                        '[n]' => fn_html_escape((string) (int) $r['backup_left']),
+                    ]));
                 }
 
                 return [CONTROLLER_STATUS_REDIRECT, $r['redirect'] !== '' ? $r['redirect'] : 'index.index'];
@@ -197,6 +244,10 @@ class TwoFactorController
             case 'malformed':
                 self::say('E', 'kwtsms.twofa.malformed');
                 break;
+            case 'no_backup':
+                self::say('E', 'kwtsms.twofa.backup_none');
+
+                return [CONTROLLER_STATUS_REDIRECT, 'kwtsms_twofa.verify'];
             case 'exhausted':
                 self::say('E', 'kwtsms.twofa.exhausted');
 
@@ -210,7 +261,7 @@ class TwoFactorController
                 self::say('E', 'kwtsms.twofa.check_failed');
         }
 
-        return [CONTROLLER_STATUS_REDIRECT, 'kwtsms_twofa.verify'];
+        return [CONTROLLER_STATUS_REDIRECT, $mode === 'backup' ? 'kwtsms_twofa.backup' : 'kwtsms_twofa.verify'];
     }
 
     // ------------------------------------------------------------------ opt-in and opt-out
@@ -233,6 +284,11 @@ class TwoFactorController
         }
         $action = isset($_POST['profile_action']) && is_string($_POST['profile_action'])
             ? $_POST['profile_action'] : '';
+        if ($mode === 'backup_regenerate') {
+            // 2026-11-05 07:29 +03: Task M2.2b, task 596. New backup codes: the action is fixed here, never read from
+            // the request.
+            $action = 'backup';
+        }
         if ($mode === 'profile_send') {
             $body = $flow->profileSend($user_id, $action);
             self::tellSend($body);
@@ -243,6 +299,12 @@ class TwoFactorController
             $typed = isset($_POST['kwtsms_code']) && is_string($_POST['kwtsms_code']) ? $_POST['kwtsms_code'] : '';
             $r = $flow->profileConfirm($user_id, $action, $typed);
             self::afterProfile($r, $action);
+            if ($r['status'] === 'ok' && !empty($r['backup_codes']) && is_array($r['backup_codes'])) {
+                // Shown once, in this response; a reload posts the used-up code again and shows nothing.
+                self::showBackupCodes($r['backup_codes'], false);
+
+                return null;
+            }
 
             return [CONTROLLER_STATUS_REDIRECT, 'kwtsms_twofa.profile'];
         }
@@ -257,15 +319,15 @@ class TwoFactorController
     }
 
     /**
-     * @param array{status:string,attempts_left:int,retry_after:int} $r
+     * @param array<string,mixed> $r
      */
     private static function afterProfile(array $r, string $action): void
     {
         switch ($r['status']) {
             case 'ok':
-                fn_set_notification('N', (string) __('notice'), fn_html_escape((string) __(
-                    $action === 'enable' ? 'kwtsms.twofa.turned_on' : 'kwtsms.twofa.turned_off'
-                )));
+                $notice = $action === 'enable' ? 'kwtsms.twofa.turned_on'
+                    : ($action === 'backup' ? 'kwtsms.twofa.backup_new' : 'kwtsms.twofa.turned_off');
+                fn_set_notification('N', (string) __('notice'), fn_html_escape((string) __($notice)));
                 break;
             case 'wrong':
                 fn_set_notification('E', (string) __('error'), __('kwtsms.code.blind_wrong', [
@@ -298,6 +360,73 @@ class TwoFactorController
             default:
                 self::say('E', 'kwtsms.twofa.check_failed');
         }
+    }
+
+    // ------------------------------------------------------------------ backup codes and the reset of another account
+
+    /**
+     * 2026-11-05 07:29 +03: Task M2.2b, task 596. Shows the plain codes in this response only: no-store headers, a page
+     * of its own.
+     *
+     * @param array<int,string> $codes
+     */
+    private static function showBackupCodes(array $codes, bool $after_login): void
+    {
+        if (!headers_sent()) {
+            header('Cache-Control: no-store, no-cache, must-revalidate');
+            header('Pragma: no-cache');
+        }
+        $view = Tygh::$app['view'];
+        $view->assign('kwtsms_backup_codes', array_values(array_map('strval', $codes)));
+        $view->assign('kwtsms_backup_after_login', $after_login);
+        $view->assign('content_tpl', 'addons/kwtsms/views/kwtsms_twofa/backup_codes.tpl');
+    }
+
+    /**
+     * 2026-11-05 07:29 +03: Task M2.2b (P3-49), task 596. POST kwtsms_twofa.reset: a root administrator with
+     * manage_kwtsms_gateway clears
+     * ANOTHER account's second step. The actor is the signed-in account (session), the target the request's user_id.
+     *
+     * @return array<int,string>
+     */
+    private static function reset(string $area): array
+    {
+        $session = Tygh::$app['session'];
+        $auth = isset($session['auth']) && is_array($session['auth']) ? $session['auth'] : [];
+        $actor = (int) ($auth['user_id'] ?? 0);
+        $raw_target = isset($_REQUEST['user_id']) && is_scalar($_REQUEST['user_id'])
+            ? (string) $_REQUEST['user_id'] : '';
+        $target = ctype_digit($raw_target) ? (int) $raw_target : 0;
+        $back = $target > 0 ? 'profiles.update?user_id=' . $target : 'index.index';
+        if ($actor <= 0 || (string) ($auth['area'] ?? '') !== $area) {
+            return [CONTROLLER_STATUS_REDIRECT, 'auth.login_form'];
+        }
+        if (fn_check_current_user_access('manage_kwtsms_gateway') !== true) {
+            return [CONTROLLER_STATUS_DENIED];
+        }
+        $status = Tygh::$app['kwtsms.twofa_flow']->reset($actor, $target);
+        if ($status === 'ok') {
+            self::say('N', 'kwtsms.twofa.reset_done');
+            try {
+                Tygh::$app['kwtsms.alerts']->raise(
+                    'twofa_reset',
+                    ['[user]' => (string) $target],
+                    false,
+                    0,
+                    (string) $target
+                );
+            } catch (\Throwable $e) {
+                fn_kwtsms_log_hook_error('kwtsms_twofa.reset_alert', $e);
+            }
+        } elseif ($status === 'self') {
+            self::say('E', 'kwtsms.twofa.reset_self');
+        } elseif ($status === 'not_root') {
+            return [CONTROLLER_STATUS_DENIED];
+        } else {
+            self::say('E', 'kwtsms.twofa.reset_failed');
+        }
+
+        return [CONTROLLER_STATUS_REDIRECT, $back];
     }
 
     // ------------------------------------------------------------------ small helpers
