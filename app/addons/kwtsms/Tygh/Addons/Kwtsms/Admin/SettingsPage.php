@@ -425,6 +425,11 @@ class SettingsPage
             // many accounts have a number verified by a code ("Sign-in ... work only for numbers verified by a code").
             'login_code' => $this->config->loginCode() ? 'Y' : 'N',
             'login_verified' => $this->config->loginCode() ? $this->verifiedAccounts() : 0,
+            // 2026-11-05 16:30 +03: Task M2.3 (B4, P3-58), task 596. The recovery code switch; the verified count of
+            // the note is the one the sign-in switch shows (shown while either is ON).
+            'recover_code' => $this->config->recoverCode() ? 'Y' : 'N',
+            'signin_verified' => $this->config->loginCode() || $this->config->recoverCode()
+                ? $this->verifiedAccounts() : 0,
             // 2026-11-04 22:49 +03: Task M2.2a (B3, P3-48), task 596. The two-step sign-in switches (off | optional |
             // required), the
             // edition (vendors exist in Multi-Vendor only) and whether the break-glass constant is set.

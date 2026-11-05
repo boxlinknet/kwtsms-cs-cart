@@ -7110,3 +7110,41 @@ msgstr "Some vendor administrators have no mobile number. Tick the box to confir
 msgctxt "Languages::kwtsms.settings.twofa_vend.error"
 msgid "Required for vendors could not be checked, so nothing was changed. Try again."
 msgstr "Required for vendors could not be checked, so nothing was changed. Try again."
+
+# 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4, P3-53), task 596. Recovery by an SMS code: the login form link, the page, the
+# failure text and the Settings field.
+msgctxt "Languages::kwtsms.recover.link"
+msgid "Forgot your password? Use your mobile number"
+msgstr "Forgot your password? Use your mobile number"
+
+msgctxt "Languages::kwtsms.recover.title"
+msgid "Recover your account with your mobile number"
+msgstr "Recover your account with your mobile number"
+
+msgctxt "Languages::kwtsms.recover.intro"
+msgid "Enter your mobile number and ask for a code, then type the code below. You can then choose a new password."
+msgstr "Enter your mobile number and ask for a code, then type the code below. You can then choose a new password."
+
+msgctxt "Languages::kwtsms.recover.submit"
+msgid "Verify and continue"
+msgstr "Verify and continue"
+
+msgctxt "Languages::kwtsms.recover.email_link"
+msgid "Reset your password by email instead"
+msgstr "Reset your password by email instead"
+
+msgctxt "Languages::kwtsms.recover.failed"
+msgid "We could not start the recovery. Try again in a few minutes."
+msgstr "We could not start the recovery. Try again in a few minutes."
+
+msgctxt "Languages::kwtsms.settings.field.recover_code"
+msgid "Recovery by an SMS code"
+msgstr "Recovery by an SMS code"
+
+msgctxt "Languages::kwtsms.settings.recover_code_label"
+msgid "Let customers recover their account with a verified mobile number and an SMS code"
+msgstr "Let customers recover their account with a verified mobile number and an SMS code"
+
+msgctxt "Languages::kwtsms.settings.recover_code_help"
+msgid "When on, the login form links to a page where a customer asks for a code on a mobile number and then sets a new password. Only active customer accounts whose number was verified by a code can use it. The page never says whether a number has an account. The email reset stays as it is."
+msgstr "When on, the login form links to a page where a customer asks for a code on a mobile number and then sets a new password. Only active customer accounts whose number was verified by a code can use it. The page never says whether a number has an account. The email reset stays as it is."

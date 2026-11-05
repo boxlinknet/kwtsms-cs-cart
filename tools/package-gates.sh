@@ -158,7 +158,12 @@ auth_controller_check() {
   grep -q "http_response_code(405)" "$f" || echo "no 405 answer"
   grep -q "http_response_code(403)" "$f" || echo "no 403 answer"
   grep -q "ReturnUrl::safe" "$f" || echo "return_url is not checked"
-  for t in views/kwtsms_auth/login.tpl hooks/index/login_buttons.post.tpl; do
+  # 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4), task 596. The recovery by code mode has its own switch check in the
+  # same controller and its two pages ship in both trees; the recovery key is a session-bound core key (RecoverByCode).
+  grep -q 'recoverCode()' "$f" || echo "no recovery switch check"
+  [ -f "$A/Tygh/Addons/Kwtsms/Auth/RecoverByCode.php" ] || echo "Auth/RecoverByCode.php missing"
+  grep -q 'keyUsableInSession' "$A/controllers/common/auth.pre.php" || echo "auth.pre.php does not guard bound recovery keys"
+  for t in views/kwtsms_auth/login.tpl views/kwtsms_auth/recover.tpl views/kwtsms_auth/recover_continue.tpl hooks/index/login_buttons.post.tpl; do
     [ -f "$src/design/themes/responsive/templates/addons/kwtsms/$t" ] || echo "template $t missing"
     [ -f "$src/var/themes_repository/responsive/templates/addons/kwtsms/$t" ] || echo "repository copy of $t missing"
   done

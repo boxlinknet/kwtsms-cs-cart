@@ -769,6 +769,16 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                 </div>
                 {/if}
             </fieldset>
+            {* 2026-11-05 16:34 +03: Task M2.3 (SafatMall B4, P3-58), task 596. The recovery by code switch (default OFF), saved with the same form through update_codes. While it is ON the same verified-accounts count is shown: only those accounts can recover with a code. *}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.recover_code")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[recover_code]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_recover_code" name="kwtsms_codes[recover_code]" value="Y"{if $kwtsms.codes.recover_code == "Y"} checked="checked"{/if} aria-describedby="kwtsms_recover_code_help"> {__("kwtsms.settings.recover_code_label")}</label>
+                    <p class="muted description" id="kwtsms_recover_code_help">{__("kwtsms.settings.recover_code_help")}</p>
+                    {if $kwtsms.codes.recover_code == "Y"}<p class="description" id="kwtsms_recover_verified_note" role="status">{__("kwtsms.settings.signin_verified_note", ["[n]" => $kwtsms.codes.signin_verified|fn_html_escape])}</p>{/if}
+                </div>
+            </div>
             <div class="control-group">
                 <div class="controls kwtsms-actions">
                     <input type="submit" class="btn btn-primary" id="kwtsms_signin_save" name="dispatch[kwtsms.update_codes]" value="{__("kwtsms.settings.signin_save")}">

@@ -45,6 +45,7 @@ use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\SuspicionGate; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Codes\CodeRequest; // 2026-10-24 23:51 +03: Task M1.8a, task 596
 use Tygh\Addons\Kwtsms\Auth\LoginByCode; // 2026-11-04 19:12 +03: Task M2.1, task 596
+use Tygh\Addons\Kwtsms\Auth\RecoverByCode; // 2026-11-05 16:27 +03: Task M2.3, task 596
 // 2026-11-04 22:44 +03: Task M2.2a, task 596. The second-step classes.
 use Tygh\Addons\Kwtsms\Auth\AdminTwoFactorGuard; // 2026-11-05 07:28 +03: Task M2.2b, task 596
 use Tygh\Addons\Kwtsms\Auth\BackupCodes; // 2026-11-05 07:28 +03: Task M2.2b, task 596
@@ -499,6 +500,23 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.phone_index'],
                 $app['kwtsms.otp'],
                 $app['kwtsms.blind_code_request'],
+                null,
+                null,
+                $app['kwtsms.logs.debug']
+            );
+        };
+        // 2026-11-05 16:27 +03: Task M2.3 (SafatMall B4, P3-53), task 596. The recovery by code: blind verify, the core
+        // recovery key bound to the session, the 2FA done mark. Built after the 2FA services it reads.
+        $app['kwtsms.recover_by_code'] = function (Container $app): RecoverByCode {
+            return new RecoverByCode(
+                $app['kwtsms.config'],
+                $app['kwtsms.phone_rules'],
+                $app['kwtsms.phone_index'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.blind_code_request'],
+                $app['kwtsms.twofa_store'],
+                $app['kwtsms.twofa_pending'],
+                null,
                 null,
                 null,
                 $app['kwtsms.logs.debug']

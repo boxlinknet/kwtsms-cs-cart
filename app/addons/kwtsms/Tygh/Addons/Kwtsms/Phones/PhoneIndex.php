@@ -68,8 +68,10 @@ class PhoneIndex
         // 2026-11-04 22:49 +03: Task M2.2a (P3-58), task 596. twofa_customers != off joins (a customer's opt-in marks
         // the number
         // verified in the index, and the sign-in by code asks the 2FA policy).
+        // 2026-11-05 16:28 +03: Task M2.3 (P3-58), task 596. recover_code joins (recovery by code reads the verified
+        // column).
         return $config->phoneUnique() || $config->registerCode() || $config->phoneChangeCode() || $config->loginCode()
-            || $config->twofaCustomers() !== 'off';
+            || $config->recoverCode() || $config->twofaCustomers() !== 'off';
     }
 
     public function active(): bool

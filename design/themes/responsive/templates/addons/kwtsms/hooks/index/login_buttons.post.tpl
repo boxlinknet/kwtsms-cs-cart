@@ -19,3 +19,9 @@
         <a class="ty-login-reglink__a" style="color: #1a56c4; text-decoration: underline;" href="{"kwtsms_auth.login?return_url=`$kwtsms_back`"|fn_url}" rel="nofollow">{__("kwtsms.login.link")|fn_html_escape}</a>
     </div>
 {/if}
+{* 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4), task 596. While recover_code is ON a second link points to the recovery by mobile number page; same colour and underline as the link above (AA contrast, 6.4:1 on white). *}
+{if ""|fn_kwtsms_recover_code_on}
+    <div class="ty-login-reglink ty-center kwtsms-recover-link">
+        <a class="ty-login-reglink__a" style="color: #1a56c4; text-decoration: underline;" href="{"kwtsms_auth.recover"|fn_url}" rel="nofollow">{__("kwtsms.recover.link")|fn_html_escape}</a>
+    </div>
+{/if}

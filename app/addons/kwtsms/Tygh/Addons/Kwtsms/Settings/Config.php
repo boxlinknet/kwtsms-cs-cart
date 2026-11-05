@@ -200,6 +200,8 @@ class Config implements ConfigInterface
             'login_code',
             // 2026-11-04 22:49 +03: Task M2.2a (SafatMall B3, P3-48), task 596. The three two-step sign-in switches.
             'twofa_customers', 'twofa_vendors', 'twofa_admins',
+            // 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4), task 596. Recovery by an SMS code.
+            'recover_code',
         ],
     ];
 

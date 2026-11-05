@@ -26,6 +26,31 @@ defined('BOOTSTRAP') or die('Access denied');
 /** @var string $mode */
 /** @var array<string,mixed> $auth */
 
+// 2026-11-05 16:38 +03: Task M2.3 (P3-53), task 596. A recovery key handed over by the recovery by code is bound to the
+// session that proved the phone: core's recovery login (auth.recover_password with an ekey, auth.ekey_login) refuses
+// it from any other session with core's own "not valid" text, before core reads or deletes it. A key without a
+// binding (the e-mail link, the 1.1.0 SMS link) and an unknown key are left to core exactly as before.
+if (
+    AREA === 'C'
+    && ($mode === 'recover_password' || $mode === 'ekey_login')
+    && isset($_REQUEST['ekey']) && is_string($_REQUEST['ekey']) && $_REQUEST['ekey'] !== ''
+) {
+    try {
+        $kwtsms_usable = Tygh::$app['kwtsms.recover_by_code']->keyUsableInSession(
+            $_REQUEST['ekey'],
+            \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash()
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('auth.pre.recover_key', $e);
+        $kwtsms_usable = true;
+    }
+    if (!$kwtsms_usable) {
+        fn_set_notification('E', __('error'), __('text_ekey_not_valid'));
+
+        return [CONTROLLER_STATUS_REDIRECT, 'auth.recover_password'];
+    }
+}
+
 if ($mode !== 'login' || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     return;
 }

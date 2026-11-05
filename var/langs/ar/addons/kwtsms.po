@@ -7115,3 +7115,41 @@ msgstr "بعض مديري البائعين بلا رقم جوال. ضع علام
 msgctxt "Languages::kwtsms.settings.twofa_vend.error"
 msgid "Required for vendors could not be checked, so nothing was changed. Try again."
 msgstr "تعذّر التحقق من خيار الإلزام للبائعين فلم يتغير شيء. أعد المحاولة."
+
+# 2026-11-05 16:38 +03: Task M2.3 (SafatMall B4, P3-53), task 596. Recovery by an SMS code: the login form link, the page, the
+# failure text and the Settings field.
+msgctxt "Languages::kwtsms.recover.link"
+msgid "Forgot your password? Use your mobile number"
+msgstr "نسيت كلمة المرور؟ استخدم رقم جوالك"
+
+msgctxt "Languages::kwtsms.recover.title"
+msgid "Recover your account with your mobile number"
+msgstr "استعادة حسابك برقم الجوال"
+
+msgctxt "Languages::kwtsms.recover.intro"
+msgid "Enter your mobile number and ask for a code, then type the code below. You can then choose a new password."
+msgstr "أدخل رقم جوالك واطلب رمزاً، ثم اكتب الرمز أدناه. بعدها تستطيع اختيار كلمة مرور جديدة."
+
+msgctxt "Languages::kwtsms.recover.submit"
+msgid "Verify and continue"
+msgstr "تحقق ومتابعة"
+
+msgctxt "Languages::kwtsms.recover.email_link"
+msgid "Reset your password by email instead"
+msgstr "إعادة تعيين كلمة المرور بالبريد الإلكتروني بدلاً من ذلك"
+
+msgctxt "Languages::kwtsms.recover.failed"
+msgid "We could not start the recovery. Try again in a few minutes."
+msgstr "تعذّر بدء الاستعادة. حاول مرة أخرى بعد دقائق."
+
+msgctxt "Languages::kwtsms.settings.field.recover_code"
+msgid "Recovery by an SMS code"
+msgstr "الاستعادة برمز SMS"
+
+msgctxt "Languages::kwtsms.settings.recover_code_label"
+msgid "Let customers recover their account with a verified mobile number and an SMS code"
+msgstr "السماح للعملاء باستعادة حساباتهم برقم جوال متحقق منه ورمز SMS"
+
+msgctxt "Languages::kwtsms.settings.recover_code_help"
+msgid "When on, the login form links to a page where a customer asks for a code on a mobile number and then sets a new password. Only active customer accounts whose number was verified by a code can use it. The page never says whether a number has an account. The email reset stays as it is."
+msgstr "عند التفعيل يحتوي نموذج تسجيل الدخول على رابط إلى صفحة يطلب فيها العميل رمزاً على رقم جوال ثم يعيّن كلمة مرور جديدة. يستطيع استخدامها فقط أصحاب حسابات العملاء النشطة التي تم التحقق من رقمها برمز. لا تذكر الصفحة أبداً ما إذا كان الرقم مرتبطاً بحساب. تبقى إعادة التعيين بالبريد الإلكتروني كما هي."

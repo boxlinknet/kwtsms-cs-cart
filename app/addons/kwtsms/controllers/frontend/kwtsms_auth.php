@@ -42,14 +42,16 @@ if ($kwtsms_method !== 'GET' && $kwtsms_method !== 'POST') {
     }
     exit;
 }
-if ($mode !== 'login') {
+// 2026-11-05 16:36 +03: Task M2.3 (SafatMall B4), task 596. The mode recover (account recovery by an SMS code) shares
+// the verb, switch and hash checks of the mode login; each mode has its own switch.
+if ($mode !== 'login' && $mode !== 'recover') {
     return [CONTROLLER_STATUS_NO_PAGE];
 }
 
 $kwtsms_app = Tygh::$app;
 $kwtsms_config = $kwtsms_app['kwtsms.config'];
 // The feature OFF: 404 for both verbs.
-if (!$kwtsms_config->loginCode()) {
+if ($mode === 'recover' ? !$kwtsms_config->recoverCode() : !$kwtsms_config->loginCode()) {
     return [CONTROLLER_STATUS_NO_PAGE];
 }
 $kwtsms_session = $kwtsms_app['session'];
@@ -75,6 +77,86 @@ if ($kwtsms_method === 'POST') {
 // A signed-in customer has nothing to do here.
 if (!empty($kwtsms_auth['user_id'])) {
     return [CONTROLLER_STATUS_REDIRECT, 'index.index'];
+}
+
+// 2026-11-05 16:36 +03: Task M2.3 (P3-53), task 596. The recovery by code: GET shows the page, POST checks the code
+// blind (Auth\RecoverByCode) and answers with the page "Continue" that holds the core recovery key in a hidden field
+// of a POST form (never in a URL, the session, a log or a redirect); every other result goes back to the page.
+if ($mode === 'recover') {
+    $kwtsms_phone = '';
+    if ($kwtsms_method === 'POST') {
+        $kwtsms_phone = isset($_POST['phone']) && is_string($_POST['phone']) ? $_POST['phone'] : '';
+        $kwtsms_code = isset($_POST['kwtsms_code']) && is_string($_POST['kwtsms_code']) ? $_POST['kwtsms_code'] : '';
+        try {
+            $kwtsms_storefront = isset($kwtsms_app['storefront']) ? $kwtsms_app['storefront'] : null;
+            $kwtsms_result = $kwtsms_app['kwtsms.recover_by_code']->complete(
+                $kwtsms_phone,
+                $kwtsms_code,
+                CodeRequest::sessionHash(),
+                ClientIp::current(),
+                is_object($kwtsms_storefront) && isset($kwtsms_storefront->storefront_id)
+                    ? (int) $kwtsms_storefront->storefront_id : 0
+            );
+        } catch (\Throwable $e) {
+            fn_kwtsms_log_hook_error('kwtsms_auth.recover', $e);
+            $kwtsms_result = ['status' => 'error', 'ekey' => '', 'attempts_left' => 0, 'retry_after' => 0];
+        }
+
+        if ($kwtsms_result['status'] === 'ok' && $kwtsms_result['ekey'] !== '') {
+            // The key is on this one answer only: not cacheable, no Referer, assigned to the template and nowhere else.
+            if (!headers_sent()) {
+                header('Cache-Control: no-store, no-cache, must-revalidate, private');
+                header('Pragma: no-cache');
+                header('Referrer-Policy: no-referrer');
+            }
+            fn_add_breadcrumb(__('kwtsms.recover.title'));
+            $kwtsms_app['view']->assign('kwtsms_ekey', $kwtsms_result['ekey']);
+            $kwtsms_app['view']->assign(
+                'content_tpl',
+                'addons/kwtsms/views/kwtsms_auth/recover_continue.tpl'
+            );
+            unset($kwtsms_result, $kwtsms_code);
+
+            return [CONTROLLER_STATUS_OK];
+        }
+        switch ($kwtsms_result['status']) {
+            case 'off':
+                return [CONTROLLER_STATUS_NO_PAGE];
+            case 'wrong':
+                fn_set_notification('E', __('error'), __('kwtsms.code.blind_wrong', [
+                    '[n]' => fn_html_escape((string) (int) $kwtsms_result['attempts_left']),
+                ]));
+                break;
+            case 'locked':
+                fn_set_notification('E', __('error'), __('kwtsms.code.locked', [
+                    '[minutes]' => fn_html_escape((string) (int) ceil(max(1, $kwtsms_result['retry_after']) / 60)),
+                ]));
+                break;
+            case 'ip_limited':
+                fn_set_notification('E', __('error'), __('kwtsms.code.ip_limited'));
+                break;
+            case 'malformed':
+                fn_set_notification('E', __('error'), __('kwtsms.login.enter_both'));
+                break;
+            case 'limit':
+                // The core text of a recovery that already has its keys (fn.users.php:4291-4295).
+                fn_set_notification('W', __('warning'), __('error_count_recover_password_ekeys'));
+                break;
+            default:
+                fn_set_notification('E', __('error'), __('kwtsms.recover.failed'));
+        }
+        $kwtsms_session['kwtsms_login_phone'] = $kwtsms_phone;
+
+        return [CONTROLLER_STATUS_REDIRECT, 'kwtsms_auth.recover'];
+    }
+    if (isset($kwtsms_session['kwtsms_login_phone'])) {
+        $kwtsms_phone = is_string($kwtsms_session['kwtsms_login_phone']) ? $kwtsms_session['kwtsms_login_phone'] : '';
+        unset($kwtsms_session['kwtsms_login_phone']);
+    }
+    fn_add_breadcrumb(__('kwtsms.recover.title'));
+    $kwtsms_app['view']->assign('kwtsms_phone', $kwtsms_phone);
+
+    return;
 }
 
 $kwtsms_return = ReturnUrl::safe(
