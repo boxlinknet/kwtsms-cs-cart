@@ -260,8 +260,10 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   turns one switch off). The command prints one line per change and exits non-zero on a bad option or an unknown
   account; on the web the mode answers 404 whatever the session.
 - Backup codes (administrators and vendor administrators; 2026-11-05 08:11 +03, task 596): ten one-time codes are shown once when the
-  second step is turned on, stored only as salted hashes, counted in the same wrong-attempt limits as an SMS code, and
-  replaced as a set from the own two-step page after a code. An enrolled administrator signs in with one while the code
+  second step is turned on, stored only as salted hashes, and
+  replaced as a set from the own two-step page after a code. Wrong backup codes have a limit of their own (per address
+  and account; 2026-11-05 11:38 +03, review I2): SMS-code failures never block them, and ten wrong ones for one account
+  within an hour raise the bell alert twofa_backup_guessing. An enrolled administrator signs in with one while the code
   SMS cannot be sent (empty balance, gateway down).
 - "Required for administrators" asks for a code sent to your own mobile number and a tick when administrators without a
   mobile number exist. Such an administrator is refused ("Ask a store administrator to add your mobile number"); only

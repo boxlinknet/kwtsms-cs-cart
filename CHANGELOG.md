@@ -34,14 +34,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 <!-- 2026-11-05 08:11 +03: Task M2.2b, task 596 -->
 - Backup codes for administrators and vendor administrators: ten one-time codes, shown once, stored only as salted
-  hashes, counted in the same wrong-attempt limits as an SMS code, replaced as a set after a code. They sign in an
-  enrolled administrator while the code SMS cannot be sent.
+  hashes, replaced as a set after a code. They sign in an enrolled administrator while the code SMS cannot be sent.
+  <!-- 2026-11-05 11:38 +03: Task M2.2b fix 1 (review I2, M1, M3), task 596 -->
+  Wrong backup codes are counted in a limit of their own (per address and account), so SMS-code failures never block
+  them; ten wrong backup codes for one account within an hour raise the bell alert twofa_backup_guessing. The root
+  administrator who saves Required is enrolled on the phone the code proved and is shown ten backup codes at once.
 - "Required" for administrators and vendors (Settings > Sign-in and security). For administrators it asks for a code
   sent to the saver's own mobile number and a tick when administrators without a mobile number exist; the list is shown.
   Under Required an account without a mobile number is refused, except the last root administrator, who is let in with
   the password only and an alert (twofa_degraded). The alerts twofa_disabled_by_config and twofa_reset, and a "Reset the
   second step" button for a root administrator on another account's profile, were added.
 - A second-step code to an administrator or vendor is no longer blocked by the list of allowed customer countries.
+<!-- 2026-11-05 11:38 +03: Task M2.2b fix 1 (review I1, M2, M3), task 596 -->
+- Core's add-on settings form and the REST settings entity can no longer change the three two-step switches; only the
+  guarded save on the kwtSMS Settings page does. Saving Required for vendors lists the vendor administrators without a
+  mobile number (name and company) and needs a tick. The console reset raises the twofa_reset alert (bell and e-mail)
+  like the web reset.
 
 ### Notes
 
