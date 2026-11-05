@@ -1076,7 +1076,11 @@ class SmsService
         $coverage = $this->state->coverage();
         foreach ($this->open($rcpt) as $i) {
             $cc = (string) PhoneNormalizer::countryCode($rcpt[$i]['phone']);
-            if ($context['receiver'] === 'C' && !in_array($cc, $allowed, true)) {
+            // 2026-11-05 07:46 +03: Task M2.2b (P3-52), task 596. A staff second-step code is not a customer message:
+            // the list of allowed customer countries does not apply, or an administrator with a number of another
+            // country would be told "sent" and never get the code.
+            $staff = ($context['staff_code'] ?? '') === '1';
+            if ($context['receiver'] === 'C' && !$staff && !in_array($cc, $allowed, true)) {
                 $rcpt[$i] = $this->decided($rcpt[$i], 'blocked_country', 'country_' . ($cc === '' ? 'unknown' : $cc));
                 continue;
             }
