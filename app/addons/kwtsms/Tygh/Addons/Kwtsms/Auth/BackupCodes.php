@@ -76,7 +76,11 @@ class BackupCodes
             $this->insertRow($user_id, $hash, $salt, $now);
         }
 
-        return array_map(static function (string $code): string {
+        // 2026-11-05 11:25 +03: Task M2.2b fix 1 (review M4), task 596: the plain code is kept out of stack traces.
+        return array_map(static function (
+            #[\SensitiveParameter]
+            string $code
+        ): string {
             return substr($code, 0, 5) . '-' . substr($code, 5);
         }, array_values($plain));
     }

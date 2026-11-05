@@ -405,7 +405,11 @@ class TwoFactorFlow
                 self::subject($uid, $phone),
                 $code,
                 $env['ip'],
-                static function (string $normalized) use ($backup, $uid): bool {
+                // 2026-11-05 11:25 +03: Task M2.2b fix 1 (review M4), task 596: the code is kept out of stack traces.
+                static function (
+                    #[\SensitiveParameter]
+                    string $normalized
+                ) use ($backup, $uid): bool {
                     return $backup->use($uid, $normalized);
                 }
             );
