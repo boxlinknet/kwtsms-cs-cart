@@ -48,6 +48,9 @@ class TwoFactorCli
     /** @var callable|null (int $user_id): bool */
     private $exists;
 
+    /** @var callable|null 2026-11-05 11:27 +03: Task M2.2b fix 1 (review M3), task 596. (int $user_id): void, after a clear */
+    private $on_reset;
+
     /** @var int */
     private $status = 0;
 
@@ -55,8 +58,10 @@ class TwoFactorCli
         ConfigInterface $config,
         TwoFactorStore $store,
         ?DebugLog $log = null,
-        ?callable $exists = null
+        ?callable $exists = null,
+        ?callable $on_reset = null
     ) {
+        $this->on_reset = $on_reset;
         $this->config = $config;
         $this->store = $store;
         $this->log = $log;
@@ -96,6 +101,15 @@ class TwoFactorCli
                 $this->store->delete((int) $user_id);
                 $lines[] = 'kwtsms_twofa: account ' . $user_id . ': 2FA cleared';
                 $this->debug(['user_id' => (int) $user_id]);
+                // 2026-11-05 11:27 +03: Task M2.2b fix 1 (review M3), task 596. The web reset tells the administrators
+                // (twofa_reset); the console reset does too. A failing alert never changes the reset or its status.
+                if ($this->on_reset !== null) {
+                    try {
+                        call_user_func($this->on_reset, (int) $user_id);
+                    } catch (\Throwable $e) {
+                        $this->debug(['user_id' => (int) $user_id, 'alert_failed' => get_class($e)]);
+                    }
+                }
             }
         }
         if ($types !== '') {

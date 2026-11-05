@@ -125,7 +125,13 @@ class TwoFactorController
         $cli = new TwoFactorCli(
             Tygh::$app['kwtsms.config'],
             Tygh::$app['kwtsms.twofa_store'],
-            Tygh::$app['kwtsms.logs.debug']
+            Tygh::$app['kwtsms.logs.debug'],
+            null,
+            // 2026-11-05 11:27 +03: Task M2.2b fix 1 (review M3), task 596. The console reset raises twofa_reset like the
+            // web reset (bell), with an e-mail too: nobody is signed in to explain who did it.
+            static function (int $cleared): void {
+                Tygh::$app['kwtsms.alerts']->raise('twofa_reset', ['[user]' => (string) $cleared], true, 0, (string) $cleared);
+            }
         ); // 2026-11-05 07:29 +03: Task M2.2b, task 596. The CLI's account lookup is its own (the users table).
         foreach ($cli->run($request) as $line) {
             echo $line . PHP_EOL;
