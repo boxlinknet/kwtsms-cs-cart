@@ -962,6 +962,35 @@ function fn_kwtsms_twofa_drop_login_notice()
 }
 
 /**
+ * 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. Hook settings_update_value_by_id_pre (Tygh\Settings::
+ * updateValueById, 10 arguments). Core's add-on settings form (addons.update -> fn_update_addon) and the REST settings
+ * entity reach the three hidden 2FA switches with no check; their stored value is kept unless the write came through
+ * the add-on's own guarded save (CsCartSettingsBackend::write). Any failure here keeps core's behaviour out of the way:
+ * it is logged, never thrown.
+ *
+ * @param mixed               $settings          Settings instance (unused)
+ * @param mixed               $object_id         Unused
+ * @param mixed               $value             Unused
+ * @param mixed               $company_id        Unused
+ * @param mixed               $execute_functions Unused
+ * @param array<string,mixed> $data              Row to be written (by reference)
+ * @param array<string,mixed> $old_data          Stored object
+ */
+function fn_kwtsms_settings_update_value_by_id_pre(&$settings = null, &$object_id = null, &$value = null, &$company_id = null, &$execute_functions = null, &$data = [], &$old_data = [])
+{
+    if (fn_kwtsms_hook_args_missing('settings_update_value_by_id_pre', func_num_args(), 7)) {
+        return;
+    }
+    try {
+        if (is_array($data) && is_array($old_data)) {
+            \Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend::holdTwoFactorSwitch($data, $old_data);
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('settings_update_value_by_id_pre', $e);
+    }
+}
+
+/**
  * 2026-11-04 22:45 +03: Task M2.2a (SafatMall B3, P3-50), task 596. Hook login_user_pre (fn.users.php:3550), the second
  * net of the
  * second step: every fn_login_user() caller that is not the password form (recovery key, e-mail one-time password,

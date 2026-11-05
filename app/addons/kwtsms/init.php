@@ -76,7 +76,10 @@ fn_register_hooks(
     // 2026-11-04 22:45 +03: Task M2.2a (SafatMall B3, P3-50), task 596. The second step of the sign-in: every
     // fn_login_user() caller
     // that is not the password form passes this hook; it changes nothing while the 2FA switches are off.
-    'login_user_pre'
+    'login_user_pre',
+    // 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. Core's add-on settings form and the REST settings
+    // entity cannot move the three 2FA switches (only the guarded save of the Settings page can).
+    'settings_update_value_by_id_pre'
 );
 ServiceProvider::extendNotifications(Tygh::$app);
 
