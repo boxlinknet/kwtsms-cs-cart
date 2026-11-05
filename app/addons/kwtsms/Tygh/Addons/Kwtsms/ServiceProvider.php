@@ -535,8 +535,8 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.twofa_backup_watch']
             );
         };
-        // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. Counts wrong backup codes per account and raises
-        // the twofa_backup_guessing alert at the 10th within an hour.
+        // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. Counts wrong backup codes per account and
+        // raises the twofa_backup_guessing alert at the 10th within an hour.
         $app['kwtsms.twofa_backup_watch'] = function (Container $app): BackupFailureWatch {
             return new BackupFailureWatch($app['kwtsms.rate_limiter']);
         };

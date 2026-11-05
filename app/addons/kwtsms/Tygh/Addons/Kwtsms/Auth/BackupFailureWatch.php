@@ -55,7 +55,8 @@ class BackupFailureWatch
             if ($this->alert !== null) {
                 call_user_func($this->alert, 'twofa_backup_guessing', $params, false, self::WINDOW, (string) $user_id);
             } else {
-                \Tygh\Tygh::$app['kwtsms.alerts']->raise('twofa_backup_guessing', $params, false, self::WINDOW, (string) $user_id);
+                \Tygh\Tygh::$app['kwtsms.alerts']
+                    ->raise('twofa_backup_guessing', $params, false, self::WINDOW, (string) $user_id);
             }
 
             return true;

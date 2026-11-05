@@ -225,7 +225,8 @@ class OtpService
      * code: the same
      * per-IP submission counter and the lockouts, taken before the comparison. 2026-11-05 11:18 +03: review I2: the
      * caller passes its own purpose (2fa_backup), so the wrong-attempt counter (otp_fail, per address and account)
-     * is not the SMS code's, and there is no account-wide otp_failp count for a backup code. $normalized is the entry after BackupCodes::normalize();
+     * is not the SMS code's, and there is no account-wide otp_failp count for a backup code. $normalized is the
+     * entry after BackupCodes::normalize();
      * $matcher (string $normalized): bool decides and, on a match, uses the code up (the caller's compare-and-set).
      * A malformed entry counts nothing (the caller answers malformed before calling).
      */

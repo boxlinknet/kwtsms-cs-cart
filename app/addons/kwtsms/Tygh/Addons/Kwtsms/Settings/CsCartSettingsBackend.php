@@ -26,9 +26,9 @@ class CsCartSettingsBackend implements SettingsBackendInterface
     private const HIDDEN_IN_DUMPS = ['api_username', 'api_password', 'cron_key'];
 
     /**
-     * 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. The three 2FA switches: they change only through the
-     * guarded save of the Settings page (Admin\SettingsPage -> Config::save -> write()), never through core's add-on
-     * settings form or the REST settings entity.
+     * 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. The three 2FA switches: they change only through
+     * the guarded save of the Settings page (Admin\SettingsPage -> Config::save -> write()), never through core's
+     * add-on settings form or the REST settings entity.
      */
     private const TWOFA_KEYS = ['twofa_customers', 'twofa_vendors', 'twofa_admins'];
 
@@ -55,8 +55,11 @@ class CsCartSettingsBackend implements SettingsBackendInterface
         if (self::$allow_twofa > 0 || $old_data === []) {
             return false;
         }
-        if (!isset($old_data['section_name'], $old_data['name']) || strtolower((string) $old_data['section_name']) !== self::SECTION
-            || !in_array((string) $old_data['name'], self::TWOFA_KEYS, true) || !array_key_exists('value', $old_data)) {
+        $ours = isset($old_data['section_name'], $old_data['name'])
+            && strtolower((string) $old_data['section_name']) === self::SECTION
+            && in_array((string) $old_data['name'], self::TWOFA_KEYS, true)
+            && array_key_exists('value', $old_data);
+        if (!$ours) {
             return false;
         }
         $data['value'] = $old_data['value'];
@@ -105,9 +108,9 @@ class CsCartSettingsBackend implements SettingsBackendInterface
     {
         $settings = $this->settings();
         $id = $settings->getId($key, self::SECTION);
-        // 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. This backend is the add-on's own, guarded writer:
-        // while it writes a 2FA switch the settings_update_value_by_id_pre hook lets the value through. Core's add-on
-        // form and the REST settings entity do not come through here, so the hook restores the stored value for them.
+        // 2026-11-05 11:15 +03: Task M2.2b fix 1 (review I1), task 596. This backend is the add-on's own, guarded
+        // writer: while it writes a 2FA switch the settings_update_value_by_id_pre hook lets the value through. Core's
+        // add-on form and the REST settings entity do not come through here, so the hook restores the stored value.
         $guarded = in_array($key, self::TWOFA_KEYS, true);
         if ($guarded) {
             self::$allow_twofa++;

@@ -444,8 +444,8 @@ class SettingsPage
     }
 
     /**
-     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. [] outside Multi-Vendor, when the guard is absent or
-     * the list cannot be read (the save is then still guarded).
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. [] outside Multi-Vendor, when the guard is absent
+     * or the list cannot be read (the save is then still guarded).
      *
      * @return array<int,array<string,mixed>>
      */
@@ -968,8 +968,8 @@ class SettingsPage
                 }
             }
         }
-        // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Going TO "required" for vendors needs no proof but
-        // the tick, when vendor administrators without a mobile are listed; any refusal keeps the stored value.
+        // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Going TO "required" for vendors needs no proof
+        // but the tick, when vendor administrators without a mobile are listed; any refusal keeps the stored value.
         if (isset($posted['twofa_vendors']) && $posted['twofa_vendors'] === 'required') {
             if ($this->config->twofaVendors() === 'required') {
                 unset($posted['twofa_vendors']);
@@ -990,8 +990,8 @@ class SettingsPage
         // refused
         // at sign-in with the "ask an administrator" notice.
         $rejected_keys = $posted === [] ? [] : $this->config->save('update_codes', $posted);
-        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. "required" is stored and the saver has just proved
-        // the phone: the saver is enrolled on it now and holds backup codes (returned once, for the caller to show).
+        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. "required" is stored and the saver has just
+        // proved the phone: the saver is enrolled on it now and holds backup codes (returned once, for the caller).
         $backup_codes = [];
         if ($enrol_phone !== '' && !in_array('twofa_admins', $rejected_keys, true) && $this->twofa_guard !== null) {
             $backup_codes = $this->twofa_guard->enrolSaver((int) $twofa['saver_id'], $enrol_phone);
@@ -1624,7 +1624,11 @@ class SettingsPage
         // their own texts.
         // 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. The refusals of "required for vendors".
         if (strpos($reason, 'twofa_vend:') === 0) {
-            return $this->text('kwtsms.settings.twofa_vend.' . (substr($reason, strlen('twofa_vend:')) === 'ack_missing' ? 'ack_missing' : 'error'));
+            $vend_code = substr($reason, strlen('twofa_vend:'));
+
+            $vend_key = $vend_code === 'ack_missing' ? 'ack_missing' : 'error';
+
+            return $this->text('kwtsms.settings.twofa_vend.' . $vend_key);
         }
         if (strpos($reason, 'twofa_req:') === 0) {
             $known = ['not_root', 'no_mobile', 'ack_missing', 'proof_missing', 'proof_malformed', 'proof_wrong',

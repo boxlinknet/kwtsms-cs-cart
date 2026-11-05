@@ -409,12 +409,16 @@ class TwoFactorFlow
                 static function (
                     #[\SensitiveParameter]
                     string $normalized
-                ) use ($backup, $uid): bool {
+                ) use (
+                    $backup,
+                    $uid
+                ): bool {
                     return $backup->use($uid, $normalized);
                 }
             );
             // 2026-11-05 11:18 +03: review I2: a wrong or refused backup code counts toward the guessing alert.
-            if (($result->status === OtpResult::WRONG || $result->status === OtpResult::LOCKED) && $this->watch !== null) {
+            $failed = $result->status === OtpResult::WRONG || $result->status === OtpResult::LOCKED;
+            if ($failed && $this->watch !== null) {
                 $this->watch->failed($uid);
             }
             if ($result->status !== OtpResult::OK && $count >= PendingLogin::MAX_SUBMISSIONS) {

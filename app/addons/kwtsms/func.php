@@ -976,8 +976,15 @@ function fn_kwtsms_twofa_drop_login_notice()
  * @param array<string,mixed> $data              Row to be written (by reference)
  * @param array<string,mixed> $old_data          Stored object
  */
-function fn_kwtsms_settings_update_value_by_id_pre(&$settings = null, &$object_id = null, &$value = null, &$company_id = null, &$execute_functions = null, &$data = [], &$old_data = [])
-{
+function fn_kwtsms_settings_update_value_by_id_pre(
+    &$settings = null,
+    &$object_id = null,
+    &$value = null,
+    &$company_id = null,
+    &$execute_functions = null,
+    &$data = [],
+    &$old_data = []
+) {
     if (fn_kwtsms_hook_args_missing('settings_update_value_by_id_pre', func_num_args(), 7)) {
         return;
     }

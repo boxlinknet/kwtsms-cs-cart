@@ -192,10 +192,10 @@ class AdminTwoFactorGuard
     }
 
     /**
-     * 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who just proved the phone by
-     * saving "required" is enrolled on that phone, so the last root administrator always holds backup codes. A saver who
-     * is enrolled already keeps the set it has; a new set is made only when none is left. Never throws: a failure here
-     * leaves the (already allowed) save as it is and returns no codes.
+     * 2026-11-05 11:30 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who just proved the phone
+     * by saving "required" is enrolled on that phone, so the last root administrator always holds backup codes. A
+     * saver who is enrolled already keeps the set it has; a new set is made only when none is left. Never throws: a
+     * failure here leaves the (already allowed) save as it is and returns no codes.
      *
      * @return string[] The plain codes to show once; empty when none were made
      */
@@ -276,8 +276,8 @@ class AdminTwoFactorGuard
     }
 
     /**
-     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators (user_type V) that could
-     * not get a code, with the name of their company: the list shown before "required" for vendors is saved.
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators (user_type V) that
+     * could not get a code, with the name of their company: the list shown before "required" for vendors is saved.
      *
      * @return array<int,array{user_id:int,email:string,name:string,company:string}>
      */
@@ -402,8 +402,8 @@ class AdminTwoFactorGuard
     }
 
     /**
-     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators with their company name
-     * (Multi-Vendor; no row exists elsewhere).
+     * 2026-11-05 11:35 +03: Task M2.2b fix 1 (review M2), task 596. Active vendor administrators with their company
+     * name (Multi-Vendor; no row exists elsewhere).
      *
      * @return array<int,array<string,mixed>>
      */

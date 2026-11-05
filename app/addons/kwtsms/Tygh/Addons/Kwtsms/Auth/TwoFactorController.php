@@ -127,10 +127,11 @@ class TwoFactorController
             Tygh::$app['kwtsms.twofa_store'],
             Tygh::$app['kwtsms.logs.debug'],
             null,
-            // 2026-11-05 11:27 +03: Task M2.2b fix 1 (review M3), task 596. The console reset raises twofa_reset like the
-            // web reset (bell), with an e-mail too: nobody is signed in to explain who did it.
+            // 2026-11-05 11:27 +03: Task M2.2b fix 1 (review M3), task 596. The console reset raises twofa_reset like
+            // the web reset (bell), with an e-mail too: nobody is signed in to explain who did it.
             static function (int $cleared): void {
-                Tygh::$app['kwtsms.alerts']->raise('twofa_reset', ['[user]' => (string) $cleared], true, 0, (string) $cleared);
+                Tygh::$app['kwtsms.alerts']
+                    ->raise('twofa_reset', ['[user]' => (string) $cleared], true, 0, (string) $cleared);
             }
         ); // 2026-11-05 07:29 +03: Task M2.2b, task 596. The CLI's account lookup is its own (the users table).
         foreach ($cli->run($request) as $line) {
@@ -385,8 +386,8 @@ class TwoFactorController
         $view = Tygh::$app['view'];
         $view->assign('kwtsms_backup_codes', array_values(array_map('strval', $codes)));
         $view->assign('kwtsms_backup_after_login', $after_login);
-        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. Where the button leads when the codes were made by
-        // the Settings save of "required" ('' = the profile page); showBackupCodes() is public for that caller.
+        // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. Where the button leads when the codes were made
+        // by the Settings save of "required" ('' = the profile page); showBackupCodes() is public for that caller.
         $view->assign('kwtsms_backup_next', $next);
         $view->assign('content_tpl', 'addons/kwtsms/views/kwtsms_twofa/backup_codes.tpl');
     }

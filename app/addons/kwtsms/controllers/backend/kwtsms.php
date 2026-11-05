@@ -214,11 +214,15 @@ try {
                     'ip' => \Tygh\Addons\Kwtsms\Security\ClientIp::current(),
                 ]);
                 unset($kwtsms_codes, $kwtsms_twofa_proof, $kwtsms_twofa_ack, $kwtsms_twofa_ack_vendors);
-                // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who saved "required"
-                // was enrolled by that save: the ten backup codes are shown once, in this response (no-store, nothing in
-                // the session), with a button to Settings.
+                // 2026-11-05 11:33 +03: Task M2.2b fix 1 (review M1), task 596. The root administrator who saved
+                // "required" was enrolled by that save: the ten backup codes are shown once, in this response
+                // (no-store, nothing in the session), with a button to Settings.
                 if (!empty($kwtsms_saved['backup_codes']) && is_array($kwtsms_saved['backup_codes'])) {
-                    \Tygh\Addons\Kwtsms\Auth\TwoFactorController::showBackupCodes($kwtsms_saved['backup_codes'], false, $kwtsms_settings_url . '#kwtsms_signin');
+                    \Tygh\Addons\Kwtsms\Auth\TwoFactorController::showBackupCodes(
+                        $kwtsms_saved['backup_codes'],
+                        false,
+                        $kwtsms_settings_url . '#kwtsms_signin'
+                    );
                     unset($kwtsms_saved);
 
                     return [CONTROLLER_STATUS_OK];
