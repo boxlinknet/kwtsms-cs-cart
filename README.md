@@ -245,6 +245,12 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   only this add-on's own two-step sign-in. A customer with a two-step sign-in from this add-on is refused the code
   sign-in, silently; the two-step sign-in of a third-party add-on is not consulted, so with such an add-on active the
   code sign-in can bypass it. Turn the code sign-in off if a third-party two-step add-on must always apply.
+<!-- 2026-11-05 16:44 +03: Task M2.3 (account recovery by an SMS code), task 596 -->
+- Account recovery by an SMS code (1.3.0, off until you turn it on under Settings > Sign-in and security) hands the
+  customer core's own recovery key in a form on the answer page, never in a link. The key is valid once, for the
+  recovery time core sets, and only in the browser session that proved the number; the e-mail key is unchanged. A
+  customer with this add-on's two-step sign-in passes the code step only when the recovery number is the two-step
+  number. Like the code sign-in, it does not consult a third-party two-step add-on.
 - With one account per phone on, the code to create an account answers "already in use" when another account has the
   number. That tells a visitor that the number has an account. It is a known and accepted path, because a customer
   has to learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA

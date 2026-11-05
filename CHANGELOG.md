@@ -24,6 +24,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   security). Whether a number has an account is never revealed: the request answers the same for every number, the
   CAPTCHA asks for a token on the same schedule for every number, and the answer takes the same time.
 
+- <!-- 2026-11-05 16:44 +03: Task M2.3 (account recovery by an SMS code), task 596 -->
+  Account recovery by an SMS code (off until you turn it on under Settings > Sign-in and security). The login form gets
+  a link "Forgot your password? Use your mobile number"; a customer with a number verified by a code asks for a code,
+  types it, and presses Continue; the store then signs them in on the profile page to choose a new password, through
+  core's own recovery key (one key, used once, valid only in the browser session that proved the number, never in a
+  link). Whether a number has an account is never revealed (same answer, same time, with or without CAPTCHA). The
+  e-mail recovery and the recovery link by SMS are unchanged. A customer with a two-step sign-in meets the code step
+  again unless the recovery number is the two-step number.
+
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
   their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,
