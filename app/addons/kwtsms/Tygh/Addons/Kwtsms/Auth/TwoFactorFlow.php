@@ -100,8 +100,17 @@ class TwoFactorFlow
     /** @var callable|null */
     private $account_phone;
 
+    /**
+     * 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. The purpose (bucket name) of backup-code attempts:
+     * not the SMS code's, so SMS failures never block the backup path.
+     */
+    public const PURPOSE_BACKUP = '2fa_backup';
+
     /** @var BackupCodes|null 2026-11-05 07:27 +03: Task M2.2b, task 596 */
     private $backup;
+
+    /** @var BackupFailureWatch|null 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. null = no alert */
+    private $watch;
 
     public function __construct(
         ConfigInterface $config,
@@ -116,9 +125,11 @@ class TwoFactorFlow
         ?callable $users = null,
         ?callable $login = null,
         ?callable $account_phone = null,
-        ?BackupCodes $backup = null
+        ?BackupCodes $backup = null,
+        ?BackupFailureWatch $watch = null
     ) {
         $this->backup = $backup;
+        $this->watch = $watch;
         $this->config = $config;
         $this->policy = $policy;
         $this->store = $store;
@@ -390,7 +401,7 @@ class TwoFactorFlow
             $count = $this->pending->countSubmission();
             $backup = $this->backup;
             $result = $this->otp->verifyWith(
-                CodeRequest::PURPOSE_2FA,
+                self::PURPOSE_BACKUP,
                 self::subject($uid, $phone),
                 $code,
                 $env['ip'],
@@ -398,6 +409,10 @@ class TwoFactorFlow
                     return $backup->use($uid, $normalized);
                 }
             );
+            // 2026-11-05 11:18 +03: review I2: a wrong or refused backup code counts toward the guessing alert.
+            if (($result->status === OtpResult::WRONG || $result->status === OtpResult::LOCKED) && $this->watch !== null) {
+                $this->watch->failed($uid);
+            }
             if ($result->status !== OtpResult::OK && $count >= PendingLogin::MAX_SUBMISSIONS) {
                 $this->pending->clear();
 

@@ -48,6 +48,7 @@ use Tygh\Addons\Kwtsms\Auth\LoginByCode; // 2026-11-04 19:12 +03: Task M2.1, tas
 // 2026-11-04 22:44 +03: Task M2.2a, task 596. The second-step classes.
 use Tygh\Addons\Kwtsms\Auth\AdminTwoFactorGuard; // 2026-11-05 07:28 +03: Task M2.2b, task 596
 use Tygh\Addons\Kwtsms\Auth\BackupCodes; // 2026-11-05 07:28 +03: Task M2.2b, task 596
+use Tygh\Addons\Kwtsms\Auth\BackupFailureWatch; // 2026-11-05 11:18 +03: Task M2.2b fix 1, task 596
 use Tygh\Addons\Kwtsms\Auth\LoginHold;
 use Tygh\Addons\Kwtsms\Auth\PendingLogin;
 use Tygh\Addons\Kwtsms\Auth\TwoFactorFlow;
@@ -530,8 +531,14 @@ class ServiceProvider implements ServiceProviderInterface
                 null,
                 null,
                 null,
-                $app['kwtsms.backup_codes']
+                $app['kwtsms.backup_codes'],
+                $app['kwtsms.twofa_backup_watch']
             );
+        };
+        // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. Counts wrong backup codes per account and raises
+        // the twofa_backup_guessing alert at the 10th within an hour.
+        $app['kwtsms.twofa_backup_watch'] = function (Container $app): BackupFailureWatch {
+            return new BackupFailureWatch($app['kwtsms.rate_limiter']);
         };
         // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1), (3)), task 596. The backup codes (keyed hash of the same hasher
         // as the SMS codes)

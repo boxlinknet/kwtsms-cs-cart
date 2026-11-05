@@ -70,6 +70,9 @@ class AdminAlerts
         // switch
         // is on (bell, once a day); twofa_reset: a root administrator cleared another account's second step (bell).
         'twofa_degraded', 'twofa_disabled_by_config', 'twofa_reset',
+        // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. 10 wrong backup codes for one account within an
+        // hour (BackupFailureWatch): bell, once per hour per account (the instance is the user id).
+        'twofa_backup_guessing',
     ];
 
     /**

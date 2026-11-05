@@ -223,8 +223,9 @@ class OtpService
     /**
      * 2026-11-05 07:22 +03: Task M2.2b (P3-52 (3)), task 596. A backup code is checked with the counting of an SMS
      * code: the same
-     * per-IP submission counter, the same lockouts and the same two wrong-attempt counters (otp_fail, otp_failp of the
-     * purpose and subject), taken before the comparison. $normalized is the entry after BackupCodes::normalize();
+     * per-IP submission counter and the lockouts, taken before the comparison. 2026-11-05 11:18 +03: review I2: the
+     * caller passes its own purpose (2fa_backup), so the wrong-attempt counter (otp_fail, per address and account)
+     * is not the SMS code's, and there is no account-wide otp_failp count for a backup code. $normalized is the entry after BackupCodes::normalize();
      * $matcher (string $normalized): bool decides and, on a match, uses the code up (the caller's compare-and-set).
      * A malformed entry counts nothing (the caller answers malformed before calling).
      */
@@ -305,7 +306,10 @@ class OtpService
         // 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I1), task 596. The per-phone count is taken only for an attempt
         // that is really compared (n <= max): a request refused for its own address's count is not a wrong attempt
         // against the phone, so one address cannot push the phone to the ceiling with a burst of refused requests.
-        $m = $n > $max ? 0 : $this->limiter->hit($fail_phone, self::HOUR);
+        // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2, ruling), task 596. A backup code ($matcher) has no
+        // account-wide count: its failures stay in the per-address bucket above, so nobody can lock the account's
+        // backup path from many addresses (50-bit codes, ten per set).
+        $m = ($n > $max || $matcher !== null) ? 0 : $this->limiter->hit($fail_phone, self::HOUR);
         $ceiling = $this->config->otpPhoneFailCeiling();
         if ($n > $max || $m > $ceiling) {
             // Refused without a comparison. 2026-10-24 05:56 +03: Task M1.3 fix round 1 (I2), task 596: no re-lock
@@ -322,8 +326,6 @@ class OtpService
         if ($matcher !== null) {
             if ((bool) call_user_func($matcher, $code)) {
                 $this->limiter->reset($fail_ip);
-                $this->limiter->reset($fail_phone);
-                $this->limiter->reset(self::sendBucket($purpose, $subject));
                 $this->debug('otp.verified', ['purpose' => $purpose, 'code_id' => 0]);
 
                 return OtpResult::of(OtpResult::OK);

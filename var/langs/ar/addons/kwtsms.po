@@ -7087,3 +7087,11 @@ msgstr "أُعيد ضبط خطوة ثانية"
 msgctxt "Languages::kwtsms.alert.twofa_reset.text"
 msgid "A root administrator cleared the two-step sign-in and the backup codes of account [user]. The account has to set it up again."
 msgstr "مسح مدير رئيسي الدخول بخطوتين والرموز الاحتياطية للحساب [user]. على الحساب إعداده من جديد."
+
+msgctxt "Languages::kwtsms.alert.twofa_backup_guessing.title"
+msgid "Backup codes are being guessed"
+msgstr "يجري تخمين الرموز الاحتياطية"
+
+msgctxt "Languages::kwtsms.alert.twofa_backup_guessing.text"
+msgid "Ten wrong backup codes were entered for account [user] within an hour. If this was not the owner, reset the account's two-step sign-in and change its password."
+msgstr "أُدخل عشرة رموز احتياطية خاطئة للحساب [user] خلال ساعة. إن لم يكن المالك، فأعد ضبط الدخول بخطوتين لهذا الحساب وغيّر كلمة مروره."
