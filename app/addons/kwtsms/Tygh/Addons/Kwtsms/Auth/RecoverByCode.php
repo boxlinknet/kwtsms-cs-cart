@@ -162,6 +162,21 @@ class RecoverByCode
             return $this->wrong();
         }
 
+        // 2026-11-05 20:38 +03: M2.3-fix item 2 (security review Minor), task 596. A read-only look at core's key limit
+        // before the code is used up: a user at the limit keeps the code and can use it once a key expires. The check
+        // after consume() below stays for the race of two parallel submissions.
+        try {
+            if ($this->keysOf($owner) >= $this->keyLimit()) {
+                $this->debug('recover.code_refused', ['reason' => 'key_limit']);
+
+                return $this->answer('limit');
+            }
+        } catch (\Throwable $e) {
+            $this->debug('recover.code_refused', ['reason' => 'key_error', 'error' => get_class($e)]);
+
+            return $this->answer('error');
+        }
+
         // P3-53: the code is used up first (two parallel submissions: one wins); then the owner is checked again
         // (disabled, moved to another account or made ambiguous since the issue); then core's key limit; then the key.
         if (!$this->otp->consume(CodeRequest::PURPOSE_RECOVER, $phone, $owner, $session_hash)) {
