@@ -141,7 +141,7 @@ class RecoverByCode
 
             return $this->answer('error');
         }
-        $check =$this->rules->check($raw_phone, $this->config->defaultCountryCode());
+        $check = $this->rules->check($raw_phone, $this->config->defaultCountryCode());
         $phone = $check['ok'] ? $check['phone'] : '';
         if ($phone === '' || CodeInput::normalize($raw_code) === null) {
             return $this->answer('malformed');
