@@ -134,7 +134,14 @@ class RecoverByCode
         if (!$this->config->recoverCode()) {
             return $this->answer('off');
         }
-        $check = $this->rules->check($raw_phone, $this->config->defaultCountryCode());
+        // 2026-11-05 20:40 +03: M2.3-fix item 3 (security review Minor), task 596. A key is bound to the session hash;
+        // with no session id the hash is empty and a key bound to nothing must never be minted. Nothing is counted.
+        if ($session_hash === '') {
+            $this->debug('recover.code_refused', ['reason' => 'no_session']);
+
+            return $this->answer('error');
+        }
+        $check =$this->rules->check($raw_phone, $this->config->defaultCountryCode());
         $phone = $check['ok'] ? $check['phone'] : '';
         if ($phone === '' || CodeInput::normalize($raw_code) === null) {
             return $this->answer('malformed');

@@ -200,7 +200,17 @@ class CodeRequest
             $id = '';
         }
 
-        return hash('sha256', $id);
+        return self::hashOfSessionId($id);
+    }
+
+    /**
+     * 2026-11-05 20:40 +03: M2.3-fix item 3 (security review Minor), task 596. An empty session id gives an empty
+     * hash, not the sha256 of the empty string (which every id-less request would share). Callers that bind a login
+     * key to the session refuse the empty hash.
+     */
+    public static function hashOfSessionId(string $id): string
+    {
+        return $id === '' ? '' : hash('sha256', $id);
     }
 
     /**
