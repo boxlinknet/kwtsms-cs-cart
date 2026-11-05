@@ -42,7 +42,10 @@ if (
         );
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('auth.pre.recover_key', $e);
-        $kwtsms_usable = true;
+        // 2026-11-05 20:35 +03: M2.3-fix item 1 (security review Minor), task 596. Was fail open (usable = true). The
+        // service could not run: refuse a key whose stored data carries the session binding (direct read, a failed
+        // read counts as bound); an e-mail key without a binding still goes to core.
+        $kwtsms_usable = !\Tygh\Addons\Kwtsms\Auth\RecoverByCode::keyCarriesBinding($_REQUEST['ekey']);
     }
     if (!$kwtsms_usable) {
         fn_set_notification('E', __('error'), __('text_ekey_not_valid'));

@@ -22,8 +22,8 @@
  *            (retry_after), malformed (nothing counted), limit (core's 3 recovery keys exist), off (recover_code is
  *            OFF), error (the key could not be issued). Every other field is empty or 0.
  *            $recover->keyUsableInSession($ekey, $session_hash): bool  (false only for a bound key of another session)
- *            Test seams (constructor): $recovery_count (int $user_id): int, $issue (int $user_id, string $session_hash):
- *            string, $recovery_data (string $ekey): ?array, $clear_session (): void.
+ *            Test seams (constructor): $recovery_count (int $user_id): int, $issue (int $user_id, string
+ *            $session_hash): string, $recovery_data (string $ekey): ?array, $clear_session (): void.
  * DEPENDS:   Settings\ConfigInterface, Phones\{PhoneRules,PhoneIndex}, Codes\{OtpService,OtpResult,CodeInput,
  *            BlindCodeRequest,CodeRequest}, Auth\{TwoFactorStore,PendingLogin}, Log\DebugLog (optional), core
  *            fn_recovery_password_get_ekeys_count(), fn_generate_ekey(), fn_get_ekeys(), RECOVERY_PASSWORD_EKEY_TYPE,
@@ -212,14 +212,58 @@ class RecoverByCode
         try {
             $data = $this->keyData($ekey);
         } catch (\Throwable $e) {
-            // The binding cannot be read: the key is not used (fail closed for a key that may be bound).
-            return false;
+            // 2026-11-05 20:34 +03: M2.3-fix item 1 (security review Minor), task 596. Core's read failed: look at the
+            // stored data directly. A key that carries the binding (or whose data cannot be read at all) is refused;
+            // an e-mail key without a binding still works.
+            return !$this->directBinding($ekey);
         }
         if ($data === null || !isset($data[self::BIND_FIELD]) || !is_string($data[self::BIND_FIELD])) {
             return true;
         }
 
         return $session_hash !== '' && hash_equals($data[self::BIND_FIELD], $session_hash);
+    }
+
+    /**
+     * 2026-11-05 20:34 +03: M2.3-fix item 1, task 596. True when the stored data of the key carries the session
+     * binding, or when it cannot be read (fail closed). Reads ekeys.data with one query, no core key function.
+     */
+    protected function directBinding(
+        #[\SensitiveParameter]
+        string $ekey
+    ): bool {
+        return self::keyCarriesBinding($ekey);
+    }
+
+    /**
+     * 2026-11-05 20:34 +03: M2.3-fix item 1, task 596. Static so the pre-controller can use it when the service itself
+     * cannot be built. A failed read counts as bound (refuse).
+     */
+    public static function keyCarriesBinding(
+        #[\SensitiveParameter]
+        string $ekey
+    ): bool {
+        try {
+            $raw = db_get_field(
+                'SELECT data FROM ?:ekeys WHERE ekey = ?s AND object_type = ?s',
+                $ekey,
+                defined('RECOVERY_PASSWORD_EKEY_TYPE') ? RECOVERY_PASSWORD_EKEY_TYPE : 'R'
+            );
+        } catch (\Throwable $e) {
+            return true;
+        }
+
+        return self::dataCarriesBinding($raw);
+    }
+
+    /**
+     * 2026-11-05 20:34 +03: M2.3-fix item 1, task 596. The ekeys.data column is json_encode()d by core.
+     *
+     * @param mixed $raw
+     */
+    public static function dataCarriesBinding($raw): bool
+    {
+        return is_string($raw) && strpos($raw, '"' . self::BIND_FIELD . '"') !== false;
     }
 
     /**
