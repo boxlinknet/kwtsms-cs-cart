@@ -251,6 +251,11 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   recovery time core sets, and only in the browser session that proved the number; the e-mail key is unchanged. A
   customer with this add-on's two-step sign-in passes the code step only when the recovery number is the two-step
   number. Like the code sign-in, it does not consult a third-party two-step add-on.
+<!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->
+- A customer whose two-step number differs from the number they recovered with: core uses the recovery key up and the
+  customer lands on the code page for the two-step number, with no way back to the key. They sign in with the password
+  and a code instead. Recovering the account of a two-step customer with the same number as the two-step number counts
+  the recovery code as the second step; that is deliberate (a SIM swap that takes the number takes both factors).
 - With one account per phone on, the code to create an account answers "already in use" when another account has the
   number. That tells a visitor that the number has an account. It is a known and accepted path, because a customer
   has to learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA

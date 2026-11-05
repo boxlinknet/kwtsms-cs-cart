@@ -5384,6 +5384,11 @@ msgctxt "Languages::kwtsms.help.recovery.p3"
 msgid "One recovery SMS goes to an account every 10 minutes. Repeated requests inside that time are skipped and logged. The Arabic text can take up to 3 pages."
 msgstr "تُرسل رسالة استعادة واحدة للحساب كل 10 دقائق. تُتخطى الطلبات المتكررة خلال هذه المدة وتُسجَّل. وقد يستغرق النص العربي حتى 3 صفحات."
 
+# 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596. Help: recovery by code for a two-step customer.
+msgctxt "Languages::kwtsms.help.recovery.p4"
+msgid "Recovery by an SMS code and two-step sign-in: when the customer's two-step number is the number they recovered with, the code counts as the second step. With a different two-step number the recovery key is used up and the customer lands on the code page for that number, with no way back to the key. They sign in with the password and a code sent to the two-step number instead. A third-party two-step add-on is not consulted."
+msgstr "الاستعادة برمز الرسالة والدخول بخطوتين: إذا كان رقم الخطوتين للعميل هو الرقم الذي استعاد به حسابه، يُحتسب الرمز خطوة ثانية. إذا كان رقم الخطوتين مختلفاً، يُستهلك مفتاح الاستعادة ويصل العميل إلى صفحة الرمز لذلك الرقم دون طريق للعودة إلى المفتاح. يدخل بدلاً من ذلك بكلمة المرور ورمز يُرسل إلى رقم الخطوتين. لا تُستشار إضافة خطوتين من جهة أخرى."
+
 msgctxt "Languages::kwtsms.help.manual.p1"
 msgid "On an order page, open Tools > Send SMS to text the customer yourself. The phone starts as the customer's number and you can change it. Send one number at a time."
 msgstr "في صفحة الطلب افتح الأدوات > إرسال رسالة SMS لتراسل العميل بنفسك. يبدأ الهاتف برقم العميل ويمكنك تغييره. أرسل إلى رقم واحد في المرة."

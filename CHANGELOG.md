@@ -31,7 +31,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   core's own recovery key (one key, used once, valid only in the browser session that proved the number, never in a
   link). Whether a number has an account is never revealed (same answer, same time, with or without CAPTCHA). The
   e-mail recovery and the recovery link by SMS are unchanged. A customer with a two-step sign-in meets the code step
-  again unless the recovery number is the two-step number.
+  again unless the recovery number is the two-step number. With a different two-step number the recovery key is used
+  up and the customer signs in with the password and a code to the two-step number instead (Help says so).
+  <!-- 2026-11-05 20:43 +03: M2.3-fix (security review Minors), task 596. The recovery key guard refuses a bound key
+  when core cannot read it, the key limit is checked before the code is used up, and no key is minted without a
+  session id. -->
 
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on

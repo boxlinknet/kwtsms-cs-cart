@@ -228,6 +228,8 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.recovery.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.recovery.p2")}</p>
                 <p>{__("kwtsms.help.recovery.p3")}</p>
+                {* 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596: recovery by code and two-step. *}
+                <p>{__("kwtsms.help.recovery.p4")}</p>
             </section>
 
             {* ---- manual SMS from an order *}
