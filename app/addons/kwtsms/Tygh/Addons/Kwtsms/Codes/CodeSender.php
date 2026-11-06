@@ -165,7 +165,9 @@ class CodeSender
             // The Web OTP line: "@host #code", always the last line, never editable.
             // 2026-11-04 22:40 +03: Task M2.2a, task 596. A staff code is typed on the admin host: that is the Web OTP
             // origin.
-            $host = $staff
+            // 2026-11-06 23:54 +03: M2.6-fix M4, task 596. A vendor_phone code is typed in the vendor panel (backend
+            // host) but keeps the caps: only the host follows the panel, $staff stays false.
+            $host = ($staff || $purpose === CodeRequest::PURPOSE_VENDOR_PHONE)
                 ? self::hostOf($this->staffHost())
                 : self::hostOf((string) call_user_func($this->storefront_url, $storefront_id));
             // 2026-10-24 14:40 +03: Task M1.4 fix round 1 (minor 5), task 596. No host, no line (never "@ #code").
