@@ -92,8 +92,15 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
                     return this.name === n;
                 }).first();
             };
+            // 2026-11-06 03:23 +03: Task M2.4 fix 1 (M1), task 596. Mode cod: the shipping phone (the number the courier
+            // calls) is read first when it is filled; the server binds the code to it the same way.
+            var pref = root.attr('data-phone-pref') || '';
             var first = byName(name);
             var alt = root.attr('data-phone-alt') || '';
+
+            if (pref !== '' && $.trim(byName(pref).val() || '') !== '') {
+                return byName(pref);
+            }
 
             if ($.trim(first.val() || '') === '' && alt) {
                 var second = byName(alt);
@@ -300,7 +307,9 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The form's country, so a local number is read with
         // the calling code the save will use.
         var countryScope = root.attr('data-purpose') === 'checkout' ? $(document) : root.closest('form');
-        var country = countryScope.find('select[name="user_data[b_country]"], input[name="user_data[b_country]"]').first().val();
+        // 2026-11-06 03:24 +03: Task M2.4 fix 1 (M1), task 596: a shipping phone is read with the shipping country.
+        var countryName = $phone.attr('name') === 'user_data[s_phone]' ? 'user_data[s_country]' : 'user_data[b_country]';
+        var country = countryScope.find('select[name="' + countryName + '"], input[name="' + countryName + '"]').first().val();
         if (country) {
             body.set('country', String(country));
         }

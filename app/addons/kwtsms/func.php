@@ -661,7 +661,7 @@ function fn_kwtsms_api_orders_create_after_add_product_to_cart(
  *
  * @param mixed $cart
  *
- * @return array{show:bool,verified_phone:string,default_cc:string}
+ * @return array{show:bool,verified_phone:string,default_cc:string,cod?:bool}
  */
 function fn_kwtsms_checkout_code_form($cart = [])
 {
@@ -691,7 +691,12 @@ function fn_kwtsms_checkout_code_form($cart = [])
             ));
         }
 
-        return ['show' => true, 'verified_phone' => $verified, 'default_cc' => (string) $config->defaultCountryCode()];
+        // 2026-11-06 03:23 +03: Task M2.4 fix 1 (M1), task 596. 'cod' = mode cod: the code goes to the shipping phone
+        // when one is entered (CheckoutCode::phoneOf), so the box reads that input first.
+        return [
+            'show' => true, 'verified_phone' => $verified, 'default_cc' => (string) $config->defaultCountryCode(),
+            'cod' => $mode === 'cod',
+        ];
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('checkout_code_form', $e);
 

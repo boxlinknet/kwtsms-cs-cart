@@ -265,7 +265,9 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   session, so no code can be typed for it); Settings warns while that add-on is active. A refusal happens before the
   order exists; the cart is kept. One code works for one order, for
   the number it was sent to and for the browser session that asked for it; a Multi-Vendor checkout uses it once for the
-  parent order and its child orders.
+  parent order and its child orders. In the cash on delivery mode the number the courier calls is the shipping phone,
+  so when the customer enters a shipping phone (a valid mobile) the code is bound to that number, not to the account
+  phone; with no shipping phone, or the same one, it is the account phone.
 <!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->
 - A customer whose two-step number differs from the number they recovered with: core uses the recovery key up and the
   customer lands on the code page for the two-step number, with no way back to the key. They sign in with the password

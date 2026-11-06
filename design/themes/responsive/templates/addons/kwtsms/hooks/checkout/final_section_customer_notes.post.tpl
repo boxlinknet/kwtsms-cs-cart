@@ -17,10 +17,13 @@
  *            hooks/index/scripts.post.tpl while a code feature is on), language variables kwtsms.checkout.*.
  *}
 {$kwtsms_co = $cart|fn_kwtsms_checkout_code_form}
+{* 2026-11-06 03:24 +03: Task M2.4 fix 1 (M1), task 596: in mode cod the shipping phone is read first. *}
+{$kwtsms_pref = ""}
+{if $kwtsms_co.cod}{$kwtsms_pref = "user_data[s_phone]"}{/if}
 {if $kwtsms_co.show}
     {* 2026-11-05 22:10 +03: Task M2.4, task 596. A plain block, not a litecheckout__item: inside the grid of the final section the sentence and the field sat side by side. *}
     <div class="kwtsms-checkout-code" id="kwtsms_checkout_code_block" style="margin: 16px 0;">
         <p class="kwtsms-checkout-code__intro" style="margin: 0 0 8px;">{__("kwtsms.checkout.code_required")|fn_html_escape}</p>
-        {include file="addons/kwtsms/components/code_field.tpl" purpose="checkout" phone_input_name="user_data[phone]" phone_alt_name="user_data[b_phone]" field_label=__("kwtsms.checkout.field_label") verified_phone=$kwtsms_co.verified_phone default_cc=$kwtsms_co.default_cc}
+        {include file="addons/kwtsms/components/code_field.tpl" purpose="checkout" phone_input_name="user_data[phone]" phone_alt_name="user_data[b_phone]" phone_pref_name=$kwtsms_pref field_label=__("kwtsms.checkout.field_label") verified_phone=$kwtsms_co.verified_phone default_cc=$kwtsms_co.default_cc}
     </div>
 {/if}

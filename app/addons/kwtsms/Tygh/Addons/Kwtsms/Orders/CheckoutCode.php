@@ -39,6 +39,7 @@ use Tygh\Addons\Kwtsms\Codes\OtpResult;
 use Tygh\Addons\Kwtsms\Codes\OtpService;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Phones\AccountPhone;
+use Tygh\Addons\Kwtsms\Phones\PhoneFormat;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 
@@ -289,8 +290,24 @@ class CheckoutCode
     public function phoneOf(array $cart): string
     {
         $user_data = isset($cart['user_data']) && is_array($cart['user_data']) ? $cart['user_data'] : [];
+        $cc = (string) call_user_func($this->default_cc);
+        $phone = AccountPhone::canonicalOf($user_data, [], $cc);
 
-        return AccountPhone::canonicalOf($user_data, [], (string) call_user_func($this->default_cc));
+        // 2026-11-06 03:22 +03: Task M2.4 fix 1 (security review M1), task 596. Mode cod: the number the courier calls
+        // is the shipping phone, so when one is entered (and is a valid mobile) the code is bound to IT, not to the
+        // account phone. A shipping phone that is not a valid mobile cannot be verified and leaves the account phone.
+        if ($this->config->checkoutCode() === 'cod') {
+            $raw = isset($user_data['s_phone']) && is_scalar($user_data['s_phone'])
+                ? trim((string) $user_data['s_phone']) : '';
+            if ($raw !== '') {
+                $courier = PhoneFormat::fromRaw($raw, AccountPhone::hint('s_phone', $user_data, [], $cc));
+                if ($courier !== '') {
+                    return $courier;
+                }
+            }
+        }
+
+        return $phone;
     }
 
     /**

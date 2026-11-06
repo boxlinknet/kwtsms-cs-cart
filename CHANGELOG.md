@@ -47,7 +47,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   store are never asked, and in a Multi-Vendor checkout one code covers the parent and its child orders. Paying an order
   again with another payment (the "pay again" form of the order page) is asked too and has the code box. A customer's
   own REST API order is accepted only with the verified account phone (403 otherwise); Settings warns while the
-  storefront REST API add-on is active. After a verified guest order the "create account" block of the order page
+  storefront REST API add-on is active. In the cash on delivery mode the code is bound to the shipping phone when one
+  is entered (the number the courier calls). After a verified guest order the "create account" block of the order page
   creates the account with that verified number. Texts in English and Arabic.
 
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
