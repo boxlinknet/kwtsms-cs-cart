@@ -598,6 +598,59 @@ function fn_kwtsms_place_order($order_id = null, $action = '', $order_status = '
 }
 
 /**
+ * 2026-11-06 03:09 +03: Task M2.4 fix 1 (security review I2), task 596. Hook
+ * api_orders_create_after_add_product_to_cart (core app/Tygh/Api/Entities/Orders.php:204): an order created through
+ * the REST API by a CUSTOMER token is asked for the checkout code like a storefront order. A token has no browser
+ * session to bind a code to, so the only proof it can give is the account phone verified in the phone index (order
+ * phone = verified account phone); anything else is refused here with a clear 403 before any cart work, and
+ * pre_place_order refuses again as the second line. Administrator and vendor callers are never asked
+ * (CheckoutRequest). Never throws; an error while the mode is on refuses (fail closed).
+ *
+ * @param mixed $params       The request parameters (payment_id)
+ * @param mixed $status       By reference, the API response status
+ * @param mixed $data         By reference, the API response data
+ * @param mixed $valid_params By reference
+ * @param mixed $auth         The API authentication data
+ * @param mixed $cart         The cart built so far (user_data of the account)
+ */
+function fn_kwtsms_api_orders_create_after_add_product_to_cart(
+    $params = [],
+    &$status = null,
+    &$data = null,
+    &$valid_params = null,
+    $auth = [],
+    $cart = []
+) {
+    if (fn_kwtsms_hook_args_missing('api_orders_create_after_add_product_to_cart', func_num_args(), 6)) {
+        return;
+    }
+    try {
+        if (!$valid_params || !is_array($cart) || Tygh::$app['kwtsms.config']->checkoutCode() === 'off') {
+            return;
+        }
+        $auth = is_array($auth) ? $auth : [];
+        $cart['payment_id'] = (int) (is_array($params) ? ($params['payment_id'] ?? 0) : 0);
+        $actor = ['user_id' => (int) ($auth['user_id'] ?? 0)];
+        $checkout = Tygh::$app['kwtsms.checkout_code'];
+        if (!$checkout->applies($cart, $actor) || $checkout->satisfied($cart, $actor, '')) {
+            return;
+        }
+        $refuse = true;
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('api_orders_create', $e);
+        $refuse = true;
+    }
+    if ($refuse) {
+        $valid_params = false;
+        $status = 403;
+        if (!is_array($data)) {
+            $data = [];
+        }
+        $data['message'] = (string) __('kwtsms.checkout.api_code_required');
+    }
+}
+
+/**
  * 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. For hooks/checkout/
  * final_section_customer_notes.post.tpl (modifier |fn_kwtsms_checkout_code_form, the cart as the value): whether the
  * checkout shows the SMS code box now. mode all: always; guest: only while nobody is signed in; cod: only while the

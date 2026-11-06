@@ -255,9 +255,15 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
 - The SMS code before an order (1.3.0, off until you choose a mode under Settings > Sign-in and security) is checked
   when the storefront checkout places an order (`checkout.place_order`, and any other storefront code that calls
   `fn_place_order()`, such as a one-click buy add-on, which has no code box and is refused while the mode applies to
-  it). It is not asked for orders placed in the admin panel (the order editor), through the REST API, by the console
-  and by a payment provider returning to the store (`payment_notification`), because refusing there would lose an order
-  that is already paid. A refusal happens before the order exists; the cart is kept. One code works for one order, for
+  it). Paying an order again with another payment (`orders.repay`, which core does without `fn_place_order()`) is asked
+  too, with the code box on the repay form. It is not asked for orders placed in the admin panel (the order editor),
+  by the console, through the REST API with an administrator or vendor key, and by a payment provider returning to the
+  store (`payment_notification`) for the processor of the payment that is in the cart (any other "return" runs the
+  normal check), because refusing there would lose an order that is already paid. An order a customer places through
+  the REST API with their own token (add-on `storefront_rest_api`) is covered: it is accepted only when its phone is
+  the customer's verified account phone, otherwise the API answers 403 with a clear message (a token has no browser
+  session, so no code can be typed for it); Settings warns while that add-on is active. A refusal happens before the
+  order exists; the cart is kept. One code works for one order, for
   the number it was sent to and for the browser session that asked for it; a Multi-Vendor checkout uses it once for the
   parent order and its child orders.
 <!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->

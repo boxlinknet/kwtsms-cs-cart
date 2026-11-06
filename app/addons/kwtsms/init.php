@@ -67,6 +67,10 @@ fn_register_hooks(
     // 2026-11-05 20:56 +03: Task M2.4 (SafatMall B6, P3-54), task 596. After the order row exists: the checkout code is
     // used up for the parent order only (inactive while checkout_code is off).
     'place_order',
+    // 2026-11-06 03:09 +03: Task M2.4 fix 1 (security review I2), task 596. A customer-token API order is asked for the
+    // checkout code (core Api\Entities\Orders::create(), after the products are added; inactive while checkout_code is
+    // off; the hook never fires when storefront_rest_api is not installed).
+    'api_orders_create_after_add_product_to_cart',
     // 2026-10-28 18:54 +03: Task M1.10a fix round 1 (review I2, ruling P3-R12), task 596. Core's social login
     // (hybrid_auth) hook before it
     // creates an account; inactive while register_code is OFF, and never fires when that add-on is not installed.

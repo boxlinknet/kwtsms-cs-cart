@@ -710,6 +710,11 @@ class SettingsPage
         if ($this->config->checkoutCode() !== 'off' && !AccountPhone::formHasPhone('O')) {
             $note('checkout_no_phone', 'danger', $this->text('kwtsms.settings.checkout_no_phone_field'));
         }
+        // 2026-11-06 03:10 +03: Task M2.4 fix 1 (security review I2), task 596. A customer's own API order is covered
+        // by the mode, so the admin is told while the REST API for storefronts is active.
+        if ($this->config->checkoutCode() !== 'off' && $this->restApiActive()) {
+            $note('checkout_api', 'warning', $this->text('kwtsms.settings.checkout_api_warning'));
+        }
         if ($this->config->captchaAfterIp() >= $this->config->capIpHour()) {
             $note('captcha_threshold', 'warning', $this->text('kwtsms.settings.warn_captcha_threshold', [
                 '[after]' => $this->config->captchaAfterIp(),
@@ -833,6 +838,19 @@ class SettingsPage
      * kwtsms_sms_code (the hook settings_variants_image_verification_use_for ran and added it). True when core's
      * function is not there (nothing can be said). Overridable in a test.
      */
+    /**
+     * 2026-11-06 03:10 +03: Task M2.4 fix 1 (security review I2), task 596. Whether the add-on storefront_rest_api is
+     * active: customers can place orders with their own token through it. Overridable in a test.
+     */
+    protected function restApiActive(): bool
+    {
+        try {
+            return (string) \Tygh\Registry::get('addons.storefront_rest_api.status') === 'A';
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     protected function scenarioSelectable(): bool
     {
         if (!function_exists('fn_settings_variants_image_verification_use_for')) {

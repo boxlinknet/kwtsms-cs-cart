@@ -42,9 +42,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   order, the orders of guests, or the orders paid with the cash on delivery payments you tick. The customer asks for a
   code on the mobile number of the order and types it on the checkout page ("SMS code for this order"). A code works
   for that number, that browser session and one order. A signed-in customer whose account number a code already
-  verified is not asked. A refusal never loses the cart; orders placed in the admin panel, through the API, by the
-  console and by a payment provider that returns to the store are never asked, and in a Multi-Vendor checkout one code
-  covers the parent and its child orders. After a verified guest order the "create account" block of the order page
+  verified is not asked. A refusal never loses the cart; orders placed in the admin panel, through the API with an
+  administrator or vendor key, by the console and by the payment provider of the payment in the cart that returns to the
+  store are never asked, and in a Multi-Vendor checkout one code covers the parent and its child orders. Paying an order
+  again with another payment (the "pay again" form of the order page) is asked too and has the code box. A customer's
+  own REST API order is accepted only with the verified account phone (403 otherwise); Settings warns while the
+  storefront REST API add-on is active. After a verified guest order the "create account" block of the order page
   creates the account with that verified number. Texts in English and Arabic.
 
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and

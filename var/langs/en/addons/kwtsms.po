@@ -7163,6 +7163,15 @@ msgctxt "Languages::kwtsms.checkout.field_label"
 msgid "SMS code for this order"
 msgstr "SMS code for this order"
 
+# 2026-11-06 03:09 +03: Task M2.4 fix 1 (security review I2), task 596. A customer's own API order is asked for the checkout code.
+msgctxt "Languages::kwtsms.checkout.api_code_required"
+msgid "This order needs a verified mobile number. A customer account can place orders through the API only when the phone number of the order is the verified phone number of the account. Verify the number in the store first, or place the order in the store."
+msgstr "This order needs a verified mobile number. A customer account can place orders through the API only when the phone number of the order is the verified phone number of the account. Verify the number in the store first, or place the order in the store."
+
+msgctxt "Languages::kwtsms.settings.checkout_api_warning"
+msgid "The REST API for storefronts (add-on storefront_rest_api) is active. Customers can place orders through it with their own token, so it is covered by this switch: such an order is accepted only when its phone number is the verified phone number of the customer's account. Orders placed through the API with an administrator or vendor key are not asked."
+msgstr "The REST API for storefronts (add-on storefront_rest_api) is active. Customers can place orders through it with their own token, so it is covered by this switch: such an order is accepted only when its phone number is the verified phone number of the customer's account. Orders placed through the API with an administrator or vendor key are not asked."
+
 msgctxt "Languages::kwtsms.settings.field.checkout_code"
 msgid "SMS code before an order"
 msgstr "SMS code before an order"
@@ -7184,8 +7193,8 @@ msgid "Cash on delivery orders only"
 msgstr "Cash on delivery orders only"
 
 msgctxt "Languages::kwtsms.settings.checkout_code_help"
-msgid "The customer asks for a code on the mobile number of the order and types it on the checkout page before the order is placed. A code works for that number and that browser session, and for one order. A signed-in customer whose account number was verified by a code is not asked. Orders placed in the admin panel, through the API and by a payment provider that returns to the store are never asked."
-msgstr "The customer asks for a code on the mobile number of the order and types it on the checkout page before the order is placed. A code works for that number and that browser session, and for one order. A signed-in customer whose account number was verified by a code is not asked. Orders placed in the admin panel, through the API and by a payment provider that returns to the store are never asked."
+msgid "The customer asks for a code on the mobile number of the order and types it on the checkout page before the order is placed. A code works for that number and that browser session, and for one order. A signed-in customer whose account number was verified by a code is not asked. Paying an order again with another payment is asked too. Orders placed in the admin panel, through the API with an administrator or vendor key, or by the payment provider of the payment in the cart when it returns to the store are never asked. An order a customer places through the API with their own token is accepted only with their verified account number."
+msgstr "The customer asks for a code on the mobile number of the order and types it on the checkout page before the order is placed. A code works for that number and that browser session, and for one order. A signed-in customer whose account number was verified by a code is not asked. Paying an order again with another payment is asked too. Orders placed in the admin panel, through the API with an administrator or vendor key, or by the payment provider of the payment in the cart when it returns to the store are never asked. An order a customer places through the API with their own token is accepted only with their verified account number."
 
 msgctxt "Languages::kwtsms.settings.field.checkout_cod_payments"
 msgid "Cash on delivery payments"
