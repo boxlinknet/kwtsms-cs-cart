@@ -205,6 +205,8 @@ class Config implements ConfigInterface
             // 2026-11-05 20:57 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The SMS code before an order and the
             // cash on delivery payments.
             'checkout_code', 'checkout_cod_payment_ids',
+            // 2026-11-06 07:36 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The storefront country selector.
+            'phone_country_selector',
         ],
     ];
 

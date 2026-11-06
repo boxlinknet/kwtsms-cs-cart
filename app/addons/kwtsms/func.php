@@ -1554,6 +1554,37 @@ function fn_kwtsms_code_features_on($unused = '')
 }
 
 /**
+ * 2026-11-06 07:37 +03: Task M2.5 (SafatMall C2, P3-55), task 596. For the storefront template
+ * hooks/index/scripts.post.tpl (modifier |fn_kwtsms_phone_country_data): the JSON the country selector script reads
+ * (allowed countries with their localized names, the default calling code, the core phone mode), or '' while the
+ * selector is off or the country check (C3) is off. Settings and core country names only; the JSON is safe inside a
+ * script element (tags, ampersands and quotes hex-escaped). Never throws.
+ */
+function fn_kwtsms_phone_country_data($unused = '')
+{
+    try {
+        if (!isset(Tygh::$app['kwtsms.config'])) {
+            return '';
+        }
+        $selector = new \Tygh\Addons\Kwtsms\Phones\CountrySelector(Tygh::$app['kwtsms.config']);
+        if (!$selector->active()) {
+            return '';
+        }
+        $lang = defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en';
+        $json = json_encode(
+            $selector->payload($lang, (string) Registry::get('settings.Appearance.phone_validation_mode')),
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+        );
+
+        return is_string($json) ? $json : '';
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('phone_country_data', $e);
+
+        return '';
+    }
+}
+
+/**
  * 2026-10-28 11:08 +03: Task M1.10a (SafatMall B1, P3-28), task 596. For the storefront template
  * hooks/profiles/account_update.post.tpl
  * (modifier |fn_kwtsms_register_form): what the registration page adds. 'code' = show the SMS code field (register_code

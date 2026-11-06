@@ -508,6 +508,15 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description" id="kwtsms_phone_country_check_help">{__("kwtsms.settings.phone_country_check_help")}</p>
                 </div>
             </div>
+            {* 2026-11-06 07:37 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The country selector on the storefront phone fields (default OFF); the save refuses it while the check above is off. *}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.phone_country_selector")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[phone_country_selector]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_country_selector" name="kwtsms_codes[phone_country_selector]" value="Y"{if $kwtsms.codes.phone_country_selector == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_country_selector_help"> {__("kwtsms.settings.phone_country_selector_label")}</label>
+                    <p class="muted description" id="kwtsms_phone_country_selector_help">{__("kwtsms.settings.phone_country_selector_help")}</p>
+                </div>
+            </div>
             {* 2026-10-24 17:15 +03: Task M1.6 (SafatMall C4, P3-31), task 596. One account per phone (default OFF). While the phone index is being built the state line reads "Starts after indexing: n of m customers". *}
             <div class="control-group">
                 <span class="control-label">{__("kwtsms.settings.field.phone_unique")}:</span>

@@ -404,6 +404,8 @@ class SettingsPage
             // 2026-10-24 15:28 +03: Task M1.5 (C3, P3-15), task 596. The phone rule switch ('Y'/'N') and the calling
             // codes the "Add GCC countries" button ticks, comma separated.
             'phone_country_check' => $this->config->phoneCountryCheck() ? 'Y' : 'N',
+            // 2026-11-06 07:36 +03: Task M2.5 (C2, P3-55), task 596. The storefront country selector switch.
+            'phone_country_selector' => $this->config->phoneCountrySelector() ? 'Y' : 'N',
             'gcc' => implode(',', PhoneRules::GCC),
             // 2026-10-24 17:21 +03: Task M1.6 (C4, P3-31), task 596. The C4 switch and, while it is ON but the index is
             // still being built, the text "starts after indexing: n of m" (empty otherwise).
@@ -1027,6 +1029,17 @@ class SettingsPage
             if (TurnstileDriver::recaptchaBlocks($recaptcha['status'], $recaptcha['settings'])) {
                 unset($posted['turnstile_enabled']);
                 $reasons['turnstile_enabled'] = 'recaptcha_active';
+            }
+        }
+        // 2026-11-06 07:36 +03: Task M2.5 (C2, P3-55), task 596. The country selector needs the country check (C3):
+        // refused when C3 is OFF after this save (the posted value of C3 wins over the stored one). The rest of the
+        // post is still saved.
+        if (isset($posted['phone_country_selector']) && $posted['phone_country_selector'] === 'Y') {
+            $c3_after = isset($posted['phone_country_check'])
+                ? $posted['phone_country_check'] === 'Y' : $this->config->phoneCountryCheck();
+            if (!$c3_after) {
+                unset($posted['phone_country_selector']);
+                $reasons['phone_country_selector'] = 'needs_c3';
             }
         }
         $enrol_phone = '';
@@ -1694,6 +1707,10 @@ class SettingsPage
         // 2026-10-24 21:10 +03: Task M1.7b (P3-R7, M8), task 596. The two Turnstile refusals have their own texts.
         if ($reason === 'recaptcha_active') {
             return $this->text('kwtsms.turnstile.refuse_recaptcha');
+        }
+        // 2026-11-06 07:36 +03: Task M2.5 (C2, P3-55), task 596. The selector without the country check.
+        if ($reason === 'needs_c3') {
+            return $this->text('kwtsms.settings.phone_country_selector_needs_c3');
         }
         if ($reason === 'secret_wrong') {
             return $this->text('kwtsms.turnstile.secret_wrong_off');

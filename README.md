@@ -268,6 +268,18 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   parent order and its child orders. In the cash on delivery mode the number the courier calls is the shipping phone,
   so when the customer enters a shipping phone (a valid mobile) the code is bound to that number, not to the account
   phone; with no shipping phone, or the same one, it is the account phone.
+<!-- 2026-11-06 07:52 +03: Task M2.5 (country selector on phone fields), task 596 -->
+- The country selector (1.3.0, off until you turn it on; Settings refuses it while "Check customer phone numbers" is
+  off) loads `js/addons/kwtsms/phone_country.js` and a JSON block (allowed countries with their names in the page
+  language, the default calling code, the core phone mode) in the page head. In the core mode "phone number with
+  country selection" it hides the other countries of core's list and preselects the default one on an empty field; in
+  "international format" and "any digits" it puts a `select` named `kwtsms_cc[<field>]` before the phone input (the
+  code sign-in and recovery forms get it too). The server reads a posted `kwtsms_cc[phone]`, `kwtsms_cc[b_phone]` or
+  `kwtsms_cc[s_phone]` only while the selector is active, only when it is one of the allowed calling codes, and only as
+  the country of a number typed without its own code; the country check and the canonical saved form (+965...) are
+  unchanged, so a Saudi number is refused when only Kuwait is allowed even if the option is forced into the page. Country
+  names come from core's country descriptions of the page language; where a store has only English names the select
+  shows English names.
 <!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->
 - A customer whose two-step number differs from the number they recovered with: core uses the recovery key up and the
   customer lands on the code page for the two-step number, with no way back to the key. They sign in with the password

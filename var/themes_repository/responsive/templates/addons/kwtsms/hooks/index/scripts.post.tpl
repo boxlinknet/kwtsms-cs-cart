@@ -19,3 +19,7 @@
 {if ""|fn_kwtsms_code_features_on}
     {script src="js/addons/kwtsms/code.js"}
 {/if}
+{* 2026-11-06 07:43 +03: Task M2.5 (SafatMall C2, P3-55), task 596. js/addons/kwtsms/phone_country.js, only while the selector is active (its switch and the country check are ON). Its JSON data block is printed by hooks/index/head_scripts.post.tpl: this hook keeps only script tags. The server decides every number; the list is a convenience. *}
+{if ""|fn_kwtsms_phone_country_data}
+    {script src="js/addons/kwtsms/phone_country.js"}
+{/if}

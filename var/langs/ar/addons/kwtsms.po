@@ -5697,6 +5697,26 @@ msgctxt "Languages::kwtsms.settings.phone_country_check_help"
 msgid "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
 msgstr "عند التفعيل يجب أن يكون الرقم المكتوب عند التسجيل أو الدفع أو في الحساب رقم جوال من الدول المختارة أعلاه، ويحفظ بصيغة +96550123401. يتم التحقق فقط من الرقم الجديد أو المعدل."
 
+msgctxt "Languages::kwtsms.settings.field.phone_country_selector"
+msgid "Country selector on phone fields"
+msgstr "قائمة اختيار الدولة في حقول الجوال"
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_label"
+msgid "Let customers pick the country of their phone number"
+msgstr "السماح للعميل باختيار دولة رقم جواله"
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_help"
+msgid "Needs the phone check above. The phone fields of registration, account, checkout and code sign-in then offer only the allowed countries, with the default country preselected. The server still checks every number."
+msgstr "يتطلب التحقق من الأرقام أعلاه. تعرض حقول الجوال في التسجيل والحساب والدفع وتسجيل الدخول بالرمز الدول المسموحة فقط مع اختيار الدولة الافتراضية مسبقا. ويبقى الخادم هو من يتحقق من كل رقم."
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_needs_c3"
+msgid "The country selector needs the phone check. Turn on \"Check customer phone numbers\" first."
+msgstr "قائمة الدول تتطلب التحقق من الأرقام. فعل أولا \"التحقق من أرقام جوال العملاء\"."
+
+msgctxt "Languages::kwtsms.phone.country_select_label"
+msgid "Country of your mobile number"
+msgstr "دولة رقم جوالك"
+
 msgctxt "Languages::kwtsms.settings.add_gcc"
 msgid "Add GCC countries"
 msgstr "إضافة دول الخليج"

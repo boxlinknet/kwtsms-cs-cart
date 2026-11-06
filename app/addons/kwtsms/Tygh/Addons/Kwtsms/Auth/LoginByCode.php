@@ -99,7 +99,12 @@ class LoginByCode
         if (!$this->config->loginCode()) {
             return $this->answer('off');
         }
-        $check = $this->rules->check($raw_phone, $this->config->defaultCountryCode());
+        // 2026-11-06 07:35 +03: Task M2.5 (C2, P3-55), task 596. The phone is read with the same hint as the code
+        // request: the country the selector posted (kwtsms_cc[phone], allowed countries only), else the default.
+        $check = $this->rules->check(
+            $raw_phone,
+            \Tygh\Addons\Kwtsms\Phones\AccountPhone::hint('phone', [], [], $this->config->defaultCountryCode())
+        );
         $phone = $check['ok'] ? $check['phone'] : '';
         if ($phone === '' || CodeInput::normalize($raw_code) === null) {
             return $this->answer('malformed');

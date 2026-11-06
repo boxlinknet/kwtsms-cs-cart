@@ -254,7 +254,13 @@ class CodeRequest
         }
         $check = $this->rules->check(
             $raw_phone,
-            self::countryHint($request, $stored_iso, $this->config->defaultCountryCode())
+            // 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596: the selector's kwtsms_cc[phone] is the first hint.
+            self::countryHint(
+                $request,
+                $stored_iso,
+                $this->config->defaultCountryCode(),
+                (new \Tygh\Addons\Kwtsms\Phones\CountrySelector($this->config))->hintAllowed()
+            )
         );
         $phone = $check['ok'] ? $check['phone'] : '';
 
@@ -565,8 +571,23 @@ class CodeRequest
      *
      * @param array<string,mixed> $request
      */
-    public static function countryHint(array $request, string $stored_iso, string $default_cc): string
-    {
+    public static function countryHint(
+        array $request,
+        string $stored_iso,
+        string $default_cc,
+        array $selector_allowed = []
+    ): string {
+        // 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596. The calling code the storefront country selector
+        // posted (kwtsms_cc[phone]) is the first hint while it is one of $selector_allowed (empty while the selector is
+        // off, so a posted value is ignored).
+        $selected = \Tygh\Addons\Kwtsms\Phones\AccountPhone::selectedCc(
+            'phone',
+            $request['kwtsms_cc'] ?? null,
+            $selector_allowed
+        );
+        if ($selected !== null) {
+            return $selected;
+        }
         $posted = isset($request['country']) && is_string($request['country']) ? $request['country'] : '';
         foreach ([$posted, $stored_iso] as $iso) {
             $cc = $iso === '' ? null : \Tygh\Addons\Kwtsms\Sms\PhoneNormalizer::callingCodeForIso($iso);

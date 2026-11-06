@@ -141,7 +141,11 @@ class RecoverByCode
 
             return $this->answer('error');
         }
-        $check = $this->rules->check($raw_phone, $this->config->defaultCountryCode());
+        // 2026-11-06 07:35 +03: Task M2.5 (C2, P3-55), task 596. Same hint as the code request (see LoginByCode).
+        $check = $this->rules->check(
+            $raw_phone,
+            \Tygh\Addons\Kwtsms\Phones\AccountPhone::hint('phone', [], [], $this->config->defaultCountryCode())
+        );
         $phone = $check['ok'] ? $check['phone'] : '';
         if ($phone === '' || CodeInput::normalize($raw_code) === null) {
             return $this->answer('malformed');

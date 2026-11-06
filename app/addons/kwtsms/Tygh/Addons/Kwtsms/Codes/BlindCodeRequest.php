@@ -180,7 +180,13 @@ class BlindCodeRequest
         }
 
         // 2. The phone, judged after the gate (a bot learns nothing about a number it cannot pass).
-        $hint = CodeRequest::countryHint($request, '', $this->config->defaultCountryCode());
+        // 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596: the selector's kwtsms_cc[phone] is the first hint.
+        $hint = CodeRequest::countryHint(
+            $request,
+            '',
+            $this->config->defaultCountryCode(),
+            (new \Tygh\Addons\Kwtsms\Phones\CountrySelector($this->config))->hintAllowed()
+        );
         $check = $this->rules->check($raw_phone, $hint);
         $phone = $check['ok'] ? $check['phone'] : '';
 

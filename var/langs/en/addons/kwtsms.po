@@ -5693,6 +5693,26 @@ msgctxt "Languages::kwtsms.settings.phone_country_check_help"
 msgid "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
 msgstr "When on, a phone typed at registration, checkout or in the account must be a mobile number from the countries chosen above. It is saved as +96550123401. Only a new or changed phone is checked."
 
+msgctxt "Languages::kwtsms.settings.field.phone_country_selector"
+msgid "Country selector on phone fields"
+msgstr "Country selector on phone fields"
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_label"
+msgid "Let customers pick the country of their phone number"
+msgstr "Let customers pick the country of their phone number"
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_help"
+msgid "Needs the phone check above. The phone fields of registration, account, checkout and code sign-in then offer only the allowed countries, with the default country preselected. The server still checks every number."
+msgstr "Needs the phone check above. The phone fields of registration, account, checkout and code sign-in then offer only the allowed countries, with the default country preselected. The server still checks every number."
+
+msgctxt "Languages::kwtsms.settings.phone_country_selector_needs_c3"
+msgid "The country selector needs the phone check. Turn on \"Check customer phone numbers\" first."
+msgstr "The country selector needs the phone check. Turn on \"Check customer phone numbers\" first."
+
+msgctxt "Languages::kwtsms.phone.country_select_label"
+msgid "Country of your mobile number"
+msgstr "Country of your mobile number"
+
 msgctxt "Languages::kwtsms.settings.add_gcc"
 msgid "Add GCC countries"
 msgstr "Add GCC countries"

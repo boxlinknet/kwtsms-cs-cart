@@ -27,6 +27,12 @@ final class AccountPhone
     /** Phone field => the country field that decides its default calling code (PRD 6.3). */
     private const COUNTRY_FIELD = ['phone' => 'b_country', 'b_phone' => 'b_country', 's_phone' => 's_country'];
 
+    /** @var array<string,mixed>|null 2026-11-06 07:34 +03: Task M2.5, task 596. Test seam, see useSelection(). */
+    private static $seam_request = null;
+
+    /** @var string[]|null 2026-11-06 07:34 +03: Task M2.5, task 596. Test seam, see useSelection(). */
+    private static $seam_allowed = null;
+
     /**
      * The account phone as stored or posted (raw, trimmed): user_data.phone, else user_data.b_phone, '' when neither
      * is filled. Same rule as ProfileSmsData::phone().
@@ -80,6 +86,12 @@ final class AccountPhone
      */
     public static function hint(string $field, array $posted, array $stored, string $default_cc): string
     {
+        // 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596. A posted kwtsms_cc[<field>] (the storefront country
+        // selector) that is one of the allowed countries is the first hint; anything else is ignored.
+        $selected = self::requestSelection($field);
+        if ($selected !== null) {
+            return $selected;
+        }
         $country_field = self::COUNTRY_FIELD[$field] ?? '';
         if ($country_field === '') {
             return $default_cc;
@@ -93,6 +105,67 @@ final class AccountPhone
         }
 
         return $default_cc;
+    }
+
+    /**
+     * 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596. The calling code the country selector posted for $field,
+     * or null: $posted is the kwtsms_cc request array (field => calling code); a value counts only when it is a string
+     * of 1 to 4 digits without a leading zero AND one of $allowed (the customer_sms_countries, given only while the
+     * selector is active). The browser never decides: the C3 check and the canonical form still run on the result.
+     *
+     * @param mixed    $posted  the kwtsms_cc request value
+     * @param string[] $allowed allowed calling codes
+     */
+    public static function selectedCc(string $field, $posted, array $allowed): ?string
+    {
+        if (!is_array($posted) || !isset($posted[$field]) || !is_string($posted[$field])) {
+            return null;
+        }
+        $cc = trim($posted[$field]);
+        if (preg_match('/^[1-9][0-9]{0,3}$/D', $cc) !== 1 || !in_array($cc, array_map('strval', $allowed), true)) {
+            return null;
+        }
+
+        return $cc;
+    }
+
+    /**
+     * 2026-11-06 07:34 +03: Task M2.5 (C2, P3-55), task 596. Test seam of the request-level selection: $request is
+     * the kwtsms_cc array and $allowed the allowed calling codes; (null, null) is the live behaviour (the request's
+     * kwtsms_cc and the allowed list of the add-on settings while the selector is active).
+     *
+     * @param array<string,mixed>|null $request
+     * @param string[]|null            $allowed
+     */
+    public static function useSelection(?array $request, ?array $allowed): void
+    {
+        self::$seam_request = $request;
+        self::$seam_allowed = $allowed;
+    }
+
+    /** The selected calling code of this request for $field (selectedCc() on the request and the live allowed list). */
+    private static function requestSelection(string $field): ?string
+    {
+        try {
+            $request = self::$seam_request;
+            if ($request === null) {
+                $request = isset($_REQUEST['kwtsms_cc']) ? $_REQUEST['kwtsms_cc'] : null;
+            }
+            if (!is_array($request) || $request === []) {
+                return null;
+            }
+            $allowed = self::$seam_allowed;
+            if ($allowed === null) {
+                $allowed = [];
+                if (class_exists('Tygh\Tygh') && isset(\Tygh\Tygh::$app['kwtsms.config'])) {
+                    $allowed = (new CountrySelector(\Tygh\Tygh::$app['kwtsms.config']))->hintAllowed();
+                }
+            }
+
+            return self::selectedCc($field, $request, $allowed);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

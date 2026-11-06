@@ -313,6 +313,17 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
         if (country) {
             body.set('country', String(country));
         }
+        // 2026-11-06 07:38 +03: Task M2.5 (C2, P3-55), task 596. The calling code chosen in the country selector next to
+        // this phone input (kwtsms_cc[<field>]) is the first hint of the server, as it is for the form save. Ignored by
+        // the server while the selector is off or the code is not an allowed country.
+        var ccMatch = /^user_data\[(phone|b_phone|s_phone)\]$/.exec($phone.attr('name') || '');
+        var ccField = ccMatch ? ccMatch[1] : ($phone.attr('name') === 'phone' ? 'phone' : '');
+        if (ccField !== '') {
+            var ccValue = $(document).find('select[name="kwtsms_cc[' + ccField + ']"]').first().val();
+            if (ccValue) {
+                body.set('kwtsms_cc[phone]', String(ccValue));
+            }
+        }
         body.set('security_hash', typeof _.security_hash === 'string' ? _.security_hash : '');
         collectToken(root, body);
 

@@ -51,6 +51,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   is entered (the number the courier calls). After a verified guest order the "create account" block of the order page
   creates the account with that verified number. Texts in English and Arabic.
 
+- <!-- 2026-11-06 07:52 +03: Task M2.5 (country selector on phone fields), task 596 -->
+  Country selector on the phone fields (off until you turn it on under Settings > Phone and codes; it needs "Check
+  customer phone numbers"). Registration, the account page, checkout and the code sign-in and recovery forms offer only
+  the countries you allow, with the default country preselected: the core country list is filtered in the "phone
+  number with country selection" mode, and a compact select is added in the "international format" and "any digits"
+  modes. The server still decides: the chosen calling code is only the first hint for a number typed without one, it is
+  ignored when the country is not allowed, and every number is checked and saved in the +965... form as before.
+
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
   their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,
