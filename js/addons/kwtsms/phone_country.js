@@ -207,7 +207,15 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), the core phone mas
             var $sel = buildSelect(field, $input);
             $input.data('kwtsmsCc', 1);
             var $box = $input.closest('.cm-field-container');
-            ($box.length ? $box : $input).before($sel);
+            // 2026-11-06 09:59 +03: Task M2.5, task 596. The lite checkout field draws its floating label over the first
+            // row of its box (the screenshot showed the select under the label text): there the select goes after the
+            // input, inside the same box; everywhere else it goes before the input.
+            if ($box.hasClass('litecheckout__field')) {
+                $input.after($sel);
+                $sel.css('margin', '.4em 0 0');
+            } else {
+                ($box.length ? $box : $input).before($sel);
+            }
             $sel.on('change', function () {
                 choice[field] = $sel.val();
                 // The masked international format field is typed with its own country code: the choice only changes the
