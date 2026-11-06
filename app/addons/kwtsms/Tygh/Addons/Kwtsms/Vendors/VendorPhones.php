@@ -79,7 +79,10 @@ class VendorPhones implements VendorPhoneSourceInterface
      *
      * @return array{ok:bool,reason:string,phone:string}
      */
-    public function approve(int $company_id, int $admin_id): array
+    // 2026-11-06 23:49 +03: M2.6-fix I1, task 596. $expected_phone (normalized digits) is the number a code was proved
+    // for: when the company's current phone is another one by now, nothing is approved (reason 'changed'). '' = no
+    // expectation (the root approval of the Vendor SMS page).
+    public function approve(int $company_id, int $admin_id, string $expected_phone = ''): array
     {
         $company = $company_id > 0 ? $this->companyRow($company_id) : null;
         if ($company === null) {
@@ -94,6 +97,9 @@ class VendorPhones implements VendorPhoneSourceInterface
         $current = $this->normalize($company);
         if (!$current['ok']) {
             return ['ok' => false, 'reason' => $current['reason'], 'phone' => ''];
+        }
+        if ($expected_phone !== '' && $current['phone'] !== $expected_phone) {
+            return ['ok' => false, 'reason' => 'changed', 'phone' => ''];
         }
         $now = $this->now();
         $this->writeRow($company_id, [

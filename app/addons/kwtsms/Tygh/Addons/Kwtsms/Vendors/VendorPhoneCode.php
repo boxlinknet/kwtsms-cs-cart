@@ -176,7 +176,9 @@ class VendorPhoneCode
         if (!$this->otp->consume(CodeRequest::PURPOSE_VENDOR_PHONE, $subject, $vendor_user_id, $session_hash)) {
             return OtpResult::of(OtpResult::NONE);
         }
-        $approved = $this->phones->approve($company_id, $vendor_user_id);
+        // 2026-11-06 23:49 +03: M2.6-fix I1, task 596. Approve only the number the code was verified for: when the
+        // company phone moved since the check above, approve() refuses (reason 'changed').
+        $approved = $this->phones->approve($company_id, $vendor_user_id, (string) $candidate['phone']);
         if (!$approved['ok']) {
             $this->debug('vendor_phone.approve_refused', [
                 'company_id' => $company_id, 'reason' => $approved['reason'],
