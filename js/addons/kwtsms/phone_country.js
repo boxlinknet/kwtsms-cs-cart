@@ -12,7 +12,7 @@ WHY:       Task M2.5 (SafatMall C2, P3-55). Customers pick one of the countries 
            only helps: the server reads kwtsms_cc[<field>] as the first country hint when it is allowed, then checks
            the number (C3) and saves the canonical form; a value forced into the DOM is refused there.
 USAGE:     Loaded by hooks/index/scripts.post.tpl while the switch and the country check are ON, after the JSON block
-           <script type="application/json" id="kwtsms-cc-data" data-label="..."> (countries, default, mode). Node
+           <meta name="kwtsms-cc" id="kwtsms-cc-data" content="{json}" data-label="..."> (countries, default, mode). Node
            (tests/Js/phone_country.test.js) loads the pure helpers through module.exports.
 DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), the core phone mask (js/tygh/phone_mask.js) markup.
 */
@@ -111,7 +111,8 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), the core phone mas
             }
             loaded = true;
             try {
-                data = JSON.parse(el.textContent || '');
+                // 2026-11-06 09:31 +03: Task M2.5, task 596. The JSON is the content attribute of a meta element.
+                data = JSON.parse(el.getAttribute('content') || '');
             } catch (e) {
                 data = null;
             }

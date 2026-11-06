@@ -1557,8 +1557,9 @@ function fn_kwtsms_code_features_on($unused = '')
  * 2026-11-06 07:37 +03: Task M2.5 (SafatMall C2, P3-55), task 596. For the storefront template
  * hooks/index/scripts.post.tpl (modifier |fn_kwtsms_phone_country_data): the JSON the country selector script reads
  * (allowed countries with their localized names, the default calling code, the core phone mode), or '' while the
- * selector is off or the country check (C3) is off. Settings and core country names only; the JSON is safe inside a
- * script element (tags, ampersands and quotes hex-escaped). Never throws.
+ * selector is off or the country check (C3) is off. Settings and core country names only; the JSON has tags,
+ * ampersands and quotes hex-escaped and the template prints it in an escaped meta content attribute (head_scripts
+ * hook; 2026-11-06 09:31 +03: it was a script element, the package gate refuses nofilter). Never throws.
  */
 function fn_kwtsms_phone_country_data($unused = '')
 {

@@ -12,10 +12,11 @@
  * DEPENDS:   func.php fn_kwtsms_register_code_on.
  *}
 {* 2026-11-05 20:58 +03: Task M2.4 (SafatMall B6, P3-54), task 596. The block is shown again for the order whose phone a checkout code verified in this session (that account is then created with the verified phone); every other order keeps it hidden while register_code is ON. *}
-{* 2026-11-06 07:43 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The JSON data block of the phone country selector (allowed countries, default calling code, core phone mode), printed only while the selector and the country check are ON; js/addons/kwtsms/phone_country.js (loaded by scripts.post.tpl) reads it. The JSON is hex-escaped for a script element. *}
+{* 2026-11-06 07:43 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The JSON data block of the phone country selector (allowed countries, default calling code, core phone mode), printed only while the selector and the country check are ON; js/addons/kwtsms/phone_country.js (loaded by scripts.post.tpl) reads it. *}
 {$kwtsms_cc_json = ""|fn_kwtsms_phone_country_data}
 {if $kwtsms_cc_json}
-<script type="application/json" id="kwtsms-cc-data" data-label="{__("kwtsms.phone.country_select_label")|fn_html_escape}">{$kwtsms_cc_json nofilter}</script>
+{* 2026-11-06 09:31 +03: Task M2.5, task 596. A meta element with the JSON in its escaped content attribute: the package gate forbids nofilter in templates, and a script element would need it. *}
+<meta name="kwtsms-cc" id="kwtsms-cc-data" content="{$kwtsms_cc_json|fn_html_escape}" data-label="{__("kwtsms.phone.country_select_label")|fn_html_escape}" />
 {/if}
 {if $smarty.request.order_id|default:0|fn_kwtsms_hide_create_account}
 <style>.ty-checkout-complete__create-account { display: none; }</style>
