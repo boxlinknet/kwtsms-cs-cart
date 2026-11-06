@@ -210,7 +210,8 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), the core phone mas
             // 2026-11-06 09:59 +03: Task M2.5, task 596. The lite checkout field draws its floating label over the first
             // row of its box (the screenshot showed the select under the label text): there the select goes after the
             // input, inside the same box; everywhere else it goes before the input.
-            if ($box.hasClass('litecheckout__field')) {
+            // 2026-11-06 11:28 +03: the test is on the input's ancestors (the inner box is not the litecheckout__field).
+            if ($input.closest('.litecheckout__field').length) {
                 $input.after($sel);
                 $sel.css('margin', '.4em 0 0');
             } else {
