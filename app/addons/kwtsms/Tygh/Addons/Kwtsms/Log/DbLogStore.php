@@ -35,7 +35,13 @@ namespace Tygh\Addons\Kwtsms\Log;
 use Tygh\Registry;
 
 // 2026-10-21 05:46 +03: AdminLogStoreInterface added (Logs page, order SMS tab), Task 1.14, task 596.
-class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLogStoreInterface, AdminLogStoreInterface
+// 2026-11-06 22:05 +03: FailureCountStoreInterface added (the send-failure spike count), Task M2.11, task 596.
+class DbLogStore implements
+    LogStoreInterface,
+    BulkLogStoreInterface,
+    PrunableLogStoreInterface,
+    AdminLogStoreInterface,
+    FailureCountStoreInterface
 {
     /** deleteOlderThan() stops after this many statements; the caller can call again. */
     private const MAX_CHUNKS = 1000;
@@ -293,6 +299,71 @@ class DbLogStore implements LogStoreInterface, BulkLogStoreInterface, PrunableLo
             $phones === [] ? [''] : $phones,
             $day_from,
             $outcomes === [] ? [''] : array_values(array_map('strval', $outcomes)),
+        ];
+    }
+
+    /**
+     * 2026-11-06 22:05 +03: Task M2.11 (P3-57), task 596. Send failures since $from: outcome failed or rejected;
+     * unknown but not a cap reservation; deferred with the reason gateway_unreachable or suspended (the text before
+     * the first colon). Three counts added up, each a range of idx_outcome_created_at.
+     *
+     * @throws \RuntimeException
+     */
+    public function countFailures(int $from, array $exclude_events = []): int
+    {
+        $count = $this->fetchField($this->countFailuresArguments($from, $exclude_events));
+        if (!is_int($count) && !(is_string($count) && ctype_digit($count))) {
+            throw new \RuntimeException('Could not count the rows of ' . Schema::table(Schema::ATTEMPTS));
+        }
+
+        return (int) $count;
+    }
+
+    /**
+     * The exact query of countFailures() as SQL text (EXPLAIN / ANALYZE only).
+     * 2026-11-06 22:05 +03: Task M2.11, task 596.
+     *
+     * @param string[] $exclude_events
+     */
+    public function countFailuresSql(int $from, array $exclude_events = []): string
+    {
+        return $this->prefixed(db_quote(...$this->countFailuresArguments($from, $exclude_events)));
+    }
+
+    /**
+     * @param string[] $exclude_events
+     *
+     * @return array<int,mixed>
+     */
+    private function countFailuresArguments(int $from, array $exclude_events): array
+    {
+        $exclude = array_values(array_map('strval', $exclude_events));
+        $skip = $exclude === [] ? '1' : db_quote('`event_id` NOT IN (?a)', $exclude);
+        $from = max(0, $from);
+        $table = '?:' . Schema::table(Schema::ATTEMPTS);
+
+        // 2026-11-06 22:21 +03: Task M2.11, task 596. Three counts added up, one per outcome group, instead of one OR
+        // over the three: each is a range of idx_outcome_created_at (outcome, created_at). The single OR query made the
+        // optimizer read the whole table once 200,000 rows fell into the window (1.3 s on kwtsms_perf, ANALYZE); the
+        // sum of three ranges took 135 ms at 120,000 failures in 15 minutes and 0.5 ms at the seeded volume.
+        return [
+            'SELECT (SELECT COUNT(*) FROM ' . $table . ' WHERE `outcome` IN (?a) AND `created_at` >= ?i AND ?p)'
+                . ' + (SELECT COUNT(*) FROM ' . $table
+                . ' WHERE `outcome` = ?s AND `created_at` >= ?i AND `reason` <> ?s AND ?p)'
+                . ' + (SELECT COUNT(*) FROM ' . $table
+                . ' WHERE `outcome` = ?s AND `created_at` >= ?i AND SUBSTRING_INDEX(`reason`, ?s, 1) IN (?a) AND ?p)',
+            self::FAILED_OUTCOMES,
+            $from,
+            $skip,
+            'unknown',
+            $from,
+            self::CAP_RESERVED,
+            $skip,
+            'deferred',
+            $from,
+            ':',
+            self::FAILED_DEFERRALS,
+            $skip,
         ];
     }
 

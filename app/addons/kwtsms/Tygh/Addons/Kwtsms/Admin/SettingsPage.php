@@ -75,6 +75,8 @@ class SettingsPage
         'cap_recipient_hour', 'cap_recipient_day', 'cap_admin_day', 'cap_store_day', 'low_balance_threshold',
         'quiet_hours_enabled', 'quiet_hours_from', 'quiet_hours_to',
         'log_level', 'retention_messages_days', 'retention_attempts_days', 'retention_debug_days', 'cron_url_enabled',
+        // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert.
+        'fail_spike_alert', 'fail_spike_threshold',
     ];
 
     /** Keys posted as a list (multi-select, checkboxes); every other key must be one string. */
@@ -1847,6 +1849,11 @@ class SettingsPage
                 return $this->config->retentionDebugDays();
             case 'cron_url_enabled':
                 return $this->config->cronUrlEnabled() ? 'Y' : 'N';
+            // 2026-11-06 22:06 +03: Task M2.11, task 596.
+            case 'fail_spike_alert':
+                return $this->config->failSpikeAlert() ? 'Y' : 'N';
+            case 'fail_spike_threshold':
+                return $this->config->failSpikeThreshold();
         }
 
         return '';

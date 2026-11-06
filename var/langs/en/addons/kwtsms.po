@@ -5104,6 +5104,11 @@ msgctxt "Languages::kwtsms.tpl.kwtsms.low_balance.A"
 msgid "{store_name}: kwtSMS balance is low, {balance} credits left (alert level {threshold}). Please top up."
 msgstr "{store_name}: kwtSMS balance is low, {balance} credits left (alert level {threshold}). Please top up."
 
+# 2026-11-06 22:11 +03: Task M2.11, task 596. Default text of the send failure alert SMS (staff). Its place follows the order of Defaults::events().
+msgctxt "Languages::kwtsms.tpl.kwtsms.send_fail_spike.A"
+msgid "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
+msgstr "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
+
 msgctxt "Languages::kwtsms.event.low_balance"
 msgid "Low kwtSMS balance"
 msgstr "Low kwtSMS balance"
@@ -7335,3 +7340,49 @@ msgstr "Your SMS number is confirmed."
 msgctxt "Languages::kwtsms.vendorphone.edit_company"
 msgid "Edit the company profile"
 msgstr "Edit the company profile"
+
+# 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: the admin notice and e-mail
+# (plural on [count]), the staff SMS default text, the event and placeholder names, the Settings fields.
+msgctxt "Languages::kwtsms.alert.send_fail_spike.title"
+msgid "SMS sends are failing"
+msgstr "SMS sends are failing"
+
+msgctxt "Languages::kwtsms.alert.send_fail_spike.text"
+msgid "[count] SMS send failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account.|[count] SMS sends failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account."
+msgstr "[count] SMS send failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account.|[count] SMS sends failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account."
+
+msgctxt "Languages::kwtsms.event.send_fail_spike"
+msgid "Send failure alert"
+msgstr "Send failure alert"
+
+msgctxt "Languages::kwtsms.templates.event.kwtsms.send_fail_spike"
+msgid "Send failure alert"
+msgstr "Send failure alert"
+
+msgctxt "Languages::kwtsms.templates.ph_count"
+msgid "Number of failed sends"
+msgstr "Number of failed sends"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_title"
+msgid "Send failure alert"
+msgstr "Send failure alert"
+
+msgctxt "Languages::kwtsms.settings.field.fail_spike_alert"
+msgid "Failure alert"
+msgstr "Failure alert"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_label"
+msgid "Alert me when many sends fail"
+msgstr "Alert me when many sends fail"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_help"
+msgid "Off by default. When on, more failed sends than the number below within 15 minutes raise a notice in the admin bell and an e-mail, at most once an hour. For an SMS too, switch on Send failure alert in Administration > Notifications."
+msgstr "Off by default. When on, more failed sends than the number below within 15 minutes raise a notice in the admin bell and an e-mail, at most once an hour. For an SMS too, switch on Send failure alert in Administration > Notifications."
+
+msgctxt "Languages::kwtsms.settings.field.fail_spike_threshold"
+msgid "Failures to alert on"
+msgstr "Failures to alert on"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_threshold_help"
+msgid "Alert when more than this many sends fail within 15 minutes (1 to 10000). The default is 10."
+msgstr "Alert when more than this many sends fail within 15 minutes (1 to 10000). The default is 10."

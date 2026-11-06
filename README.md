@@ -60,6 +60,8 @@ including order status changes and Multi-Vendor vendor events.
 <!-- 2026-11-06 18:49 +03: Task M2.6 (vendors confirm their number with a code), task 596 -->
 - Vendors confirm their own SMS number with a code in the vendor panel (off until you turn it on); root approval stays as an override
 - Customer opt-out of order SMS, and a manual SMS from the order page
+<!-- 2026-11-06 22:25 +03: Task M2.11 (send-failure spike alert), task 596 -->
+- Alert in the admin bell and by e-mail (and optionally SMS) when sends start failing in bulk (off until you turn it on)
 <!-- 2026-10-29 04:17 +03: Task M1.12, task 596. The 1.2.0 features. -->
 - Phone rules: a country check and one account per phone, each off until you turn it on
 - SMS codes to create an account and to change the account phone number, with limits per phone number and per

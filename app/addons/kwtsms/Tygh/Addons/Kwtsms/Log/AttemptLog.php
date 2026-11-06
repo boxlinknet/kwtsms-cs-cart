@@ -264,6 +264,27 @@ class AttemptLog
         return $this->store->count(Schema::ATTEMPTS, $filters);
     }
 
+    /**
+     * 2026-11-06 22:05 +03: Task M2.11 (P3-57), task 596. Send failures in the last $seconds (outcome failed or
+     * rejected, unknown except a cap reservation, deferred as gateway_unreachable or suspended), not counting the
+     * attempts of $exclude_events. Like countRecent(), a failed count is thrown, never read as 0.
+     *
+     * @param string[] $exclude_events event_id values left out (the alert SMS itself)
+     *
+     * @throws \RuntimeException When the store cannot count failures or the count cannot be read
+     */
+    public function countFailures(int $seconds, array $exclude_events = []): int
+    {
+        if (!$this->store instanceof FailureCountStoreInterface) {
+            throw new \RuntimeException('this log store cannot count send failures');
+        }
+        if ($seconds < 1) {
+            return 0;
+        }
+
+        return $this->store->countFailures($this->now() - $seconds, $exclude_events);
+    }
+
     private function now(): int
     {
         return $this->clock === null ? time() : (int) call_user_func($this->clock);

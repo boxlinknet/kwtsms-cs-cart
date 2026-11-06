@@ -157,6 +157,9 @@ class Config implements ConfigInterface
             'mve_customer_new_order', 'mve_admin_new_order', 'mve_customer_status_scope', 'mve_vendor_triggered_sms',
             'log_level', 'retention_messages_days', 'retention_attempts_days', 'retention_debug_days',
             'cron_url_enabled',
+            // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: next to the low
+            // balance alert in the Settings form.
+            'fail_spike_alert', 'fail_spike_threshold',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

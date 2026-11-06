@@ -1473,6 +1473,7 @@ class TemplatesPage
         return SampleData::reference($lang, $status_name, $brand) + SampleData::shipment(false, $lang)
             + SampleData::profile(false) + SampleData::lowStock(false) // 2026-10-22 21:29 +03: Task A7, task 596
             + SampleData::lowBalance(false) // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::failSpike(false) // 2026-11-06 22:08 +03: Task M2.11, task 596
             + SampleData::codes(false); // 2026-10-24 12:34 +03: Task M1.4, task 596
     }
 
@@ -1559,6 +1560,7 @@ class TemplatesPage
             + SampleData::shipment(true, $lang) + SampleData::profile(true) // 2026-10-22 19:08 +03: Task A6, task 596
             + SampleData::lowStock(true) // 2026-10-22 21:29 +03: Task A7, task 596
             + SampleData::lowBalance(true) // 2026-10-23 00:14 +03: Task A9, task 596
+            + SampleData::failSpike(true) // 2026-11-06 22:08 +03: Task M2.11, task 596
             + SampleData::codes(true); // 2026-10-24 12:34 +03: Task M1.4, task 596
     }
 

@@ -5107,6 +5107,11 @@ msgctxt "Languages::kwtsms.tpl.kwtsms.low_balance.A"
 msgid "{store_name}: kwtSMS balance is low, {balance} credits left (alert level {threshold}). Please top up."
 msgstr "رصيد الرسائل منخفض: المتبقي {balance} والحد {threshold}. يرجى الشحن."
 
+# 2026-11-06 22:11 +03: Task M2.11, task 596. Default text of the send failure alert SMS (staff). Its place follows the order of Defaults::events().
+msgctxt "Languages::kwtsms.tpl.kwtsms.send_fail_spike.A"
+msgid "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
+msgstr "تنبيه: فشل إرسال {count} رسالة خلال {minutes} دقيقة. راجع السجلات."
+
 msgctxt "Languages::kwtsms.event.low_balance"
 msgid "Low kwtSMS balance"
 msgstr "انخفاض رصيد kwtSMS"
@@ -7340,3 +7345,49 @@ msgstr "تم تأكيد رقم رسائلك."
 msgctxt "Languages::kwtsms.vendorphone.edit_company"
 msgid "Edit the company profile"
 msgstr "تعديل ملف الشركة"
+
+# 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: the admin notice and e-mail
+# (plural on [count], six forms), the staff SMS default text, the event and placeholder names, the Settings fields.
+msgctxt "Languages::kwtsms.alert.send_fail_spike.title"
+msgid "SMS sends are failing"
+msgstr "فشل إرسال الرسائل"
+
+msgctxt "Languages::kwtsms.alert.send_fail_spike.text"
+msgid "[count] SMS send failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account.|[count] SMS sends failed in the last [minutes] minutes. Check the Logs page and your kwtSMS account."
+msgstr "لم يفشل إرسال أي رسالة خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS.|فشل إرسال رسالة واحدة خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS.|فشل إرسال رسالتين خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS.|فشل إرسال [count] رسائل خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS.|فشل إرسال [count] رسالة خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS.|فشل إرسال [count] رسالة خلال آخر [minutes] دقيقة. راجع صفحة السجلات وحساب kwtSMS."
+
+msgctxt "Languages::kwtsms.event.send_fail_spike"
+msgid "Send failure alert"
+msgstr "تنبيه فشل الإرسال"
+
+msgctxt "Languages::kwtsms.templates.event.kwtsms.send_fail_spike"
+msgid "Send failure alert"
+msgstr "تنبيه فشل الإرسال"
+
+msgctxt "Languages::kwtsms.templates.ph_count"
+msgid "Number of failed sends"
+msgstr "عدد الرسائل الفاشلة"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_title"
+msgid "Send failure alert"
+msgstr "تنبيه فشل الإرسال"
+
+msgctxt "Languages::kwtsms.settings.field.fail_spike_alert"
+msgid "Failure alert"
+msgstr "تنبيه الفشل"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_label"
+msgid "Alert me when many sends fail"
+msgstr "نبّهني عند فشل إرسال أعداد كبيرة من الرسائل"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_help"
+msgid "Off by default. When on, more failed sends than the number below within 15 minutes raise a notice in the admin bell and an e-mail, at most once an hour. For an SMS too, switch on Send failure alert in Administration > Notifications."
+msgstr "معطّل افتراضيا. عند تفعيله، إذا فشل إرسال رسائل أكثر من العدد أدناه خلال 15 دقيقة يظهر إشعار في جرس لوحة الإدارة ويُرسل بريد إلكتروني، مرة واحدة في الساعة على الأكثر. لتصلك رسالة SMS أيضا، فعّل تنبيه فشل الإرسال من الإدارة > الإشعارات."
+
+msgctxt "Languages::kwtsms.settings.field.fail_spike_threshold"
+msgid "Failures to alert on"
+msgstr "عدد حالات الفشل للتنبيه"
+
+msgctxt "Languages::kwtsms.settings.fail_spike_threshold_help"
+msgid "Alert when more than this many sends fail within 15 minutes (1 to 10000). The default is 10."
+msgstr "يُرسل التنبيه عندما يفشل إرسال أكثر من هذا العدد من الرسائل خلال 15 دقيقة (من 1 إلى 10000). القيمة الافتراضية 10."

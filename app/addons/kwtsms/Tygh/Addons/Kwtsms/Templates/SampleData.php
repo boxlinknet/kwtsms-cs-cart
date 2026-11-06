@@ -208,6 +208,18 @@ final class SampleData
     }
 
     /**
+     * 2026-11-06 22:08 +03: Task M2.11 (send failure alert SMS), task 596. The value of {count}: a reference count, or
+     * the worst case (5 digits). {minutes} comes from codes() (it is the same placeholder name; the worst case there
+     * is 2 digits, which is the real window of 15).
+     *
+     * @return array<string,string>
+     */
+    public static function failSpike(bool $worst = false): array
+    {
+        return $worst ? ['count' => '99999'] : ['count' => '12'];
+    }
+
+    /**
      * 2026-10-24 12:34 +03: Task M1.4 (code SMS), task 596. The values of the code placeholders: a reference code,
      * lifetime and date, or the worst case (a 6-digit code, 2 digits of minutes, the date at its longest). The code is
      * a made-up one; a real code is never shown on the page.

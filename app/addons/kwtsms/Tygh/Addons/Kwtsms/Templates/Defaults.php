@@ -67,6 +67,9 @@ class Defaults
     /** 2026-10-23 00:14 +03: Task A9, task 596. The add-on's own low-balance event (A only). */
     public const EVENT_LOW_BALANCE = 'kwtsms.low_balance';
 
+    /** 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. The add-on's own send-failure spike event (A only). */
+    public const EVENT_SEND_FAIL_SPIKE = 'kwtsms.send_fail_spike';
+
     /**
      * 2026-10-24 12:33 +03: Task M1.4 (SafatMall G2, H2, I3; P3-9, P3-37), task 596. The two code and security
      * texts. They are not notification events (not in schemas/kwtsms/events.php, no core switch row); only
@@ -118,6 +121,8 @@ class Defaults
         self::EVENT_LOW_STOCK => ['product_name', 'product_code', 'stock_amount', 'more_count'],
         // 2026-10-23 00:14 +03: Task A9, task 596. Credits left and the alert level (Alerts\LowBalanceSms).
         self::EVENT_LOW_BALANCE => ['balance', 'threshold'],
+        // 2026-11-06 22:07 +03: Task M2.11, task 596. The failed-send count and the window (Alerts\FailSpike).
+        self::EVENT_SEND_FAIL_SPIKE => ['count', 'minutes'],
     ];
 
     /**
@@ -191,6 +196,8 @@ class Defaults
         $rows[] = self::row(self::EVENT_PLACED, self::RECEIVER_VENDOR, '', '', true);
         // 2026-10-23 00:16 +03: Task A9, task 596. Low kwtSMS balance: admin.
         $rows[] = self::row(self::EVENT_LOW_BALANCE, self::RECEIVER_ADMIN);
+        // 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. Send failure spike: admin.
+        $rows[] = self::row(self::EVENT_SEND_FAIL_SPIKE, self::RECEIVER_ADMIN);
         // 2026-10-24 12:33 +03: Task M1.4 (SafatMall G2, H2), task 596. The code SMS and the phone-changed notice
         // (customer only).
         $rows[] = self::row(self::EVENT_OTP_CODE, self::RECEIVER_CUSTOMER);

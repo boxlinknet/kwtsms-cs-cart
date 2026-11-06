@@ -67,6 +67,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   SMS page stays as an override ("Approve without code"); the page shows "Waiting for the vendor's code" and
   "Confirmed by the vendor's code on [date]". A changed company phone still has to be confirmed again.
 
+- <!-- 2026-11-06 22:25 +03: Task M2.11 (send-failure spike alert, P3-41), task 596 -->
+  Alert when SMS sends start failing (off until you turn it on under Settings > Send failure alert). When more sends
+  fail within 15 minutes than the number you set (10 by default), the add-on raises a notice in the admin bell and sends
+  an e-mail, at most once an hour, with the count and nothing else (no phone number, no reason). An SMS to the Admin SMS
+  alerts numbers is available too under Administration > Notifications ("Send failure alert", off by default). The SMS
+  about failing SMS is not counted as a failure itself, so it cannot raise the alert again.
+
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
   their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,

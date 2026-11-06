@@ -54,7 +54,10 @@ class DispatchKeys
     public const WINDOWED_PREFIXES = ['status:', 'resend:', 'updated:', 'recover:', 'low_stock:'];
 
     /** Prefixes of the keys that are kept for ever (an order is placed once, a shipment is created once ...). */
-    public const PERMANENT_PREFIXES = ['order_placed:', 'shipment:', 'created:', 'registered:', 'low_balance:'];
+    // 2026-11-06 22:11 +03: Task M2.11, task 596. send_fail_spike: (one key per alert hour, window 0) joins the list.
+    public const PERMANENT_PREFIXES = [
+        'order_placed:', 'shipment:', 'created:', 'registered:', 'low_balance:', 'send_fail_spike:',
+    ];
 
     /** The prune cuts at 2 days (CronRunner::STATUS_KEY_DAYS), so a longer declared window is never pruned. */
     public const PRUNE_MAX_WINDOW = 172800;

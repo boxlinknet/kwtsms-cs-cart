@@ -51,7 +51,9 @@ class PostUpgrade130
      * kwtsms.send_fail_spike row (receiver A) is added with its default text by Task M2.11; seedDefaults() below
      * seeds whatever Templates\Defaults holds, so no change here is needed then except naming it in this list.
      */
-    private const TEMPLATES = ['otp.code|C', 'security.phone_changed|C'];
+    // 2026-11-06 22:09 +03: Task M2.11 (ruling [M2.11] 2026-11-04 19:02), task 596. kwtsms.send_fail_spike (receiver A)
+    // joins the list: its default text is seeded by seedDefaults() and checked here before the version is written.
+    private const TEMPLATES = ['otp.code|C', 'security.phone_changed|C', 'kwtsms.send_fail_spike|A'];
 
     /**
      * Language variables whose text changed between 1.2.0 and 1.3.0, with the text 1.2.0 shipped, per language

@@ -188,8 +188,14 @@ class CronRunner
      */
     private $index_phones;
 
+    /** @var callable|null 2026-11-06 22:09 +03: Task M2.11, task 596. (): bool, FailSpike::check() */
+    private $fail_spike_check;
+
+    /** @var callable|null 2026-11-06 22:09 +03: Task M2.11, task 596. (): bool, FailSpike::dispatchPending() */
+    private $fail_spike_sms;
+
     /**
-     * @param callable      $drain        (int $limit, float $time_budget_s, bool $cron): array,
+     * @param callable      $drain       (int $limit, float $time_budget_s, bool $cron): array,
      *                                    SmsService::drainDue(); the runner always passes $cron = true
      *                                    (2026-10-21 01:54 +03, fix round 1 item 7, task 596; said 02:30 until
      *                                    2026-10-21 08:35 +03, cleanup item 8)
@@ -221,8 +227,12 @@ class CronRunner
         ?callable $low_balance_sms = null, // 2026-10-23 00:13 +03: Task A9 (R8, R22), task 596
         ?callable $prune_buckets = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
         ?callable $prune_codes = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
-        ?callable $index_phones = null // 2026-10-24 17:16 +03: Task M1.6 (R8), task 596
+        ?callable $index_phones = null, // 2026-10-24 17:16 +03: Task M1.6 (R8), task 596
+        ?callable $fail_spike_check = null, // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596
+        ?callable $fail_spike_sms = null // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596
     ) {
+        $this->fail_spike_check = $fail_spike_check;
+        $this->fail_spike_sms = $fail_spike_sms;
         $this->index_phones = $index_phones;
         $this->prune_buckets = $prune_buckets;
         $this->prune_codes = $prune_codes;
@@ -340,6 +350,15 @@ class CronRunner
                 $out['low_balance_sms'] = (bool) call_user_func($this->low_balance_sms);
             } catch (\Throwable $e) {
                 $this->noteThrowable('cron.low_balance_sms_failed', $e);
+            }
+        }
+        // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596. The send-failure spike SMS of an alert raised by the
+        // health job, next to the low-balance one: consumed first, so a refused or failed send is never repeated.
+        if ($this->fail_spike_sms !== null) {
+            try {
+                $out['fail_spike_sms'] = (bool) call_user_func($this->fail_spike_sms);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('cron.fail_spike_sms_failed', $e);
             }
         }
         if ($this->state->suspendedCode() !== null) {
@@ -610,10 +629,21 @@ class CronRunner
      */
     private function health(): array
     {
-        if (!$this->dailyDue('health')) {
-            return ['ok' => true, 'ran' => false, 'raised' => []];
+        // 2026-11-06 22:09 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike is checked on EVERY run of
+        // this job (not once a day): it looks at the last 15 minutes. FailSpike raises at most once per clock hour, is
+        // OFF by default and never throws; the result is added to the report below.
+        $spike = false;
+        if ($this->fail_spike_check !== null) {
+            try {
+                $spike = (bool) call_user_func($this->fail_spike_check);
+            } catch (\Throwable $e) {
+                $this->noteThrowable('cron.fail_spike_failed', $e);
+            }
         }
-        $raised = [];
+        if (!$this->dailyDue('health')) {
+            return ['ok' => true, 'ran' => false, 'raised' => $spike ? ['send_fail_spike'] : []];
+        }
+        $raised = $spike ? ['send_fail_spike'] : [];
         $enabled = $this->config->enabled();
 
         if ($enabled && $this->config->testMode()) {

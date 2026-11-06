@@ -160,4 +160,15 @@ return [
         'dedupe' => ['key' => 'low_balance:{crossing_at}:{receiver}', 'window' => 0],
         'group' => 'kwtsms.events_group',
     ],
+    // 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. The add-on's own event (also in
+    // schemas/notifications/events.post.php): more sends failed within 15 minutes than fail_spike_threshold. A only
+    // (the staff phone list, cap_admin_day). One SMS per clock hour: the key carries the hour start (Alerts\FailSpike).
+    // Default OFF; the attempts of this event are not counted by the spike check, so it cannot raise itself.
+    'kwtsms.send_fail_spike' => [
+        'receivers' => ['A'],
+        'placeholders' => ['count' => 'count', 'minutes' => 'minutes'],
+        'storefront' => 'storefront_id',
+        'dedupe' => ['key' => 'send_fail_spike:{crossing_at}:{receiver}', 'window' => 0],
+        'group' => 'kwtsms.events_group',
+    ],
 ];

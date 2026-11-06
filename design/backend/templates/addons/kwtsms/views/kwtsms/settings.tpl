@@ -386,6 +386,26 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             </div>
         </section>
 
+        {* 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: off by default; when on, more failed sends than the number below within 15 minutes raise a bell notice and an e-mail, and an SMS to the staff phones if the "Send failure alert" SMS is switched on in Notifications. *}
+        <section class="kwtsms-section" id="kwtsms_fail_spike" aria-labelledby="kwtsms_fail_spike_title">
+            <h4 class="subheader" id="kwtsms_fail_spike_title">{__("kwtsms.settings.fail_spike_title")}</h4>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_fail_spike_alert">{__("kwtsms.settings.field.fail_spike_alert")}:</label>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_settings[fail_spike_alert]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_fail_spike_alert" name="kwtsms_settings[fail_spike_alert]" value="Y"{if $s.fail_spike_alert == "Y"} checked="checked"{/if} aria-describedby="kwtsms_fail_spike_help"> {__("kwtsms.settings.fail_spike_label")}</label>
+                    <p class="muted description" id="kwtsms_fail_spike_help">{__("kwtsms.settings.fail_spike_help")}</p>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_fail_spike_threshold">{__("kwtsms.settings.field.fail_spike_threshold")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_fail_spike_threshold" name="kwtsms_settings[fail_spike_threshold]" value="{$s.fail_spike_threshold}" min="1" max="10000" step="1" class="input-small" dir="ltr" aria-describedby="kwtsms_fail_spike_threshold_help">
+                    <p class="muted description" id="kwtsms_fail_spike_threshold_help">{__("kwtsms.settings.fail_spike_threshold_help")}</p>
+                </div>
+            </div>
+        </section>
+
         <section class="kwtsms-section" id="kwtsms_quiet" aria-labelledby="kwtsms_quiet_title">
             <h4 class="subheader" id="kwtsms_quiet_title">{__("kwtsms.settings.quiet_hours")}</h4>
             <div class="control-group">

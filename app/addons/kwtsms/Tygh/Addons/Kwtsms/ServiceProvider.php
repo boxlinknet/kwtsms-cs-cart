@@ -60,6 +60,7 @@ use Tygh\Addons\Kwtsms\Phones\PhoneRules; // 2026-10-24 23:51 +03: Task M1.8a, t
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileVerifier; // 2026-10-24 19:42 +03: Task M1.7a, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileWidget; // 2026-10-24 21:14 +03: Task M1.7b, task 596
+use Tygh\Addons\Kwtsms\Alerts\FailSpike; // 2026-11-06 22:09 +03: Task M2.11, task 596
 use Tygh\Addons\Kwtsms\Alerts\LowBalanceSms;
 use Tygh\Addons\Kwtsms\Alerts\StateLock; // 2026-10-23 05:47 +03: Task CA1-3, task 596
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
@@ -324,7 +325,11 @@ class ServiceProvider implements ServiceProviderInterface
                 // crypt_key is needed to prune.
                 [OtpService::class, 'pruneCodes'],
                 // 2026-10-24 17:18 +03: Task M1.6 (P3-31), task 596. The job index_phones.
-                [$app['kwtsms.phone_index_backfill'], 'run']
+                [$app['kwtsms.phone_index_backfill'], 'run'],
+                // 2026-11-06 22:09 +03: Task M2.11 (P3-41, P3-57), task 596. FailSpike::check() (health job, every run)
+                // and FailSpike::dispatchPending() (drain_outbox, next to the low-balance SMS).
+                [$app['kwtsms.fail_spike'], 'check'],
+                [$app['kwtsms.fail_spike'], 'dispatchPending']
             );
         };
         // 2026-10-24 17:18 +03: Task M1.6 (P3-27, P3-31, P3-33), task 596. The phone index, its backfill and the code
@@ -658,32 +663,49 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-10-23 00:13 +03: Task A9 (R8), task 596. One crossing of the low-balance threshold, one
         // kwtsms.low_balance event through event.dispatcher with the stored switches (default rules); the admin
         // phone list and cap_admin_day apply.
+        // 2026-11-06 22:09 +03: Task M2.11, task 596. The dispatch closure moved out of the low-balance service so the
+        // send-failure spike SMS (kwtsms.fail_spike) uses the same one: an own-event dispatch through
+        // event.dispatcher keyed by the event id and the crossing time, in the current storefront.
+        $app['kwtsms.staff_event_dispatch'] = function (Container $app): \Closure {
+            return static function (string $event_id, array $data) use ($app): void {
+                $provider = new class ($event_id . '.' . (int) $data['crossing_at']) implements IProvider {
+                    /** @var string */
+                    private $id;
+
+                    public function __construct(string $id)
+                    {
+                        $this->id = $id;
+                    }
+
+                    public function getId()
+                    {
+                        return $this->id;
+                    }
+                };
+                $storefront = $app['storefront'] ?? null;
+                $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
+                    ? (int) $storefront->storefront_id : 0;
+                $app['event.dispatcher']->dispatch($event_id, $data, null, $provider);
+            };
+        };
         $app['kwtsms.low_balance_sms'] = function (Container $app): LowBalanceSms {
             return new LowBalanceSms(
                 $app['kwtsms.storage'],
                 $app['kwtsms.state'],
-                static function (string $event_id, array $data) use ($app): void {
-                    $provider = new class ($event_id . '.' . (int) $data['crossing_at']) implements IProvider {
-                        /** @var string */
-                        private $id;
-
-                        public function __construct(string $id)
-                        {
-                            $this->id = $id;
-                        }
-
-                        public function getId()
-                        {
-                            return $this->id;
-                        }
-                    };
-                    $storefront = $app['storefront'] ?? null;
-                    $data['storefront_id'] = is_object($storefront) && isset($storefront->storefront_id)
-                        ? (int) $storefront->storefront_id : 0;
-                    $app['event.dispatcher']->dispatch($event_id, $data, null, $provider);
-                },
+                $app['kwtsms.staff_event_dispatch'],
                 null,
                 new StateLock() // 2026-10-23 05:47 +03: Task CA1-3 (A9 M1), task 596
+            );
+        };
+        // 2026-11-06 22:09 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: check() from the
+        // cron health job, dispatchPending() from drain_outbox.
+        $app['kwtsms.fail_spike'] = function (Container $app): FailSpike {
+            return new FailSpike(
+                $app['kwtsms.config'],
+                $app['kwtsms.logs.attempts'],
+                $app['kwtsms.alerts'],
+                $app['kwtsms.storage'],
+                $app['kwtsms.staff_event_dispatch']
             );
         };
     }

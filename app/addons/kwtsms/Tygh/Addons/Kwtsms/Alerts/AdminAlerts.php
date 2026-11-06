@@ -73,6 +73,10 @@ class AdminAlerts
         // 2026-11-05 11:18 +03: Task M2.2b fix 1 (review I2), task 596. 10 wrong backup codes for one account within an
         // hour (BackupFailureWatch): bell, once per hour per account (the instance is the user id).
         'twofa_backup_guessing',
+        // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. More failed sends than fail_spike_threshold within
+        // 15 minutes (Alerts\FailSpike): bell and e-mail, once per clock hour (the instance is the hour). The text
+        // carries [count] and [minutes] only.
+        'send_fail_spike',
     ];
 
     /**

@@ -83,4 +83,18 @@ $schema['kwtsms.low_balance'] = [
     ],
 ];
 
+// 2026-11-06 22:07 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike SMS: more sends failed within 15
+// minutes than fail_spike_threshold. Group kwtsms.events_group, receiver A, no transport here (EventsSchemaExtender
+// attaches the SMS one from schemas/kwtsms/events.php). Dispatched by Alerts\FailSpike. Default OFF.
+$schema['kwtsms.send_fail_spike'] = [
+    'group' => 'kwtsms.events_group',
+    'name' => [
+        'template' => 'kwtsms.event.send_fail_spike',
+        'params' => [],
+    ],
+    'receivers' => [
+        'A' => [],
+    ],
+];
+
 return $schema;
