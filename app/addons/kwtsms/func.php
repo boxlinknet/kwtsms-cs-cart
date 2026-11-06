@@ -749,6 +749,32 @@ function fn_kwtsms_repay_code_phone($order_id, $payment_id, $auth)
 }
 
 /**
+ * 2026-11-06 03:32 +03: Task M2.4 fix 1 (security review M3), task 596. For the code request of the checkout
+ * (kwtsms_code.send, purpose checkout, no order id): true only when the session cart holds products and the checkout
+ * mode asks for this cart (CheckoutCode::applies(): mode guest not for a signed-in customer, mode cod only with a
+ * listed payment). Otherwise the endpoint answers neutrally and sends nothing. Never throws; false on any error.
+ *
+ * @param mixed $auth The session auth
+ */
+function fn_kwtsms_checkout_request_allowed($auth)
+{
+    try {
+        $cart = isset(Tygh::$app['session']['cart']) && is_array(Tygh::$app['session']['cart'])
+            ? Tygh::$app['session']['cart'] : [];
+        if (empty($cart['products']) || !is_array($cart['products'])) {
+            return false;
+        }
+        $actor = ['user_id' => (int) (is_array($auth) ? ($auth['user_id'] ?? 0) : 0)];
+
+        return (bool) Tygh::$app['kwtsms.checkout_code']->applies($cart, $actor);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('checkout_request_allowed', $e);
+
+        return false;
+    }
+}
+
+/**
  * 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. For hooks/orders/repay.pre.tpl (modifier
  * |fn_kwtsms_repay_code_form, the order as the value): whether the repay section shows the SMS code box and for which
  * payments. 'payments' = '*' (every payment) or the comma list of the listed cash-on-delivery ids. Hidden when the

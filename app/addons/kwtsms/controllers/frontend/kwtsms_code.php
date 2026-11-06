@@ -116,6 +116,15 @@ try {
             ]);
         }
         $kwtsms_phone = $kwtsms_repay_phone;
+    } elseif ($kwtsms_purpose === CodeRequest::PURPOSE_CHECKOUT && !fn_kwtsms_checkout_request_allowed($kwtsms_auth)) {
+        // 2026-11-06 03:32 +03: Task M2.4 fix 1 (security review M3), task 596. A checkout code costs an SMS: it is
+        // sent only for a non-empty session cart that the mode asks (guest mode: not for a signed-in customer; cod
+        // mode: only with a listed payment). The same neutral answer as above, and nothing is sent.
+        fn_kwtsms_code_json(200, [
+            'ok' => false,
+            'error' => 'unavailable',
+            'message' => (string) __('kwtsms.code.unavailable', [], $kwtsms_lang),
+        ]);
     }
 
     // 2026-11-04 19:13 +03: Task M2.1 (P3-42, P3-43, P3-45), task 596. The purposes login and recover are answered by
