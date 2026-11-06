@@ -834,17 +834,25 @@ function fn_kwtsms_hide_create_account($order_id = 0)
         if (!isset(Tygh::$app['kwtsms.config']) || !Tygh::$app['kwtsms.config']->registerCode()) {
             return false;
         }
-        $phone = '';
-        if ((int) $order_id > 0 && Tygh::$app['kwtsms.config']->checkoutCode() !== 'off') {
-            $phone = (string) db_get_field('SELECT phone FROM ?:orders WHERE order_id = ?i', (int) $order_id);
+        // 2026-11-06 03:41 +03: Task M2.4 fix 1 (security review M4), task 596. The order is read only on the order
+        // confirmation page (checkout.complete), the one page that shows the block; and its phone is made canonical
+        // exactly as CheckoutCode::consume() stored it (the phone fields of the order read with the calling code of
+        // their country field), so a number typed locally with a non-default country still matches.
+        $on_complete = (string) \Tygh\Registry::get('runtime.controller') === 'checkout'
+            && (string) \Tygh\Registry::get('runtime.mode') === 'complete';
+        $canonical = '';
+        if ($on_complete && (int) $order_id > 0 && Tygh::$app['kwtsms.config']->checkoutCode() !== 'off') {
+            $row = db_get_row(
+                'SELECT phone, b_phone, s_phone, b_country, s_country FROM ?:orders WHERE order_id = ?i',
+                (int) $order_id
+            );
+            $checkout = Tygh::$app['kwtsms.checkout_code'];
+            $canonical = is_array($row) && $row !== []
+                ? $checkout->phoneOf(\Tygh\Addons\Kwtsms\Orders\CheckoutCode::repayCart($row, 0)) : '';
         }
-        if ($phone === '') {
+        if ($canonical === '') {
             return true;
         }
-        $canonical = \Tygh\Addons\Kwtsms\Phones\PhoneFormat::fromRaw(
-            $phone,
-            (string) Tygh::$app['kwtsms.config']->defaultCountryCode()
-        );
 
         return !Tygh::$app['kwtsms.checkout_code']->verifiedForOrder((int) $order_id, $canonical);
     } catch (\Throwable $e) {
