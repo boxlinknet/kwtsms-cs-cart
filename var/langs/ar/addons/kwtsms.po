@@ -7240,3 +7240,103 @@ msgstr "وضع الدفع عند الاستلام دون تحديد أي طري�
 msgctxt "Languages::kwtsms.settings.checkout_no_phone_field"
 msgid "The checkout shows no phone field. With this switch on, every order that needs a code is refused because no number can be verified. Add a phone field under Administration > Profile fields first."
 msgstr "لا تعرض صفحة إتمام الطلب حقل هاتف. مع تفعيل هذا الخيار يُرفض كل طلب يحتاج إلى رمز لأنه لا يمكن التحقق من أي رقم. أضف حقل هاتف أولاً من الإدارة > حقول الملف الشخصي."
+
+msgctxt "Languages::kwtsms.settings.field.vendor_phone_self_verify"
+msgid "Vendor number confirmation"
+msgstr "تأكيد رقم التاجر"
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_label"
+msgid "Vendors confirm their SMS number with a code"
+msgstr "يؤكد التجار رقم رسائلهم برمز"
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_help"
+msgid "Each vendor gets a page in its panel that sends a code to the company phone. A confirmed number receives the vendor's order SMS. You can still approve a number yourself on the Vendor SMS page, and a changed company phone has to be confirmed again."
+msgstr "يحصل كل تاجر على صفحة في لوحته ترسل رمزاً إلى هاتف الشركة، ويستلم الرقم المؤكد رسائل طلبات التاجر. يمكنك دائماً الموافقة على رقم بنفسك من صفحة رسائل التجار، وإذا تغير هاتف الشركة وجب تأكيده من جديد."
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_mve_only"
+msgid "Vendor accounts exist in Multi-Vendor only. The vendor number confirmation was not turned on."
+msgstr "حسابات التجار موجودة في نسخة تعدد التجار فقط، لذلك لم يتم تفعيل تأكيد رقم التاجر."
+
+msgctxt "Languages::kwtsms.vendors.status.waiting_code"
+msgid "Waiting for the vendor's code"
+msgstr "بانتظار رمز التاجر"
+
+msgctxt "Languages::kwtsms.vendors.status.confirmed_by_vendor"
+msgid "Confirmed by the vendor's code on [date]"
+msgstr "أكده التاجر برمزه في [date]"
+
+msgctxt "Languages::kwtsms.vendors.approve_without_code"
+msgid "Approve without code"
+msgstr "موافقة بدون رمز"
+
+msgctxt "Languages::kwtsms.vendorphone.menu"
+msgid "Confirm SMS number"
+msgstr "تأكيد رقم الرسائل"
+
+msgctxt "Languages::kwtsms.vendorphone.title"
+msgid "Confirm your SMS number"
+msgstr "تأكيد رقم الرسائل"
+
+msgctxt "Languages::kwtsms.vendorphone.badge_confirmed"
+msgid "Confirmed"
+msgstr "مؤكد"
+
+msgctxt "Languages::kwtsms.vendorphone.badge_waiting"
+msgid "Not confirmed"
+msgstr "غير مؤكد"
+
+msgctxt "Languages::kwtsms.vendorphone.state_confirmed"
+msgid "Your SMS number is confirmed:"
+msgstr "رقم رسائلك مؤكد:"
+
+msgctxt "Languages::kwtsms.vendorphone.confirmed_hint"
+msgid "Order SMS for your company go to this number. If you change the company phone, you confirm the new number again."
+msgstr "تصل رسائل طلبات شركتك إلى هذا الرقم. إذا غيّرت هاتف الشركة فعليك تأكيد الرقم الجديد من جديد."
+
+msgctxt "Languages::kwtsms.vendorphone.state_waiting"
+msgid "Your SMS number is not confirmed yet:"
+msgstr "رقم رسائلك لم يُؤكد بعد:"
+
+msgctxt "Languages::kwtsms.vendorphone.state_changed"
+msgid "The company phone changed. The new number needs a code:"
+msgstr "تغير هاتف الشركة. الرقم الجديد يحتاج إلى رمز:"
+
+msgctxt "Languages::kwtsms.vendorphone.intro"
+msgid "We send a 6-digit code by SMS to the company phone shown above. Enter it to confirm that the number is yours."
+msgstr "نرسل رمزاً من 6 أرقام برسالة نصية إلى هاتف الشركة الظاهر أعلاه. أدخله لتأكيد أن الرقم لك."
+
+msgctxt "Languages::kwtsms.vendorphone.send"
+msgid "Send a code"
+msgstr "إرسال رمز"
+
+msgctxt "Languages::kwtsms.vendorphone.code_label"
+msgid "Code from the SMS"
+msgstr "الرمز من الرسالة"
+
+msgctxt "Languages::kwtsms.vendorphone.confirm"
+msgid "Confirm number"
+msgstr "تأكيد الرقم"
+
+msgctxt "Languages::kwtsms.vendorphone.no_phone"
+msgid "Your company has no phone number. Add a mobile number to the company profile first."
+msgstr "ليس لشركتك رقم هاتف. أضف رقم جوال إلى ملف الشركة أولاً."
+
+msgctxt "Languages::kwtsms.vendorphone.invalid"
+msgid "The company phone is not a mobile number we can send to. Fix it in the company profile."
+msgstr "هاتف الشركة ليس رقم جوال يمكننا الإرسال إليه. صحّحه في ملف الشركة."
+
+msgctxt "Languages::kwtsms.vendorphone.already"
+msgid "Your number is already confirmed."
+msgstr "رقمك مؤكد بالفعل."
+
+msgctxt "Languages::kwtsms.vendorphone.not_active"
+msgid "Your company is not active, so its number cannot be confirmed."
+msgstr "شركتك غير نشطة، لذلك لا يمكن تأكيد رقمها."
+
+msgctxt "Languages::kwtsms.vendorphone.done"
+msgid "Your SMS number is confirmed."
+msgstr "تم تأكيد رقم رسائلك."
+
+msgctxt "Languages::kwtsms.vendorphone.edit_company"
+msgid "Edit the company profile"
+msgstr "تعديل ملف الشركة"

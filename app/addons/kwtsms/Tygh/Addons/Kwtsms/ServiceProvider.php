@@ -114,6 +114,7 @@ use Tygh\Addons\Kwtsms\Orders\OrderSource;
 use Tygh\Addons\Kwtsms\Admin\OrderSmsSender; // 2026-10-23 02:06 +03: Task A11, task 596
 use Tygh\Addons\Kwtsms\Orders\RuntimeFlags;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
+use Tygh\Addons\Kwtsms\Vendors\VendorPhoneCode; // 2026-11-06 18:32 +03: Task M2.6, task 596
 use Tygh\Addons\Kwtsms\Vendors\VendorPhones; // 2026-10-22 22:22 +03: Task A8, task 596
 use Tygh\Addons\Kwtsms\Vendors\VendorQuota; // 2026-10-22 22:22 +03: Task A8, task 596
 use Tygh\Notifications\EventIdProviders\IProvider;
@@ -743,6 +744,18 @@ class ServiceProvider implements ServiceProviderInterface
         // Vendors\VendorPhones (the approvals of the Vendor SMS page); still a VendorPhoneSourceInterface.
         $app['kwtsms.vendor_phones'] = function (Container $app): VendorPhoneSourceInterface {
             return new VendorPhones($app['kwtsms.config'], $app['kwtsms.logs.debug']);
+        };
+
+        // 2026-11-06 18:32 +03: Task M2.6 (SafatMall F4, P3-56), task 596. A vendor administrator confirms the
+        // company's SMS number with a code (the VendorPhones instance is the A8 one).
+        $app['kwtsms.vendor_phone_code'] = function (Container $app): VendorPhoneCode {
+            return new VendorPhoneCode(
+                $app['kwtsms.config'],
+                $app['kwtsms.vendor_phones'],
+                $app['kwtsms.otp'],
+                $app['kwtsms.code_request'],
+                $app['kwtsms.logs.debug']
+            );
         };
 
         // 2026-10-22 22:22 +03: Task A8 (R8), task 596. The monthly quota of a vendor's SMS.

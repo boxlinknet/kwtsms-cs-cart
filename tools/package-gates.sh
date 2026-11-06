@@ -117,6 +117,10 @@ gate "js/addons/kwtsms/code.js: no console output, no eval or document.write" sc
 gate "js/addons/kwtsms/phone_country.js: no console output, no eval or document.write" scan "$J/phone_country.js" '' -nE 'console\.|\beval[[:space:]]*\(|document\.write'
 gate "fn_kwtsms_phone_country_data encodes the JSON block with JSON_HEX_TAG, AMP, APOS and QUOT" bash -c \
   "grep -A25 'function fn_kwtsms_phone_country_data' '$A/func.php' | grep -q 'JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT' && echo 'CHECKED 1'"
+# 2026-11-06 18:41 +03: Task M2.6 (SafatMall F4, P3-56), task 596. The vendor phone code controller takes the company
+# from the session auth only: no company id, phone or user id may be read from the request in its class or its
+# controller file (a vendor of company Y must never reach company X through a posted field).
+gate "vendor phone controller: no company_id, phone or user_id read from the request" scan "$A/Tygh/Addons/Kwtsms/Vendors/VendorPhoneController.php $A/controllers/backend/kwtsms_vendor.php" ':\d+:\s*(\*|//)' -nPi '(_REQUEST|_POST|_GET|request)\s*\[\s*.(company_id|phone|user_id)'
 gate "CURLOPT_SSL_VERIFYPEER 0 / VERIFYHOST 0/1" scan "$A" '' -nE 'SSL_VERIFYPEER, ?(0|false)|SSL_VERIFYHOST, ?(0|1|false)'
 gate "OVERRIDE / API_BASE constant" scan "$A" '' -nE "define\(['\"][A-Z_]*(OVERRIDE|API_BASE)|const[[:space:]]+[A-Z_]*(OVERRIDE|API_BASE)\b"
 gate "secret-like variable compared with ==/=== to a variable" scan "$A" ':\d+:\s*(\*|//)' -nPi --include=*.php '\$\w*(hash|secret|cron_?key|token|passw\w*)\w*\s*[!=]==?\s*\$|[!=]==?\s*\$\w*(hash|secret|cron_?key|token|passw\w*)\b'

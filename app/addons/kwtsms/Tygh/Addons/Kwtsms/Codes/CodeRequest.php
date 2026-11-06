@@ -357,6 +357,60 @@ class CodeRequest
     }
 
     /**
+     * 2026-11-06 18:31 +03: Task M2.6 (SafatMall F4, P3-56), task 596. The code of a vendor administrator for the
+     * company's own phone. The caller (Vendors\VendorPhoneCode) passes the canonical companies.phone of the company
+     * read from the session, the vendor user id and the engine subject (company + phone), never a request field. The
+     * per-IP buckets (P3-6) and the per-phone cap (P3-34) apply as for any code that spends credits; no CAPTCHA (the
+     * vendor is signed in); never an unverified bypass (P3-45): every refusal says wait or unavailable.
+     *
+     * @return array<string,mixed> The JSON body of handle()
+     */
+    public function handleVendorPhone(
+        string $phone,
+        int $company_id,
+        int $user_id,
+        string $subject,
+        string $session_hash,
+        string $ip,
+        int $storefront_id,
+        string $lang
+    ): array {
+        if (
+            $company_id <= 0 || $user_id <= 0 || $phone === ''
+            || \Tygh\Addons\Kwtsms\Phones\PhoneFormat::canonical($phone) !== $phone || $subject === ''
+        ) {
+            return $this->error('invalid', 'kwtsms.code.unavailable', $lang);
+        }
+        $ip_part = ClientIp::bucketKey($ip);
+        $buckets = [
+            ['ip_h', self::HOUR, $this->config->capIpHour()],
+            ['ip_d', self::DAY, $this->config->capIpDay()],
+        ];
+        foreach ($buckets as $b) {
+            $bucket = $b[0] . ':' . $ip_part;
+            if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
+                $this->debug('otp.ip_limited', [
+                    'bucket' => $b[0], 'ip' => $ip_part, 'purpose' => self::PURPOSE_VENDOR_PHONE,
+                ]);
+
+                return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
+            }
+        }
+
+        return $this->deliver(
+            self::PURPOSE_VENDOR_PHONE,
+            $phone,
+            $user_id,
+            $session_hash,
+            $ip,
+            $storefront_id,
+            $lang,
+            false,
+            $subject
+        );
+    }
+
+    /**
      * Steps 6 to 9 of handle(): can a code leave at all, the per-phone cap, the code, the SMS and the answer.
      *
      * @return array<string,mixed>

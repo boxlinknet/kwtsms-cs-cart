@@ -105,6 +105,7 @@ class VendorsPage
         $page = min(max(1, $page), $pages);
 
         $rows = [];
+        $self_verify = $this->config->vendorPhoneSelfVerify();
         foreach ($this->listVendors(($page - 1) * self::PER_PAGE, self::PER_PAGE) as $vendor) {
             $id = (int) $vendor['company_id'];
             $state = $this->phones->state($id);
@@ -128,6 +129,11 @@ class VendorsPage
                 'can_approve' => (string) $vendor['status'] === VendorPhones::STATUS_ACTIVE
                     && in_array($state['status'], ['none', 'changed', 'approved'], true),
                 'can_revoke' => $state['status'] === 'approved',
+                // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. With vendor_phone_self_verify ON the
+                // row says who vouched for the number: the vendor's own code (approved_by is a user of type V of this
+                // company) or a root administrator (the override, button "Approve without code").
+                'confirmed_by_vendor' => $self_verify && $state['status'] === 'approved'
+                    && $this->isVendorUserOf((int) $state['approved_by'], $id),
             ];
         }
 
@@ -151,6 +157,9 @@ class VendorsPage
             'sms_enabled' => $this->config->enabled(),
             'default_quota' => $this->config->vendorMonthlyQuota(),
             'max_quota' => self::MAX_QUOTA,
+            // 2026-11-06 18:35 +03: Task M2.6 (P3-56), task 596. The page words "Waiting for the vendor's code" and
+            // "Approve without code" show only while vendors can confirm their number themselves.
+            'self_verify' => $self_verify,
             'plans_active' => $active_plans,
             'plans' => $plans,
             'rows' => $rows,
@@ -347,6 +356,23 @@ class VendorsPage
     protected function isMultiVendor(): bool
     {
         return function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR');
+    }
+
+    /**
+     * 2026-11-06 18:35 +03: Task M2.6 (P3-56), task 596. True when $user_id is a vendor administrator (user type V) of
+     * the company: the vendor confirmed the number with its own code (a root administrator is type A).
+     */
+    protected function isVendorUserOf(int $user_id, int $company_id): bool
+    {
+        if ($user_id <= 0 || $company_id <= 0) {
+            return false;
+        }
+
+        return (int) db_get_field(
+            "SELECT COUNT(*) FROM ?:users WHERE user_id = ?i AND user_type = 'V' AND company_id = ?i",
+            $user_id,
+            $company_id
+        ) > 0;
     }
 
     protected function plansActive(): bool

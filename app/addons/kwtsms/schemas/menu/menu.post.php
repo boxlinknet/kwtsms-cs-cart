@@ -25,4 +25,16 @@ $schema['top']['addons']['items']['kwtsms.menu_title'] = [
     'position' => 100,
 ];
 
+// 2026-11-06 18:34 +03: Task M2.6 (SafatMall F4, P3-56), task 596. The vendor panel entry "Confirm SMS number" under
+// Settings: only in Multi-Vendor, only for a signed-in vendor administrator (user type V, not an "act as user"
+// session) and only while vendor_phone_self_verify is ON. Any failure to read the state leaves the menu without it.
+// 2026-11-06 18:40 +03: the test lives in fn_kwtsms_vendor_menu_allowed() (func.php), shared with menu_vendor.post.php,
+// the schema the Vendor panel configurator add-on loads for vendor administrators.
+if (fn_kwtsms_vendor_menu_allowed()) {
+    $schema['top']['administration']['items']['kwtsms.vendorphone.menu'] = [
+        'href'     => 'kwtsms_vendor.phone',
+        'position' => 1900,
+    ];
+}
+
 return $schema;

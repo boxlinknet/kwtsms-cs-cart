@@ -119,7 +119,12 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                     {if $row.number_changed}<span class="kwtsms-reason muted kwtsms-number-changed">{__("kwtsms.vendors.number_changed")}</span>{/if}</td>
                                 <td data-th="{__("kwtsms.vendors.col.status")}">
                                     {if $row.status == "approved"}
-                                        <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.vendors.status.approved")}</span>
+                                        {* 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. The source of the approval while vendors can confirm their number themselves. *}
+                                        {if $row.confirmed_by_vendor}
+                                            <span class="kwtsms-badge kwtsms-badge--ok" id="kwtsms_vendor_confirmed_{$row.company_id}">{__("kwtsms.vendors.status.confirmed_by_vendor", ["[date]" => $row.approved_at|date_format:$settings.Appearance.date_format|fn_html_escape])}</span>
+                                        {else}
+                                            <span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.vendors.status.approved")}</span>
+                                        {/if}
                                     {elseif $row.status == "changed"}
                                         <span class="kwtsms-badge kwtsms-badge--danger">{__("kwtsms.vendors.status.changed")}</span>
                                     {elseif $row.status == "no_phone"}
@@ -127,6 +132,8 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                     {elseif $row.status == "invalid"}
                                         <span class="kwtsms-badge kwtsms-badge--danger">{__("kwtsms.vendors.status.invalid")}</span>
                                         {if $row.reason}<span class="kwtsms-reason muted">{__("kwtsms.alerts.reason.`$row.reason`", ["[max]" => 0])}</span>{/if}
+                                    {elseif $v.self_verify && $row.active}
+                                        <span class="kwtsms-badge" id="kwtsms_vendor_waiting_{$row.company_id}">{__("kwtsms.vendors.status.waiting_code")}</span>
                                     {else}
                                         <span class="kwtsms-badge">{__("kwtsms.vendors.status.none")}</span>
                                     {/if}
@@ -144,7 +151,7 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                         <input type="hidden" name="kwtsms_page" value="{$v.search.page}">
                                         {if $row.can_approve}
                                             <button type="submit" class="btn" id="kwtsms_approve_{$row.company_id}" name="dispatch[kwtsms.update_vendor_phone.approve]" value="1"
-                                                    aria-label="{__("kwtsms.vendors.approve_aria", ["[vendor]" => $row.name|fn_html_escape])}">{if $row.status == "approved"}{__("kwtsms.vendors.approve_again")}{else}{__("kwtsms.vendors.approve")}{/if}</button>
+                                                    aria-label="{__("kwtsms.vendors.approve_aria", ["[vendor]" => $row.name|fn_html_escape])}">{if $row.status == "approved"}{__("kwtsms.vendors.approve_again")}{elseif $v.self_verify}{__("kwtsms.vendors.approve_without_code")}{else}{__("kwtsms.vendors.approve")}{/if}</button>
                                         {/if}
                                         {if $row.can_revoke}
                                             <button type="submit" class="btn" id="kwtsms_revoke_{$row.company_id}" name="dispatch[kwtsms.update_vendor_phone.revoke]" value="1"

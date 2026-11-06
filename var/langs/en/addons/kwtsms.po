@@ -7235,3 +7235,103 @@ msgstr "Cash on delivery mode with no payment selected: no order is checked."
 msgctxt "Languages::kwtsms.settings.checkout_no_phone_field"
 msgid "The checkout shows no phone field. With this switch on, every order that needs a code is refused because no number can be verified. Add a phone field under Administration > Profile fields first."
 msgstr "The checkout shows no phone field. With this switch on, every order that needs a code is refused because no number can be verified. Add a phone field under Administration > Profile fields first."
+
+msgctxt "Languages::kwtsms.settings.field.vendor_phone_self_verify"
+msgid "Vendor number confirmation"
+msgstr "Vendor number confirmation"
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_label"
+msgid "Vendors confirm their SMS number with a code"
+msgstr "Vendors confirm their SMS number with a code"
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_help"
+msgid "Each vendor gets a page in its panel that sends a code to the company phone. A confirmed number receives the vendor's order SMS. You can still approve a number yourself on the Vendor SMS page, and a changed company phone has to be confirmed again."
+msgstr "Each vendor gets a page in its panel that sends a code to the company phone. A confirmed number receives the vendor's order SMS. You can still approve a number yourself on the Vendor SMS page, and a changed company phone has to be confirmed again."
+
+msgctxt "Languages::kwtsms.settings.vendor_phone_self_verify_mve_only"
+msgid "Vendor accounts exist in Multi-Vendor only. The vendor number confirmation was not turned on."
+msgstr "Vendor accounts exist in Multi-Vendor only. The vendor number confirmation was not turned on."
+
+msgctxt "Languages::kwtsms.vendors.status.waiting_code"
+msgid "Waiting for the vendor's code"
+msgstr "Waiting for the vendor's code"
+
+msgctxt "Languages::kwtsms.vendors.status.confirmed_by_vendor"
+msgid "Confirmed by the vendor's code on [date]"
+msgstr "Confirmed by the vendor's code on [date]"
+
+msgctxt "Languages::kwtsms.vendors.approve_without_code"
+msgid "Approve without code"
+msgstr "Approve without code"
+
+msgctxt "Languages::kwtsms.vendorphone.menu"
+msgid "Confirm SMS number"
+msgstr "Confirm SMS number"
+
+msgctxt "Languages::kwtsms.vendorphone.title"
+msgid "Confirm your SMS number"
+msgstr "Confirm your SMS number"
+
+msgctxt "Languages::kwtsms.vendorphone.badge_confirmed"
+msgid "Confirmed"
+msgstr "Confirmed"
+
+msgctxt "Languages::kwtsms.vendorphone.badge_waiting"
+msgid "Not confirmed"
+msgstr "Not confirmed"
+
+msgctxt "Languages::kwtsms.vendorphone.state_confirmed"
+msgid "Your SMS number is confirmed:"
+msgstr "Your SMS number is confirmed:"
+
+msgctxt "Languages::kwtsms.vendorphone.confirmed_hint"
+msgid "Order SMS for your company go to this number. If you change the company phone, you confirm the new number again."
+msgstr "Order SMS for your company go to this number. If you change the company phone, you confirm the new number again."
+
+msgctxt "Languages::kwtsms.vendorphone.state_waiting"
+msgid "Your SMS number is not confirmed yet:"
+msgstr "Your SMS number is not confirmed yet:"
+
+msgctxt "Languages::kwtsms.vendorphone.state_changed"
+msgid "The company phone changed. The new number needs a code:"
+msgstr "The company phone changed. The new number needs a code:"
+
+msgctxt "Languages::kwtsms.vendorphone.intro"
+msgid "We send a 6-digit code by SMS to the company phone shown above. Enter it to confirm that the number is yours."
+msgstr "We send a 6-digit code by SMS to the company phone shown above. Enter it to confirm that the number is yours."
+
+msgctxt "Languages::kwtsms.vendorphone.send"
+msgid "Send a code"
+msgstr "Send a code"
+
+msgctxt "Languages::kwtsms.vendorphone.code_label"
+msgid "Code from the SMS"
+msgstr "Code from the SMS"
+
+msgctxt "Languages::kwtsms.vendorphone.confirm"
+msgid "Confirm number"
+msgstr "Confirm number"
+
+msgctxt "Languages::kwtsms.vendorphone.no_phone"
+msgid "Your company has no phone number. Add a mobile number to the company profile first."
+msgstr "Your company has no phone number. Add a mobile number to the company profile first."
+
+msgctxt "Languages::kwtsms.vendorphone.invalid"
+msgid "The company phone is not a mobile number we can send to. Fix it in the company profile."
+msgstr "The company phone is not a mobile number we can send to. Fix it in the company profile."
+
+msgctxt "Languages::kwtsms.vendorphone.already"
+msgid "Your number is already confirmed."
+msgstr "Your number is already confirmed."
+
+msgctxt "Languages::kwtsms.vendorphone.not_active"
+msgid "Your company is not active, so its number cannot be confirmed."
+msgstr "Your company is not active, so its number cannot be confirmed."
+
+msgctxt "Languages::kwtsms.vendorphone.done"
+msgid "Your SMS number is confirmed."
+msgstr "Your SMS number is confirmed."
+
+msgctxt "Languages::kwtsms.vendorphone.edit_company"
+msgid "Edit the company profile"
+msgstr "Edit the company profile"

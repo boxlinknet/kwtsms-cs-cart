@@ -2032,3 +2032,27 @@ function fn_kwtsms_scope_switch_allowed(): bool
         return false;
     }
 }
+
+/**
+ * 2026-11-06 18:39 +03: Task M2.6 (SafatMall F4, P3-56), task 596.
+ * schemas/menu/menu.post.php and menu_vendor.post.php: true when the vendor panel menu shows "Confirm SMS number":
+ * Multi-Vendor, the switch vendor_phone_self_verify ON, and the signed-in user is a vendor administrator (user type
+ * V, a company, not an "act as user" session). Never throws; any failure means no menu entry.
+ */
+function fn_kwtsms_vendor_menu_allowed()
+{
+    try {
+        if (
+            !function_exists('fn_allowed_for') || !fn_allowed_for('MULTIVENDOR')
+            || !Tygh::$app->offsetExists('kwtsms.config') || !Tygh::$app['kwtsms.config']->vendorPhoneSelfVerify()
+        ) {
+            return false;
+        }
+        $auth = Tygh::$app['session']['auth'] ?? [];
+
+        return is_array($auth) && (string) ($auth['user_type'] ?? '') === 'V'
+            && (int) ($auth['company_id'] ?? 0) > 0 && empty($auth['act_as_user']);
+    } catch (\Throwable $e) {
+        return false;
+    }
+}

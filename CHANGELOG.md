@@ -59,6 +59,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   modes. The server still decides: the chosen calling code is only the first hint for a number typed without one, it is
   ignored when the country is not allowed, and every number is checked and saved in the +965... form as before.
 
+- <!-- 2026-11-06 18:48 +03: Task M2.6 (vendors confirm their SMS number with a code), task 596 -->
+  Multi-Vendor: vendors confirm their own SMS number with a code (off until you turn it on under Settings > Phone and
+  codes). A vendor administrator opens Settings > Confirm SMS number in the vendor panel, asks for a code to the
+  company phone and types it; the company then receives its order SMS. The company comes from the signed-in vendor, never
+  from the request, and the code is bound to that company, its phone and the browser session. Root approval on the Vendor
+  SMS page stays as an override ("Approve without code"); the page shows "Waiting for the vendor's code" and
+  "Confirmed by the vendor's code on [date]". A changed company phone still has to be confirmed again.
+
 - Two-step sign-in with an SMS code after the password, for customers, vendor administrators (Multi-Vendor) and
   administrators (off until you turn it on under Settings > Sign-in and security; customers and the others opt in on
   their own profile with a code to their own mobile number). Every other way into an account (password recovery link, one-time password, the remember-me session, social login,

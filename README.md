@@ -57,6 +57,8 @@ including order status changes and Multi-Vendor vendor events.
 - SMS for order updates and shipments, new customers, password recovery (reset link masked in the logs), low stock, and low kwtSMS balance
 - Per-storefront switches, Sender ID and texts
 - Vendor SMS in Multi-Vendor with approved phones and a monthly quota per vendor
+<!-- 2026-11-06 18:49 +03: Task M2.6 (vendors confirm their number with a code), task 596 -->
+- Vendors confirm their own SMS number with a code in the vendor panel (off until you turn it on); root approval stays as an override
 - Customer opt-out of order SMS, and a manual SMS from the order page
 <!-- 2026-10-29 04:17 +03: Task M1.12, task 596. The 1.2.0 features. -->
 - Phone rules: a country check and one account per phone, each off until you turn it on

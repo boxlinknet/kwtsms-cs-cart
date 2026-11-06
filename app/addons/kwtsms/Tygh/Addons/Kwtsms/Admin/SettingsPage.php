@@ -406,6 +406,10 @@ class SettingsPage
             'phone_country_check' => $this->config->phoneCountryCheck() ? 'Y' : 'N',
             // 2026-11-06 07:36 +03: Task M2.5 (C2, P3-55), task 596. The storefront country selector switch.
             'phone_country_selector' => $this->config->phoneCountrySelector() ? 'Y' : 'N',
+            // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a
+            // code: the switch and the edition (vendors exist in Multi-Vendor only, so the field is shown there only).
+            'vendor_phone_self_verify' => $this->config->vendorPhoneSelfVerify() ? 'Y' : 'N',
+            'vendor_phone_self_verify_shown' => function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'),
             'gcc' => implode(',', PhoneRules::GCC),
             // 2026-10-24 17:21 +03: Task M1.6 (C4, P3-31), task 596. The C4 switch and, while it is ON but the index is
             // still being built, the text "starts after indexing: n of m" (empty otherwise).
@@ -1041,6 +1045,15 @@ class SettingsPage
                 unset($posted['phone_country_selector']);
                 $reasons['phone_country_selector'] = 'needs_c3';
             }
+        }
+        // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendor accounts exist in Multi-Vendor only:
+        // turning the vendor phone code ON elsewhere is refused (the rest of the post is still saved).
+        if (
+            isset($posted['vendor_phone_self_verify']) && $posted['vendor_phone_self_verify'] === 'Y'
+            && !(function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'))
+        ) {
+            unset($posted['vendor_phone_self_verify']);
+            $reasons['vendor_phone_self_verify'] = 'mve_only';
         }
         $enrol_phone = '';
         // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. Going TO "required" for administrators needs the
@@ -1711,6 +1724,10 @@ class SettingsPage
         // 2026-11-06 07:36 +03: Task M2.5 (C2, P3-55), task 596. The selector without the country check.
         if ($reason === 'needs_c3') {
             return $this->text('kwtsms.settings.phone_country_selector_needs_c3');
+        }
+        // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4), task 596. The vendor phone code outside Multi-Vendor.
+        if ($reason === 'mve_only') {
+            return $this->text('kwtsms.settings.vendor_phone_self_verify_mve_only');
         }
         if ($reason === 'secret_wrong') {
             return $this->text('kwtsms.turnstile.secret_wrong_off');

@@ -99,4 +99,12 @@ $schema['kwtsms_twofa'] = [
     ],
 ];
 
+// 2026-11-06 18:34 +03: Task M2.6 (SafatMall F4, P3-56), task 596. The vendor-panel page of the vendor phone code
+// (controllers/backend/kwtsms_vendor.php). No privilege of this add-on is needed to reach the controller; it answers
+// 404 for every session that is not a vendor administrator (a root administrator included), takes the company from
+// the session only and is off while vendor_phone_self_verify is OFF.
+$schema['kwtsms_vendor'] = [
+    'permissions' => true,
+];
+
 return $schema;

@@ -517,6 +517,17 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description" id="kwtsms_phone_country_selector_help">{__("kwtsms.settings.phone_country_selector_help")}</p>
                 </div>
             </div>
+            {* 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a code (default OFF, Multi-Vendor only); root approval stays as an override. *}
+            {if $kwtsms.codes.vendor_phone_self_verify_shown}
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.vendor_phone_self_verify")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_codes[vendor_phone_self_verify]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_vendor_phone_self_verify" name="kwtsms_codes[vendor_phone_self_verify]" value="Y"{if $kwtsms.codes.vendor_phone_self_verify == "Y"} checked="checked"{/if} aria-describedby="kwtsms_vendor_phone_self_verify_help"> {__("kwtsms.settings.vendor_phone_self_verify_label")}</label>
+                    <p class="muted description" id="kwtsms_vendor_phone_self_verify_help">{__("kwtsms.settings.vendor_phone_self_verify_help")}</p>
+                </div>
+            </div>
+            {/if}
             {* 2026-10-24 17:15 +03: Task M1.6 (SafatMall C4, P3-31), task 596. One account per phone (default OFF). While the phone index is being built the state line reads "Starts after indexing: n of m customers". *}
             <div class="control-group">
                 <span class="control-label">{__("kwtsms.settings.field.phone_unique")}:</span>

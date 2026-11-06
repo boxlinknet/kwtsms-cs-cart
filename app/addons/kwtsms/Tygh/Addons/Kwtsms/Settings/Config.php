@@ -207,6 +207,9 @@ class Config implements ConfigInterface
             'checkout_code', 'checkout_cod_payment_ids',
             // 2026-11-06 07:36 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The storefront country selector.
             'phone_country_selector',
+            // 2026-11-06 18:30 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a
+            // code (Multi-Vendor).
+            'vendor_phone_self_verify',
         ],
     ];
 

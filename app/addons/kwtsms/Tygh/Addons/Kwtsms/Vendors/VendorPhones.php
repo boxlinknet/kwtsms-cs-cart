@@ -110,6 +110,26 @@ class VendorPhones implements VendorPhoneSourceInterface
     }
 
     /**
+     * 2026-11-06 18:30 +03: Task M2.6 (P3-56), task 596. The number a vendor can prove by a code: the normalized
+     * companies.phone of an ACTIVE company. Read-only; the same rules as approve(), without writing.
+     *
+     * @return array{ok:bool,reason:string,phone:string} phone is the normalized digits ('96550123401')
+     */
+    public function candidate(int $company_id): array
+    {
+        $company = $company_id > 0 ? $this->companyRow($company_id) : null;
+        if ($company === null) {
+            return ['ok' => false, 'reason' => 'no_company', 'phone' => ''];
+        }
+        if ((string) ($company['status'] ?? '') !== self::STATUS_ACTIVE) {
+            return ['ok' => false, 'reason' => 'not_active', 'phone' => ''];
+        }
+        $current = $this->normalize($company);
+
+        return ['ok' => $current['ok'], 'reason' => $current['reason'], 'phone' => $current['phone']];
+    }
+
+    /**
      * Takes the approval back (the row stays, with approved_at 0). No row: nothing happens.
      */
     public function revoke(int $company_id): void

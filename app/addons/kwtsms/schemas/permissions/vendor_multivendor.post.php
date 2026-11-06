@@ -36,4 +36,17 @@ $schema['controllers']['kwtsms_twofa'] = [
     ],
 ];
 
+// 2026-11-06 18:34 +03: Task M2.6 (SafatMall F4, P3-56), task 596. A vendor administrator confirms the company's SMS
+// number: the three modes of kwtsms_vendor are open to the vendor panel. The controller itself answers 404 unless the
+// switch vendor_phone_self_verify is ON and the session is a vendor administrator, takes the company from the session
+// only and checks the security hash of every POST. The kwtsms controller stays closed to vendors above.
+$schema['controllers']['kwtsms_vendor'] = [
+    'permissions' => false,
+    'modes' => [
+        'phone' => ['permissions' => true],
+        'send_code' => ['permissions' => true],
+        'verify' => ['permissions' => true],
+    ],
+];
+
 return $schema;
