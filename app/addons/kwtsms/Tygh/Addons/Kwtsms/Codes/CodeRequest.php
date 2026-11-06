@@ -373,13 +373,50 @@ class CodeRequest
         string $session_hash,
         string $ip,
         int $storefront_id,
-        string $lang
+        string $lang,
+        // 2026-11-06 23:51 +03: M2.6-fix I2, task 596. true once the company has had a number confirmed: only then
+        // the shared per-phone cap applies (before that a vendor can neither read nor use up the cap of a customer or
+        // of another vendor on that number).
+        bool $verified_once = false
     ): array {
         if (
             $company_id <= 0 || $user_id <= 0 || $phone === ''
             || \Tygh\Addons\Kwtsms\Phones\PhoneFormat::canonical($phone) !== $phone || $subject === ''
         ) {
             return $this->error('invalid', 'kwtsms.code.unavailable', $lang);
+        }
+        // 2026-11-06 23:51 +03: M2.6-fix I2, task 596. Caps that do not depend on the IP (a vendor can change address):
+        // per company 3 an hour and 10 a day, per vendor user the same, and at most 2 different numbers per company
+        // a day. Every request counts, sent or not; a counter that fails closed is over the limit; the answer is the
+        // neutral wait of every cap.
+        $guards = [
+            ['vp_c:' . $company_id, self::HOUR, 3],
+            ['vp_cd:' . $company_id, self::DAY, 10],
+            ['vp_u:' . $user_id, self::HOUR, 3],
+            ['vp_ud:' . $user_id, self::DAY, 10],
+        ];
+        foreach ($guards as $g) {
+            if ($this->limiter->hit($g[0], $g[1]) > $g[2]) {
+                $this->debug('otp.vendor_limited', ['bucket' => explode(':', $g[0])[0], 'purpose' => self::PURPOSE_VENDOR_PHONE]);
+
+                return $this->wait($this->windowLeft($g[0], $g[1]), $lang);
+            }
+        }
+        $seen = 'vp_n:' . $company_id . ':' . $phone;
+        try {
+            $mark = $this->limiter->peek($seen);
+            $known = (int) $mark['hits'] > 0 && (int) $mark['window_start'] + self::DAY > $this->now();
+        } catch (\Throwable $e) {
+            return $this->wait(self::DAY, $lang);
+        }
+        if (!$known) {
+            $counter = 'vp_nc:' . $company_id;
+            if ($this->limiter->hit($counter, self::DAY) > 2) {
+                $this->debug('otp.vendor_limited', ['bucket' => 'vp_nc', 'purpose' => self::PURPOSE_VENDOR_PHONE]);
+
+                return $this->wait($this->windowLeft($counter, self::DAY), $lang);
+            }
+            $this->limiter->hit($seen, self::DAY);
         }
         $ip_part = ClientIp::bucketKey($ip);
         $buckets = [
@@ -406,7 +443,8 @@ class CodeRequest
             $storefront_id,
             $lang,
             false,
-            $subject
+            $subject,
+            !$verified_once
         );
     }
 
@@ -424,7 +462,9 @@ class CodeRequest
         int $storefront_id,
         string $lang,
         bool $staff,
-        string $subject = ''
+        string $subject = '',
+        // 2026-11-06 23:51 +03: M2.6-fix I2, task 596. true = the shared per-phone cap is neither read nor counted.
+        bool $skip_phone_cap = false
     ): array {
         // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. $subject is the engine key of the code (the phone
         // unless
@@ -448,8 +488,11 @@ class CodeRequest
         $cap = $staff ? PHP_INT_MAX : $this->config->capPhoneHour();
         // 2026-10-25 01:59 +03: Task M1.8a fix round 2 (review M4), task 596. A failed read of the counter fails closed
         // like RateLimiter::hit(): wait for the whole window and a log row (no phone), never a code.
+        $stat = ['hits' => 0, 'window_start' => 0];
         try {
-            $stat = $this->limiter->peek('phone_h:' . $phone);
+            if (!$skip_phone_cap) {
+                $stat = $this->limiter->peek('phone_h:' . $phone);
+            }
         } catch (\Throwable $e) {
             if ($this->log !== null) {
                 $this->log->log('error', 'otp.phone_cap_unreadable', 'the per-phone cap could not be read', [
@@ -496,7 +539,9 @@ class CodeRequest
 
         if ($class === CodeAvailability::SENT || $class === CodeAvailability::NUMBER) {
             // P3-10: the same answer for a sent code and for a number that was skipped (cap, coverage, country).
-            $this->limiter->hit('phone_h:' . $phone, self::HOUR);
+            if (!$skip_phone_cap) {
+                $this->limiter->hit('phone_h:' . $phone, self::HOUR);
+            }
 
             return $this->sentBody($issued, $lang);
         }

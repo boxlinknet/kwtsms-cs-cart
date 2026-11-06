@@ -136,6 +136,17 @@ class VendorPhones implements VendorPhoneSourceInterface
     }
 
     /**
+     * 2026-11-06 23:52 +03: M2.6-fix I2, task 596. True when the company ever had a number confirmed (the row keeps
+     * the number after a revoke), so the vendor code may count against the shared per-phone cap.
+     */
+    public function everApproved(int $company_id): bool
+    {
+        $row = $company_id > 0 ? $this->readRow($company_id) : null;
+
+        return $row !== null && (string) $row['phone'] !== '';
+    }
+
+    /**
      * Takes the approval back (the row stays, with approved_at 0). No row: nothing happens.
      */
     public function revoke(int $company_id): void

@@ -136,7 +136,8 @@ class VendorPhoneCode
                 $session_hash,
                 $ip,
                 $this->storefrontId(),
-                $lang
+                $lang,
+                $this->phones->everApproved($company_id)
             );
         } catch (\Throwable $e) {
             $this->debug('vendor_phone.request_error', ['company_id' => $company_id, 'error' => get_class($e)]);
