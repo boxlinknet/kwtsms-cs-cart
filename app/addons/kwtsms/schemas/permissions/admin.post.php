@@ -103,8 +103,11 @@ $schema['kwtsms_twofa'] = [
 // (controllers/backend/kwtsms_vendor.php). No privilege of this add-on is needed to reach the controller; it answers
 // 404 for every session that is not a vendor administrator (a root administrator included), takes the company from
 // the session only and is off while vendor_phone_self_verify is OFF.
+// 2026-11-06 23:53 +03: M2.6-fix M3, task 596. Was 'permissions' => true; now a real privilege (view_kwtsms), so an
+// administrator without it gets the core refusal. Vendors are not affected: their access is the vendor schema
+// (vendor_multivendor.post.php), three modes only.
 $schema['kwtsms_vendor'] = [
-    'permissions' => true,
+    'permissions' => 'view_kwtsms',
 ];
 
 return $schema;
