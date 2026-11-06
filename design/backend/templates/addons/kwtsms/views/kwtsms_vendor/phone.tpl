@@ -21,7 +21,8 @@
     {if $kwtsms_vp.status == "approved"}
         <p id="kwtsms_vendor_confirmed" role="status"><span class="kwtsms-badge kwtsms-badge--ok">{__("kwtsms.vendorphone.badge_confirmed")|fn_html_escape}</span>
             {* 2026-11-06 18:59 +03: Task M2.6 e2e finding (task 596): the masked number is its own bdi dir=ltr element, so +965****1234 keeps its order inside an Arabic sentence (the isolate characters of maskLtr() did not survive the placeholder in the Arabic picture). *}
-            {__("kwtsms.vendorphone.state_confirmed")|fn_html_escape} <bdi dir="ltr" class="kwtsms-vendor-phone__number">{$kwtsms_vp.masked}</bdi></p>
+            {* 2026-11-06 23:55 +03: M2.6-fix M5 (task 596): the masked number is escaped here and in the waiting line below. *}
+            {__("kwtsms.vendorphone.state_confirmed")|fn_html_escape} <bdi dir="ltr" class="kwtsms-vendor-phone__number">{$kwtsms_vp.masked|fn_html_escape}</bdi></p>
         <p class="muted">{__("kwtsms.vendorphone.confirmed_hint")|fn_html_escape}</p>
     {elseif $kwtsms_vp.status == "no_phone"}
         <p id="kwtsms_vendor_no_phone" role="status"><span class="kwtsms-badge">{__("kwtsms.vendorphone.badge_waiting")|fn_html_escape}</span>
@@ -31,7 +32,7 @@
             {__("kwtsms.vendorphone.invalid")|fn_html_escape}</p>
     {else}
         <p id="kwtsms_vendor_state" role="status"><span class="kwtsms-badge{if $kwtsms_vp.status == "changed"} kwtsms-badge--danger{/if}">{__("kwtsms.vendorphone.badge_waiting")|fn_html_escape}</span>
-            {if $kwtsms_vp.status == "changed"}{__("kwtsms.vendorphone.state_changed")|fn_html_escape}{else}{__("kwtsms.vendorphone.state_waiting")|fn_html_escape}{/if} <bdi dir="ltr" class="kwtsms-vendor-phone__number">{$kwtsms_vp.masked}</bdi></p>
+            {if $kwtsms_vp.status == "changed"}{__("kwtsms.vendorphone.state_changed")|fn_html_escape}{else}{__("kwtsms.vendorphone.state_waiting")|fn_html_escape}{/if} <bdi dir="ltr" class="kwtsms-vendor-phone__number">{$kwtsms_vp.masked|fn_html_escape}</bdi></p>
         <p>{__("kwtsms.vendorphone.intro")|fn_html_escape}</p>
         <form action="{""|fn_url}" method="post" name="kwtsms_vendor_send" id="kwtsms_vendor_send" class="form-horizontal">
             <input type="submit" class="btn" id="kwtsms_vendor_send_button" name="dispatch[kwtsms_vendor.send_code]" value="{__("kwtsms.vendorphone.send")|fn_html_escape}">
