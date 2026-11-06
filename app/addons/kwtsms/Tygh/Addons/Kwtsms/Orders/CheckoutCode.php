@@ -134,7 +134,7 @@ class CheckoutCode
     public function applies(array $cart, array $auth): bool
     {
         $mode = $this->config->checkoutCode();
-        if ($mode === 'off' || $this->isExempt() || !empty($cart['parent_order_id'])) {
+        if ($mode === 'off' || $this->isExempt($cart) || !empty($cart['parent_order_id'])) {
             return false;
         }
         switch ($mode) {
@@ -319,22 +319,35 @@ class CheckoutCode
      * the store (controller payment_notification: the customer already paid, refusing there would lose the order).
      * Also used by the hook handler when the service itself cannot be built.
      */
-    public static function requestExempt(): bool
+    public static function requestExempt(array $cart = []): bool
     {
-        if (defined('ORDER_MANAGEMENT') || defined('API') || defined('CONSOLE')) {
-            return true;
-        }
-        if (!defined('AREA') || AREA !== 'C') {
-            return true;
-        }
+        // 2026-11-06 03:03 +03: Task M2.4 fix 1 (security reviews I1, I2), task 596. The decision moved to
+        // CheckoutRequest::exempt(): a payment return is exempt only for the processor of the cart's own payment (and
+        // never for a listed cash-on-delivery one), and an API call only for an administrator or a vendor; a customer's
+        // API order and a shopper-made "payment return" run the normal check. An error reads as "not exempt".
+        try {
+            $cod_ids = isset(\Tygh\Tygh::$app['kwtsms.config'])
+                ? \Tygh\Tygh::$app['kwtsms.config']->checkoutCodPaymentIds() : [];
 
-        return class_exists('Tygh\\Registry')
-            && (string) \Tygh\Registry::get('runtime.controller') === 'payment_notification';
+            return CheckoutRequest::exempt($cart, CheckoutRequest::env(), static function (int $payment_id): string {
+                $processor = function_exists('fn_get_processor_data') ? fn_get_processor_data($payment_id) : [];
+
+                return is_array($processor) ? (string) ($processor['processor_script'] ?? '') : '';
+            }, $cod_ids);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
-    private function isExempt(): bool
+    /**
+     * 2026-11-06 03:03 +03: Task M2.4 fix 1 (I1), task 596. The cart goes to the exempt callable: a payment return is
+     * exempt only for the processor of the cart's own payment.
+     *
+     * @param array<string,mixed> $cart
+     */
+    private function isExempt(array $cart): bool
     {
-        return $this->exempt !== null && (bool) call_user_func($this->exempt);
+        return $this->exempt !== null && (bool) call_user_func($this->exempt, $cart);
     }
 
     private function accountPhone(int $user_id): string

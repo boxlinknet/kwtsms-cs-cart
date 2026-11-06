@@ -553,7 +553,7 @@ function fn_kwtsms_pre_place_order(&$cart = null, &$allow = null, $product_group
         try {
             if (
                 isset(Tygh::$app['kwtsms.config']) && Tygh::$app['kwtsms.config']->checkoutCode() !== 'off'
-                && !\Tygh\Addons\Kwtsms\Orders\CheckoutCode::requestExempt()
+                && !\Tygh\Addons\Kwtsms\Orders\CheckoutCode::requestExempt(is_array($cart) ? $cart : [])
             ) {
                 $allow = false;
                 fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.code.check_failed')));
