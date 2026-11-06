@@ -14,8 +14,9 @@
  *            open payment_notification.return&payment=<any processor that restores a session from sid and calls
  *            fn_place_order()> (core app/addons/paypal/payments/paypal_advanced.php:33-41,
  *            app/payments/skrill_func.php:34-43) and place a cash-on-delivery order with no code;
- *            exempting the API covered a customer's own API orders (core app/Tygh/Api/Entities/Orders.php:299, :487-494). A paid order must still not be lost, so the
- *            return of the cart's own processor stays exempt; every other case runs the normal check.
+ *            exempting the API covered a customer's own API orders (core
+ *            app/Tygh/Api/Entities/Orders.php:299, :487-494). A paid order must still not be lost, so the return of
+ *            the cart's own processor stays exempt; every other case runs the normal check.
  * USAGE:     CheckoutRequest::exempt($cart, CheckoutRequest::env(), $script_of, $cod_ids): bool
  *              $script_of fn(int $payment_id): string, the processor script of a payment ('' = none, e.g. COD)
  *            CheckoutRequest::env(): array{area,api,order_management,console,controller,payment,user_type}
