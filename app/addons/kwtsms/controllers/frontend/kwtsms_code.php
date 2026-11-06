@@ -98,6 +98,26 @@ try {
 
     $kwtsms_phone = isset($_POST['phone']) && is_string($_POST['phone']) ? $_POST['phone'] : '';
 
+    // 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. The code of a repay (an order paid again,
+    // the page has no cart): the request names the order and the phone is the ORDER's, read here and never taken
+    // from the request. The visitor must own the order and the mode must ask for the payment; any other case gets
+    // the neutral "unavailable" answer and nothing is sent.
+    if ($kwtsms_purpose === CodeRequest::PURPOSE_CHECKOUT && !empty($_POST['order_id'])) {
+        $kwtsms_repay_phone = fn_kwtsms_repay_code_phone(
+            $_POST['order_id'],
+            $_POST['payment_id'] ?? 0,
+            $kwtsms_auth
+        );
+        if ($kwtsms_repay_phone === '') {
+            fn_kwtsms_code_json(200, [
+                'ok' => false,
+                'error' => 'unavailable',
+                'message' => (string) __('kwtsms.code.unavailable', [], $kwtsms_lang),
+            ]);
+        }
+        $kwtsms_phone = $kwtsms_repay_phone;
+    }
+
     // 2026-11-04 19:13 +03: Task M2.1 (P3-42, P3-43, P3-45), task 596. The purposes login and recover are answered by
     // the blind request: the body is decided before any account lookup and is the same for every valid phone; the work
     // for a phone that has an eligible account (issue and send) runs after the response (fpm, litespeed) or in the

@@ -294,6 +294,26 @@ class CheckoutCode
     }
 
     /**
+     * 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. The cart-shaped view of an order that is
+     * being paid again (orders.repay switches its payment without fn_place_order): the order id (so a phone verified
+     * for this very order in this session counts), the payment it is switched to, and the phone fields of the order, so
+     * applies(), satisfied() and refusal() judge a repay exactly as they judge a checkout.
+     *
+     * @param array<string,mixed> $order An order row or fn_get_order_info() result
+     *
+     * @return array<string,mixed>
+     */
+    public static function repayCart(array $order, int $payment_id): array
+    {
+        $user_data = [];
+        foreach (['phone', 'b_phone', 's_phone', 'b_country', 's_country'] as $field) {
+            $user_data[$field] = isset($order[$field]) && is_scalar($order[$field]) ? (string) $order[$field] : '';
+        }
+
+        return ['order_id' => (int) ($order['order_id'] ?? 0), 'payment_id' => $payment_id, 'user_data' => $user_data];
+    }
+
+    /**
      * 2026-11-05 21:10 +03: Task M2.4 (P3-54), task 596. The requests that are never asked for a code: the admin order
      * editor (ORDER_MANAGEMENT), the API, the console, any area but the storefront, and a payment provider returning to
      * the store (controller payment_notification: the customer already paid, refusing there would lose the order).

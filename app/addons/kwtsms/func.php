@@ -647,6 +647,96 @@ function fn_kwtsms_checkout_code_form($cart = [])
 }
 
 /**
+ * 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. For the code request of a repay
+ * (kwtsms_code.send, purpose checkout, order_id): the canonical phone of the ORDER, which is the only number the
+ * code of a repay can go to (never a number the request carries), or '' = answer neutrally and send nothing: the
+ * order is not the visitor's, the mode does not ask for this payment, or the order is already verified for this
+ * visitor. Never throws.
+ *
+ * @param mixed $order_id
+ * @param mixed $payment_id The payment the order would be switched to
+ * @param mixed $auth       The session auth
+ */
+function fn_kwtsms_repay_code_phone($order_id, $payment_id, $auth)
+{
+    try {
+        $order_id = (int) $order_id;
+        $auth = is_array($auth) ? $auth : [];
+        if ($order_id <= 0 || !fn_is_order_allowed($order_id, $auth)) {
+            return '';
+        }
+        $order = fn_get_order_info($order_id);
+        if (!is_array($order) || $order === []) {
+            return '';
+        }
+        $checkout = Tygh::$app['kwtsms.checkout_code'];
+        $cart = \Tygh\Addons\Kwtsms\Orders\CheckoutCode::repayCart(
+            $order + ['order_id' => $order_id],
+            (int) $payment_id
+        );
+        $actor = ['user_id' => (int) ($auth['user_id'] ?? 0)];
+        if (
+            !$checkout->applies($cart, $actor)
+            || $checkout->satisfied($cart, $actor, \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash())
+        ) {
+            return '';
+        }
+
+        return $checkout->phoneOf($cart);
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('repay_code_phone', $e);
+
+        return '';
+    }
+}
+
+/**
+ * 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. For hooks/orders/repay.pre.tpl (modifier
+ * |fn_kwtsms_repay_code_form, the order as the value): whether the repay section shows the SMS code box and for which
+ * payments. 'payments' = '*' (every payment) or the comma list of the listed cash-on-delivery ids. Hidden when the
+ * order is already verified for this visitor (the signed-in account phone, or a code of this session). The server
+ * decides in orders.pre.php; this only spares the customer a field they are never asked for. Never throws.
+ *
+ * @param mixed $order_info
+ *
+ * @return array{show:bool,payments:string,order_id:int}
+ */
+function fn_kwtsms_repay_code_form($order_info = [])
+{
+    $none = ['show' => false, 'payments' => '*', 'order_id' => 0];
+    try {
+        if (!isset(Tygh::$app['kwtsms.config']) || !defined('AREA') || AREA !== 'C' || !is_array($order_info)) {
+            return $none;
+        }
+        $config = Tygh::$app['kwtsms.config'];
+        $mode = $config->checkoutCode();
+        $order_id = (int) ($order_info['order_id'] ?? 0);
+        $auth = isset(Tygh::$app['session']['auth']) && is_array(Tygh::$app['session']['auth'])
+            ? Tygh::$app['session']['auth'] : [];
+        $user_id = (int) ($auth['user_id'] ?? 0);
+        $ids = $config->checkoutCodPaymentIds();
+        if (
+            $mode === 'off' || $order_id <= 0 || ($mode === 'guest' && $user_id > 0)
+            || ($mode === 'cod' && $ids === [])
+        ) {
+            return $none;
+        }
+        $checkout = Tygh::$app['kwtsms.checkout_code'];
+        $cart = \Tygh\Addons\Kwtsms\Orders\CheckoutCode::repayCart($order_info, 0);
+        $hash = \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash();
+        if ($checkout->satisfied($cart, ['user_id' => $user_id], $hash)) {
+            return $none;
+        }
+
+        return ['show' => true, 'payments' => $mode === 'cod' ? implode(',', $ids) : '*', 'order_id' => $order_id];
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('repay_code_form', $e);
+
+        return $none;
+    }
+}
+
+/**
  * 2026-11-05 20:54 +03: Task M2.4 (SafatMall B6, P3-54, ruling P3-R12), task 596. For hooks/index/head_scripts.post.tpl
  * (modifier |fn_kwtsms_hide_create_account): true while the "create account" block of the order confirmation page must
  * stay hidden, that is while register_code is ON and the order of the page was not verified by a checkout code in

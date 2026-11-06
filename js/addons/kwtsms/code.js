@@ -277,7 +277,11 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             fail(root, text(root, 'server-error'));
             return;
         }
-        if (phone === '') {
+        // 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. The code box of a repay (data-order-id) has
+        // no phone input: the server reads the phone from the order, so nothing is required here and only the order id
+        // and the payment being chosen are sent.
+        var orderId = root.attr('data-order-id') || '';
+        if (phone === '' && orderId === '') {
             stopCountdown(root);
             setState(root, 'error');
             setStatus(root, text(root, 'phone-required'));
@@ -287,7 +291,12 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             return;
         }
         body.set('purpose', root.attr('data-purpose') || '');
-        body.set('phone', phone);
+        if (orderId !== '') {
+            body.set('order_id', orderId);
+            body.set('payment_id', String(repayPayment()));
+        } else {
+            body.set('phone', phone);
+        }
         // 2026-10-28 22:31 +03: Task M1.10b fix round 1 (review M4), task 596. The form's country, so a local number is read with
         // the calling code the save will use.
         var countryScope = root.attr('data-purpose') === 'checkout' ? $(document) : root.closest('form');
@@ -481,6 +490,53 @@ DEPENDS:   Tygh and jQuery of the storefront (Tygh.security_hash), fetch and URL
             syncVerified($(this));
         });
     });
+
+    // 2026-11-06 02:54 +03: Task M2.4 fix 1 (security review C1), task 596. The "pay again" section of an order page
+    // (hooks/orders/repay.pre.tpl). The box sits above the payment choices, outside the repay form, so the typed code is
+    // copied into the form of the repay button when it is pressed. In mode cod the box shows only while one of the listed
+    // payments is chosen (data-kwtsms-payments = '*' or the ids); the server decides, this only spares the customer a field.
+    function repayPayment() {
+        var chosen = $('input[name="repay_radio_group"]:checked').val();
+
+        if (!chosen) {
+            chosen = $('#elm_payments_list form.payments-form input[name="payment_id"]').first().val();
+        }
+
+        return parseInt(chosen || '0', 10) || 0;
+    }
+
+    function syncRepay() {
+        $('[data-kwtsms-repay]').each(function () {
+            var block = $(this);
+            var list = String(block.attr('data-kwtsms-payments') || '*');
+            var show = list === '*' || (',' + list + ',').indexOf(',' + repayPayment() + ',') !== -1;
+
+            block.prop('hidden', !show);
+        });
+    }
+
+    function copyRepayCode(form) {
+        var block = $('[data-kwtsms-repay]').first();
+        var value = block.length && !block.prop('hidden') ? $.trim(block.find('.kwtsms-code__input').val() || '') : '';
+        var field = form.find('input[name="kwtsms_code"]').first();
+
+        if (!field.length) {
+            field = $('<input type="hidden" name="kwtsms_code" />').appendTo(form);
+        }
+        field.val(value);
+    }
+
+    $(document).on('click mousedown touchstart', '#litecheckout_repay_order', function () {
+        copyRepayCode($(this).closest('form'));
+    });
+    $(document).on('submit', 'form.payments-form', function () {
+        copyRepayCode($(this));
+    });
+    $(document).on('change', 'input[name="repay_radio_group"]', syncRepay);
+    if ($.ceEvent) {
+        $.ceEvent('on', 'ce.commoninit', syncRepay);
+    }
+    $(syncRepay);
 
     $(document).on('click', '.kwtsms-code__send', function (e) {
         e.preventDefault();
