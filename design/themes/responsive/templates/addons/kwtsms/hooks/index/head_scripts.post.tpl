@@ -15,8 +15,8 @@
 {* 2026-11-06 07:43 +03: Task M2.5 (SafatMall C2, P3-55), task 596. The JSON data block of the phone country selector (allowed countries, default calling code, core phone mode), printed only while the selector and the country check are ON; js/addons/kwtsms/phone_country.js (loaded by scripts.post.tpl) reads it. *}
 {$kwtsms_cc_json = ""|fn_kwtsms_phone_country_data}
 {if $kwtsms_cc_json}
-{* 2026-11-06 09:31 +03: Task M2.5, task 596. A meta element with the JSON in its escaped content attribute: the package gate forbids nofilter in templates, and a script element would need it. *}
-<meta name="kwtsms-cc" id="kwtsms-cc-data" content="{$kwtsms_cc_json|fn_html_escape}" data-label="{__("kwtsms.phone.country_select_label")|fn_html_escape}" />
+{* 2026-11-06 09:31 +03: Task M2.5, task 596. A meta element with the JSON in its content attribute: the package gate forbids nofilter in templates, and a script element would need it. The template engine escapes the output once, so no escape modifier is added (fn_html_escape on top printed the quotes double-escaped and the script could not parse the JSON; found by the e2e). *}
+<meta name="kwtsms-cc" id="kwtsms-cc-data" content="{$kwtsms_cc_json}" data-label="{__("kwtsms.phone.country_select_label")|fn_html_escape}" />
 {/if}
 {if $smarty.request.order_id|default:0|fn_kwtsms_hide_create_account}
 <style>.ty-checkout-complete__create-account { display: none; }</style>
