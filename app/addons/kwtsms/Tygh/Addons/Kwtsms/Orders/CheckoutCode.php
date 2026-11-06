@@ -160,23 +160,39 @@ class CheckoutCode
      */
     public function satisfied(array $cart, array $auth, string $session_hash): bool
     {
+        return $this->basis($cart, $auth, $session_hash) !== '';
+    }
+
+    /**
+     * 2026-11-06 03:28 +03: Task M2.4 fix 1 (security review M2), task 596. What satisfies the check, in the order
+     * satisfied() lists it: 'index', 'order', 'code' (a verified code that refusal() must still use up), 'bypass',
+     * or '' for nothing. Reads only; nothing is used up here.
+     *
+     * @param array<string,mixed> $cart
+     * @param array<string,mixed> $auth
+     */
+    private function basis(array $cart, array $auth, string $session_hash): string
+    {
         $phone = $this->phoneOf($cart);
         if ($phone === '') {
-            return false;
+            return '';
         }
         $user_id = (int) ($auth['user_id'] ?? 0);
         if ($user_id > 0 && $this->index->isVerified($user_id, $phone)) {
-            return true;
+            return 'index';
         }
         if (!empty($cart['order_id']) && $this->verifiedForOrder((int) $cart['order_id'], $phone)) {
-            return true;
+            return 'order';
         }
         if ($session_hash !== '' && $this->otp->hasVerified(self::PURPOSE, $phone, $user_id, $session_hash)) {
-            return true;
+            return 'code';
         }
 
-        return $this->bypassed($phone);
+        return $this->bypassed($phone) ? 'bypass' : '';
     }
+
+    /** @var array<string,bool> 2026-11-06 03:28 +03: M2.4 fix 1 (M2). Phones whose code this request used up. */
+    private $claimed = [];
 
     /**
      * The decision of the pre_place_order hook: null = place the order; a text = refuse (nothing is saved).
@@ -197,14 +213,21 @@ class CheckoutCode
             return $required;
         }
         $user_id = (int) ($auth['user_id'] ?? 0);
-        if ($this->satisfied($cart, $auth, $session_hash)) {
+        // 2026-11-06 03:28 +03: Task M2.4 fix 1 (security review M2), task 596. A verified code is USED UP here, in the
+        // check, by one atomic UPDATE that succeeds once: two parallel placements with one code cannot both pass (the
+        // loser is refused with the ordinary text). place_order (consume()) only remembers the phone for the order.
+        $basis = $this->basis($cart, $auth, $session_hash);
+        if ($basis === 'code') {
+            return $this->claim($phone, $user_id, $session_hash) ? null : $required;
+        }
+        if ($basis !== '') {
             return null;
         }
         $code = $this->postedCode();
         if ($code !== '' && $session_hash !== '') {
             $result = $this->otp->verify(self::PURPOSE, $phone, $code, $user_id, $session_hash, $ip);
             if ($result->status === OtpResult::OK) {
-                return null;
+                return $this->claim($phone, $user_id, $session_hash) ? null : $required;
             }
             $this->debug('checkout.code_required', ['reason' => 'code_' . $result->status]);
 
@@ -239,7 +262,9 @@ class CheckoutCode
                 return;
             }
             $user_id = (int) ($auth['user_id'] ?? 0);
-            $used = $session_hash !== '' && $this->otp->consume(self::PURPOSE, $phone, $user_id, $session_hash);
+            // 2026-11-06 03:28 +03: Task M2.4 fix 1 (M2), task 596. The code was used up by refusal() of this request.
+            $used = isset($this->claimed[$phone]);
+            unset($this->claimed[$phone]);
             if ($used) {
                 $this->remember($phone, $order_id);
                 if ($user_id > 1 && $this->proof !== null && $this->accountPhone($user_id) === $phone) {
@@ -252,6 +277,22 @@ class CheckoutCode
         } catch (\Throwable $e) {
             $this->debug('checkout.consume_error', ['error' => get_class($e)]);
         }
+    }
+
+    /**
+     * 2026-11-06 03:28 +03: Task M2.4 fix 1 (M2), task 596. Uses the verified code up (one atomic UPDATE, true once)
+     * and remembers, for this request, that the order being placed holds it.
+     */
+    private function claim(string $phone, int $user_id, string $session_hash): bool
+    {
+        if ($session_hash === '' || !$this->otp->consume(self::PURPOSE, $phone, $user_id, $session_hash)) {
+            $this->debug('checkout.code_required', ['reason' => 'code_taken']);
+
+            return false;
+        }
+        $this->claimed[$phone] = true;
+
+        return true;
     }
 
     /**
