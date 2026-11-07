@@ -335,6 +335,30 @@ class LoginHold
 
     // ------------------------------------------------------------------ the pre-controller (POST auth.login)
 
+    /** @var bool 2026-11-08 00:09 +03: M2.10 G2, task 596. The first-net skip was logged in this request. */
+    private $net_logged = false;
+
+    /**
+     * 2026-11-08 00:09 +03: M2.10 G2, task 596. The core functions the first net calls, which this core lacks (test
+     * seam). Empty when the authentication step is injected.
+     *
+     * @return string[]
+     */
+    protected function missingNetFunctions(): array
+    {
+        if ($this->authenticate !== null) {
+            return [];
+        }
+        $missing = [];
+        foreach (['fn_restore_processed_user_password', 'fn_auth_routines', 'fn_user_password_verify'] as $function) {
+            if (!function_exists($function)) {
+                $missing[] = $function;
+            }
+        }
+
+        return $missing;
+    }
+
     /**
      * @param array<string,mixed> $request $_REQUEST of POST auth.login
      * @param array<string,mixed> $auth    The session auth array
@@ -350,6 +374,19 @@ class LoginHold
         }
         if (!$this->policy->anyOn()) {
             $this->alertIfDisabledByConfig();
+
+            return null;
+        }
+        // 2026-11-08 00:09 +03: M2.10 G2, task 596. A core without the functions this first net mirrors (core's own
+        // password check): logged once, core runs; the hook login_user_pre is the second net.
+        $net_missing = $this->missingNetFunctions();
+        if ($net_missing !== []) {
+            if (!$this->net_logged) {
+                $this->net_logged = true;
+                error_log('kwtsms: sign-in hold first net skipped, core functions missing: '
+                    . implode(', ', $net_missing));
+            }
+            $this->debug('twofa.hold', ['reason' => 'net_functions_missing']);
 
             return null;
         }
