@@ -237,7 +237,12 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <pre class="kwtsms-pre" id="kwtsms_help_twofa_const" dir="ltr" tabindex="0">define('KWTSMS_2FA_OFF', true);</pre>
                 <p>{__("kwtsms.help.twofa.p6")}</p>
                 <pre class="kwtsms-pre" id="kwtsms_help_twofa_cli" dir="ltr" tabindex="0">php {$h.cron.root}/{$h.cron.admin_index} --dispatch=kwtsms_twofa.cli_reset --user_id=ID</pre>
+                {* 2026-11-07 07:11 +03: Task M2.7, task 596. The three type options are pre blocks (dir=ltr), not words inside the sentence. *}
                 <p>{__("kwtsms.help.twofa.p7")}</p>
+                <pre class="kwtsms-pre" id="kwtsms_help_twofa_types" dir="ltr" tabindex="0">--types=admins
+--types=vendors
+--types=customers</pre>
+                <p>{__("kwtsms.help.twofa.p10")}</p>
                 <p id="kwtsms_help_twofa_lastroot">{__("kwtsms.help.twofa.p8")}</p>
                 <p>{__("kwtsms.help.twofa.p9")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
             </section>

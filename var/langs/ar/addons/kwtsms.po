@@ -6713,9 +6713,15 @@ msgctxt "Languages::kwtsms.help.twofa.p6"
 msgid "Second, clear the second step of one account from the command line, replacing ID with the user id:"
 msgstr "الثاني: امسح الخطوة الثانية لحساب واحد من سطر الأوامر، مع استبدال ID برقم المستخدم:"
 
+# 2026-11-07 07:11 +03: Task M2.7, task 596. The option literals moved out of the sentence into pre blocks (isolates did not keep them in order in Arabic).
 msgctxt "Languages::kwtsms.help.twofa.p7"
-msgid "Use --types=admins, --types=vendors or --types=customers instead of --user_id to turn one switch off. The command runs as the server user, writes an audit row and raises an alert. A root administrator can also reset the second step of another administrator from that account's profile page, never their own."
-msgstr "استعمل ⁦--types=admins⁩ أو ⁦--types=vendors⁩ أو ⁦--types=customers⁩ بدلا من ⁦--user_id⁩ لإيقاف مفتاح واحد. يعمل الأمر بمستخدم الخادم، ويكتب سجل تدقيق ويرفع تنبيها. ويستطيع المدير الرئيسي أيضا إعادة ضبط الخطوة الثانية لمدير آخر من صفحة ملفه الشخصي، ولا يستطيع ذلك لحسابه هو."
+msgid "To turn one switch off instead of clearing an account, run the same command with one of these options in place of the user id option:"
+msgstr "لإيقاف مفتاح واحد بدلا من مسح حساب، شغّل الأمر نفسه بأحد الخيارات التالية بدلا من خيار رقم المستخدم:"
+
+# 2026-11-07 07:11 +03: Task M2.7, task 596. Second half of the old text of twofa.p7.
+msgctxt "Languages::kwtsms.help.twofa.p10"
+msgid "The command runs as the server user, writes an audit row and raises an alert. A root administrator can also reset the second step of another administrator from that account's profile page, never their own."
+msgstr "يعمل الأمر بمستخدم الخادم، ويكتب سجل تدقيق ويرفع تنبيها. ويستطيع المدير الرئيسي أيضا إعادة ضبط الخطوة الثانية لمدير آخر من صفحة ملفه الشخصي، ولا يستطيع ذلك لحسابه هو."
 
 msgctxt "Languages::kwtsms.help.twofa.p8"
 msgid "Last root administrator rule: the store never locks out its last root administrator. When that account has no usable mobile number and no other root administrator is enrolled, it is let in with the password alone and sent to its profile, and an alert (bell and e-mail, once a day) asks you to add a number. Other staff accounts are still asked for the code."

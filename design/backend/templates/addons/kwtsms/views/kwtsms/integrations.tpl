@@ -341,15 +341,15 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: the "Phone
                             {__("kwtsms.integrations.sec.vendor_phone.text")}
                             <span id="kwtsms_sec_vendor_phone_counts">{__("kwtsms.integrations.sec.vendor_phone.counts", ["[approved]" => $row.approved|fn_html_escape, "[total]" => $row.total|fn_html_escape])}</span>
                         {/if}
-                    </div>
-                    {if $row.id == "twofa" && $row.admins != "off" && $row.enrolled.A > 0}
-                        {* 2026-11-07 02:46 +03: Task M2.7, task 596. Backup codes left under 3 for any administrator: a warning; otherwise a plain confirmation. *}
-                        {if $row.low_backup > 0}
-                            <div class="alert alert-warning kwtsms-alert" id="kwtsms_sec_twofa_backup_low" role="alert"><p>{__("kwtsms.integrations.sec.twofa.backup_low", ["[count]" => $row.low_backup|fn_html_escape])}</p></div>
-                        {else}
-                            <p class="muted description" id="kwtsms_sec_twofa_backup_ok">{__("kwtsms.integrations.sec.twofa.backup_ok")}</p>
+                        {if $row.id == "twofa" && $row.admins != "off" && $row.enrolled.A > 0}
+                            {* 2026-11-07 07:10 +03: Task M2.7, task 596. Backup codes left under 3 for any administrator: a warning; otherwise a plain confirmation. Inside the text cell: as its own grid child it overlaid the text (found in the screenshot). *}
+                            {if $row.low_backup > 0}
+                                <div class="alert alert-warning kwtsms-alert" id="kwtsms_sec_twofa_backup_low" role="alert"><p>{__("kwtsms.integrations.sec.twofa.backup_low", ["[count]" => $row.low_backup|fn_html_escape])}</p></div>
+                            {else}
+                                <p class="muted description" id="kwtsms_sec_twofa_backup_ok">{__("kwtsms.integrations.sec.twofa.backup_ok")}</p>
+                            {/if}
                         {/if}
-                    {/if}
+                    </div>
                     <div class="kwtsms-area__action">
                         {if $i.can_open_settings}<a class="btn kwtsms-area__link" id="kwtsms_sec_link_{$row.id}" href="{"kwtsms.settings#`$row.anchor`"|fn_url}">{__("kwtsms.integrations.open.settings")}</a>{/if}
                     </div>
