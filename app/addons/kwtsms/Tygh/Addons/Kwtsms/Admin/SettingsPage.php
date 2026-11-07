@@ -43,6 +43,7 @@ use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill; // 2026-10-24 17:20 +03: Task 
 use Tygh\Addons\Kwtsms\Phones\PhoneRules;
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
+use Tygh\Addons\Kwtsms\Settings\CoreGuards; // 2026-11-07 23:57 +03: M2.10 G1, task 596
 use Tygh\Addons\Kwtsms\Sms\ApiErrors;
 use Tygh\Addons\Kwtsms\Sms\PhoneNormalizer;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
@@ -114,6 +115,21 @@ class SettingsPage
 
     /** @var AdminTwoFactorGuard|null 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. The guard of "required" for administrators */
     private $twofa_guard;
+
+    /** @var CoreGuards|null 2026-11-07 23:57 +03: M2.10 (G1, G3, G4, G5), task 596. Probes of the running core. */
+    private $core_guards;
+
+    /**
+     * 2026-11-07 23:57 +03: M2.10 G1, task 596. The probes of the running CS-Cart core (a test replaces this seam).
+     */
+    protected function guards(): CoreGuards
+    {
+        if ($this->core_guards === null) {
+            $this->core_guards = new CoreGuards();
+        }
+
+        return $this->core_guards;
+    }
 
     public function __construct(
         ConfigInterface $config,
@@ -675,6 +691,15 @@ class SettingsPage
             $needed[] = 'pre_place_order';
             $needed[] = 'place_order';
         }
+        // 2026-11-07 23:57 +03: M2.10 G1, task 596. A two-step switch that is ON while this core cannot hold the second
+        // step: red note (a core downgrade, or a switch stored before the guard).
+        if (
+            ($this->config->twofaCustomers() !== 'off' || $this->config->twofaVendors() !== 'off'
+                || $this->config->twofaAdmins() !== 'off')
+            && !$this->guards()->twofaEnforceable()
+        ) {
+            $note('core_twofa', 'danger', $this->coreRefusalText('twofa'));
+        }
         $missing = array_values(array_intersect(array_unique($needed), $this->platformMissing()));
         if ($missing !== []) {
             $note('platform_missing', 'danger', $this->text('kwtsms.settings.warn_platform_missing', [
@@ -1056,6 +1081,15 @@ class SettingsPage
         ) {
             unset($posted['vendor_phone_self_verify']);
             $reasons['vendor_phone_self_verify'] = 'mve_only';
+        }
+        // 2026-11-07 23:57 +03: M2.10 G1, task 596. A two-step switch cannot leave 'off' on a core that cannot hold the
+        // sign-in for the second step (login_user_pre not fired by reference, or the password-login mirror functions
+        // missing): the other posted keys are still saved, the red note says why.
+        foreach (['twofa_customers', 'twofa_vendors', 'twofa_admins'] as $twofa_key) {
+            if (isset($posted[$twofa_key]) && $posted[$twofa_key] !== 'off' && !$this->guards()->twofaEnforceable()) {
+                unset($posted[$twofa_key]);
+                $reasons[$twofa_key] = 'core:twofa';
+            }
         }
         $enrol_phone = '';
         // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. Going TO "required" for administrators needs the
@@ -1689,6 +1723,15 @@ class SettingsPage
         }
     }
 
+    /**
+     * 2026-11-07 23:57 +03: M2.10 G1, task 596. The text of a "this core cannot enforce it" refusal or note.
+     * $what is the guard name after "core:" (twofa; later recover, checkout, anchor).
+     */
+    private function coreRefusalText(string $what): string
+    {
+        return $this->text('kwtsms.settings.core_' . $what);
+    }
+
     /** Why Config::save() refused a key (it returns names only). */
     private function rejectionReason(string $key): string
     {
@@ -1730,6 +1773,10 @@ class SettingsPage
         // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4), task 596. The vendor phone code outside Multi-Vendor.
         if ($reason === 'mve_only') {
             return $this->text('kwtsms.settings.vendor_phone_self_verify_mve_only');
+        }
+        // 2026-11-07 23:57 +03: M2.10 G1, task 596. The core cannot enforce the feature: the text names the reason.
+        if (strpos($reason, 'core:') === 0) {
+            return $this->coreRefusalText(substr($reason, 5));
         }
         if ($reason === 'secret_wrong') {
             return $this->text('kwtsms.turnstile.secret_wrong_off');

@@ -118,6 +118,13 @@ class CsCartSettingsBackend implements SettingsBackendInterface
         // writer: while it writes a 2FA switch the settings_update_value_by_id_pre hook lets the value through. Core's
         // add-on form and the REST settings entity do not come through here, so the hook restores the stored value.
         $guarded = in_array($key, self::TWOFA_KEYS, true);
+        // 2026-11-07 23:57 +03: M2.10 G1, task 596. A core that cannot hold the second sign-in step never gets a switch
+        // that leaves 'off' (defence in depth behind the Settings page refusal): 'off' is stored, the platform record
+        // names login_user_pre (the red Settings note), and the caller sees a normal write.
+        if ($guarded && $value !== 'off' && !$this->guards()->twofaEnforceable()) {
+            $value = 'off';
+            $this->recordPlatformMissing('login_user_pre');
+        }
         if ($guarded) {
             self::$allow_twofa++;
         }
@@ -133,6 +140,34 @@ class CsCartSettingsBackend implements SettingsBackendInterface
         }
         $this->load();
         $this->values[$key] = $value;
+    }
+
+    /** 2026-11-07 23:57 +03: M2.10 G1, task 596. The probes of the running core (a test replaces this seam). */
+    protected function guards(): CoreGuards
+    {
+        return new CoreGuards();
+    }
+
+    /**
+     * 2026-11-07 23:57 +03: M2.10 G1, task 596. Adds $hook to the kwtsms_platform_missing record that the red Settings
+     * note reads (same shape as func.php fn_kwtsms_hook_args_missing(): hook => [given, needed, time]). Never throws.
+     */
+    protected function recordPlatformMissing(string $hook): void
+    {
+        try {
+            if (!function_exists('fn_get_storage_data') || !function_exists('fn_set_storage_data')) {
+                return;
+            }
+            $raw = fn_get_storage_data('kwtsms_platform_missing');
+            $all = is_string($raw) ? json_decode($raw, true) : [];
+            $all = is_array($all) ? $all : [];
+            if (!isset($all[$hook])) {
+                $all[$hook] = [0, 0, time()];
+                fn_set_storage_data('kwtsms_platform_missing', (string) json_encode($all));
+            }
+        } catch (\Throwable $e) {
+            unset($e);
+        }
     }
 
     protected function settings(): Settings

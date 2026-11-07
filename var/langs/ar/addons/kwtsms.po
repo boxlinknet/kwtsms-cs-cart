@@ -7662,3 +7662,8 @@ msgstr "عدد حالات الفشل للتنبيه"
 msgctxt "Languages::kwtsms.settings.fail_spike_threshold_help"
 msgid "Alert when more than this many sends fail within 15 minutes (1 to 10000). The default is 10."
 msgstr "يُرسل التنبيه عندما يفشل إرسال أكثر من هذا العدد من الرسائل خلال 15 دقيقة (من 1 إلى 10000). القيمة الافتراضية 10."
+
+# 2026-11-07 23:57 +03: M2.10 G1 (CS-Cart 4.20.1 guards), task 596. Settings refusal and red note.
+msgctxt "Languages::kwtsms.settings.core_twofa"
+msgid "Two-step sign-in stays off. This CS-Cart can't hold a sign-in for the second step: the login_user_pre hook is missing or doesn't pass the user by reference, or the password sign-in functions are missing. A recovery key or social sign-in would skip the second step."
+msgstr "التحقق بخطوتين يبقى متوقفا. لا يستطيع CS-Cart هذا إيقاف تسجيل الدخول لإتمام الخطوة الثانية: إما أن الخطاف login_user_pre غير موجود أو لا يمرر المستخدم بالمرجع، أو أن دوال تسجيل الدخول بكلمة المرور غير موجودة. وبذلك يتخطى الدخول بمفتاح الاستعادة أو بالحساب الاجتماعي الخطوة الثانية."
