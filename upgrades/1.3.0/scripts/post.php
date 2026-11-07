@@ -22,7 +22,12 @@
 
 defined('BOOTSTRAP') or die('Access denied');
 
-$kwtsms_from = (string) fn_get_addon_version('kwtsms');
+// 2026-11-08 00:07 +03: M2.10 G8, task 596. The stored version through the core function when this CS-Cart has it,
+// else a direct read of ?:addons (the same table), as PostUpgrade::storedVersion() does: an undefined function would
+// stop the Upgrade Center step before PostUpgrade130::runReported() (4.20.1 is unverified).
+$kwtsms_from = function_exists('fn_get_addon_version')
+    ? (string) fn_get_addon_version('kwtsms')
+    : (string) db_get_field('SELECT version FROM ?:addons WHERE addon = ?s', 'kwtsms');
 if ($kwtsms_from === '1.0.0' || $kwtsms_from === '1.1.0') {
     if ($kwtsms_from === '1.0.0' && !class_exists('Kwtsms110', false)) {
         require_once __DIR__ . '/../migrations/20261022130000_kwtsms_1_1_0.php';
