@@ -7667,3 +7667,8 @@ msgstr "Two-step sign-in stays off. This CS-Cart can't hold a sign-in for the se
 msgctxt "Languages::kwtsms.settings.core_recover"
 msgid "Sign-in recovery by code stays off. This CS-Cart can't issue the session-bound recovery key the add-on needs: fn_generate_ekey doesn't take the data parameter, or a recovery key function is missing. Recovery by e-mail still works."
 msgstr "Sign-in recovery by code stays off. This CS-Cart can't issue the session-bound recovery key the add-on needs: fn_generate_ekey doesn't take the data parameter, or a recovery key function is missing. Recovery by e-mail still works."
+
+# 2026-11-08 00:04 +03: M2.10 G4 (CS-Cart 4.20.1 guards), task 596. Settings refusal and red note.
+msgctxt "Languages::kwtsms.settings.core_checkout"
+msgid "The checkout code stays off. This CS-Cart doesn't call the order hooks pre_place_order and place_order, so the add-on couldn't refuse an order without a code."
+msgstr "The checkout code stays off. This CS-Cart doesn't call the order hooks pre_place_order and place_order, so the add-on couldn't refuse an order without a code."

@@ -74,6 +74,16 @@ class CoreGuards
         return !$this->functionExists('fn_login_user') || $this->recoveryKeysAvailable();
     }
 
+    /**
+     * 2026-11-08 00:03 +03: M2.10 G4, task 596. True unless fn_place_order() visibly lacks the hook pre_place_order
+     * (where the checkout code refuses an order) or place_order (where the code is consumed). Cannot tell is true.
+     */
+    public function checkoutHooksFire(): bool
+    {
+        return $this->hookFires('fn_place_order', 'pre_place_order') !== false
+            && $this->hookFires('fn_place_order', 'place_order') !== false;
+    }
+
     /** Whether a constant is defined (test seam). */
     protected function constantDefined(string $name): bool
     {

@@ -700,6 +700,10 @@ class SettingsPage
         ) {
             $note('core_twofa', 'danger', $this->coreRefusalText('twofa'));
         }
+        // 2026-11-08 00:03 +03: M2.10 G4, task 596. The checkout code ON while the core does not fire the order hooks.
+        if ($this->config->checkoutCode() !== 'off' && !$this->guards()->checkoutHooksFire()) {
+            $note('core_checkout', 'danger', $this->coreRefusalText('checkout'));
+        }
         // 2026-11-08 00:01 +03: M2.10 G3, task 596. Recovery by code ON while the core lacks the key functions.
         if ($this->config->recoverCode() && !$this->guards()->recoveryEnforceable()) {
             $note('core_recover', 'danger', $this->coreRefusalText('recover'));
@@ -1094,6 +1098,15 @@ class SettingsPage
                 unset($posted[$twofa_key]);
                 $reasons[$twofa_key] = 'core:twofa';
             }
+        }
+        // 2026-11-08 00:03 +03: M2.10 G4, task 596. The checkout code cannot leave 'off' unless the core fires the
+        // order hooks it rides on (pre_place_order refuses, place_order consumes).
+        if (
+            isset($posted['checkout_code']) && $posted['checkout_code'] !== 'off'
+            && !$this->guards()->checkoutHooksFire()
+        ) {
+            unset($posted['checkout_code']);
+            $reasons['checkout_code'] = 'core:checkout';
         }
         // 2026-11-08 00:01 +03: M2.10 G3, task 596. Sign-in recovery by code needs the session-bound recovery key of
         // core (fn_generate_ekey with its data parameter and the key functions): refused to switch ON without them.
