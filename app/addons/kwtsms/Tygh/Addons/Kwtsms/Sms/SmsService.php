@@ -2250,6 +2250,11 @@ class SmsService
             if (!array_key_exists($key, $context) || $context[$key] === null) {
                 continue;
             }
+            // 2026-11-07 19:04 +03: branch review M1 of 1.3.0, task 596. staff_code (the staff exemption of the daily
+            // code cap and of the customer country list) is read only from our own callers; send() drops it.
+            if ($key === 'staff_code' && !$internal) {
+                continue;
+            }
             $value = $context[$key];
             if (in_array($key, self::INT_KEYS, true)) {
                 $out[$key] = is_numeric($value) ? max(0, (int) $value) : 0;
