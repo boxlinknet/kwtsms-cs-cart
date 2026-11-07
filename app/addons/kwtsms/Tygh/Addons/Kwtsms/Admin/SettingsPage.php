@@ -700,6 +700,10 @@ class SettingsPage
         ) {
             $note('core_twofa', 'danger', $this->coreRefusalText('twofa'));
         }
+        // 2026-11-08 00:01 +03: M2.10 G3, task 596. Recovery by code ON while the core lacks the recovery key functions.
+        if ($this->config->recoverCode() && !$this->guards()->recoveryEnforceable()) {
+            $note('core_recover', 'danger', $this->coreRefusalText('recover'));
+        }
         $missing = array_values(array_intersect(array_unique($needed), $this->platformMissing()));
         if ($missing !== []) {
             $note('platform_missing', 'danger', $this->text('kwtsms.settings.warn_platform_missing', [
@@ -1090,6 +1094,12 @@ class SettingsPage
                 unset($posted[$twofa_key]);
                 $reasons[$twofa_key] = 'core:twofa';
             }
+        }
+        // 2026-11-08 00:01 +03: M2.10 G3, task 596. Sign-in recovery by code needs the session-bound recovery key of
+        // core (fn_generate_ekey with its data parameter and the key functions): refused to switch ON without them.
+        if (isset($posted['recover_code']) && $posted['recover_code'] === 'Y' && !$this->guards()->recoveryEnforceable()) {
+            unset($posted['recover_code']);
+            $reasons['recover_code'] = 'core:recover';
         }
         $enrol_phone = '';
         // 2026-11-05 07:28 +03: Task M2.2b (P3-52 (1)), task 596. Going TO "required" for administrators needs the

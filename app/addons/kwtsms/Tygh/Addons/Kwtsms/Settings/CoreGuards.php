@@ -43,6 +43,53 @@ class CoreGuards
         return $this->functionExists('fn_auth_routines') && $this->functionExists('fn_user_password_verify');
     }
 
+    /**
+     * 2026-11-08 00:01 +03: M2.10 G3, task 596. True when the core can issue and read the session-bound recovery key
+     * the code recovery hands out: fn_generate_ekey() with its fifth ($data) parameter (a four-parameter version drops
+     * the binding silently), fn_get_ekeys(), fn_recovery_password_get_ekeys_count(), and the constants
+     * RECOVERY_PASSWORD_TTL and RECOVERY_PASSWORD_EKEY_TYPE. Strict: an unknown signature is not enough.
+     */
+    public function recoveryKeysAvailable(): bool
+    {
+        foreach (['fn_generate_ekey', 'fn_get_ekeys', 'fn_recovery_password_get_ekeys_count'] as $function) {
+            if (!$this->functionExists($function)) {
+                return false;
+            }
+        }
+        foreach (['RECOVERY_PASSWORD_TTL', 'RECOVERY_PASSWORD_EKEY_TYPE'] as $constant) {
+            if (!$this->constantDefined($constant)) {
+                return false;
+            }
+        }
+
+        return ($this->parameterCount('fn_generate_ekey') ?? 0) >= 5;
+    }
+
+    /**
+     * 2026-11-08 00:01 +03: M2.10 G3, task 596. For the Settings switch: recoveryKeysAvailable(), except that no core
+     * at all (a unit run) cannot be judged and passes.
+     */
+    public function recoveryEnforceable(): bool
+    {
+        return !$this->functionExists('fn_login_user') || $this->recoveryKeysAvailable();
+    }
+
+    /** Whether a constant is defined (test seam). */
+    protected function constantDefined(string $name): bool
+    {
+        return defined($name);
+    }
+
+    /** Number of parameters of a function, null when it does not exist (test seam). */
+    protected function parameterCount(string $function): ?int
+    {
+        try {
+            return (new \ReflectionFunction($function))->getNumberOfParameters();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     /** Whether a function exists (test seam). */
     protected function functionExists(string $name): bool
     {

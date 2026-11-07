@@ -352,12 +352,21 @@ class RecoverByCode
         return defined('RECOVERY_PASSWORD_EKEYS_LIMIT') ? (int) RECOVERY_PASSWORD_EKEYS_LIMIT : 3;
     }
 
+    /** 2026-11-08 00:01 +03: M2.10 G3, task 596. The core probe (a test replaces this seam). */
+    protected function recoveryKeysAvailable(): bool
+    {
+        return (new \Tygh\Addons\Kwtsms\Settings\CoreGuards())->recoveryKeysAvailable();
+    }
+
     private function issueKey(int $user_id, string $session_hash): string
     {
         if ($this->issue !== null) {
             return (string) call_user_func($this->issue, $user_id, $session_hash);
         }
-        if (!function_exists('fn_generate_ekey') || !defined('RECOVERY_PASSWORD_TTL')) {
+        // 2026-11-08 00:01 +03: M2.10 G3, task 596. Also refused (silently to the customer, e-mail recovery unaffected)
+        // when fn_generate_ekey() lacks its fifth parameter (the session binding would be dropped) or a key function
+        // or constant is missing.
+        if (!$this->recoveryKeysAvailable()) {
             throw new \RuntimeException('kwtsms: core recovery keys are not available');
         }
 
