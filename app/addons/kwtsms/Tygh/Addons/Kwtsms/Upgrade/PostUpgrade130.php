@@ -286,6 +286,12 @@ class PostUpgrade130
                 throw new \RuntimeException('this CS-Cart has no ' . $core . '()');
             }
         }
+        // 2026-11-08 00:07 +03: M2.10 G7, task 596. A fn_update_addon_settings() with fewer than 4 parameters ignores the
+        // stored values we pass and rebuilds the section from defaults: the merchant's values would be dropped. Refuse
+        // first; the run reports the step and retries.
+        self::requireValueRestoringSettingsFunction(
+            (new \ReflectionFunction('fn_update_addon_settings'))->getNumberOfParameters()
+        );
         $result = fn_update_addon_settings(
             $scheme,
             false,
@@ -295,6 +301,19 @@ class PostUpgrade130
         $left = self::missingSettings($scheme);
         if ($result === false || $left !== []) {
             throw new \RuntimeException('the settings were not created: ' . implode(', ', $left));
+        }
+    }
+
+    /**
+     * 2026-11-08 00:07 +03: M2.10 G7, task 596. fn_update_addon_settings($scheme, $execute, $values, $vendor_values) must
+     * take all four parameters, or the stored values are not put back.
+     *
+     * @throws \RuntimeException When the function takes fewer than 4 parameters
+     */
+    private static function requireValueRestoringSettingsFunction(int $parameter_count): void
+    {
+        if ($parameter_count < 4) {
+            throw new \RuntimeException('this CS-Cart cannot restore stored values');
         }
     }
 
