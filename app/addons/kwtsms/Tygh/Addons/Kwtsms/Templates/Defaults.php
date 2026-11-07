@@ -122,7 +122,9 @@ class Defaults
         // 2026-10-23 00:14 +03: Task A9, task 596. Credits left and the alert level (Alerts\LowBalanceSms).
         self::EVENT_LOW_BALANCE => ['balance', 'threshold'],
         // 2026-11-06 22:07 +03: Task M2.11, task 596. The failed-send count and the window (Alerts\FailSpike).
-        self::EVENT_SEND_FAIL_SPIKE => ['count', 'minutes'],
+        // 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. {window_minutes} replaces {minutes}: its own
+        // label ("Minutes of the failure window") and preview sample (15), apart from the code lifetime.
+        self::EVENT_SEND_FAIL_SPIKE => ['count', 'window_minutes'],
     ];
 
     /**

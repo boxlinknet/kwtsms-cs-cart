@@ -290,9 +290,21 @@ class AdminAlerts
             'to' => 'company_site_administrator',
             'from' => 'default_company_site_administrator',
             'subject' => $subject,
-            'body' => '<p>' . nl2br($text) . '</p>',
+            'body' => self::mailBody($text, $lang),
             'company_id' => 0,
         ], 'A', $lang);
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. The e-mail body: one paragraph, right to left for
+     * an Arabic recipient (the Arabic alert e-mails were left-aligned LTR paragraphs). $text is already escaped by the
+     * caller's language variable path, as before.
+     */
+    public static function mailBody(string $text, string $lang): string
+    {
+        $rtl = in_array(strtolower(substr($lang, 0, 2)), ['ar', 'he', 'fa', 'ur'], true);
+
+        return '<p' . ($rtl ? ' dir="rtl" style="text-align: right;"' : '') . '>' . nl2br($text) . '</p>';
     }
 
     // ------------------------------------------------------------------ internals

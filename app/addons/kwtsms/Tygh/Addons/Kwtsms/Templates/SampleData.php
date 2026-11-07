@@ -209,14 +209,16 @@ final class SampleData
 
     /**
      * 2026-11-06 22:08 +03: Task M2.11 (send failure alert SMS), task 596. The value of {count}: a reference count, or
-     * the worst case (5 digits). {minutes} comes from codes() (it is the same placeholder name; the worst case there
-     * is 2 digits, which is the real window of 15).
+     * the worst case (5 digits); {window_minutes} is the real window, 15 (2026-11-07 02:46 +03: Task M2.7, task 596,
+     * its own placeholder instead of the code lifetime {minutes}, whose sample is 5).
      *
      * @return array<string,string>
      */
     public static function failSpike(bool $worst = false): array
     {
-        return $worst ? ['count' => '99999'] : ['count' => '12'];
+        return $worst
+            ? ['count' => '99999', 'window_minutes' => '15']
+            : ['count' => '12', 'window_minutes' => '15'];
     }
 
     /**

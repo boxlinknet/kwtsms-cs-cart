@@ -166,7 +166,9 @@ return [
     // Default OFF; the attempts of this event are not counted by the spike check, so it cannot raise itself.
     'kwtsms.send_fail_spike' => [
         'receivers' => ['A'],
-        'placeholders' => ['count' => 'count', 'minutes' => 'minutes'],
+        // 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. The placeholder is window_minutes
+        // (data key minutes).
+        'placeholders' => ['count' => 'count', 'window_minutes' => 'minutes'],
         'storefront' => 'storefront_id',
         'dedupe' => ['key' => 'send_fail_spike:{crossing_at}:{receiver}', 'window' => 0],
         'group' => 'kwtsms.events_group',
