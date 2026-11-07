@@ -700,7 +700,7 @@ class SettingsPage
         ) {
             $note('core_twofa', 'danger', $this->coreRefusalText('twofa'));
         }
-        // 2026-11-08 00:01 +03: M2.10 G3, task 596. Recovery by code ON while the core lacks the recovery key functions.
+        // 2026-11-08 00:01 +03: M2.10 G3, task 596. Recovery by code ON while the core lacks the key functions.
         if ($this->config->recoverCode() && !$this->guards()->recoveryEnforceable()) {
             $note('core_recover', 'danger', $this->coreRefusalText('recover'));
         }
@@ -1097,7 +1097,10 @@ class SettingsPage
         }
         // 2026-11-08 00:01 +03: M2.10 G3, task 596. Sign-in recovery by code needs the session-bound recovery key of
         // core (fn_generate_ekey with its data parameter and the key functions): refused to switch ON without them.
-        if (isset($posted['recover_code']) && $posted['recover_code'] === 'Y' && !$this->guards()->recoveryEnforceable()) {
+        if (
+            isset($posted['recover_code']) && $posted['recover_code'] === 'Y'
+            && !$this->guards()->recoveryEnforceable()
+        ) {
             unset($posted['recover_code']);
             $reasons['recover_code'] = 'core:recover';
         }
