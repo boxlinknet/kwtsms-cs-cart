@@ -346,9 +346,9 @@ class CodeRequest
             }
         }
         // 2026-11-07 18:57 +03: branch review I1 of 1.3.0, task 596. A stranger can use up the shared per-phone hourly
-        // cap (recovery, guest checkout and register codes to the victim's number all count), which then locked the owner
-        // out of the second step for up to an hour. The 2FA code therefore neither reads nor counts phone_h:<phone>;
-        // its own limit is per account (the password was right, so the account is known): 6 an hour and 20 a day,
+        // cap (recovery, guest checkout and register codes to the victim's number all count), which then locked the
+        // owner out of the second step for up to an hour. The 2FA code therefore neither reads nor counts
+        // phone_h:<phone>; its own limit is per account (the password was right, so the account is known): 6 an hour and 20 a day,
         // every request counted, a counter that fails closed is over the limit, the neutral wait answer.
         $guards = [
             ['tf_u:' . $user_id, self::HOUR, self::TWOFA_ACCOUNT_HOUR],

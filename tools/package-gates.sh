@@ -173,7 +173,10 @@ auth_controller_check() {
   # same controller and its two pages ship in both trees; the recovery key is a session-bound core key (RecoverByCode).
   grep -q 'recoverCode()' "$f" || echo "no recovery switch check"
   [ -f "$A/Tygh/Addons/Kwtsms/Auth/RecoverByCode.php" ] || echo "Auth/RecoverByCode.php missing"
-  grep -q 'keyUsableInSession' "$A/controllers/common/auth.pre.php" || echo "auth.pre.php does not guard bound recovery keys"
+  # 2026-11-07 23:48 +03: branch review M2 of 1.3.0, task 596. The check moved from auth.pre.php into
+  # fn_kwtsms_recover_key_refused() (func.php), which runs it only while recover_code is on.
+  grep -q 'fn_kwtsms_recover_key_refused' "$A/controllers/common/auth.pre.php" || echo "auth.pre.php does not guard bound recovery keys"
+  grep -q 'keyUsableInSession' "$A/func.php" || echo "func.php does not check bound recovery keys"
   for t in views/kwtsms_auth/login.tpl views/kwtsms_auth/recover.tpl views/kwtsms_auth/recover_continue.tpl hooks/index/login_buttons.post.tpl; do
     [ -f "$src/design/themes/responsive/templates/addons/kwtsms/$t" ] || echo "template $t missing"
     [ -f "$src/var/themes_repository/responsive/templates/addons/kwtsms/$t" ] || echo "repository copy of $t missing"

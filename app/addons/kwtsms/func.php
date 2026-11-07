@@ -1461,8 +1461,11 @@ function fn_kwtsms_twofa_reset_box($target_id, $auth = [])
  *
  * @param string $ekey The key of the request
  */
-function fn_kwtsms_recover_key_refused($ekey)
-{
+function fn_kwtsms_recover_key_refused(
+    #[\SensitiveParameter]
+    $ekey
+) {
+    // 2026-11-07 23:48 +03: the key is marked sensitive like every key parameter (package gate), task 596.
     try {
         if (!Tygh::$app['kwtsms.config']->recoverCode()) {
             return false;
