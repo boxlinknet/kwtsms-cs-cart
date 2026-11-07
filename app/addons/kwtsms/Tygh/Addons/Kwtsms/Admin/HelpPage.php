@@ -26,6 +26,8 @@
  *            Settings page uses (a path with a space was quoted here and not there). Fix round 1, task 596.
  *            2026-10-29 04:23 +03: Task M1.12, task 596. topics() lists the 1.2.0 sections (codes, phones, limits,
  *            captcha, unreachable) and the upgrade section.
+ *            2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. topics() adds signin, twofa, checkoutcode, selector,
+ *            vendorphone (Multi-Vendor) and spike.
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -157,9 +159,19 @@ class HelpPage
 
         // 2026-10-29 04:15 +03: Task M1.12, task 596. The 1.2.0 sections (codes, phones, limits, captcha, unreachable)
         // follow the storefront and vendor sections; "upgrade" sits before "support".
+        // 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The 1.3.0 sections follow the 1.2.0 ones: sign-in and
+        // recovery by code, two-step sign-in, the code before an order, the country selector, vendor phone
+        // confirmation (Multi-Vendor only) and the send failure alert.
+        $since13 = ['signin', 'twofa', 'checkoutcode', 'selector'];
+        if ($multivendor) {
+            $since13[] = 'vendorphone';
+        }
+        $since13[] = 'spike';
+
         return array_merge(
             $topics,
             ['codes', 'phones', 'limits', 'captcha', 'unreachable'],
+            $since13,
             ['optout', 'recovery', 'manual', 'ph', 'costs', 'cron', 'test', 'ip', 'missing'],
             ['upgrade', 'support', 'links']
         );

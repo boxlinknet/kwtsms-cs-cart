@@ -101,6 +101,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   mobile number (name and company) and needs a tick. The console reset raises the twofa_reset alert (bell and e-mail)
   like the web reset.
 
+<!-- 2026-11-07 02:46 +03: Task M2.7 (Help, Integrations, Dashboard, languages for 1.3.0), task 596 -->
+- Integrations: the "Coming in 1.3" list is now a live "Sign-in and security" section. One row each for sign-in by
+  code (state, sign-ins with a code today), two-step sign-in (the switch for customers, administrators and, in
+  Multi-Vendor, vendor administrators; accounts with two-step on by type; a warning with the number of administrators
+  who have fewer than 3 backup codes left), recovery by code and the code before an order (state, codes issued today),
+  the country selector (on, or on but waiting for the country check) and, in Multi-Vendor, the vendor phone
+  confirmation (approved phones). Every row links to its control in Settings. No number is read for a switch that is off.
+- Help (English and Arabic): sections for sign-in and recovery by code (verified numbers only; why "no SMS" is not an
+  error), two-step sign-in (enrolling, Required and its check, backup codes, the break-glass line and the exact command
+  of this install, the last root administrator rule, the alerts), the code before an order (modes, cash on delivery
+  payments, who is never asked), the country selector and phone checks, vendor phone confirmation (Multi-Vendor) and the
+  send failure alert.
+- Dashboard: the go-live list gets "Backup codes saved" while two-step sign-in is on for administrators. It is done when
+  an administrator is enrolled and every enrolled administrator has 3 or more backup codes left.
+
+### Changed
+
+<!-- 2026-11-07 02:46 +03: Task M2.7, task 596 -->
+- The SMS about failing SMS (Administration > Notifications, "Send failure alert") uses the placeholder {window_minutes}
+  for its 15 minutes instead of {minutes}, with its own label ("Minutes of the failure window") and preview sample (15);
+  {minutes} stays the lifetime of a code. A text you edited before this release keeps working only if it uses
+  {window_minutes}; reset it to the default to get the new wording.
+- Administrator alert e-mails in Arabic are right to left.
+- The two-step pages show the masked number (+965****1234) in its own left-to-right element, so it no longer reads
+  reversed in Arabic; the sentence before it ends in a colon.
+- Country selector: the label of the select is no longer escaped twice, and the select points at its phone field
+  (aria-describedby). README notes that the international format mode has no real country picker.
+
 ### Notes
 
 <!-- 2026-11-05 02:38 +03: review fix 1 of Task M2.2a, task 596 -->

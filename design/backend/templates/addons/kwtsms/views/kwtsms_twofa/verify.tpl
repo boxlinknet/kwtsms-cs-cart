@@ -26,7 +26,8 @@
             {if $kwtsms_backup_mode}
                 <p class="kwtsms-twofa__intro" id="kwtsms_twofa_backup_intro">{__("kwtsms.twofa.backup_intro")|fn_html_escape}</p>
             {else}
-                <p class="kwtsms-twofa__intro">{__("kwtsms.twofa.intro", ["[phone]" => $kwtsms_twofa.masked_ltr|fn_html_escape])}</p>
+                {* 2026-11-07 02:40 +03: Task M2.7 (ruling 22:04), task 596. The masked number is its own bdi dir=ltr element: the isolate characters of masked_ltr did not survive and +965****1234 read reversed in Arabic. *}
+                <p class="kwtsms-twofa__intro">{__("kwtsms.twofa.intro")|fn_html_escape} <bdi dir="ltr" class="kwtsms-twofa__number">{$kwtsms_twofa.masked}</bdi></p>
                 {if !$kwtsms_twofa.sent}<p class="kwtsms-twofa__note" id="kwtsms_twofa_not_sent" role="status">{__("kwtsms.twofa.not_sent")|fn_html_escape}</p>{/if}
             {/if}
             <div class="control-group">

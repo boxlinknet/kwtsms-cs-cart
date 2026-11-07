@@ -20,6 +20,9 @@ DEPENDS:   components/{navigation,help_page_link,help_ext_link}.tpl, help.less, 
 CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections SMS codes, phone numbers, limits and proxies,
            CAPTCHA for codes, when the store can't send SMS and upgrading; lines on the opt-out box and on test mode with codes;
            the go-live line for the CAPTCHA provider.
+           2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Sections: sign-in and recovery by code, two-step sign-in (with
+           the break-glass commands), the code before an order, country selector, vendor phone confirmation (Multi-Vendor),
+           send failure alert.
 *}
 {* 2026-10-23 13:16 +03: final review A, Important 2, task 596. Every value in a __() placeholder array now passes |fn_html_escape (values that never had a modifier too); tests/Unit/TemplateEscapeTest enforces it. *}
 {* 2026-10-23 10:00 +03: Task A14 fix, task 596. The core Smarty runs with escape_html on and DROPS |escape:"html" inside an expression (a __() placeholder
@@ -210,6 +213,65 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.unreachable.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.unreachable.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
                 <p>{__("kwtsms.help.unreachable.p3")}</p>
+            </section>
+
+            {* ---- 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The 1.3.0 sections: sign-in and recovery by code, two-step sign-in, the code before an order, the country selector, vendor phone confirmation (Multi-Vendor), the send failure alert. ---- *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_signin" aria-labelledby="kwtsms_help_signin_title">
+                <h4 class="subheader" id="kwtsms_help_signin_title">{__("kwtsms.help.signin.title")}</h4>
+                <p>{__("kwtsms.help.signin.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_signin" pages=$h.pages}</p>
+                <p id="kwtsms_help_signin_verified">{__("kwtsms.help.signin.p2")}</p>
+                <p id="kwtsms_help_signin_nosms">{__("kwtsms.help.signin.p3")}</p>
+                <p>{__("kwtsms.help.signin.p4")}</p>
+                <p id="kwtsms_help_signin_recover">{__("kwtsms.help.signin.p5")}</p>
+                <p id="kwtsms_help_signin_simswap">{__("kwtsms.help.signin.p6")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_twofa" aria-labelledby="kwtsms_help_twofa_title">
+                <h4 class="subheader" id="kwtsms_help_twofa_title">{__("kwtsms.help.twofa.title")}</h4>
+                <p>{__("kwtsms.help.twofa.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_signin" pages=$h.pages}</p>
+                <p id="kwtsms_help_twofa_enrol">{__("kwtsms.help.twofa.p2")}</p>
+                <p id="kwtsms_help_twofa_required">{__("kwtsms.help.twofa.p3")}</p>
+                <p id="kwtsms_help_twofa_backup">{__("kwtsms.help.twofa.p4")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="integrations" pages=$h.pages}</p>
+                {* The break-glass commands are code: they sit in pre dir="ltr" blocks, exact for this install (the PHP path and admin script come from HelpPage::viewData()). *}
+                <p id="kwtsms_help_twofa_breakglass">{__("kwtsms.help.twofa.p5")}</p>
+                <pre class="kwtsms-pre" id="kwtsms_help_twofa_const" dir="ltr" tabindex="0">define('KWTSMS_2FA_OFF', true);</pre>
+                <p>{__("kwtsms.help.twofa.p6")}</p>
+                <pre class="kwtsms-pre" id="kwtsms_help_twofa_cli" dir="ltr" tabindex="0">php {$h.cron.root}/{$h.cron.admin_index} --dispatch=kwtsms_twofa.cli_reset --user_id=ID</pre>
+                <p>{__("kwtsms.help.twofa.p7")}</p>
+                <p id="kwtsms_help_twofa_lastroot">{__("kwtsms.help.twofa.p8")}</p>
+                <p>{__("kwtsms.help.twofa.p9")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="admin_alerts" pages=$h.pages}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_checkoutcode" aria-labelledby="kwtsms_help_checkoutcode_title">
+                <h4 class="subheader" id="kwtsms_help_checkoutcode_title">{__("kwtsms.help.checkoutcode.title")}</h4>
+                <p>{__("kwtsms.help.checkoutcode.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_signin" pages=$h.pages}</p>
+                <p id="kwtsms_help_checkoutcode_exempt">{__("kwtsms.help.checkoutcode.p2")}</p>
+                <p>{__("kwtsms.help.checkoutcode.p3")}</p>
+                <p id="kwtsms_help_checkoutcode_repay">{__("kwtsms.help.checkoutcode.p4")}</p>
+                <p>{__("kwtsms.help.checkoutcode.p5")}</p>
+                {* 2026-11-07 02:57 +03: Task M2.7 (1.3.0, Open 10), task 596. Two add-ons that both ask for a checkout code: switch one off. *}
+                <p id="kwtsms_help_checkoutcode_other">{__("kwtsms.help.checkoutcode.p6")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_selector" aria-labelledby="kwtsms_help_selector_title">
+                <h4 class="subheader" id="kwtsms_help_selector_title">{__("kwtsms.help.selector.title")}</h4>
+                <p>{__("kwtsms.help.selector.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_codes" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.selector.p2")}</p>
+                <p id="kwtsms_help_selector_intl">{__("kwtsms.help.selector.p3")}</p>
+            </section>
+
+            {if $h.is_multivendor}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_vendorphone" aria-labelledby="kwtsms_help_vendorphone_title">
+                <h4 class="subheader" id="kwtsms_help_vendorphone_title">{__("kwtsms.help.vendorphone.title")}</h4>
+                <p>{__("kwtsms.help.vendorphone.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="vendors" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.vendorphone.p2")}</p>
+            </section>
+            {/if}
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_spike" aria-labelledby="kwtsms_help_spike_title">
+                <h4 class="subheader" id="kwtsms_help_spike_title">{__("kwtsms.help.spike.title")}</h4>
+                <p>{__("kwtsms.help.spike.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_fail_spike" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.spike.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
             </section>
 
             {* ---- customer opt-out *}

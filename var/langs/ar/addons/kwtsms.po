@@ -5108,9 +5108,10 @@ msgid "{store_name}: kwtSMS balance is low, {balance} credits left (alert level 
 msgstr "رصيد الرسائل منخفض: المتبقي {balance} والحد {threshold}. يرجى الشحن."
 
 # 2026-11-06 22:11 +03: Task M2.11, task 596. Default text of the send failure alert SMS (staff). Its place follows the order of Defaults::events().
+# 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. {minutes} became {window_minutes}.
 msgctxt "Languages::kwtsms.tpl.kwtsms.send_fail_spike.A"
-msgid "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
-msgstr "تنبيه: فشل إرسال {count} رسالة خلال {minutes} دقيقة. راجع السجلات."
+msgid "{store_name}: {count} SMS sends failed in the last {window_minutes} minutes. Check the kwtSMS logs and account."
+msgstr "تنبيه: فشل إرسال {count} رسالة خلال {window_minutes} دقيقة. راجع السجلات."
 
 msgctxt "Languages::kwtsms.event.low_balance"
 msgid "Low kwtSMS balance"
@@ -6216,6 +6217,16 @@ msgctxt "Languages::kwtsms.dash.golive.captcha.link"
 msgid "Set up"
 msgstr "إعداد"
 
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Dashboard go-live line, shown while two-step sign-in is on for administrators.
+msgctxt "Languages::kwtsms.dash.golive.backup_codes"
+msgid "Backup codes saved"
+msgstr "حفظ الرموز الاحتياطية"
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.dash.golive.backup_codes.link"
+msgid "Open settings"
+msgstr "افتح الإعدادات"
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.title"
 msgid "Phone rules and SMS codes"
@@ -6298,40 +6309,143 @@ msgctxt "Languages::kwtsms.integrations.captcha.provider.none"
 msgid "CAPTCHA provider for SMS codes: none. Only the rate limits protect code requests."
 msgstr "مزود CAPTCHA لرموز التحقق: لا يوجد. لا يحمي طلبات الرموز سوى حدود الطلبات."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.title"
-msgid "Coming in 1.3"
-msgstr "قريبا في الإصدار 1.3"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Integrations: the "Sign-in and security" section replaces the "Coming in 1.3" list.
+msgctxt "Languages::kwtsms.integrations.sec.title"
+msgid "Sign-in and security"
+msgstr "تسجيل الدخول والأمان"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.help"
-msgid "These features are not in 1.2. Nothing here changes how your store works today."
-msgstr "هذه الميزات ليست في الإصدار 1.2. لا يغير أي منها طريقة عمل متجرك اليوم."
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.integrations.sec.help"
+msgid "New in 1.3. Every option is off until you turn it on in Settings."
+msgstr "جديد في الإصدار 1.3. كل خيار متوقف حتى تفعّله من الإعدادات."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.signin_code"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.integrations.sec.off_note"
+msgid "This option is off."
+msgstr "هذا الخيار متوقف."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The words of the switch states.
+msgctxt "Languages::kwtsms.integrations.sec.mode.off"
+msgid "Off"
+msgstr "متوقف"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.optional"
+msgid "Optional"
+msgstr "اختياري"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.required"
+msgid "Required"
+msgstr "إلزامي"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.all"
+msgid "All orders"
+msgstr "كل الطلبات"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.guest"
+msgid "Guests only"
+msgstr "الزوار فقط"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.cod"
+msgid "Cash on delivery only"
+msgstr "الدفع عند الاستلام فقط"
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Sign-in by code row.
+msgctxt "Languages::kwtsms.integrations.sec.login_code.title"
 msgid "Sign in with an SMS code"
 msgstr "تسجيل الدخول برمز SMS"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.twofa"
-msgid "Two-factor sign-in with an SMS code"
-msgstr "تسجيل دخول بخطوتين برمز SMS"
+msgctxt "Languages::kwtsms.integrations.sec.login_code.text"
+msgid "A customer with a verified number can sign in with a code instead of a password. Administrators, vendors and accounts that need a second step never can."
+msgstr "يستطيع العميل صاحب الرقم الموثّق تسجيل الدخول برمز بدلا من كلمة المرور. أما المديرون والبائعون والحسابات التي تحتاج خطوة ثانية فلا يستطيعون ذلك."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.recovery_code"
-msgid "Password recovery with an SMS code"
-msgstr "استعادة كلمة المرور برمز SMS"
+msgctxt "Languages::kwtsms.integrations.sec.login_code.today"
+msgid "Signed in with a code today: [count]."
+msgstr "عدد من سجّلوا الدخول برمز اليوم: [count]."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.checkout_verification"
-msgid "Phone verification at checkout"
-msgstr "التحقق من الهاتف عند إتمام الطلب"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Two-step row.
+msgctxt "Languages::kwtsms.integrations.sec.twofa.title"
+msgid "Two-step sign-in"
+msgstr "تسجيل الدخول بخطوتين"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.country_selector"
+msgctxt "Languages::kwtsms.integrations.sec.twofa.text"
+msgid "Customers: [customers]. Administrators: [admins]."
+msgstr "العملاء: [customers]. المديرون: [admins]."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.text_mve"
+msgid "Customers: [customers]. Administrators: [admins]. Vendor administrators: [vendors]."
+msgstr "العملاء: [customers]. المديرون: [admins]. مديرو البائعين: [vendors]."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.enrolled"
+msgid "Accounts with two-step on: [admins] administrators, [customers] customers."
+msgstr "الحسابات المفعّلة: [admins] من المديرين و[customers] من العملاء."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.enrolled_mve"
+msgid "Accounts with two-step on: [admins] administrators, [vendors] vendor administrators, [customers] customers."
+msgstr "الحسابات المفعّلة: [admins] من المديرين و[vendors] من مديري البائعين و[customers] من العملاء."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.backup_low"
+msgid "Administrator accounts with fewer than 3 backup codes left: [count]. Each one can make a new set on their own profile page."
+msgstr "حسابات المديرين التي بقي لها أقل من 3 رموز احتياطية: [count]. يستطيع كل منهم إنشاء مجموعة جديدة من صفحة ملفه الشخصي."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.backup_ok"
+msgid "Every administrator with two-step on has 3 or more backup codes left."
+msgstr "لكل مدير فعّل الخطوتين 3 رموز احتياطية أو أكثر."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Recovery by code row.
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.title"
+msgid "Password recovery by code"
+msgstr "استعادة كلمة المرور برمز"
+
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.text"
+msgid "A customer with a verified number can reset the password with a code sent to it."
+msgstr "يستطيع العميل صاحب الرقم الموثّق إعادة تعيين كلمة المرور برمز يصل إلى رقمه."
+
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.today"
+msgid "Recovery codes issued today: [count]."
+msgstr "رموز الاستعادة الصادرة اليوم: [count]."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Checkout code row.
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.title"
+msgid "Code before an order"
+msgstr "رمز قبل إتمام الطلب"
+
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.text"
+msgid "Who is asked for a code: [mode]."
+msgstr "من يُطلب منه رمز: [mode]."
+
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.today"
+msgid "Checkout codes issued today: [count]."
+msgstr "رموز الطلبات الصادرة اليوم: [count]."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Country selector row.
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.title"
 msgid "Country selector on phone fields"
 msgstr "قائمة اختيار الدولة في حقول الهاتف"
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.text"
+msgid "Customers pick the country of their number from a list."
+msgstr "يختار العميل دولة رقمه من قائمة."
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.active"
+msgid "On: the selector is shown on phone fields."
+msgstr "مفعّلة: تظهر القائمة في حقول الهاتف."
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.needs_check"
+msgid "On, but not shown: it needs the country check under Phone rules to be on."
+msgstr "مفعّلة لكنها لا تظهر: تتطلب تفعيل فحص الدولة ضمن قواعد الهاتف."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Vendor phone row (Multi-Vendor).
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.title"
+msgid "Vendors confirm their SMS number"
+msgstr "تأكيد البائعين لرقم SMS"
+
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.text"
+msgid "A vendor administrator confirms the company phone with a code. Approval by the root administrator stays available."
+msgstr "يؤكد مدير البائع هاتف الشركة برمز. ويبقى اعتماد المدير الرئيسي متاحا."
+
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.counts"
+msgid "Approved phones: [approved] of [total] vendors."
+msgstr "الهواتف المعتمدة: [approved] من [total] بائع."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.golive.g7"
@@ -6541,6 +6655,149 @@ msgctxt "Languages::kwtsms.help.unreachable.p3"
 msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
 msgstr "لا تسمح مشكلة في رقم واحد بمتابعة النموذج أبدا. يرى العميل الرد نفسه الذي يراه عند إرسال الرمز، فلا يستطيع أحد استكشاف الأرقام التي تعمل. ولا يسمح السقف الساعي للمتجر بمتابعة النموذج أيضا: يُطلب من العملاء المحاولة لاحقا."
 
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: sign-in and recovery by code.
+msgctxt "Languages::kwtsms.help.signin.title"
+msgid "Sign in and recover by code"
+msgstr "الدخول والاستعادة برمز"
+
+msgctxt "Languages::kwtsms.help.signin.p1"
+msgid "Sign in with an SMS code lets a customer type a mobile number and a code instead of a password. Turn it on under Sign-in and security in Settings. It is off until you do."
+msgstr "يتيح الدخول برمز SMS للعميل أن يكتب رقم جواله والرمز بدلا من كلمة المرور. فعّله من قسم الدخول والأمان في الإعدادات. وهو متوقف حتى تفعّله."
+
+msgctxt "Languages::kwtsms.help.signin.p2"
+msgid "Only a verified number works. The number must have been confirmed with a code (at sign-up, at a phone change or at checkout) and must belong to exactly one customer account. Administrators, vendor administrators and any account that needs a second step are never signed in with a code alone. Settings shows how many customer numbers are verified."
+msgstr "لا يعمل إلا الرقم الموثّق. يجب أن يكون الرقم قد أُكّد برمز (عند التسجيل أو عند تغيير الهاتف أو عند إتمام الطلب) وأن يخص حساب عميل واحدا فقط. أما المديرون ومديرو البائعين وأي حساب يحتاج خطوة ثانية فلا يدخلون برمز وحده أبدا. وتعرض الإعدادات عدد أرقام العملاء الموثّقة."
+
+msgctxt "Languages::kwtsms.help.signin.p3"
+msgid "No SMS is not an error. The page gives the same answer for every number: If this number belongs to an account, a code is on its way. A number with no account, an unverified number or an account that needs a password gets no SMS and no reason, so the page can't be used to find out who has an account. A customer who gets no code can sign in with the email and password, or verify the number first."
+msgstr "عدم وصول رسالة ليس خطأ. تعطي الصفحة الجواب نفسه لكل رقم: إذا كان هذا الرقم يخص حسابا فالرمز في الطريق. والرقم الذي لا حساب له أو غير الموثّق أو الذي يحتاج كلمة مرور لا تصله رسالة ولا يُذكر له السبب، حتى لا تُستعمل الصفحة لمعرفة من لديه حساب. ومن لم يصله رمز فيستطيع الدخول بالبريد الإلكتروني وكلمة المرور، أو يوثّق رقمه أولا."
+
+msgctxt "Languages::kwtsms.help.signin.p4"
+msgid "A sign-in with a code opens a fresh session and does not set the remember-me cookie. Code requests count against the same per-address and per-number limits as other codes, and the CAPTCHA provider applies. The wait between requests grows (60, 120, then 300 seconds). Keep a CAPTCHA provider on, because the page answers the same for every number."
+msgstr "يفتح الدخول برمز جلسة جديدة ولا يضع كوكي تذكّرني. وتخضع طلبات الرمز لحدود العنوان والرقم نفسها كسائر الرموز، ويسري مزود CAPTCHA. وتطول مدة الانتظار بين الطلبات (60 ثم 120 ثم 300 ثانية). أبقِ مزود CAPTCHA مفعّلا لأن الصفحة تجيب بالطريقة نفسها عن كل رقم."
+
+msgctxt "Languages::kwtsms.help.signin.p5"
+msgid "Password recovery by code has its own switch. The customer types the number and then the code, and presses Continue on a page that holds a one-time recovery key. The key works once, only in the browser that proved the number, and the core limit of 3 open recovery keys for one account still applies. The answer is neutral here too. The link in the recovery e-mail keeps working as before."
+msgstr "لاستعادة كلمة المرور برمز مفتاح مستقل. يكتب العميل رقمه ثم الرمز، ثم يضغط متابعة في صفحة تحمل مفتاح استعادة يعمل مرة واحدة. ولا يعمل المفتاح إلا في المتصفح الذي أثبت الرقم، ويبقى حد النواة وهو 3 مفاتيح استعادة مفتوحة للحساب الواحد. والجواب محايد هنا أيضا. ويبقى الرابط في رسالة الاستعادة بالبريد الإلكتروني يعمل كما كان."
+
+msgctxt "Languages::kwtsms.help.signin.p6"
+msgid "Recovery by code and two-step sign-in: when the two-step number of the account is the number it was recovered with, the recovery code counts as the second step. This is a deliberate choice. Whoever controls that SIM, for example after a SIM swap, can recover the account and pass the second step as well. Where that risk matters, use a different number for the second step: the customer then signs in with the password and a code sent to that number."
+msgstr "الاستعادة برمز وتسجيل الدخول بخطوتين: إذا كان رقم الخطوة الثانية في الحساب هو الرقم الذي جرت به الاستعادة، يُحتسب رمز الاستعادة خطوة ثانية. وهذا اختيار مقصود. فمن يسيطر على الشريحة (مثلا بعد استبدالها احتيالا) يستطيع استعادة الحساب واجتياز الخطوة الثانية أيضا. وإن كان هذا الخطر يهمّك فاستعمل رقما مختلفا للخطوة الثانية، فيدخل العميل بكلمة المرور ورمز يصل إلى ذلك الرقم."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: two-step sign-in.
+msgctxt "Languages::kwtsms.help.twofa.title"
+msgid "Two-step sign-in"
+msgstr "تسجيل الدخول بخطوتين"
+
+msgctxt "Languages::kwtsms.help.twofa.p1"
+msgid "Two-step sign-in asks for an SMS code after the password. Each kind of account has its own switch under Sign-in and security in Settings: customers, administrators and, in Multi-Vendor, vendor administrators. Off is the default. Optional lets each person turn it on from their own profile. Required makes it a must for administrators or vendor administrators. An upgrade turns nothing on, and nobody is asked for a code until a switch is on."
+msgstr "يطلب تسجيل الدخول بخطوتين رمزا نصيا بعد كلمة المرور. ولكل نوع من الحسابات مفتاحه في قسم الدخول والأمان بالإعدادات: العملاء والمديرون، ومديرو البائعين في Multi-Vendor. والافتراضي متوقف. ويتيح الخيار اختياري لكل شخص تفعيله من ملفه الشخصي، ويجعله الخيار إلزامي واجبا على المديرين أو على مديري البائعين. ولا تفعّل الترقية شيئا، ولا يُطلب رمز من أحد قبل تشغيل مفتاح."
+
+msgctxt "Languages::kwtsms.help.twofa.p2"
+msgid "To enrol, the person opens their own profile, presses Send me a code and types it. The code goes to the mobile number saved on the account, never to a number typed on the page. With Required, an administrator who is not enrolled yet is enrolled at the first sign-in with a code sent to the number on the account. An account without a mobile number is refused with a message and nothing is sent: add the number first."
+msgstr "للتسجيل يفتح الشخص ملفه الشخصي ويضغط إرسال رمز ثم يكتب الرمز. يصل الرمز إلى رقم الجوال المحفوظ في الحساب، لا إلى رقم يُكتب في الصفحة. ومع الخيار إلزامي يُسجَّل المدير الذي لم يسجَّل بعد عند أول دخول، برمز يصل إلى الرقم المحفوظ في حسابه. أما الحساب بلا رقم جوال فيُرفض برسالة ولا يُرسل شيء: أضف الرقم أولا."
+
+msgctxt "Languages::kwtsms.help.twofa.p3"
+msgid "Saving Required for administrators goes through a check. The administrator who saves must be an active root administrator with a mobile number and proves it with a code sent there. That administrator is enrolled at once and sees ten backup codes one time. Administrators without a mobile number are listed and you tick a box to confirm. They can't sign in until a number is added to their account, or until you switch back to Optional. Saving Required for vendors lists the vendor administrators without a mobile number the same way, without the code."
+msgstr "يمر حفظ الخيار إلزامي للمديرين عبر فحص. يجب أن يكون من يحفظه مديرا رئيسيا نشطا له رقم جوال، ويثبت ذلك برمز يصل إلى هذا الرقم. ويُسجَّل فورا ويرى عشرة رموز احتياطية مرة واحدة. أما المديرون بلا رقم جوال فتُعرض أسماؤهم وتؤكد بعلامة في خانة. ولا يستطيعون الدخول حتى يُضاف رقم إلى حساباتهم أو حتى تعيد الخيار إلى اختياري. ويعرض حفظ إلزامي للبائعين مديري البائعين بلا رقم جوال بالطريقة نفسها وبلا رمز."
+
+msgctxt "Languages::kwtsms.help.twofa.p4"
+msgid "Administrators and vendor administrators get 10 backup codes when they enrol. The codes are shown once, on the page that enrols them, so save them then. Each code works once and only for its own account, and the store keeps only a hash of it. A backup code signs the person in when the SMS can't be sent, for example when the kwtSMS balance is empty. A new set needs an SMS code and cancels the old set. Customers have no backup codes. Wrong backup codes are counted apart from SMS codes and never block the SMS path; 10 wrong tries on one account in an hour raise an alert in the bell. The Dashboard line Backup codes saved is done when every enrolled administrator has 3 or more codes left, and the Integrations page shows how many have fewer."
+msgstr "يحصل المديرون ومديرو البائعين على 10 رموز احتياطية عند التسجيل. تظهر مرة واحدة في صفحة التسجيل، فاحفظها حينها. يعمل كل رمز مرة واحدة ولحسابه فقط، ولا يحتفظ المتجر إلا ببصمته المشفرة. ويُدخل الرمز الاحتياطي صاحبه حين يتعذر إرسال الرسالة، مثلا عند نفاد رصيد kwtSMS. وتحتاج المجموعة الجديدة إلى رمز SMS وتلغي المجموعة القديمة. ولا رموز احتياطية للعملاء. وتُحسب المحاولات الخاطئة للرموز الاحتياطية على حدة ولا تغلق مسار SMS، وعشر محاولات خاطئة على حساب واحد خلال ساعة ترفع تنبيها في الجرس. ويكتمل بند لوحة التحكم حفظ الرموز الاحتياطية حين يبقى لكل مدير مسجَّل 3 رموز أو أكثر، وتعرض صفحة التكاملات عدد من بقي لديهم أقل."
+
+msgctxt "Languages::kwtsms.help.twofa.p5"
+msgid "Break-glass, if the SMS path is lost: use one of these on the server. First, add this line to config.local.php to turn every second step off. It needs no database and can't be set from a request. A banner and an alert say it is on, so remove the line when you are done:"
+msgstr "للطوارئ إذا ضاع مسار SMS: استعمل أحد الأمرين التاليين على الخادم. الأول: أضف هذا السطر إلى ملف config.local.php لإيقاف كل خطوة ثانية. لا يحتاج قاعدة بيانات ولا يمكن ضبطه من طلب. ويبيّن شريط وتنبيه أنه مفعّل، فاحذف السطر عند الانتهاء:"
+
+msgctxt "Languages::kwtsms.help.twofa.p6"
+msgid "Second, clear the second step of one account from the command line, replacing ID with the user id:"
+msgstr "الثاني: امسح الخطوة الثانية لحساب واحد من سطر الأوامر، مع استبدال ID برقم المستخدم:"
+
+msgctxt "Languages::kwtsms.help.twofa.p7"
+msgid "Use --types=admins, --types=vendors or --types=customers instead of --user_id to turn one switch off. The command runs as the server user, writes an audit row and raises an alert. A root administrator can also reset the second step of another administrator from that account's profile page, never their own."
+msgstr "استعمل ⁦--types=admins⁩ أو ⁦--types=vendors⁩ أو ⁦--types=customers⁩ بدلا من ⁦--user_id⁩ لإيقاف مفتاح واحد. يعمل الأمر بمستخدم الخادم، ويكتب سجل تدقيق ويرفع تنبيها. ويستطيع المدير الرئيسي أيضا إعادة ضبط الخطوة الثانية لمدير آخر من صفحة ملفه الشخصي، ولا يستطيع ذلك لحسابه هو."
+
+msgctxt "Languages::kwtsms.help.twofa.p8"
+msgid "Last root administrator rule: the store never locks out its last root administrator. When that account has no usable mobile number and no other root administrator is enrolled, it is let in with the password alone and sent to its profile, and an alert (bell and e-mail, once a day) asks you to add a number. Other staff accounts are still asked for the code."
+msgstr "قاعدة آخر مدير رئيسي: لا يغلق المتجر الدخول على آخر مدير رئيسي له. فإن لم يكن لحسابه رقم جوال صالح ولم يكن مدير رئيسي آخر مسجَّلا، دخل بكلمة المرور وحدها وانتقل إلى ملفه الشخصي، وينبّهك تنبيه (في الجرس وبالبريد، مرة يوميا) إلى إضافة رقم. أما حسابات الموظفين الأخرى فيبقى الرمز مطلوبا منها."
+
+msgctxt "Languages::kwtsms.help.twofa.p9"
+msgid "The second step raises its own alerts: the last root administrator let in without a code, the break-glass line on while a switch is on, a second step that was reset, and repeated wrong backup codes."
+msgstr "للخطوة الثانية تنبيهاتها: دخول آخر مدير رئيسي بلا رمز، وسطر الطوارئ مفعّل مع تشغيل مفتاح، وإعادة ضبط خطوة ثانية، وتكرار رموز احتياطية خاطئة."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: the code before an order.
+msgctxt "Languages::kwtsms.help.checkoutcode.title"
+msgid "Code before an order"
+msgstr "رمز قبل إتمام الطلب"
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p1"
+msgid "The code before an order asks the shopper for an SMS code before the order is placed. Set the mode under Sign-in and security in Settings: Off, All orders, Guests only or Cash on delivery only. Cash on delivery only asks for orders paid with the payment methods you tick there. A method that uses the core cash on delivery template is marked, and with none ticked no order is asked."
+msgstr "يطلب رمز الطلب من المتسوّق رمزا نصيا قبل إتمام الطلب. اضبط الوضع في قسم الدخول والأمان بالإعدادات: متوقف أو كل الطلبات أو الزوار فقط أو الدفع عند الاستلام فقط. ويطلب الوضع الأخير الرمز لطلبات طرق الدفع التي تعلّمها هناك فقط. وتُعلَّم الطريقة التي تستعمل قالب الدفع عند الاستلام في النواة، ومع عدم تعليم أي طريقة لا يُطلب الرمز من أي طلب."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p2"
+msgid "These are never asked for a code: a signed-in customer whose order phone is the verified account phone, the order editor in the administration panel, the API and the command line, a customer coming back from a payment gateway (a paid order is never lost) and, in Multi-Vendor, the orders of each vendor (only the main order is asked, once)."
+msgstr "لا يُطلب الرمز من: عميل مسجّل الدخول رقم هاتف طلبه هو رقم حسابه الموثّق، ومحرر الطلبات في لوحة الإدارة، وواجهة API وسطر الأوامر، وعميل عائد من بوابة الدفع (فلا يضيع طلب مدفوع)، وفي Multi-Vendor طلبات كل بائع (يُطلب الرمز مرة واحدة للطلب الرئيسي فقط)."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p3"
+msgid "The code goes to the phone typed at checkout. In the cash on delivery mode it goes to the shipping phone when that is a valid mobile number, otherwise to the account phone. It works once, for that number and that browser. Without a valid code the order is not placed: the shopper returns to the cart, which is kept, with a message. If the check itself fails, the order is refused with Could not check the code. Try again."
+msgstr "يصل الرمز إلى الهاتف المكتوب عند إتمام الطلب. وفي وضع الدفع عند الاستلام يصل إلى هاتف الشحن إذا كان رقم جوال صالحا، وإلا فإلى هاتف الحساب. ويعمل مرة واحدة لذلك الرقم وذلك المتصفح. وبلا رمز صحيح لا يُنشأ الطلب: يعود المتسوّق إلى السلة، وهي محفوظة، مع رسالة. وإذا تعذّر الفحص نفسه رُفض الطلب برسالة تفيد بتعذّر فحص الرمز وتطلب المحاولة مرة أخرى."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p4"
+msgid "A customer who changes the payment of an unpaid order (Repay) is asked under the same rules, and the code goes to the phone of that order. An add-on that places an order with its own button, such as one-click buy, has no code box and is refused while a mode applies. An order created through the REST API with a customer token is refused unless its phone is the verified account phone."
+msgstr "العميل الذي يغيّر طريقة دفع طلب غير مدفوع (إعادة الدفع) يُطلب منه الرمز بالقواعد نفسها، ويصل الرمز إلى هاتف ذلك الطلب. والإضافة التي تنشئ الطلب بزرها الخاص، مثل الشراء بنقرة واحدة، لا تحمل خانة رمز ويُرفض طلبها ما دام أحد الأوضاع مفعّلا. والطلب المنشأ عبر REST API برمز عميل يُرفض ما لم يكن هاتفه هو رقم حساب العميل الموثّق."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p5"
+msgid "When kwtSMS can't be reached, the setting When codes cannot be sent decides: Pause refuses the order, Continue lets it through with the phone unverified. Both raise an alert."
+msgstr "عند تعذّر الوصول إلى kwtSMS يحسم الأمر إعداد عند تعذّر إرسال الرموز: الإيقاف المؤقت يرفض الطلب، والمتابعة تمرّره والهاتف غير موثّق. وكلاهما يرفع تنبيها."
+
+# 2026-11-07 02:57 +03: Task M2.7 (1.3.0, Open 10), task 596. Help page: another add-on that asks for a checkout code.
+msgctxt "Languages::kwtsms.help.checkoutcode.p6"
+msgid "If another add-on of yours already asks for a code at checkout and sends it through kwtSMS, switch one of the two off. With this mode on, the shopper would get two codes. The store does not detect the other add-on."
+msgstr "إذا كانت لديك إضافة أخرى تطلب رمزا عند إتمام الطلب وترسله عبر kwtSMS، فأوقف إحدى الإضافتين. فمع تفعيل هذا الوضع سيصل المتسوّق رمزان. ولا يكتشف المتجر الإضافة الأخرى."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: country selector and phone validation modes.
+msgctxt "Languages::kwtsms.help.selector.title"
+msgid "Country selector and phone checks"
+msgstr "قائمة الدولة وفحوص الهاتف"
+
+msgctxt "Languages::kwtsms.help.selector.p1"
+msgid "The country selector shows a list of the allowed countries next to the phone fields of the storefront. Turn it on under Phone and codes in Settings. It needs the country check (the countries you choose) to be on, and Settings refuses to save it otherwise. With the core setting Supported phone numbers set to Phone number with country selection, the core list is cut to your allowed countries and the default country is preselected. In the other two modes a list of the same countries appears before the field."
+msgstr "تعرض قائمة الدولة الدول المسموح بها بجانب حقول الهاتف في واجهة المتجر. فعّلها من قسم الهاتف والرموز في الإعدادات. وتتطلب تشغيل فحص الدولة (الدول التي تختارها)، وترفض الإعدادات حفظها بغير ذلك. وعند ضبط إعداد النواة الأرقام المدعومة على رقم هاتف مع اختيار الدولة تُقتصر قائمة النواة على الدول المسموح بها وتُحدَّد الدولة الافتراضية مسبقا. وفي الوضعين الآخرين تظهر قائمة بالدول نفسها قبل الحقل."
+
+msgctxt "Languages::kwtsms.help.selector.p2"
+msgid "The choice made in the browser is only a hint. The server accepts it only when it is an allowed calling code, and every number is checked again against the allowed countries when it is saved, so a number from a country you did not allow is refused even if the page was edited. Sign-in by code, recovery, checkout and two-step codes use the same hint."
+msgstr "الاختيار الذي يجري في المتصفح مجرد تلميح. ولا يقبله الخادم إلا إذا كان رمز اتصال مسموحا به، ويُفحص كل رقم مرة أخرى مقابل الدول المسموح بها عند حفظه، فيُرفض رقم من دولة لم تسمح بها حتى لو عُدّلت الصفحة. ويستعمل الدخول برمز والاستعادة وإتمام الطلب ورموز الخطوتين التلميح نفسه."
+
+msgctxt "Languages::kwtsms.help.selector.p3"
+msgid "In the international format mode there is no real country picker: the field already holds the number with its own country code, so the selector only changes the placeholder and follows the code the customer types. Country names come from the core country names in the page language. Where your store keeps English names for Arabic, the Arabic list shows English names."
+msgstr "في وضع الصيغة الدولية لا توجد قائمة اختيار حقيقية للدولة: فالحقل يحمل الرقم مع رمز دولته، ولذلك تغيّر القائمة النص الإرشادي فقط وتتبع الرمز الذي يكتبه العميل. وتأتي أسماء الدول من أسماء الدول في النواة بلغة الصفحة. وحيث يحتفظ متجرك بأسماء إنجليزية للعربية، تعرض القائمة العربية أسماء إنجليزية."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: vendor phone confirmation (Multi-Vendor).
+msgctxt "Languages::kwtsms.help.vendorphone.title"
+msgid "Vendor phone confirmation"
+msgstr "تأكيد هاتف البائع"
+
+msgctxt "Languages::kwtsms.help.vendorphone.p1"
+msgid "In Multi-Vendor a vendor administrator can confirm the SMS number of the company with a code. Turn it on under Phone and codes in Settings. The vendor opens Confirm SMS number in the vendor panel, asks for a code to the company phone and types it. Your approval on the Vendor SMS page stays as an override (Approve without code). Changing the company phone cancels the approval."
+msgstr "في Multi-Vendor يستطيع مدير البائع تأكيد رقم SMS للشركة برمز. فعّل ذلك من قسم الهاتف والرموز في الإعدادات. يفتح البائع صفحة تأكيد رقم SMS في لوحة البائع ويطلب رمزا إلى هاتف الشركة ثم يكتبه. ويبقى اعتمادك من صفحة SMS البائعين بديلا (اعتماد بلا رمز). وتغيير هاتف الشركة يلغي الاعتماد."
+
+msgctxt "Languages::kwtsms.help.vendorphone.p2"
+msgid "A vendor can confirm only the phone of their own company, and only the number the code was sent to; the code works once, in that browser. For each company and each vendor user the limits are 3 codes an hour and 10 a day, and one company may ask for at most 2 different numbers a day, on top of the per-address limits."
+msgstr "لا يستطيع البائع تأكيد سوى هاتف شركته، ولا يؤكد إلا الرقم الذي أُرسل إليه الرمز، ويعمل الرمز مرة واحدة في ذلك المتصفح. وحدود كل شركة وكل مستخدم بائع هي 3 رموز في الساعة و10 في اليوم، ويجوز للشركة الواحدة طلب رقمين مختلفين فقط في اليوم، فوق حدود العنوان."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: the send failure alert.
+msgctxt "Languages::kwtsms.help.spike.title"
+msgid "Send failure alert"
+msgstr "تنبيه فشل الإرسال"
+
+msgctxt "Languages::kwtsms.help.spike.p1"
+msgid "The send failure alert tells you when sends start to fail in a burst, for example when the account is out of credits or kwtSMS is down. Turn it on under Limits in Settings and set the threshold (10 failures by default). Each time the cron health step runs it counts the failures of the last 15 minutes. Above the threshold it raises an alert in the bell and an e-mail to the administrators, at most once for each clock hour. The alert carries the count and the window only, no phone number and no reason."
+msgstr "ينبّهك تنبيه فشل الإرسال حين تبدأ الرسائل بالفشل دفعة واحدة، مثلا عند نفاد رصيد الحساب أو تعطّل kwtSMS. فعّله من قسم الحدود في الإعدادات وحدّد العتبة (10 حالات فشل افتراضيا). وفي كل مرة تعمل فيها خطوة فحص الصحة في المهمة المجدولة تُحسب حالات الفشل في آخر 15 دقيقة. وإذا تجاوزت العتبة رُفع تنبيه في الجرس ووصلت رسالة بريد إلى المديرين، مرة واحدة على الأكثر في كل ساعة. ويحمل التنبيه العدد والمدة فقط، بلا رقم هاتف ولا سبب."
+
+msgctxt "Languages::kwtsms.help.spike.p2"
+msgid "A failure is a send that failed, was rejected or ended unknown (except one held back by a daily cap), or was deferred because kwtSMS was unreachable or the account is suspended. The SMS of the alert itself is never counted. To get the alert by SMS too, turn on the Send failure alert text on the Templates page: it goes to the administrator phones, once an hour, and it is off by default."
+msgstr "حالة الفشل هي رسالة فشلت أو رُفضت أو انتهت بنتيجة مجهولة (عدا ما أوقفه سقف يومي)، أو أُجّلت لأن kwtSMS لم يكن متاحا أو لأن الحساب موقوف. ولا تُحسب رسالة التنبيه نفسها أبدا. وللحصول على التنبيه برسالة SMS أيضا فعّل نص تنبيه فشل الإرسال في صفحة القوالب: يصل إلى هواتف المديرين مرة في الساعة، وهو متوقف افتراضيا."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.optout.p4"
 msgid "The opt-out box shows only while a customer SMS for an order status change, an order update, or a shipment is on for the storefront. With all three off, the box is hidden, and a customer's saved choice is kept."
@@ -6748,9 +7005,10 @@ msgctxt "Languages::kwtsms.twofa.title"
 msgid "Enter your code"
 msgstr "أدخل الرمز"
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder: the masked number is a bdi dir=ltr element after the sentence (it read reversed in Arabic).
 msgctxt "Languages::kwtsms.twofa.intro"
-msgid "Enter the code we sent to [phone]."
-msgstr "أدخل الرمز الذي أرسلناه إلى [phone]."
+msgid "Enter the code we sent to this number:"
+msgstr "أدخل الرمز الذي أرسلناه إلى هذا الرقم:"
 
 msgctxt "Languages::kwtsms.twofa.not_sent"
 msgid "We could not send the code. Press Send a new code."
@@ -6824,17 +7082,19 @@ msgctxt "Languages::kwtsms.twofa.profile_title"
 msgid "SMS code at sign-in"
 msgstr "رمز الرسالة عند تسجيل الدخول"
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder, see twofa.intro.
 msgctxt "Languages::kwtsms.twofa.state_on"
-msgid "An SMS code is asked at sign-in. Codes go to [phone]."
-msgstr "يُطلب رمز نصي عند تسجيل الدخول. تصل الرموز إلى [phone]."
+msgid "An SMS code is asked at sign-in. Codes go to this number:"
+msgstr "يُطلب رمز نصي عند تسجيل الدخول. تصل الرموز إلى هذا الرقم:"
 
 msgctxt "Languages::kwtsms.twofa.state_off"
 msgid "No SMS code is asked at sign-in."
 msgstr "لا يُطلب رمز نصي عند تسجيل الدخول."
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder, see twofa.intro.
 msgctxt "Languages::kwtsms.twofa.profile_enable_hint"
-msgid "We will send a code to [phone], the mobile number on your account. Enter it to turn this on."
-msgstr "سنرسل رمزا إلى [phone]، رقم الجوال في حسابك. أدخله لتفعيل هذه الميزة."
+msgid "To turn this on, enter the code we send to the mobile number on your account:"
+msgstr "لتفعيل هذه الميزة، أدخل الرمز الذي نرسله إلى رقم الجوال في حسابك:"
 
 msgctxt "Languages::kwtsms.twofa.profile_disable_hint"
 msgid "We will send a code to your current number. Enter it to turn this off."
@@ -7367,6 +7627,11 @@ msgstr "تنبيه فشل الإرسال"
 msgctxt "Languages::kwtsms.templates.ph_count"
 msgid "Number of failed sends"
 msgstr "عدد الرسائل الفاشلة"
+
+# 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. Own label for the failure window placeholder (the code lifetime keeps ph_minutes).
+msgctxt "Languages::kwtsms.templates.ph_window_minutes"
+msgid "Minutes of the failure window"
+msgstr "عدد دقائق نافذة الفشل"
 
 msgctxt "Languages::kwtsms.settings.fail_spike_title"
 msgid "Send failure alert"

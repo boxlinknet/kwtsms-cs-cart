@@ -67,15 +67,23 @@ including order status changes and Multi-Vendor vendor events.
 - SMS codes to create an account and to change the account phone number, with limits per phone number and per
   address, a daily cap for code SMS, trusted proxies, a Cloudflare Turnstile or reCAPTCHA check, and a rate-limited
   SMS to the old number after a change
+<!-- 2026-11-07 02:46 +03: Task M2.7 (1.3.0 features), task 596 -->
+- Sign-in with a verified phone number and an SMS code, and password recovery by code (1.3.0, each off until you turn it
+  on); neither reveals whether a number has an account
+- Two-step sign-in with an SMS code for customers, administrators and vendor administrators (1.3.0, off by default):
+  Optional or Required, backup codes, a rule that never locks out the last root administrator, and break-glass options
+  (a config constant and a command line)
+- An optional SMS code before an order (all orders, guests only, or cash on delivery only), a country selector on phone
+  fields, and Integrations rows and a Dashboard line for all of them (1.3.0, off by default)
 - Admin pages: Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Vendor SMS (Multi-Vendor), Logs, Help
 - A full send log, an attempt log and an optional debug log
 - A daily sync of balance, Sender IDs and coverage, run by a cron job
 
 <!-- 2026-10-23 05:33 +03: Task A13 fix round 1: only what is still planned after 1.1.0, task 596 -->
 <!-- 2026-10-29 05:14 +03: Task M1.12 fix round 1 (I2), task 596. 1.2.0 ships the country check, registration and phone change codes and Turnstile; they leave this list. -->
+<!-- 2026-11-07 02:46 +03: Task M2.7, task 596. 1.3.0 ships sign-in by code, two-step sign-in, recovery by code, the code at checkout and the country selector; they leave this list. -->
 Planned for later releases: SMS for returns (RMA), call requests, back in stock, gift certificates, reviews and
-vendor communication, then sign-in by SMS code, two-factor sign-in, password recovery by code, phone verification at
-checkout, and later abandoned cart reminders, bulk and scheduled SMS. None of these is in 1.2.0.
+vendor communication, and later abandoned cart reminders, bulk and scheduled SMS. None of these is in 1.3.0.
 
 ## Requirements
 
@@ -284,6 +292,10 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   unchanged, so a Saudi number is refused when only Kuwait is allowed even if the option is forced into the page. Country
   names come from core's country descriptions of the page language; where a store has only English names the select
   shows English names.
+<!-- 2026-11-07 02:46 +03: Task M2.7 (M2.5 review minor), task 596 -->
+- In the "international format" mode there is no real country picker: the field already holds the number with its own
+  country code, so the select changes only the placeholder and follows the code the customer types; it does not write
+  the prefix into the field. The select has an `aria-label` and points at its phone input with `aria-describedby`.
 <!-- 2026-11-05 20:43 +03: M2.3-fix item 4 (security review Minor), task 596 -->
 - A customer whose two-step number differs from the number they recovered with: core uses the recovery key up and the
   customer lands on the code page for the two-step number, with no way back to the key. They sign in with the password

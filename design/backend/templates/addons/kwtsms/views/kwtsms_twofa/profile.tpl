@@ -15,13 +15,13 @@
 {$kwtsms_action = "enable"}{if $kwtsms_twofa.enabled}{$kwtsms_action = "disable"}{/if}
 {capture name="mainbox"}
 <div class="kwtsms-twofa-profile" id="kwtsms_twofa_profile">
-    <p id="kwtsms_twofa_state" role="status">{if $kwtsms_twofa.enabled}{__("kwtsms.twofa.state_on", ["[phone]" => $kwtsms_twofa.masked_ltr|fn_html_escape])}{else}{__("kwtsms.twofa.state_off")|fn_html_escape}{/if}</p>
+    <p id="kwtsms_twofa_state" role="status">{if $kwtsms_twofa.enabled}{__("kwtsms.twofa.state_on")|fn_html_escape} <bdi dir="ltr" class="kwtsms-twofa__number">{$kwtsms_twofa.masked}</bdi>{else}{__("kwtsms.twofa.state_off")|fn_html_escape}{/if}</p>
     {if $kwtsms_action == "enable" && !$kwtsms_twofa.usable_phone}
         <p id="kwtsms_twofa_no_phone">{__("kwtsms.twofa.no_phone_admin")|fn_html_escape}</p>
     {elseif $kwtsms_action == "disable" && !$kwtsms_twofa.can_disable}
         <p id="kwtsms_twofa_required_note">{__("kwtsms.twofa.required")|fn_html_escape}</p>
     {else}
-        <p>{if $kwtsms_action == "enable"}{__("kwtsms.twofa.profile_enable_hint", ["[phone]" => $kwtsms_twofa.masked_ltr|fn_html_escape])}{else}{__("kwtsms.twofa.profile_disable_hint")|fn_html_escape}{/if}</p>
+        <p>{if $kwtsms_action == "enable"}{* 2026-11-07 02:41 +03: Task M2.7 (ruling 22:04), task 596. The masked number (here and in the state line) is a bdi dir=ltr element, not a placeholder with isolate characters. *}{__("kwtsms.twofa.profile_enable_hint")|fn_html_escape} <bdi dir="ltr" class="kwtsms-twofa__number">{$kwtsms_twofa.masked}</bdi>{else}{__("kwtsms.twofa.profile_disable_hint")|fn_html_escape}{/if}</p>
         <form action="{""|fn_url}" method="post" name="kwtsms_twofa_profile_send" id="kwtsms_twofa_profile_send" class="form-horizontal">
             <input type="hidden" name="profile_action" value="{$kwtsms_action}">
             <input type="submit" class="btn" name="dispatch[kwtsms_twofa.profile_send]" value="{__("kwtsms.twofa.profile_send")|fn_html_escape}">

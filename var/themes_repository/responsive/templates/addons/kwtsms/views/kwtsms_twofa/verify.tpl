@@ -13,7 +13,8 @@
  * DEPENDS:   Language variables kwtsms.twofa.*.
  *}
 <div class="ty-login kwtsms-twofa" style="max-width: 28em;">
-<p class="kwtsms-twofa__intro">{__("kwtsms.twofa.intro", ["[phone]" => $kwtsms_twofa.masked_ltr|fn_html_escape])}</p>
+{* 2026-11-07 02:40 +03: Task M2.7 (ruling 22:04), task 596. The masked number is its own bdi dir=ltr element: the isolate characters of masked_ltr did not survive and +965****1234 read reversed in Arabic. *}
+<p class="kwtsms-twofa__intro">{__("kwtsms.twofa.intro")|fn_html_escape} <bdi dir="ltr" class="kwtsms-twofa__number">{$kwtsms_twofa.masked}</bdi></p>
     {if !$kwtsms_twofa.sent}<p class="kwtsms-twofa__note" id="kwtsms_twofa_not_sent" role="status">{__("kwtsms.twofa.not_sent")|fn_html_escape}</p>{/if}
     <form name="kwtsms_twofa_form" id="kwtsms_twofa_form" action="{""|fn_url}" method="post" class="kwtsms-twofa__form">
         <div class="ty-control-group">

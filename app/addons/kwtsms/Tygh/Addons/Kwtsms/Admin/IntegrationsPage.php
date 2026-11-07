@@ -29,11 +29,15 @@
  *            2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0 rows in viewData(): phone_rules (C3, C4, index
  *            progress), codes (B1, B5, today's codes issued / lockouts / bypasses from the debug log), the CAPTCHA
  *            provider (Turnstile, reCAPTCHA or none) and the "Coming in 1.3" list (SOON).
+ *            2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Coming in 1.3" list became the live "Sign-in and
+ *            security" rows (securityRows(): sign-in by code, two-step, recovery by code, checkout code, country
+ *            selector, vendor phone self-verification in Multi-Vendor).
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
+use Tygh\Addons\Kwtsms\Auth\TwoFactorStats; // 2026-11-07 02:46 +03: Task M2.7, task 596
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
@@ -88,7 +92,21 @@ class IntegrationsPage
      *
      * @var string[]
      */
-    public const SOON = ['signin_code', 'twofa', 'recovery_code', 'checkout_verification', 'country_selector'];
+    // 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. SOON ("Coming in 1.3") is gone: the five features are live
+    // rows of the "Sign-in and security" section, SECURITY below (vendor_phone exists in Multi-Vendor only).
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7, task 596. The rows of the "Sign-in and security" section in page order: the
+     * switch, today's number or the state, and the Settings anchor of the control.
+     *
+     * @var string[]
+     */
+    public const SECURITY = [
+        'login_code', 'twofa', 'recover_code', 'checkout_code', 'country_selector', 'vendor_phone',
+    ];
+
+    /** Debug-log action of a customer signed in with an SMS code (Auth\LoginByCode). 2026-11-07 02:46 +03: Task M2.7. */
+    private const ACTION_SIGNIN = 'login.code';
 
     /** The debug-log actions behind the numbers of the codes row (OtpService, CodeRequest). */
     private const ACTION_ISSUED = 'otp.issue';
@@ -248,7 +266,8 @@ class IntegrationsPage
             // (B1, B5, today's numbers), the CAPTCHA provider and what comes in 1.3.
             'phone_rules' => $this->phoneRulesRow(),
             'codes' => $this->codesRow(),
-            'soon' => self::SOON,
+            // 2026-11-07 02:46 +03: Task M2.7, task 596. The 1.3.0 rows (was 'soon', "Coming in 1.3").
+            'security' => $this->securityRows($is_mve),
             'captcha' => [
                 'provider' => self::captchaProvider(
                     $this->turnstileReady(),
@@ -349,6 +368,81 @@ class IntegrationsPage
         }
 
         return $row;
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Sign-in and security" rows. Each: id, on (the switch is
+     * not off), anchor (the Settings element that holds the control) and the facts the text shows. Numbers are read
+     * only for a switch that is on (no query for a feature that is off); every value is a number or a word.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function securityRows(bool $is_mve): array
+    {
+        $c = $this->config;
+        $since = (int) strtotime('today', $this->now());
+        $purposes = [];
+        if ($c->recoverCode()) {
+            $purposes[] = 'recover';
+        }
+        if ($c->checkoutCode() !== 'off') {
+            $purposes[] = 'checkout';
+        }
+        $issued = $purposes === [] ? [] : $this->codesIssuedSince($since, $purposes);
+        $twofa_on = $c->twofaCustomers() !== 'off' || $c->twofaAdmins() !== 'off'
+            || ($is_mve && $c->twofaVendors() !== 'off');
+        $enrolled = $twofa_on ? $this->twofaEnrolled() : ['A' => 0, 'V' => 0, 'C' => 0];
+        $low = $c->twofaAdmins() !== 'off' ? $this->adminsLowOnBackupCodes() : 0;
+        $rows = [
+            [
+                'id' => 'login_code',
+                'on' => $c->loginCode(),
+                'anchor' => 'kwtsms_signin',
+                'today' => $c->loginCode() ? $this->signInsSince($since) : 0,
+            ],
+            [
+                'id' => 'twofa',
+                'on' => $twofa_on,
+                'anchor' => 'kwtsms_signin',
+                'customers' => $c->twofaCustomers(),
+                'admins' => $c->twofaAdmins(),
+                'vendors' => $is_mve ? $c->twofaVendors() : '',
+                'enrolled' => $enrolled,
+                'low_backup' => $low,
+            ],
+            [
+                'id' => 'recover_code',
+                'on' => $c->recoverCode(),
+                'anchor' => 'kwtsms_signin',
+                'today' => (int) ($issued['recover'] ?? 0),
+            ],
+            [
+                'id' => 'checkout_code',
+                'on' => $c->checkoutCode() !== 'off',
+                'anchor' => 'kwtsms_signin',
+                'mode' => $c->checkoutCode(),
+                'today' => (int) ($issued['checkout'] ?? 0),
+            ],
+            [
+                'id' => 'country_selector',
+                'on' => $c->phoneCountrySelector(),
+                'anchor' => 'kwtsms_codes',
+                // The selector needs the country check (C3); with the check off it shows nothing.
+                'active' => $c->phoneCountrySelector() && $c->phoneCountryCheck(),
+            ],
+        ];
+        if ($is_mve) {
+            $vendors = $this->vendorCounts();
+            $rows[] = [
+                'id' => 'vendor_phone',
+                'on' => $c->vendorPhoneSelfVerify(),
+                'anchor' => 'kwtsms_codes',
+                'approved' => (int) $vendors['approved'],
+                'total' => (int) $vendors['total'],
+            ];
+        }
+
+        return $rows;
     }
 
     /**
@@ -591,6 +685,59 @@ class IntegrationsPage
             'lockouts' => $by[self::ACTION_LOCKOUT] ?? 0,
             'bypasses' => $by[self::ACTION_BYPASS] ?? 0,
         ];
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7, task 596. Customers signed in with an SMS code since $since (debug log, index
+     * idx_action on action, created_at). Test seam.
+     */
+    protected function signInsSince(int $since): int
+    {
+        return (int) db_get_field(
+            'SELECT COUNT(*) FROM ?:kwtsms_debug_log WHERE action = ?s AND created_at >= ?i',
+            self::ACTION_SIGNIN,
+            $since
+        );
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7, task 596. Codes issued since $since for the given purposes, by purpose (table
+     * kwtsms_otp_codes, range on idx_created_at). Test seam.
+     *
+     * @param string[] $purposes
+     *
+     * @return array<string,int>
+     */
+    protected function codesIssuedSince(int $since, array $purposes): array
+    {
+        $rows = (array) db_get_array(
+            'SELECT purpose, COUNT(*) AS n FROM ?:kwtsms_otp_codes WHERE created_at >= ?i AND purpose IN (?a)'
+            . ' GROUP BY purpose',
+            $since,
+            $purposes
+        );
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(string) $row['purpose']] = (int) $row['n'];
+        }
+
+        return $out;
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7, task 596. Test seam over Auth\TwoFactorStats.
+     *
+     * @return array{A:int,V:int,C:int}
+     */
+    protected function twofaEnrolled(): array
+    {
+        return TwoFactorStats::enrolledByType();
+    }
+
+    /** 2026-11-07 02:46 +03: Task M2.7, task 596. Administrators with fewer than 3 backup codes left. Test seam. */
+    protected function adminsLowOnBackupCodes(): int
+    {
+        return TwoFactorStats::adminsLowOnBackupCodes(TwoFactorStats::LOW_BACKUP_CODES);
     }
 
     protected function now(): int

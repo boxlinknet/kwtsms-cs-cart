@@ -302,13 +302,58 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: the "Phone
         {/if}
     </section>
 
-    {* 2026-10-29 04:19 +03: Task M1.12, task 596. What comes in 1.3. *}
-    <section class="kwtsms-section" id="kwtsms_soon" aria-labelledby="kwtsms_soon_title">
-        <h4 class="subheader" id="kwtsms_soon_title">{__("kwtsms.integrations.soon.title")}</h4>
-        <p class="muted description">{__("kwtsms.integrations.soon.help")}</p>
-        <ul class="kwtsms-later-list" id="kwtsms_soon_list">
-            {foreach $i.soon as $id}
-                <li data-kwtsms-soon="{$id}">{__("kwtsms.integrations.soon.`$id`")}</li>
+    {* 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Coming in 1.3" list is now the live Sign-in and security rows: switch state, today's number
+       or the facts, and a link to the control in Settings. Every value is a number or a language variable (the modes are words, never the request). *}
+    <section class="kwtsms-section" id="kwtsms_security" aria-labelledby="kwtsms_security_title">
+        <h4 class="subheader" id="kwtsms_security_title">{__("kwtsms.integrations.sec.title")}</h4>
+        <p class="muted description">{__("kwtsms.integrations.sec.help")}</p>
+        <ul class="kwtsms-later-list kwtsms-areas" id="kwtsms_security_list">
+            {foreach $i.security as $row}
+                <li data-kwtsms-row="sec_{$row.id}" data-kwtsms-state="{if $row.on}on{else}off{/if}">
+                    <div class="kwtsms-area__head">
+                        <strong>{__("kwtsms.integrations.sec.`$row.id`.title")}</strong>
+                        <span class="kwtsms-badge{if $row.on} kwtsms-badge--ok{/if}">{if $row.on}{__("kwtsms.integrations.codes.on")}{else}{__("kwtsms.integrations.codes.off")}{/if}</span>
+                    </div>
+                    <div class="kwtsms-area__text">
+                        {if $row.id == "login_code"}
+                            {__("kwtsms.integrations.sec.login_code.text")}
+                            <span id="kwtsms_sec_login_code_today">{if $row.on}{__("kwtsms.integrations.sec.login_code.today", ["[count]" => $row.today|fn_html_escape])}{else}{__("kwtsms.integrations.sec.off_note")}{/if}</span>
+                        {elseif $row.id == "twofa"}
+                            {if $row.vendors}
+                                {__("kwtsms.integrations.sec.twofa.text_mve", ["[customers]" => __("kwtsms.integrations.sec.mode.`$row.customers`")|fn_html_escape, "[admins]" => __("kwtsms.integrations.sec.mode.`$row.admins`")|fn_html_escape, "[vendors]" => __("kwtsms.integrations.sec.mode.`$row.vendors`")|fn_html_escape])}
+                            {else}
+                                {__("kwtsms.integrations.sec.twofa.text", ["[customers]" => __("kwtsms.integrations.sec.mode.`$row.customers`")|fn_html_escape, "[admins]" => __("kwtsms.integrations.sec.mode.`$row.admins`")|fn_html_escape])}
+                            {/if}
+                            {if $row.on}
+                                <span id="kwtsms_sec_twofa_enrolled">{if $row.vendors}{__("kwtsms.integrations.sec.twofa.enrolled_mve", ["[admins]" => $row.enrolled.A|fn_html_escape, "[customers]" => $row.enrolled.C|fn_html_escape, "[vendors]" => $row.enrolled.V|fn_html_escape])}{else}{__("kwtsms.integrations.sec.twofa.enrolled", ["[admins]" => $row.enrolled.A|fn_html_escape, "[customers]" => $row.enrolled.C|fn_html_escape])}{/if}</span>
+                            {else}
+                                <span id="kwtsms_sec_twofa_off">{__("kwtsms.integrations.sec.off_note")}</span>
+                            {/if}
+                        {elseif $row.id == "recover_code"}
+                            {__("kwtsms.integrations.sec.recover_code.text")}
+                            <span id="kwtsms_sec_recover_code_today">{if $row.on}{__("kwtsms.integrations.sec.recover_code.today", ["[count]" => $row.today|fn_html_escape])}{else}{__("kwtsms.integrations.sec.off_note")}{/if}</span>
+                        {elseif $row.id == "checkout_code"}
+                            {__("kwtsms.integrations.sec.checkout_code.text", ["[mode]" => __("kwtsms.integrations.sec.mode.`$row.mode`")|fn_html_escape])}
+                            <span id="kwtsms_sec_checkout_code_today">{if $row.on}{__("kwtsms.integrations.sec.checkout_code.today", ["[count]" => $row.today|fn_html_escape])}{else}{__("kwtsms.integrations.sec.off_note")}{/if}</span>
+                        {elseif $row.id == "country_selector"}
+                            <span id="kwtsms_sec_country_selector_state">{if $row.active}{__("kwtsms.integrations.sec.country_selector.active")}{elseif $row.on}{__("kwtsms.integrations.sec.country_selector.needs_check")}{else}{__("kwtsms.integrations.sec.country_selector.text")} {__("kwtsms.integrations.sec.off_note")}{/if}</span>
+                        {elseif $row.id == "vendor_phone"}
+                            {__("kwtsms.integrations.sec.vendor_phone.text")}
+                            <span id="kwtsms_sec_vendor_phone_counts">{__("kwtsms.integrations.sec.vendor_phone.counts", ["[approved]" => $row.approved|fn_html_escape, "[total]" => $row.total|fn_html_escape])}</span>
+                        {/if}
+                    </div>
+                    {if $row.id == "twofa" && $row.admins != "off" && $row.enrolled.A > 0}
+                        {* 2026-11-07 02:46 +03: Task M2.7, task 596. Backup codes left under 3 for any administrator: a warning; otherwise a plain confirmation. *}
+                        {if $row.low_backup > 0}
+                            <div class="alert alert-warning kwtsms-alert" id="kwtsms_sec_twofa_backup_low" role="alert"><p>{__("kwtsms.integrations.sec.twofa.backup_low", ["[count]" => $row.low_backup|fn_html_escape])}</p></div>
+                        {else}
+                            <p class="muted description" id="kwtsms_sec_twofa_backup_ok">{__("kwtsms.integrations.sec.twofa.backup_ok")}</p>
+                        {/if}
+                    {/if}
+                    <div class="kwtsms-area__action">
+                        {if $i.can_open_settings}<a class="btn kwtsms-area__link" id="kwtsms_sec_link_{$row.id}" href="{"kwtsms.settings#`$row.anchor`"|fn_url}">{__("kwtsms.integrations.open.settings")}</a>{/if}
+                    </div>
+                </li>
             {/foreach}
         </ul>
     </section>

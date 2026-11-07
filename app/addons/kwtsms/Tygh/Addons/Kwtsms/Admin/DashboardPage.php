@@ -35,6 +35,7 @@ namespace Tygh\Addons\Kwtsms\Admin;
 use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-29 04:12 +03: Task M1.12, task 596
+use Tygh\Addons\Kwtsms\Auth\TwoFactorStats; // 2026-11-07 02:46 +03: Task M2.7, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
@@ -412,6 +413,11 @@ class DashboardPage
             // feature (B1 or B5) is ON.
             // 2026-11-04 18:20 +03: Task M2.0 (P3-59), task 596. codeFeaturesOn(): every code feature of 1.3.0 counts.
             'code_feature_on' => $this->config->codeFeaturesOn(),
+            // 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Backup codes saved" go-live line shows while
+            // two-step sign-in is on for administrators; done when at least one administrator is enrolled and every
+            // enrolled administrator has 3 or more backup codes left.
+            'twofa_admins_on' => $this->config->twofaAdmins() !== 'off',
+            'admin_backup_ok' => $this->adminBackupCodesSaved(),
             'captcha_provider' => IntegrationsPage::captchaProvider(
                 $this->config->turnstileEnabled()
                     && $this->config->turnstileSiteKey() !== ''
@@ -612,6 +618,11 @@ class DashboardPage
                 'settings',
                 'kwtsms_turnstile'
             );
+        }
+        // 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. "Backup codes saved": only while two-step is on for
+        // administrators (its Settings section holds the switch; the codes are made on the administrator's profile).
+        if (!empty($f['twofa_admins_on'])) {
+            $steps[] = self::step('backup_codes', !empty($f['admin_backup_ok']), '', 'settings', 'kwtsms_signin');
         }
         $steps[] = ['state' => $pilot] + self::step('pilot', false, '', 'settings', 'kwtsms_pilot_mode');
         $steps[] = self::step('test_mode_off', empty($f['test_mode']), '', 'settings', 'kwtsms_test_mode');
@@ -1190,6 +1201,26 @@ class DashboardPage
         $found = CaptchaDetector::current();
 
         return $found['provider'] === CaptchaDetector::THIRD_PARTY ? $found['name'] : null;
+    }
+
+    /**
+     * 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. True while two-step is on for administrators, at least one
+     * administrator is enrolled and none of the enrolled has fewer than 3 backup codes left. False (and no query)
+     * while the switch is off; a failed read counts as not done. Test seam.
+     */
+    protected function adminBackupCodesSaved(): bool
+    {
+        if ($this->config->twofaAdmins() === 'off') {
+            return false;
+        }
+        try {
+            return TwoFactorStats::adminsEnrolled() > 0
+                && TwoFactorStats::adminsLowOnBackupCodes(TwoFactorStats::LOW_BACKUP_CODES) === 0;
+        } catch (\Throwable $e) {
+            $this->failed('dashboard.backup_codes_failed', $e);
+
+            return false;
+        }
     }
 
     /** Whether this store is Multi-Vendor. 2026-10-23 04:23 +03: Task A13, task 596. */

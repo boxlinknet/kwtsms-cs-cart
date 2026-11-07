@@ -5105,9 +5105,10 @@ msgid "{store_name}: kwtSMS balance is low, {balance} credits left (alert level 
 msgstr "{store_name}: kwtSMS balance is low, {balance} credits left (alert level {threshold}). Please top up."
 
 # 2026-11-06 22:11 +03: Task M2.11, task 596. Default text of the send failure alert SMS (staff). Its place follows the order of Defaults::events().
+# 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. {minutes} became {window_minutes}.
 msgctxt "Languages::kwtsms.tpl.kwtsms.send_fail_spike.A"
-msgid "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
-msgstr "{store_name}: {count} SMS sends failed in the last {minutes} minutes. Check the kwtSMS logs and account."
+msgid "{store_name}: {count} SMS sends failed in the last {window_minutes} minutes. Check the kwtSMS logs and account."
+msgstr "{store_name}: {count} SMS sends failed in the last {window_minutes} minutes. Check the kwtSMS logs and account."
 
 msgctxt "Languages::kwtsms.event.low_balance"
 msgid "Low kwtSMS balance"
@@ -6210,6 +6211,16 @@ msgctxt "Languages::kwtsms.dash.golive.captcha.link"
 msgid "Set up"
 msgstr "Set up"
 
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Dashboard go-live line, shown while two-step sign-in is on for administrators.
+msgctxt "Languages::kwtsms.dash.golive.backup_codes"
+msgid "Backup codes saved"
+msgstr "Backup codes saved"
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.dash.golive.backup_codes.link"
+msgid "Open settings"
+msgstr "Open settings"
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the phone rules and SMS codes section.
 msgctxt "Languages::kwtsms.integrations.codes.title"
 msgid "Phone rules and SMS codes"
@@ -6292,40 +6303,143 @@ msgctxt "Languages::kwtsms.integrations.captcha.provider.none"
 msgid "CAPTCHA provider for SMS codes: none. Only the rate limits protect code requests."
 msgstr "CAPTCHA provider for SMS codes: none. Only the rate limits protect code requests."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.title"
-msgid "Coming in 1.3"
-msgstr "Coming in 1.3"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Integrations: the "Sign-in and security" section replaces the "Coming in 1.3" list.
+msgctxt "Languages::kwtsms.integrations.sec.title"
+msgid "Sign-in and security"
+msgstr "Sign-in and security"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.help"
-msgid "These features are not in 1.2. Nothing here changes how your store works today."
-msgstr "These features are not in 1.2. Nothing here changes how your store works today."
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.integrations.sec.help"
+msgid "New in 1.3. Every option is off until you turn it on in Settings."
+msgstr "New in 1.3. Every option is off until you turn it on in Settings."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.signin_code"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596.
+msgctxt "Languages::kwtsms.integrations.sec.off_note"
+msgid "This option is off."
+msgstr "This option is off."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The words of the switch states.
+msgctxt "Languages::kwtsms.integrations.sec.mode.off"
+msgid "Off"
+msgstr "Off"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.optional"
+msgid "Optional"
+msgstr "Optional"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.required"
+msgid "Required"
+msgstr "Required"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.all"
+msgid "All orders"
+msgstr "All orders"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.guest"
+msgid "Guests only"
+msgstr "Guests only"
+
+msgctxt "Languages::kwtsms.integrations.sec.mode.cod"
+msgid "Cash on delivery only"
+msgstr "Cash on delivery only"
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Sign-in by code row.
+msgctxt "Languages::kwtsms.integrations.sec.login_code.title"
 msgid "Sign in with an SMS code"
 msgstr "Sign in with an SMS code"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.twofa"
-msgid "Two-factor sign-in with an SMS code"
-msgstr "Two-factor sign-in with an SMS code"
+msgctxt "Languages::kwtsms.integrations.sec.login_code.text"
+msgid "A customer with a verified number can sign in with a code instead of a password. Administrators, vendors and accounts that need a second step never can."
+msgstr "A customer with a verified number can sign in with a code instead of a password. Administrators, vendors and accounts that need a second step never can."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.recovery_code"
-msgid "Password recovery with an SMS code"
-msgstr "Password recovery with an SMS code"
+msgctxt "Languages::kwtsms.integrations.sec.login_code.today"
+msgid "Signed in with a code today: [count]."
+msgstr "Signed in with a code today: [count]."
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.checkout_verification"
-msgid "Phone verification at checkout"
-msgstr "Phone verification at checkout"
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Two-step row.
+msgctxt "Languages::kwtsms.integrations.sec.twofa.title"
+msgid "Two-step sign-in"
+msgstr "Two-step sign-in"
 
-# 2026-10-29 04:12 +03: Task M1.12, task 596. Integrations: the features that come in 1.3.
-msgctxt "Languages::kwtsms.integrations.soon.country_selector"
+msgctxt "Languages::kwtsms.integrations.sec.twofa.text"
+msgid "Customers: [customers]. Administrators: [admins]."
+msgstr "Customers: [customers]. Administrators: [admins]."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.text_mve"
+msgid "Customers: [customers]. Administrators: [admins]. Vendor administrators: [vendors]."
+msgstr "Customers: [customers]. Administrators: [admins]. Vendor administrators: [vendors]."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.enrolled"
+msgid "Accounts with two-step on: [admins] administrators, [customers] customers."
+msgstr "Accounts with two-step on: [admins] administrators, [customers] customers."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.enrolled_mve"
+msgid "Accounts with two-step on: [admins] administrators, [vendors] vendor administrators, [customers] customers."
+msgstr "Accounts with two-step on: [admins] administrators, [vendors] vendor administrators, [customers] customers."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.backup_low"
+msgid "Administrator accounts with fewer than 3 backup codes left: [count]. Each one can make a new set on their own profile page."
+msgstr "Administrator accounts with fewer than 3 backup codes left: [count]. Each one can make a new set on their own profile page."
+
+msgctxt "Languages::kwtsms.integrations.sec.twofa.backup_ok"
+msgid "Every administrator with two-step on has 3 or more backup codes left."
+msgstr "Every administrator with two-step on has 3 or more backup codes left."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Recovery by code row.
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.title"
+msgid "Password recovery by code"
+msgstr "Password recovery by code"
+
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.text"
+msgid "A customer with a verified number can reset the password with a code sent to it."
+msgstr "A customer with a verified number can reset the password with a code sent to it."
+
+msgctxt "Languages::kwtsms.integrations.sec.recover_code.today"
+msgid "Recovery codes issued today: [count]."
+msgstr "Recovery codes issued today: [count]."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Checkout code row.
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.title"
+msgid "Code before an order"
+msgstr "Code before an order"
+
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.text"
+msgid "Who is asked for a code: [mode]."
+msgstr "Who is asked for a code: [mode]."
+
+msgctxt "Languages::kwtsms.integrations.sec.checkout_code.today"
+msgid "Checkout codes issued today: [count]."
+msgstr "Checkout codes issued today: [count]."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Country selector row.
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.title"
 msgid "Country selector on phone fields"
 msgstr "Country selector on phone fields"
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.text"
+msgid "Customers pick the country of their number from a list."
+msgstr "Customers pick the country of their number from a list."
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.active"
+msgid "On: the selector is shown on phone fields."
+msgstr "On: the selector is shown on phone fields."
+
+msgctxt "Languages::kwtsms.integrations.sec.country_selector.needs_check"
+msgid "On, but not shown: it needs the country check under Phone rules to be on."
+msgstr "On, but not shown: it needs the country check under Phone rules to be on."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Vendor phone row (Multi-Vendor).
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.title"
+msgid "Vendors confirm their SMS number"
+msgstr "Vendors confirm their SMS number"
+
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.text"
+msgid "A vendor administrator confirms the company phone with a code. Approval by the root administrator stays available."
+msgstr "A vendor administrator confirms the company phone with a code. Approval by the root administrator stays available."
+
+msgctxt "Languages::kwtsms.integrations.sec.vendor_phone.counts"
+msgid "Approved phones: [approved] of [total] vendors."
+msgstr "Approved phones: [approved] of [total] vendors."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.golive.g7"
@@ -6535,6 +6649,149 @@ msgctxt "Languages::kwtsms.help.unreachable.p3"
 msgid "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
 msgstr "A problem with one number never lets the form continue. The customer sees the same answer as for a sent code, so nobody can probe which numbers work. The store hourly cap never lets the form continue either: customers are asked to try again later."
 
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: sign-in and recovery by code.
+msgctxt "Languages::kwtsms.help.signin.title"
+msgid "Sign in and recover by code"
+msgstr "Sign in and recover by code"
+
+msgctxt "Languages::kwtsms.help.signin.p1"
+msgid "Sign in with an SMS code lets a customer type a mobile number and a code instead of a password. Turn it on under Sign-in and security in Settings. It is off until you do."
+msgstr "Sign in with an SMS code lets a customer type a mobile number and a code instead of a password. Turn it on under Sign-in and security in Settings. It is off until you do."
+
+msgctxt "Languages::kwtsms.help.signin.p2"
+msgid "Only a verified number works. The number must have been confirmed with a code (at sign-up, at a phone change or at checkout) and must belong to exactly one customer account. Administrators, vendor administrators and any account that needs a second step are never signed in with a code alone. Settings shows how many customer numbers are verified."
+msgstr "Only a verified number works. The number must have been confirmed with a code (at sign-up, at a phone change or at checkout) and must belong to exactly one customer account. Administrators, vendor administrators and any account that needs a second step are never signed in with a code alone. Settings shows how many customer numbers are verified."
+
+msgctxt "Languages::kwtsms.help.signin.p3"
+msgid "No SMS is not an error. The page gives the same answer for every number: If this number belongs to an account, a code is on its way. A number with no account, an unverified number or an account that needs a password gets no SMS and no reason, so the page can't be used to find out who has an account. A customer who gets no code can sign in with the email and password, or verify the number first."
+msgstr "No SMS is not an error. The page gives the same answer for every number: If this number belongs to an account, a code is on its way. A number with no account, an unverified number or an account that needs a password gets no SMS and no reason, so the page can't be used to find out who has an account. A customer who gets no code can sign in with the email and password, or verify the number first."
+
+msgctxt "Languages::kwtsms.help.signin.p4"
+msgid "A sign-in with a code opens a fresh session and does not set the remember-me cookie. Code requests count against the same per-address and per-number limits as other codes, and the CAPTCHA provider applies. The wait between requests grows (60, 120, then 300 seconds). Keep a CAPTCHA provider on, because the page answers the same for every number."
+msgstr "A sign-in with a code opens a fresh session and does not set the remember-me cookie. Code requests count against the same per-address and per-number limits as other codes, and the CAPTCHA provider applies. The wait between requests grows (60, 120, then 300 seconds). Keep a CAPTCHA provider on, because the page answers the same for every number."
+
+msgctxt "Languages::kwtsms.help.signin.p5"
+msgid "Password recovery by code has its own switch. The customer types the number and then the code, and presses Continue on a page that holds a one-time recovery key. The key works once, only in the browser that proved the number, and the core limit of 3 open recovery keys for one account still applies. The answer is neutral here too. The link in the recovery e-mail keeps working as before."
+msgstr "Password recovery by code has its own switch. The customer types the number and then the code, and presses Continue on a page that holds a one-time recovery key. The key works once, only in the browser that proved the number, and the core limit of 3 open recovery keys for one account still applies. The answer is neutral here too. The link in the recovery e-mail keeps working as before."
+
+msgctxt "Languages::kwtsms.help.signin.p6"
+msgid "Recovery by code and two-step sign-in: when the two-step number of the account is the number it was recovered with, the recovery code counts as the second step. This is a deliberate choice. Whoever controls that SIM, for example after a SIM swap, can recover the account and pass the second step as well. Where that risk matters, use a different number for the second step: the customer then signs in with the password and a code sent to that number."
+msgstr "Recovery by code and two-step sign-in: when the two-step number of the account is the number it was recovered with, the recovery code counts as the second step. This is a deliberate choice. Whoever controls that SIM, for example after a SIM swap, can recover the account and pass the second step as well. Where that risk matters, use a different number for the second step: the customer then signs in with the password and a code sent to that number."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: two-step sign-in.
+msgctxt "Languages::kwtsms.help.twofa.title"
+msgid "Two-step sign-in"
+msgstr "Two-step sign-in"
+
+msgctxt "Languages::kwtsms.help.twofa.p1"
+msgid "Two-step sign-in asks for an SMS code after the password. Each kind of account has its own switch under Sign-in and security in Settings: customers, administrators and, in Multi-Vendor, vendor administrators. Off is the default. Optional lets each person turn it on from their own profile. Required makes it a must for administrators or vendor administrators. An upgrade turns nothing on, and nobody is asked for a code until a switch is on."
+msgstr "Two-step sign-in asks for an SMS code after the password. Each kind of account has its own switch under Sign-in and security in Settings: customers, administrators and, in Multi-Vendor, vendor administrators. Off is the default. Optional lets each person turn it on from their own profile. Required makes it a must for administrators or vendor administrators. An upgrade turns nothing on, and nobody is asked for a code until a switch is on."
+
+msgctxt "Languages::kwtsms.help.twofa.p2"
+msgid "To enrol, the person opens their own profile, presses Send me a code and types it. The code goes to the mobile number saved on the account, never to a number typed on the page. With Required, an administrator who is not enrolled yet is enrolled at the first sign-in with a code sent to the number on the account. An account without a mobile number is refused with a message and nothing is sent: add the number first."
+msgstr "To enrol, the person opens their own profile, presses Send me a code and types it. The code goes to the mobile number saved on the account, never to a number typed on the page. With Required, an administrator who is not enrolled yet is enrolled at the first sign-in with a code sent to the number on the account. An account without a mobile number is refused with a message and nothing is sent: add the number first."
+
+msgctxt "Languages::kwtsms.help.twofa.p3"
+msgid "Saving Required for administrators goes through a check. The administrator who saves must be an active root administrator with a mobile number and proves it with a code sent there. That administrator is enrolled at once and sees ten backup codes one time. Administrators without a mobile number are listed and you tick a box to confirm. They can't sign in until a number is added to their account, or until you switch back to Optional. Saving Required for vendors lists the vendor administrators without a mobile number the same way, without the code."
+msgstr "Saving Required for administrators goes through a check. The administrator who saves must be an active root administrator with a mobile number and proves it with a code sent there. That administrator is enrolled at once and sees ten backup codes one time. Administrators without a mobile number are listed and you tick a box to confirm. They can't sign in until a number is added to their account, or until you switch back to Optional. Saving Required for vendors lists the vendor administrators without a mobile number the same way, without the code."
+
+msgctxt "Languages::kwtsms.help.twofa.p4"
+msgid "Administrators and vendor administrators get 10 backup codes when they enrol. The codes are shown once, on the page that enrols them, so save them then. Each code works once and only for its own account, and the store keeps only a hash of it. A backup code signs the person in when the SMS can't be sent, for example when the kwtSMS balance is empty. A new set needs an SMS code and cancels the old set. Customers have no backup codes. Wrong backup codes are counted apart from SMS codes and never block the SMS path; 10 wrong tries on one account in an hour raise an alert in the bell. The Dashboard line Backup codes saved is done when every enrolled administrator has 3 or more codes left, and the Integrations page shows how many have fewer."
+msgstr "Administrators and vendor administrators get 10 backup codes when they enrol. The codes are shown once, on the page that enrols them, so save them then. Each code works once and only for its own account, and the store keeps only a hash of it. A backup code signs the person in when the SMS can't be sent, for example when the kwtSMS balance is empty. A new set needs an SMS code and cancels the old set. Customers have no backup codes. Wrong backup codes are counted apart from SMS codes and never block the SMS path; 10 wrong tries on one account in an hour raise an alert in the bell. The Dashboard line Backup codes saved is done when every enrolled administrator has 3 or more codes left, and the Integrations page shows how many have fewer."
+
+msgctxt "Languages::kwtsms.help.twofa.p5"
+msgid "Break-glass, if the SMS path is lost: use one of these on the server. First, add this line to config.local.php to turn every second step off. It needs no database and can't be set from a request. A banner and an alert say it is on, so remove the line when you are done:"
+msgstr "Break-glass, if the SMS path is lost: use one of these on the server. First, add this line to config.local.php to turn every second step off. It needs no database and can't be set from a request. A banner and an alert say it is on, so remove the line when you are done:"
+
+msgctxt "Languages::kwtsms.help.twofa.p6"
+msgid "Second, clear the second step of one account from the command line, replacing ID with the user id:"
+msgstr "Second, clear the second step of one account from the command line, replacing ID with the user id:"
+
+msgctxt "Languages::kwtsms.help.twofa.p7"
+msgid "Use --types=admins, --types=vendors or --types=customers instead of --user_id to turn one switch off. The command runs as the server user, writes an audit row and raises an alert. A root administrator can also reset the second step of another administrator from that account's profile page, never their own."
+msgstr "Use --types=admins, --types=vendors or --types=customers instead of --user_id to turn one switch off. The command runs as the server user, writes an audit row and raises an alert. A root administrator can also reset the second step of another administrator from that account's profile page, never their own."
+
+msgctxt "Languages::kwtsms.help.twofa.p8"
+msgid "Last root administrator rule: the store never locks out its last root administrator. When that account has no usable mobile number and no other root administrator is enrolled, it is let in with the password alone and sent to its profile, and an alert (bell and e-mail, once a day) asks you to add a number. Other staff accounts are still asked for the code."
+msgstr "Last root administrator rule: the store never locks out its last root administrator. When that account has no usable mobile number and no other root administrator is enrolled, it is let in with the password alone and sent to its profile, and an alert (bell and e-mail, once a day) asks you to add a number. Other staff accounts are still asked for the code."
+
+msgctxt "Languages::kwtsms.help.twofa.p9"
+msgid "The second step raises its own alerts: the last root administrator let in without a code, the break-glass line on while a switch is on, a second step that was reset, and repeated wrong backup codes."
+msgstr "The second step raises its own alerts: the last root administrator let in without a code, the break-glass line on while a switch is on, a second step that was reset, and repeated wrong backup codes."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: the code before an order.
+msgctxt "Languages::kwtsms.help.checkoutcode.title"
+msgid "Code before an order"
+msgstr "Code before an order"
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p1"
+msgid "The code before an order asks the shopper for an SMS code before the order is placed. Set the mode under Sign-in and security in Settings: Off, All orders, Guests only or Cash on delivery only. Cash on delivery only asks for orders paid with the payment methods you tick there. A method that uses the core cash on delivery template is marked, and with none ticked no order is asked."
+msgstr "The code before an order asks the shopper for an SMS code before the order is placed. Set the mode under Sign-in and security in Settings: Off, All orders, Guests only or Cash on delivery only. Cash on delivery only asks for orders paid with the payment methods you tick there. A method that uses the core cash on delivery template is marked, and with none ticked no order is asked."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p2"
+msgid "These are never asked for a code: a signed-in customer whose order phone is the verified account phone, the order editor in the administration panel, the API and the command line, a customer coming back from a payment gateway (a paid order is never lost) and, in Multi-Vendor, the orders of each vendor (only the main order is asked, once)."
+msgstr "These are never asked for a code: a signed-in customer whose order phone is the verified account phone, the order editor in the administration panel, the API and the command line, a customer coming back from a payment gateway (a paid order is never lost) and, in Multi-Vendor, the orders of each vendor (only the main order is asked, once)."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p3"
+msgid "The code goes to the phone typed at checkout. In the cash on delivery mode it goes to the shipping phone when that is a valid mobile number, otherwise to the account phone. It works once, for that number and that browser. Without a valid code the order is not placed: the shopper returns to the cart, which is kept, with a message. If the check itself fails, the order is refused with Could not check the code. Try again."
+msgstr "The code goes to the phone typed at checkout. In the cash on delivery mode it goes to the shipping phone when that is a valid mobile number, otherwise to the account phone. It works once, for that number and that browser. Without a valid code the order is not placed: the shopper returns to the cart, which is kept, with a message. If the check itself fails, the order is refused with Could not check the code. Try again."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p4"
+msgid "A customer who changes the payment of an unpaid order (Repay) is asked under the same rules, and the code goes to the phone of that order. An add-on that places an order with its own button, such as one-click buy, has no code box and is refused while a mode applies. An order created through the REST API with a customer token is refused unless its phone is the verified account phone."
+msgstr "A customer who changes the payment of an unpaid order (Repay) is asked under the same rules, and the code goes to the phone of that order. An add-on that places an order with its own button, such as one-click buy, has no code box and is refused while a mode applies. An order created through the REST API with a customer token is refused unless its phone is the verified account phone."
+
+msgctxt "Languages::kwtsms.help.checkoutcode.p5"
+msgid "When kwtSMS can't be reached, the setting When codes cannot be sent decides: Pause refuses the order, Continue lets it through with the phone unverified. Both raise an alert."
+msgstr "When kwtSMS can't be reached, the setting When codes cannot be sent decides: Pause refuses the order, Continue lets it through with the phone unverified. Both raise an alert."
+
+# 2026-11-07 02:57 +03: Task M2.7 (1.3.0, Open 10), task 596. Help page: another add-on that asks for a checkout code.
+msgctxt "Languages::kwtsms.help.checkoutcode.p6"
+msgid "If another add-on of yours already asks for a code at checkout and sends it through kwtSMS, switch one of the two off. With this mode on, the shopper would get two codes. The store does not detect the other add-on."
+msgstr "If another add-on of yours already asks for a code at checkout and sends it through kwtSMS, switch one of the two off. With this mode on, the shopper would get two codes. The store does not detect the other add-on."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: country selector and phone validation modes.
+msgctxt "Languages::kwtsms.help.selector.title"
+msgid "Country selector and phone checks"
+msgstr "Country selector and phone checks"
+
+msgctxt "Languages::kwtsms.help.selector.p1"
+msgid "The country selector shows a list of the allowed countries next to the phone fields of the storefront. Turn it on under Phone and codes in Settings. It needs the country check (the countries you choose) to be on, and Settings refuses to save it otherwise. With the core setting Supported phone numbers set to Phone number with country selection, the core list is cut to your allowed countries and the default country is preselected. In the other two modes a list of the same countries appears before the field."
+msgstr "The country selector shows a list of the allowed countries next to the phone fields of the storefront. Turn it on under Phone and codes in Settings. It needs the country check (the countries you choose) to be on, and Settings refuses to save it otherwise. With the core setting Supported phone numbers set to Phone number with country selection, the core list is cut to your allowed countries and the default country is preselected. In the other two modes a list of the same countries appears before the field."
+
+msgctxt "Languages::kwtsms.help.selector.p2"
+msgid "The choice made in the browser is only a hint. The server accepts it only when it is an allowed calling code, and every number is checked again against the allowed countries when it is saved, so a number from a country you did not allow is refused even if the page was edited. Sign-in by code, recovery, checkout and two-step codes use the same hint."
+msgstr "The choice made in the browser is only a hint. The server accepts it only when it is an allowed calling code, and every number is checked again against the allowed countries when it is saved, so a number from a country you did not allow is refused even if the page was edited. Sign-in by code, recovery, checkout and two-step codes use the same hint."
+
+msgctxt "Languages::kwtsms.help.selector.p3"
+msgid "In the international format mode there is no real country picker: the field already holds the number with its own country code, so the selector only changes the placeholder and follows the code the customer types. Country names come from the core country names in the page language. Where your store keeps English names for Arabic, the Arabic list shows English names."
+msgstr "In the international format mode there is no real country picker: the field already holds the number with its own country code, so the selector only changes the placeholder and follows the code the customer types. Country names come from the core country names in the page language. Where your store keeps English names for Arabic, the Arabic list shows English names."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: vendor phone confirmation (Multi-Vendor).
+msgctxt "Languages::kwtsms.help.vendorphone.title"
+msgid "Vendor phone confirmation"
+msgstr "Vendor phone confirmation"
+
+msgctxt "Languages::kwtsms.help.vendorphone.p1"
+msgid "In Multi-Vendor a vendor administrator can confirm the SMS number of the company with a code. Turn it on under Phone and codes in Settings. The vendor opens Confirm SMS number in the vendor panel, asks for a code to the company phone and types it. Your approval on the Vendor SMS page stays as an override (Approve without code). Changing the company phone cancels the approval."
+msgstr "In Multi-Vendor a vendor administrator can confirm the SMS number of the company with a code. Turn it on under Phone and codes in Settings. The vendor opens Confirm SMS number in the vendor panel, asks for a code to the company phone and types it. Your approval on the Vendor SMS page stays as an override (Approve without code). Changing the company phone cancels the approval."
+
+msgctxt "Languages::kwtsms.help.vendorphone.p2"
+msgid "A vendor can confirm only the phone of their own company, and only the number the code was sent to; the code works once, in that browser. For each company and each vendor user the limits are 3 codes an hour and 10 a day, and one company may ask for at most 2 different numbers a day, on top of the per-address limits."
+msgstr "A vendor can confirm only the phone of their own company, and only the number the code was sent to; the code works once, in that browser. For each company and each vendor user the limits are 3 codes an hour and 10 a day, and one company may ask for at most 2 different numbers a day, on top of the per-address limits."
+
+# 2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. Help page: the send failure alert.
+msgctxt "Languages::kwtsms.help.spike.title"
+msgid "Send failure alert"
+msgstr "Send failure alert"
+
+msgctxt "Languages::kwtsms.help.spike.p1"
+msgid "The send failure alert tells you when sends start to fail in a burst, for example when the account is out of credits or kwtSMS is down. Turn it on under Limits in Settings and set the threshold (10 failures by default). Each time the cron health step runs it counts the failures of the last 15 minutes. Above the threshold it raises an alert in the bell and an e-mail to the administrators, at most once for each clock hour. The alert carries the count and the window only, no phone number and no reason."
+msgstr "The send failure alert tells you when sends start to fail in a burst, for example when the account is out of credits or kwtSMS is down. Turn it on under Limits in Settings and set the threshold (10 failures by default). Each time the cron health step runs it counts the failures of the last 15 minutes. Above the threshold it raises an alert in the bell and an e-mail to the administrators, at most once for each clock hour. The alert carries the count and the window only, no phone number and no reason."
+
+msgctxt "Languages::kwtsms.help.spike.p2"
+msgid "A failure is a send that failed, was rejected or ended unknown (except one held back by a daily cap), or was deferred because kwtSMS was unreachable or the account is suspended. The SMS of the alert itself is never counted. To get the alert by SMS too, turn on the Send failure alert text on the Templates page: it goes to the administrator phones, once an hour, and it is off by default."
+msgstr "A failure is a send that failed, was rejected or ended unknown (except one held back by a daily cap), or was deferred because kwtSMS was unreachable or the account is suspended. The SMS of the alert itself is never counted. To get the alert by SMS too, turn on the Send failure alert text on the Templates page: it goes to the administrator phones, once an hour, and it is off by default."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.optout.p4"
 msgid "The opt-out box shows only while a customer SMS for an order status change, an order update, or a shipment is on for the storefront. With all three off, the box is hidden, and a customer's saved choice is kept."
@@ -6743,9 +7000,10 @@ msgctxt "Languages::kwtsms.twofa.title"
 msgid "Enter your code"
 msgstr "Enter your code"
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder: the masked number is a bdi dir=ltr element after the sentence (it read reversed in Arabic).
 msgctxt "Languages::kwtsms.twofa.intro"
-msgid "Enter the code we sent to [phone]."
-msgstr "Enter the code we sent to [phone]."
+msgid "Enter the code we sent to this number:"
+msgstr "Enter the code we sent to this number:"
 
 msgctxt "Languages::kwtsms.twofa.not_sent"
 msgid "We could not send the code. Press Send a new code."
@@ -6819,17 +7077,19 @@ msgctxt "Languages::kwtsms.twofa.profile_title"
 msgid "SMS code at sign-in"
 msgstr "SMS code at sign-in"
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder, see twofa.intro.
 msgctxt "Languages::kwtsms.twofa.state_on"
-msgid "An SMS code is asked at sign-in. Codes go to [phone]."
-msgstr "An SMS code is asked at sign-in. Codes go to [phone]."
+msgid "An SMS code is asked at sign-in. Codes go to this number:"
+msgstr "An SMS code is asked at sign-in. Codes go to this number:"
 
 msgctxt "Languages::kwtsms.twofa.state_off"
 msgid "No SMS code is asked at sign-in."
 msgstr "No SMS code is asked at sign-in."
 
+# 2026-11-07 02:42 +03: Task M2.7 (ruling 22:04), task 596. No [phone] placeholder, see twofa.intro.
 msgctxt "Languages::kwtsms.twofa.profile_enable_hint"
-msgid "We will send a code to [phone], the mobile number on your account. Enter it to turn this on."
-msgstr "We will send a code to [phone], the mobile number on your account. Enter it to turn this on."
+msgid "To turn this on, enter the code we send to the mobile number on your account:"
+msgstr "To turn this on, enter the code we send to the mobile number on your account:"
 
 msgctxt "Languages::kwtsms.twofa.profile_disable_hint"
 msgid "We will send a code to your current number. Enter it to turn this off."
@@ -7362,6 +7622,11 @@ msgstr "Send failure alert"
 msgctxt "Languages::kwtsms.templates.ph_count"
 msgid "Number of failed sends"
 msgstr "Number of failed sends"
+
+# 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. Own label for the failure window placeholder (the code lifetime keeps ph_minutes).
+msgctxt "Languages::kwtsms.templates.ph_window_minutes"
+msgid "Minutes of the failure window"
+msgstr "Minutes of the failure window"
 
 msgctxt "Languages::kwtsms.settings.fail_spike_title"
 msgid "Send failure alert"
