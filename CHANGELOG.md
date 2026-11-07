@@ -116,7 +116,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Dashboard: the go-live list gets "Backup codes saved" while two-step sign-in is on for administrators. It is done when
   an administrator is enrolled and every enrolled administrator has 3 or more backup codes left.
 
+<!-- 2026-11-07 19:10 +03: whole-branch review of 1.3.0 (fix round 1), task 596: the entries the earlier lists missed -->
+- Upgrade to 1.3.0 from 1.0.0, 1.1.0 and 1.2.0 (including the 1.2.0 release candidates): two new tables (the two-step
+  sign-in row of an account, and its backup codes) and the new hidden settings, all of them off. The upgrade keeps
+  every stored value, edited text and switch, turns nothing on, enrols no account and sends no SMS.
+- GDPR: a customer's two-step sign-in row and the count of their backup codes (never the codes) are part of their
+  personal data export; anonymizing the customer deletes both.
+- Multi-Vendor: the code a vendor administrator asks for to confirm the company number is limited per company (3 an
+  hour, 10 a day), per vendor user and to 2 different numbers per company a day, whatever the address. It counts
+  against the shared per-number hourly limit only after the company has confirmed a number once, and approving a
+  number approves only the number the code was verified for.
+
 ### Changed
+
+<!-- 2026-11-07 19:10 +03: whole-branch review of 1.3.0 (fix round 1), task 596 -->
+- The two-step code no longer shares the hourly limit of codes per phone number (5 by default) with sign-in, recovery,
+  checkout and sign-up codes. Before this change, anyone could ask for recovery or checkout codes to a customer's number
+  and then keep that customer waiting at the second step for up to an hour. The two-step code now has a limit for
+  each account: 6 an hour and 20 a day (counted per request; the answer is the same neutral "wait").
+- The public `send()` interface ignores the internal context key `staff_code`; only the add-on's own code sender can
+  use it. README lists it as internal.
+- With every two-step switch and recovery by code off, the profile box, the "Reset the second step" button check and
+  the recovery-key check on the login pages run no database query. A recovery key handed over by recovery by code in
+  the last 15 minutes before that switch is turned off works like an e-mail recovery key (core still needs its secret).
+- Help (English and Arabic): codes to one number share its hourly limit; one account per phone number is recommended
+  with sign-in by code and recovery by code (with it off, a number saved on two accounts gets no code for either).
 
 <!-- 2026-11-07 02:46 +03: Task M2.7, task 596 -->
 - The SMS about failing SMS (Administration > Notifications, "Send failure alert") uses the placeholder {window_minutes}
@@ -130,6 +154,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   (aria-describedby). README notes that the international format mode has no real country picker.
 
 ### Notes
+
+<!-- 2026-11-07 19:10 +03: whole-branch review of 1.3.0 (fix round 1), task 596 -->
+- When an account is deleted, the add-on's own `post_delete_user` hook (after core's delete) removes its two-step row
+  and backup codes whatever the switches say, and its phone index row and code rows while a phone feature is on. The
+  two-step cleanup is deliberate: the table is empty on a store that never enrolled, and no row of an account that no
+  longer exists may stay.
 
 <!-- 2026-11-05 02:38 +03: review fix 1 of Task M2.2a, task 596 -->
 - Two-step sign-in: a code and its wrong-attempt count belong to one account, so another account that saved the same
