@@ -35,19 +35,9 @@ if (
     && ($mode === 'recover_password' || $mode === 'ekey_login')
     && isset($_REQUEST['ekey']) && is_string($_REQUEST['ekey']) && $_REQUEST['ekey'] !== ''
 ) {
-    try {
-        $kwtsms_usable = Tygh::$app['kwtsms.recover_by_code']->keyUsableInSession(
-            $_REQUEST['ekey'],
-            \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash()
-        );
-    } catch (\Throwable $e) {
-        fn_kwtsms_log_hook_error('auth.pre.recover_key', $e);
-        // 2026-11-05 20:35 +03: M2.3-fix item 1 (security review Minor), task 596. Was fail open (usable = true). The
-        // service could not run: refuse a key whose stored data carries the session binding (direct read, a failed
-        // read counts as bound); an e-mail key without a binding still goes to core.
-        $kwtsms_usable = !\Tygh\Addons\Kwtsms\Auth\RecoverByCode::keyCarriesBinding($_REQUEST['ekey']);
-    }
-    if (!$kwtsms_usable) {
+    // 2026-11-07 19:05 +03: branch review M2 of 1.3.0, task 596. The check moved to fn_kwtsms_recover_key_refused(),
+    // which does nothing (no query) while recover_code is off.
+    if (fn_kwtsms_recover_key_refused($_REQUEST['ekey'])) {
         fn_set_notification('E', __('error'), __('text_ekey_not_valid'));
 
         return [CONTROLLER_STATUS_REDIRECT, 'auth.recover_password'];

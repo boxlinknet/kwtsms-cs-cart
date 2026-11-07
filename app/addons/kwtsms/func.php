@@ -1421,6 +1421,16 @@ function fn_kwtsms_twofa_reset_box($target_id, $auth = [])
 {
     $none = ['show' => false];
     try {
+        // 2026-11-07 19:04 +03: branch review M2 of 1.3.0, task 596. Every 2FA switch off: no query at all (settings
+        // only), the button has nothing to reset. The three switches, not policy->anyOn(): with the break-glass
+        // constant set a root may still need to reset a row.
+        $kwtsms_cfg = Tygh::$app['kwtsms.config'];
+        if (
+            $kwtsms_cfg->twofaCustomers() === 'off' && $kwtsms_cfg->twofaVendors() === 'off'
+            && $kwtsms_cfg->twofaAdmins() === 'off'
+        ) {
+            return $none;
+        }
         $actor = (int) ($auth['user_id'] ?? 0);
         $target = (int) $target_id;
         $allowed = fn_check_current_user_access('manage_kwtsms_gateway') === true;
@@ -1439,6 +1449,42 @@ function fn_kwtsms_twofa_reset_box($target_id, $auth = [])
 
         return $none;
     }
+}
+
+/**
+ * 2026-11-07 19:05 +03: branch review M2 of 1.3.0, task 596 (moved out of controllers/common/auth.pre.php, the logic
+ * is the one of Task M2.3 P3-53 and M2.3-fix item 1). True when a recovery key must be refused: it was handed over by
+ * the recovery by code to ANOTHER session. The check runs only while recover_code is ON: with the switch off a request
+ * costs no query. Decision: a bound key issued in the last RECOVERY_PASSWORD_TTL (15 minutes) before the switch was
+ * turned off then works like an e-mail key (core still demands the secret key); no state is kept to extend the check.
+ * Never throws; a service that cannot run refuses a key that carries the binding.
+ *
+ * @param string $ekey The key of the request
+ */
+function fn_kwtsms_recover_key_refused($ekey)
+{
+    try {
+        if (!Tygh::$app['kwtsms.config']->recoverCode()) {
+            return false;
+        }
+    } catch (\Throwable $e) {
+        // The switch cannot be read: do the check (fail closed).
+        fn_kwtsms_log_hook_error('recover_key_switch', $e);
+    }
+    try {
+        $usable = Tygh::$app['kwtsms.recover_by_code']->keyUsableInSession(
+            (string) $ekey,
+            \Tygh\Addons\Kwtsms\Codes\CodeRequest::sessionHash()
+        );
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('auth.pre.recover_key', $e);
+        // 2026-11-05 20:35 +03: M2.3-fix item 1 (security review Minor), task 596. Was fail open (usable = true). The
+        // service could not run: refuse a key whose stored data carries the session binding (direct read, a failed
+        // read counts as bound); an e-mail key without a binding still goes to core.
+        $usable = !\Tygh\Addons\Kwtsms\Auth\RecoverByCode::keyCarriesBinding((string) $ekey);
+    }
+
+    return !$usable;
 }
 
 /**

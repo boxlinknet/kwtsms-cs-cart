@@ -523,8 +523,13 @@ class TwoFactorFlow
         $none = ['available' => false, 'enabled' => false, 'masked' => '', 'usable_phone' => false,
             'can_disable' => false, 'type' => '', 'backup_available' => false, 'backup_remaining' => 0];
         try {
+            // 2026-11-07 19:04 +03: branch review M2 of 1.3.0, task 596. The settings first: with every switch off the
+            // users table is not read (no new query on the profile page).
+            if (!$this->policy->anyOn()) {
+                return $none;
+            }
             $user = $user_id > 0 ? $this->readUser($user_id) : [];
-            if ($user === [] || !$this->policy->anyOn() || $this->policy->typeSwitch($user) === 'off') {
+            if ($user === [] || $this->policy->typeSwitch($user) === 'off') {
                 return $none;
             }
             $row = $this->store->row($user_id);
