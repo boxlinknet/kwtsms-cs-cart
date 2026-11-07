@@ -397,7 +397,11 @@ class CodeRequest
         ];
         foreach ($guards as $g) {
             if ($this->limiter->hit($g[0], $g[1]) > $g[2]) {
-                $this->debug('otp.vendor_limited', ['bucket' => explode(':', $g[0])[0], 'purpose' => self::PURPOSE_VENDOR_PHONE]);
+                // 2026-11-07 03:33 +03: wrapped to 120 columns for phpcs (no code change), task 596.
+                $this->debug(
+                    'otp.vendor_limited',
+                    ['bucket' => explode(':', $g[0])[0], 'purpose' => self::PURPOSE_VENDOR_PHONE]
+                );
 
                 return $this->wait($this->windowLeft($g[0], $g[1]), $lang);
             }
