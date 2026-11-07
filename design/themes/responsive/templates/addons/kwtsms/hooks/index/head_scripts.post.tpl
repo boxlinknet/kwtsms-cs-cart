@@ -16,7 +16,8 @@
 {$kwtsms_cc_json = ""|fn_kwtsms_phone_country_data}
 {if $kwtsms_cc_json}
 {* 2026-11-06 09:31 +03: Task M2.5, task 596. A meta element with the JSON in its content attribute: the package gate forbids nofilter in templates, and a script element would need it. The template engine escapes the output once, so no escape modifier is added (fn_html_escape on top printed the quotes double-escaped and the script could not parse the JSON; found by the e2e). *}
-<meta name="kwtsms-cc" id="kwtsms-cc-data" content="{$kwtsms_cc_json}" data-label="{__("kwtsms.phone.country_select_label")|fn_html_escape}" />
+{* 2026-11-07 02:31 +03: Task M2.7 (M2.5 review minor), task 596. data-label no longer goes through fn_html_escape: the engine escapes once, the extra modifier printed a quote in the label as a double-escaped entity. *}
+<meta name="kwtsms-cc" id="kwtsms-cc-data" content="{$kwtsms_cc_json}" data-label="{__("kwtsms.phone.country_select_label")}" />
 {/if}
 {if $smarty.request.order_id|default:0|fn_kwtsms_hide_create_account}
 <style>.ty-checkout-complete__create-account { display: none; }</style>

@@ -187,6 +187,10 @@ DEPENDS:   Tygh and jQuery of the storefront (ce.commoninit), the core phone mas
                 .attr('name', ccName(field))
                 .attr('aria-label', label)
                 .attr('data-kwtsms-cc-for', field);
+            // 2026-11-07 02:32 +03: Task M2.7 (M2.5 review minor), task 596. The select points at the phone input it belongs to.
+            if ($input.attr('id')) {
+                $sel.attr('aria-describedby', $input.attr('id'));
+            }
             $.each(data.countries, function (i, c) {
                 $('<option></option>').attr('value', c.cc).text(c.name + ' (+' + c.cc + ')').appendTo($sel);
             });

@@ -113,7 +113,8 @@ gate "outbound hosts in templates and scripts: only challenges.cloudflare.com" s
 gate "js/addons/kwtsms/code.js: no console output, no eval or document.write" scan "$J/code.js" '' -nE 'console\.|\beval[[:space:]]*\(|document\.write'
 # 2026-11-06 07:38 +03: Task M2.5 (C2, P3-55), task 596. The country selector script: no console output, no eval or
 # document.write (no number is ever logged), and the JSON block it reads is encoded with the four hex flags so no
-# country name can close the script element.
+# country name can break out of the content attribute of the meta element that carries it.
+# 2026-11-07 02:32 +03: Task M2.7 (M2.5 review minor), task 596. Reworded: the block is a meta element, not a script.
 gate "js/addons/kwtsms/phone_country.js: no console output, no eval or document.write" scan "$J/phone_country.js" '' -nE 'console\.|\beval[[:space:]]*\(|document\.write'
 gate "fn_kwtsms_phone_country_data encodes the JSON block with JSON_HEX_TAG, AMP, APOS and QUOT" bash -c \
   "grep -A25 'function fn_kwtsms_phone_country_data' '$A/func.php' | grep -q 'JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT' && echo 'CHECKED 1'"
