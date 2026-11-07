@@ -327,7 +327,15 @@ Turnstile steps aside only when reCAPTCHA has its keys saved, as before.)
   administrator with the gateway privilege can reset another account's second step, never the own.
 - The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. This add-on
   refuses (401) an account that needs a second step when commerceml is installed. The REST API (e-mail and API key,
-  a separate secret) is not held for a code.
+  a separate secret) is not held for a code. The commerceml add-on exists only from CS-Cart 4.21.1, so this refusal
+  applies from that version.
+- Red notes on the Settings page (2026-11-08 00:10 +03, task 596): a feature whose note is red can't be carried by
+  this CS-Cart and stays off. Two-step sign-in needs the `login_user_pre` hook and the password sign-in functions.
+  Recovery by code needs `fn_generate_ekey` with its data parameter and the recovery key functions. The checkout code
+  needs the hooks `pre_place_order` and `place_order`. The checkout code and sign-in by code also need template hooks
+  in the storefront theme: `checkout:final_section_customer_notes` (views/checkout/components/final_section.tpl),
+  `orders:repay` (views/orders/details.tpl) and `index:login_buttons` (views/auth/login_form.tpl). A custom theme that
+  removed one of them needs it back.
 
 ## Build the package
 

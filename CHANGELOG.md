@@ -127,6 +127,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   against the shared per-number hourly limit only after the company has confirmed a number once, and approving a
   number approves only the number the code was verified for.
 
+<!-- 2026-11-08 00:10 +03: M2.10 CS-Cart 4.20.1 compatibility guards, task 596 -->
+- Compatibility guards for CS-Cart 4.20.1 (checked by feature, never by version number). A security feature is refused
+  with a red note on the Settings page, and stays off, when this CS-Cart can't carry it: two-step sign-in without a
+  `login_user_pre` hook that passes the user by reference (or without the password sign-in functions), recovery by
+  code without `fn_generate_ekey` taking its data parameter and the recovery key functions, the checkout code without
+  the `pre_place_order` and `place_order` hooks, and the checkout code or sign-in by code when a storefront theme lacks
+  a template hook the code box or link hangs on (`checkout:final_section_customer_notes`, `orders:repay`,
+  `index:login_buttons`). A feature already on shows the same note. The 1.3.0 upgrade refuses to run its settings step
+  on a core whose `fn_update_addon_settings` could drop stored values, and reads the stored version from the database
+  when the core has no `fn_get_addon_version`. The sign-in hold logs once and skips its first check when a core
+  password function is missing.
+
 ### Changed
 
 <!-- 2026-11-07 19:10 +03: whole-branch review of 1.3.0 (fix round 1), task 596 -->

@@ -173,6 +173,8 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p id="kwtsms_help_codes_twofa">{__("kwtsms.help.codes.p9")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" anchor="kwtsms_signin" pages=$h.pages}</p>
                 <p id="kwtsms_help_codes_breakglass">{__("kwtsms.help.codes.p10")}</p>
                 <p id="kwtsms_help_codes_api">{__("kwtsms.help.codes.p11")}</p>
+                {* 2026-11-08 00:09 +03: M2.10 (4.20.1 guards), task 596. What the red "this CS-Cart can't carry it" notes mean. *}
+                <p id="kwtsms_help_codes_rednotes">{__("kwtsms.help.codes.p12")}</p>
             </section>
 
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_phones" aria-labelledby="kwtsms_help_phones_title">

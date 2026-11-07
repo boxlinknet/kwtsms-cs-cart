@@ -6510,8 +6510,8 @@ msgstr "Break-glass for the second step: add define('KWTSMS_2FA_OFF', true); to 
 
 # 2026-11-05 02:37 +03: Task M2.2a fix 1 (M3, I2), task 596. Help: two-step sign-in, break-glass, commerceml and the REST API.
 msgctxt "Languages::kwtsms.help.codes.p11"
-msgid "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code."
-msgstr "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code."
+msgid "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code. The commerceml add-on exists only from CS-Cart 4.21.1, so this refusal applies from that version."
+msgstr "The commerceml add-on signs in with an e-mail and password over HTTP Basic, outside the sign-in form. It is refused with a 401 for an account that needs a second step. The REST API signs in with an e-mail and an API key, which is a separate secret, and it is not held for a code. The commerceml add-on exists only from CS-Cart 4.21.1, so this refusal applies from that version."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.phones.title"
@@ -7682,3 +7682,8 @@ msgstr "This feature stays off. The storefront theme is missing a template hook 
 msgctxt "Languages::kwtsms.settings.core_anchor_on"
 msgid "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, and orders that need a code are refused. Add the hook to the theme template, or turn the feature off."
 msgstr "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, and orders that need a code are refused. Add the hook to the theme template, or turn the feature off."
+
+# 2026-11-08 00:09 +03: M2.10 (CS-Cart 4.20.1 guards), task 596. Help: the red notes of the Settings page.
+msgctxt "Languages::kwtsms.help.codes.p12"
+msgid "A red note on the Settings page means this CS-Cart can't carry a feature, and the feature stays off. Two-step sign-in needs the login_user_pre hook and the password sign-in functions. Recovery by code needs fn_generate_ekey with its data parameter and the recovery key functions. The checkout code needs the hooks pre_place_order and place_order. The checkout code and sign-in by code also need template hooks in the storefront theme: checkout:final_section_customer_notes in views/checkout/components/final_section.tpl, orders:repay in views/orders/details.tpl, and index:login_buttons in views/auth/login_form.tpl. A custom theme that removed one of them needs it back."
+msgstr "A red note on the Settings page means this CS-Cart can't carry a feature, and the feature stays off. Two-step sign-in needs the login_user_pre hook and the password sign-in functions. Recovery by code needs fn_generate_ekey with its data parameter and the recovery key functions. The checkout code needs the hooks pre_place_order and place_order. The checkout code and sign-in by code also need template hooks in the storefront theme: checkout:final_section_customer_notes in views/checkout/components/final_section.tpl, orders:repay in views/orders/details.tpl, and index:login_buttons in views/auth/login_form.tpl. A custom theme that removed one of them needs it back."
