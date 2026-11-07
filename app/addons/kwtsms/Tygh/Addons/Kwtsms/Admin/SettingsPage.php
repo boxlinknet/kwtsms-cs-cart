@@ -700,6 +700,17 @@ class SettingsPage
         ) {
             $note('core_twofa', 'danger', $this->coreRefusalText('twofa'));
         }
+        // 2026-11-08 00:05 +03: M2.10 G5, task 596. A feature that is ON while its theme template hook is missing: the
+        // red note names the template (the code box would not show, or the link would be missing).
+        $anchor_on = ['checkout' => $this->config->checkoutCode() !== 'off', 'login' => $this->config->loginCode()];
+        foreach ($anchor_on as $feature => $on) {
+            $lacking = $on ? $this->missingAnchorEntries($feature) : [];
+            if ($lacking !== []) {
+                $note('core_anchor_' . $feature, 'danger', $this->text('kwtsms.settings.core_anchor_on', [
+                    '[anchors]' => $this->anchorsList($lacking),
+                ]));
+            }
+        }
         // 2026-11-08 00:03 +03: M2.10 G4, task 596. The checkout code ON while the core does not fire the order hooks.
         if ($this->config->checkoutCode() !== 'off' && !$this->guards()->checkoutHooksFire()) {
             $note('core_checkout', 'danger', $this->coreRefusalText('checkout'));
@@ -1107,6 +1118,23 @@ class SettingsPage
         ) {
             unset($posted['checkout_code']);
             $reasons['checkout_code'] = 'core:checkout';
+        }
+        // 2026-11-08 00:05 +03: M2.10 G5, task 596. The checkout code box (checkout and repay) and the sign-in by code
+        // link hang on template hooks of the storefront themes; without them the feature stays off (a missing box
+        // would refuse every order that needs a code).
+        $anchor_keys = ['checkout_code' => ['checkout', 'off'], 'login_code' => ['login', 'N']];
+        foreach ($anchor_keys as $anchor_key => $anchor_def) {
+            if (
+                !isset($posted[$anchor_key]) || $posted[$anchor_key] === $anchor_def[1]
+                || isset($reasons[$anchor_key])
+            ) {
+                continue;
+            }
+            $lacking = $this->missingAnchorEntries($anchor_def[0]);
+            if ($lacking !== []) {
+                unset($posted[$anchor_key]);
+                $reasons[$anchor_key] = 'core:anchor:' . implode(',', $lacking);
+            }
         }
         // 2026-11-08 00:01 +03: M2.10 G3, task 596. Sign-in recovery by code needs the session-bound recovery key of
         // core (fn_generate_ekey with its data parameter and the key functions): refused to switch ON without them.
@@ -1755,7 +1783,46 @@ class SettingsPage
      */
     private function coreRefusalText(string $what): string
     {
+        // 2026-11-08 00:05 +03: M2.10 G5, task 596. "anchor:<template>|<hook>,..." is a refusal for missing theme
+        // template hooks; the text lists them as "template (hook)".
+        if (strpos($what, 'anchor:') === 0) {
+            return $this->text('kwtsms.settings.core_anchor', [
+                '[anchors]' => $this->anchorsList(explode(',', substr($what, 7))),
+            ]);
+        }
+
         return $this->text('kwtsms.settings.core_' . $what);
+    }
+
+    /**
+     * 2026-11-08 00:05 +03: M2.10 G5, task 596. "template|hook" entries as "template (hook)", comma separated.
+     *
+     * @param string[] $entries
+     */
+    private function anchorsList(array $entries): string
+    {
+        $out = [];
+        foreach ($entries as $entry) {
+            list($template, $hook) = array_pad(explode('|', $entry, 2), 2, '');
+            $out[] = $template . ' (' . $hook . ')';
+        }
+
+        return implode(', ', $out);
+    }
+
+    /**
+     * 2026-11-08 00:05 +03: M2.10 G5, task 596. The theme template hooks a feature lacks, as "template|hook" entries.
+     *
+     * @return string[]
+     */
+    private function missingAnchorEntries(string $feature): array
+    {
+        $out = [];
+        foreach ($this->guards()->missingAnchors($feature) as $anchor) {
+            $out[] = $anchor['template'] . '|' . $anchor['hook'];
+        }
+
+        return $out;
     }
 
     /** Why Config::save() refused a key (it returns names only). */

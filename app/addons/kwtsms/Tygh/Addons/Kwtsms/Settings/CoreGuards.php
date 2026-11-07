@@ -84,6 +84,105 @@ class CoreGuards
             && $this->hookFires('fn_place_order', 'place_order') !== false;
     }
 
+    /**
+     * The template hooks (core templates the add-on's code boxes and links hang on) each feature needs: feature =>
+     * [template relative to the theme's templates/ directory, hook name].
+     */
+    private const ANCHORS = [
+        'checkout' => [
+            ['views/checkout/components/final_section.tpl', 'checkout:final_section_customer_notes'],
+            ['views/orders/details.tpl', 'orders:repay'],
+        ],
+        'login' => [
+            ['views/auth/login_form.tpl', 'index:login_buttons'],
+        ],
+    ];
+
+    /**
+     * 2026-11-08 00:05 +03: M2.10 G5, task 596. The template hooks a feature needs that the storefront themes lack:
+     * 'checkout' (the SMS code box at checkout and on repay) and 'login' (the sign-in by code link). For every
+     * storefront the template is found the way core's Smarty finds it (the theme directory, then its parent, then the
+     * base theme: the first directory holding the file wins) and must contain {hook name="..."}. A missing file counts
+     * as a missing anchor. No theme resolved (no storefront list) cannot be judged and returns [].
+     *
+     * @return array<int,array{template:string,hook:string}> one entry per template, in the order of the feature
+     */
+    public function missingAnchors(string $feature): array
+    {
+        $themes = $this->storefrontThemeDirs();
+        $missing = [];
+        foreach (self::ANCHORS[$feature] ?? [] as $anchor) {
+            list($template, $hook) = $anchor;
+            foreach ($themes as $dirs) {
+                if (!$this->templateHasHook($dirs, $template, $hook)) {
+                    $missing[$template] = ['template' => $template, 'hook' => $hook];
+                    break;
+                }
+            }
+        }
+
+        return array_values($missing);
+    }
+
+    /**
+     * @param string[] $dirs Template directories of one storefront theme, first wins
+     */
+    private function templateHasHook(array $dirs, string $template, string $hook): bool
+    {
+        foreach ($dirs as $dir) {
+            $text = $this->readTemplate(rtrim($dir, '/') . '/' . $template);
+            if ($text !== null) {
+                return (bool) preg_match('/\{hook\s+name\s*=\s*["\']' . preg_quote($hook, '/') . '["\']/', $text);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Template directories per storefront (test seam): storefront name => absolute directories ending in templates/,
+     * the storefront theme first, then its parent and the base theme (core: Themes::getThemeDirs(USE_BASE)). Empty
+     * when the storefront list or the theme classes are not there.
+     *
+     * @return array<string,string[]>
+     */
+    protected function storefrontThemeDirs(): array
+    {
+        try {
+            if (!class_exists('Tygh\Themes\Themes') || !class_exists('Tygh\Tygh')) {
+                return [];
+            }
+            if (!isset(\Tygh::$app['storefront.repository'])) {
+                return [];
+            }
+            list($storefronts) = \Tygh::$app['storefront.repository']->find(['items_per_page' => 100]);
+            $out = [];
+            foreach ((array) $storefronts as $storefront) {
+                $dirs = [];
+                $theme = \Tygh\Themes\Themes::factory((string) $storefront->theme_name);
+                foreach ($theme->getThemeDirs(\Tygh\Themes\Themes::USE_BASE) as $info) {
+                    $dirs[] = rtrim((string) $info[\Tygh\Themes\Themes::PATH_ABSOLUTE], '/') . '/templates/';
+                }
+                $out[(string) $storefront->name] = $dirs;
+            }
+
+            return $out;
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /** The text of a template file, null when it is not a readable file (test seam). */
+    protected function readTemplate(string $path): ?string
+    {
+        if (!is_file($path)) {
+            return null;
+        }
+        $text = file_get_contents($path);
+
+        return $text === false ? null : $text;
+    }
+
     /** Whether a constant is defined (test seam). */
     protected function constantDefined(string $name): bool
     {
