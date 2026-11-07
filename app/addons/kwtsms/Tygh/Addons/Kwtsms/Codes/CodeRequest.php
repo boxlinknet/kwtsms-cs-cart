@@ -115,6 +115,9 @@ class CodeRequest
     /** Windows of the per-IP buckets and the per-phone cap, in seconds. */
     public const HOUR = 3600;
     public const DAY = 86400;
+    // 2026-11-07 18:57 +03: branch review I1 of 1.3.0, task 596. Two-step code requests per account (tf_u, tf_ud).
+    public const TWOFA_ACCOUNT_HOUR = 6;
+    public const TWOFA_ACCOUNT_DAY = 20;
 
     /** @var ConfigInterface */
     private $config;
@@ -342,6 +345,22 @@ class CodeRequest
                 }
             }
         }
+        // 2026-11-07 18:57 +03: branch review I1 of 1.3.0, task 596. A stranger can use up the shared per-phone hourly cap
+        // (recovery, guest checkout and register codes to the victim's number all count), which then locked the owner
+        // out of the second step for up to an hour. The 2FA code therefore neither reads nor counts phone_h:<phone>;
+        // its own limit is per account (the password was right, so the account is known): 6 an hour and 20 a day,
+        // every request counted, a counter that fails closed is over the limit, the neutral wait answer.
+        $guards = [
+            ['tf_u:' . $user_id, self::HOUR, self::TWOFA_ACCOUNT_HOUR],
+            ['tf_ud:' . $user_id, self::DAY, self::TWOFA_ACCOUNT_DAY],
+        ];
+        foreach ($guards as $g) {
+            if ($this->limiter->hit($g[0], $g[1]) > $g[2]) {
+                $this->debug('otp.twofa_limited', ['bucket' => explode(':', $g[0])[0], 'purpose' => $purpose]);
+
+                return $this->wait($this->windowLeft($g[0], $g[1]), $lang);
+            }
+        }
 
         return $this->deliver(
             $purpose,
@@ -352,7 +371,8 @@ class CodeRequest
             $storefront_id,
             $lang,
             $staff,
-            $subject === '' ? $phone : $subject
+            $subject === '' ? $phone : $subject,
+            true
         );
     }
 
