@@ -31,8 +31,8 @@ $schema['top']['addons']['items']['kwtsms.menu_title'] = [
 // 2026-11-06 18:40 +03: the test lives in fn_kwtsms_vendor_menu_allowed() (func.php), shared with menu_vendor.post.php,
 // the schema the Vendor panel configurator add-on loads for vendor administrators.
 // 2026-11-08 05:52 +03: Task M2.9, task 596. function_exists first: the Upgrade Center builds this menu schema in the
-// request that still has the OLD func.php loaded (no such function), and the bare call was a fatal Error that killed the
-// 1.2.0 -> 1.3.0 upgrade after the file copy. Without the function there is no vendor entry.
+// request that still has the OLD func.php loaded (no such function), and the bare call was a fatal Error that
+// killed the 1.2.0 -> 1.3.0 upgrade after the file copy. Without the function there is no vendor entry.
 if (function_exists('fn_kwtsms_vendor_menu_allowed') && fn_kwtsms_vendor_menu_allowed()) {
     $schema['top']['administration']['items']['kwtsms.vendorphone.menu'] = [
         'href'     => 'kwtsms_vendor.phone',

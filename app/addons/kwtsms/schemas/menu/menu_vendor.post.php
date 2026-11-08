@@ -17,7 +17,8 @@
 defined('BOOTSTRAP') or die('Access denied');
 
 /** @var array $schema */
-// 2026-11-08 05:52 +03: Task M2.9, task 596. function_exists first, as in menu.post.php (old func.php during the Upgrade Center request).
+// 2026-11-08 05:52 +03: Task M2.9, task 596. function_exists first, as in menu.post.php
+// (the old func.php is loaded during the Upgrade Center request).
 if (function_exists('fn_kwtsms_vendor_menu_allowed') && fn_kwtsms_vendor_menu_allowed()) {
     $schema['central']['settings']['items']['kwtsms.vendorphone.menu'] = [
         'href'     => 'kwtsms_vendor.phone',
