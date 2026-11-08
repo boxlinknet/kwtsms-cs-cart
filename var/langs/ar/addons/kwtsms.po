@@ -7685,8 +7685,8 @@ msgstr "هذه الميزة تبقى متوقفة. قالب واجهة المت�
 
 # 2026-11-08 00:06 +03: M2.10 G5 (CS-Cart 4.20.1 guards), task 596. Settings red note (feature is on).
 msgctxt "Languages::kwtsms.settings.core_anchor_on"
-msgid "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, and orders that need a code are refused. Add the hook to the theme template, or turn the feature off."
-msgstr "هذه الميزة مفعلة، لكن قالب واجهة المتجر ينقصه خطاف قالب يعرض مربع رمز الرسالة أو الرابط: [anchors]. لا يراه العملاء، ويُرفض كل طلب يحتاج إلى رمز. أضف الخطاف إلى ملف القالب أو أوقف الميزة."
+msgid "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, so the feature can't work, and the checkout code refuses orders that need a code. Add the hook to the theme template, or turn the feature off."
+msgstr "هذه الميزة مفعلة، لكن قالب واجهة المتجر ينقصه خطاف قالب يعرض مربع رمز الرسالة أو الرابط: [anchors]. لا يراه العملاء فلا تعمل الميزة، ويرفض رمز إتمام الطلب كل طلب يحتاج إلى رمز. أضف الخطاف إلى ملف القالب أو أوقف الميزة."
 
 # 2026-11-08 00:09 +03: M2.10 (CS-Cart 4.20.1 guards), task 596. Help: the red notes of the Settings page.
 msgctxt "Languages::kwtsms.help.codes.p12"

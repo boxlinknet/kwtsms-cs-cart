@@ -7680,8 +7680,8 @@ msgstr "This feature stays off. The storefront theme is missing a template hook 
 
 # 2026-11-08 00:06 +03: M2.10 G5 (CS-Cart 4.20.1 guards), task 596. Settings red note (feature is on).
 msgctxt "Languages::kwtsms.settings.core_anchor_on"
-msgid "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, and orders that need a code are refused. Add the hook to the theme template, or turn the feature off."
-msgstr "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, and orders that need a code are refused. Add the hook to the theme template, or turn the feature off."
+msgid "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, so the feature can't work, and the checkout code refuses orders that need a code. Add the hook to the theme template, or turn the feature off."
+msgstr "This feature is on, but the storefront theme is missing a template hook that shows the SMS code box or link: [anchors]. Customers can't see it, so the feature can't work, and the checkout code refuses orders that need a code. Add the hook to the theme template, or turn the feature off."
 
 # 2026-11-08 00:09 +03: M2.10 (CS-Cart 4.20.1 guards), task 596. Help: the red notes of the Settings page.
 msgctxt "Languages::kwtsms.help.codes.p12"
