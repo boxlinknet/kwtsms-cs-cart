@@ -6825,9 +6825,11 @@ msgid "The Upgrade Center requests its own restore script over HTTP before it in
 msgstr "The Upgrade Center requests its own restore script over HTTP before it installs a package. If your store sits behind a login wall (Cloudflare Access, HTTP basic authentication, an IP allow list), that check fails. Allow the request, or lift the wall, while you upgrade."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-11-11 16:55 +03: task 596. upgrade.p3 rewritten: the core notice names the file only for a syntax error, not for a
+# header language that does not match its folder (Languages::installLanguagePack); SafatMall saw FAILED with no file.
 msgctxt "Languages::kwtsms.help.upgrade.p3"
-msgid "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
-msgstr "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
+msgid "If the Upgrade Center marks a language FAILED, a .po file of another add-on or theme is usually broken. CS-Cart reloads every .po file of that language and stops at the first one that fails. The red notice names that file only when it has a syntax error. If no file is named, look for a .po file whose Language: header doesn't match its folder, for example an English file under var/langs/ar. Fix or remove that file, then run the upgrade again."
+msgstr "If the Upgrade Center marks a language FAILED, a .po file of another add-on or theme is usually broken. CS-Cart reloads every .po file of that language and stops at the first one that fails. The red notice names that file only when it has a syntax error. If no file is named, look for a .po file whose Language: header doesn't match its folder, for example an English file under var/langs/ar. Fix or remove that file, then run the upgrade again."
 
 # 2026-10-29 05:13 +03: Task M1.12 fix round 1 (I1), task 596. reCAPTCHA is configured but the SMS code request is not ticked.
 msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"

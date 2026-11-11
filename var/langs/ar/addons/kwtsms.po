@@ -6831,9 +6831,11 @@ msgid "The Upgrade Center requests its own restore script over HTTP before it in
 msgstr "يطلب مركز الترقية سكربت الاستعادة الخاص به عبر HTTP قبل تثبيت الحزمة. إذا كان متجرك خلف جدار تسجيل دخول (Cloudflare Access أو مصادقة HTTP الأساسية أو قائمة عناوين مسموحة)، يفشل هذا الفحص. اسمح بالطلب أو ارفع الجدار أثناء الترقية."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
+# 2026-11-11 16:55 +03: task 596. upgrade.p3 rewritten: the core notice names the file only for a syntax error, not for a
+# header language that does not match its folder (Languages::installLanguagePack); SafatMall saw FAILED with no file.
 msgctxt "Languages::kwtsms.help.upgrade.p3"
-msgid "A broken .po file of another add-on makes the Upgrade Center report errors for that language. The error names the other add-on's file, not kwtSMS. Fix or remove that file, then run the upgrade again."
-msgstr "يجعل ملف ⁦.po⁩ تالف في إضافة أخرى مركز الترقية يعرض أخطاء لتلك اللغة. يذكر الخطأ ملف الإضافة الأخرى لا kwtSMS. أصلح الملف أو احذفه ثم أعد الترقية."
+msgid "If the Upgrade Center marks a language FAILED, a .po file of another add-on or theme is usually broken. CS-Cart reloads every .po file of that language and stops at the first one that fails. The red notice names that file only when it has a syntax error. If no file is named, look for a .po file whose Language: header doesn't match its folder, for example an English file under var/langs/ar. Fix or remove that file, then run the upgrade again."
+msgstr "إذا عرض مركز الترقية FAILED عند تثبيت لغة، فغالبا ما يكون ملف ⁦.po⁩ تالفا في إضافة أخرى أو في القالب. يعيد CS-Cart تحميل كل ملفات ⁦.po⁩ لتلك اللغة ويتوقف عند أول ملف يفشل. لا يذكر الإشعار الأحمر اسم الملف إلا إذا كان فيه خطأ في الصياغة. إذا لم يُذكر أي ملف، فابحث عن ملف ⁦.po⁩ لا يطابق سطر ⁦Language:⁩ في رأسه مجلده، مثل ملف إنجليزي داخل ⁦var/langs/ar⁩. أصلح الملف أو احذفه ثم أعد الترقية."
 
 # 2026-10-29 05:13 +03: Task M1.12 fix round 1 (I1), task 596. reCAPTCHA is configured but the SMS code request is not ticked.
 msgctxt "Languages::kwtsms.integrations.captcha.provider.recaptcha_unticked"

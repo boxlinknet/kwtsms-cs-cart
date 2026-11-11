@@ -160,6 +160,10 @@ every sign-in, two-step, recovery and checkout code feature stays off until you 
   the last 15 minutes before that switch is turned off works like an e-mail recovery key (core still needs its secret).
 - Help (English and Arabic): codes to one number share its hourly limit; one account per phone number is recommended
   with sign-in by code and recovery by code (with it off, a number saved on two accounts gets no code for either).
+<!-- 2026-11-11 17:10 +03: task 596, the Upgrade Center language note was wrong for a header mismatch -->
+- Help (English and Arabic), Upgrade: when the Upgrade Center marks a language FAILED, CS-Cart's red notice names the
+  broken .po file only for a syntax error. Help now says so and tells you to look for a .po file whose `Language:`
+  header doesn't match its folder (it said the error always names the file).
 
 <!-- 2026-11-07 02:46 +03: Task M2.7, task 596 -->
 - The SMS about failing SMS (Administration > Notifications, "Send failure alert") uses the placeholder {window_minutes}
