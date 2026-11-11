@@ -24,5 +24,7 @@
 # that tag until a final v1.2.0 exists. When the final 1.2.0 is published REPLACE this line (and its zip sha256) with the
 # final build's. The rc.2 key below serves a --from-ref v1.2.0-rc.2 refresh or a named rc build. Zip rebuilt byte for byte
 # in RC2-final (dist/1.2.0-rc.2/kwtsms-1.2.0.zip, 190 files).
+# 2026-11-11 14:05 +03: task 596. Final v1.2.0 published, tagged on the same commit 4182d8b; CI and local rebuild give
+# the same zip sha256 7c7e047f..., so the 1.2.0 line below is the final release as it stands (nothing to replace).
 1.2.0 7c7e047fb77f6b6c1118a297f2ffed27c63c0411f34ebc52370fdae77fdc5db1 4182d8b716a073cc651a48f57e616a69b1d83449 331655a85f858ebc796907a09ac2aaf56cad6ce3f58f03c69cf719819c95cbaa
 1.2.0-rc.2 7c7e047fb77f6b6c1118a297f2ffed27c63c0411f34ebc52370fdae77fdc5db1 4182d8b716a073cc651a48f57e616a69b1d83449 331655a85f858ebc796907a09ac2aaf56cad6ce3f58f03c69cf719819c95cbaa
