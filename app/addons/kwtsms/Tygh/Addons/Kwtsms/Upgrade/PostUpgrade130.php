@@ -57,10 +57,30 @@ class PostUpgrade130
 
     /**
      * Language variables whose text changed between 1.2.0 and 1.3.0, with the text 1.2.0 shipped, per language
-     * (name => lang => text). None changed so far: a later task that rewrites an existing text adds the old one here.
-     * ASCII only (\u{} escapes).
+     * (name => lang => text). A task that rewrites an existing text adds the old one here. ASCII only (\u{} escapes).
      */
-    private const SHIPPED_1_2_0 = [];
+    // 2026-11-11 21:34 +03: task 596. kwtsms.help.upgrade.p3 was rewritten in 43ab975 (the Upgrade Center names the
+    // broken .po file only for a syntax error); without its 1.2.0 text here, INSERT IGNORE kept the old paragraph on a
+    // store upgraded from 1.2.0 (found by the 1.3.0 seal run). Texts byte-exact from tag v1.2.0, en and ar .po.
+    private const SHIPPED_1_2_0 = [
+        'kwtsms.help.upgrade.p3' => [
+            'en' => "A broken .po file of another add-on makes the Upgrade Center report errors for that"
+                . " language. The error names the other add-on's file, not kwtSMS. Fix or remove that file,"
+                . " then run the upgrade again.",
+            'ar' => "\u{64a}\u{62c}\u{639}\u{644} \u{645}\u{644}\u{641} \u{2066}.po\u{2069}"
+                . " \u{62a}\u{627}\u{644}\u{641} \u{641}\u{64a} \u{625}\u{636}\u{627}\u{641}\u{629}"
+                . " \u{623}\u{62e}\u{631}\u{649} \u{645}\u{631}\u{643}\u{632}"
+                . " \u{627}\u{644}\u{62a}\u{631}\u{642}\u{64a}\u{629} \u{64a}\u{639}\u{631}\u{636}"
+                . " \u{623}\u{62e}\u{637}\u{627}\u{621} \u{644}\u{62a}\u{644}\u{643}"
+                . " \u{627}\u{644}\u{644}\u{63a}\u{629}. \u{64a}\u{630}\u{643}\u{631}"
+                . " \u{627}\u{644}\u{62e}\u{637}\u{623} \u{645}\u{644}\u{641}"
+                . " \u{627}\u{644}\u{625}\u{636}\u{627}\u{641}\u{629}"
+                . " \u{627}\u{644}\u{623}\u{62e}\u{631}\u{649} \u{644}\u{627} kwtSMS."
+                . " \u{623}\u{635}\u{644}\u{62d} \u{627}\u{644}\u{645}\u{644}\u{641} \u{623}\u{648}"
+                . " \u{627}\u{62d}\u{630}\u{641}\u{647} \u{62b}\u{645} \u{623}\u{639}\u{62f}"
+                . " \u{627}\u{644}\u{62a}\u{631}\u{642}\u{64a}\u{629}.",
+        ],
+    ];
 
     /**
      * @param string        $from_version The add-on version before the upgrade ('1.0.0', '1.1.0', '1.2.0'; '1.3.0'

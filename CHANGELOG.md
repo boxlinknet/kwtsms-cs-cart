@@ -165,6 +165,8 @@ every sign-in, two-step, recovery and checkout code feature stays off until you 
 - Help (English and Arabic), Upgrade: when the Upgrade Center marks a language FAILED, CS-Cart's red notice names the
   broken .po file only for a syntax error. Help now says so and tells you to look for a .po file whose `Language:`
   header doesn't match its folder (it said the error always names the file).
+  <!-- 2026-11-11 21:36 +03: task 596, the 1.3.0 seal run found the old paragraph kept on stores upgraded from 1.2.0 -->
+  An upgrade from 1.2.0 replaces the old paragraph with the new one in both languages, unless you edited it.
 
 <!-- 2026-11-07 02:46 +03: Task M2.7, task 596 -->
 - The SMS about failing SMS (Administration > Notifications, "Send failure alert") uses the placeholder {window_minutes}
