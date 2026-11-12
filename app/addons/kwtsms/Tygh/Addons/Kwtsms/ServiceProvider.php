@@ -34,6 +34,9 @@
  * alert).
  *            2026-10-22 21:27 +03, Task A7, task 596: kwtsms.low_stock (Orders\LowStockCollector); the order hooks
  *            take it as their last constructor argument.
+ *            2026-11-12 02:02 +03, task 596 M3.0: kwtsms.declared_events is filtered by the owning add-on gate (P3-62,
+ *            EventsSchemaExtender::withActiveOwners()); kwtsms.declared_events_all is the unfiltered schema, read only
+ *            by kwtsms.dispatch_keys (the prune keeps covering the prefixes of a switched-off add-on).
  * DEPENDS:   Pimple (CS-Cart core), the add-on's Settings, Gateway, Storage, Log, Queue, Alerts, Http and Sms classes.
  */
 
@@ -98,6 +101,7 @@ use Tygh\Addons\Kwtsms\Storage\StorageDataStore;
 // 2026-10-21 01:58 +03: Task 1.9, task 596.
 use Pimple\Exception\FrozenServiceException;
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
+use Tygh\Addons\Kwtsms\Notifications\EventDeclaration; // 2026-11-12 02:02 +03: task 596 M3.0
 use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Notifications\SmsTransport;
@@ -747,7 +751,9 @@ class ServiceProvider implements ServiceProviderInterface
         // 2026-10-21 04:21 +03: the order lookups log their errors (fix round 1 item 2), task 596.
         $app['kwtsms.dispatch_keys'] = function (Container $app): DispatchKeys {
             // 2026-10-23 03:41 +03: Task A12 item 4 (R8, R24), task 596. The declarations give the windowed prefixes.
-            return new DispatchKeys(null, $app['kwtsms.logs.debug'], $app['kwtsms.declared_events']);
+            // 2026-11-12 02:02 +03: task 596 M3.0 (ruling DispatchKeys). The unfiltered schema: an add-on switched off
+            // keeps its windowed prefixes in the prune.
+            return new DispatchKeys(null, $app['kwtsms.logs.debug'], $app['kwtsms.declared_events_all']);
         };
 
         $app['kwtsms.templates'] = function (Container $app): TemplateRepository {
@@ -804,10 +810,41 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         // The kwtsms events schema (our kwtsms.order_placed and third-party declarations, PRD 5.2).
-        $app['kwtsms.declared_events'] = function (): array {
+        // 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). The raw schema is read here only (OwnerGateTest guards it); its
+        // one reader is kwtsms.dispatch_keys. Every other consumer reads kwtsms.declared_events below.
+        $app['kwtsms.declared_events_all'] = function (): array {
             $schema = fn_get_schema('kwtsms', 'events');
 
             return is_array($schema) ? $schema : [];
+        };
+        // 2026-11-12 02:02 +03: task 596 M3.0 (P3-62, P3-63). The owning add-on gate, once, at the source: a
+        // declaration whose 'addon' is not active is dropped, so it has no Templates row, no transport, no opt-out
+        // scope and no send (the four static consumers and the events schema extension all read this provider). A
+        // declaration that EventDeclaration::fromArray() refuses (public input, 'required' without a key) is named in
+        // one debug row per request (action declaration.refused) and is dropped by every consumer's fromArray().
+        $app['kwtsms.declared_events'] = function (Container $app): array {
+            $schema = EventsSchemaExtender::withActiveOwners(
+                $app['kwtsms.declared_events_all'],
+                static function (string $addon): bool {
+                    return \Tygh\Registry::get('addons.' . $addon . '.status') === 'A';
+                }
+            );
+            foreach ($schema as $event_id => $decl) {
+                $refused = is_array($decl) ? EventDeclaration::refusal($decl) : [];
+                if ($refused !== []) {
+                    try {
+                        $app['kwtsms.logs.debug']->log('debug', 'declaration.refused', 'a declared event was refused', [
+                            'event_id' => (string) $event_id,
+                            'reason' => $refused['reason'] ?? '',
+                            'path' => $refused['path'] ?? '',
+                        ]);
+                    } catch (\Throwable $e) {
+                        error_log('kwtsms: declaration.refused ' . (string) $event_id . ' could not be logged');
+                    }
+                }
+            }
+
+            return $schema;
         };
 
         $app['kwtsms.checkout_rules'] = function (Container $app): CheckoutRules {

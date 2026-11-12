@@ -12,8 +12,15 @@
  * WHY:       Phase 2 needs events that carry their own data (shipments, registrations, low stock). The 1.0.0 format
  *            (receivers + placeholders + phone) stays valid; every v2 key is optional and a wrong one is dropped, never
  *            fatal (a third-party declaration must not break the store).
+ *            2026-11-12 02:02 +03: task 596 M3.0. Format v2 gains 'addon' (the owning add-on, P3-62: the provider drops
+ *            the declaration while that add-on is inactive, EventsSchemaExtender::withActiveOwners()) and dedupe
+ *            'required' (fail closed when the key does not resolve, P3-64); a declaration that maps any path under
+ *            PUBLIC_INPUT_PATHS (review, post, message text, requester name, certificate text or code) is refused
+ *            (P3-63), as is 'required' without a key; dedupeKey() resolves the reserved tokens {event} and {hour}.
  * USAGE:     $decl = EventDeclaration::fromArray('acme.shipped', $array, $is_mve);   // null = not usable
  *            $decl->dedupeKey($data, 'C');   // 'shipment:7:C'; '' = no dedupe or a path that is missing
+ *            $decl->dedupeKey($data, 'A', 'call_requests.request_created', time());   // {event}, {hour}
+ *            EventDeclaration::refusal($array);   // [] or ['reason' => 'public_input', 'path' => 'last_message']
  * DEPENDS:   Nothing (pure PHP 7.4).
  */
 
@@ -29,6 +36,24 @@ final class EventDeclaration
 
     /** The path of the order array when a declaration names none. */
     public const DEFAULT_ORDER_PATH = 'order_info';
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-63). Paths of public input (text a storefront visitor typed, or a bearer
+     * code) that never become SMS text, a dedupe key or a data path. A declared path is refused when one of these
+     * appears in it as whole segments, at any depth ("message" refuses "message", "post_data.message" and
+     * "thread.message", not "message_id"): the safe direction for a third-party declaration.
+     */
+    public const PUBLIC_INPUT_PATHS = [
+        'last_message', 'message', 'post_data',
+        'product_review_data.message', 'product_review_data.advantages', 'product_review_data.disadvantages',
+        'product_review_data.comment',
+        'call_request_data.name',
+        'certificate_data.message', 'certificate_data.recipient', 'certificate_data.sender',
+        'gift_cert_code',
+    ];
+
+    /** 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). An add-on id as CS-Cart stores it. */
+    public const ADDON_PATTERN = '/^[a-z0-9_]{1,64}$/D';
 
     /** @var string */
     private $event_id;
@@ -68,6 +93,12 @@ final class EventDeclaration
 
     /** @var string What the last dedupeKey() call could not resolve ('' = nothing) */
     private $key_error = '';
+
+    /** @var string 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). The owning add-on id; '' = a core or own event. */
+    private $addon = '';
+
+    /** @var bool 2026-11-12 02:02 +03: task 596 M3.0 (P3-64). True = an unresolved dedupe key means no SMS. */
+    private $required = false;
 
     /**
      * @param string[]              $receivers
@@ -109,6 +140,11 @@ final class EventDeclaration
     public static function fromArray(string $event_id, array $decl, bool $is_mve): ?EventDeclaration
     {
         if ($event_id === '' || !isset($decl['receivers']) || !is_array($decl['receivers'])) {
+            return null;
+        }
+        // 2026-11-12 02:02 +03: task 596 M3.0 (P3-63, P3-64). Public input anywhere, or 'required' without a key: the
+        // whole declaration is refused (the provider writes the declaration.refused debug row once per request).
+        if (self::refusal($decl) !== []) {
             return null;
         }
         // 2026-10-23 06:01 +03: Cleanup CA1-8 (A4 M8), task 596. Only strings are compared: a nested array in
@@ -188,7 +224,7 @@ final class EventDeclaration
             && preg_match('/^\\\\?[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/D', $decl['data_class']) === 1
             ? ltrim($decl['data_class'], '\\') : '';
 
-        return new self(
+        $parsed = new self(
             $event_id,
             $receivers,
             $placeholders,
@@ -205,6 +241,85 @@ final class EventDeclaration
             isset($decl['public_form']) && is_string($decl['public_form'])
             && preg_match('/^[a-z_]{1,40}$/D', $decl['public_form']) === 1 ? $decl['public_form'] : ''
         );
+        // 2026-11-12 02:02 +03: task 596 M3.0. The owner (validated; withActiveOwners() drops a malformed one before
+        // this) and the fail-closed flag (any truthy value: refusing to send is the safe reading).
+        $parsed->addon = isset($decl['addon']) && is_string($decl['addon'])
+            && preg_match(self::ADDON_PATTERN, $decl['addon']) === 1 ? $decl['addon'] : '';
+        $parsed->required = $key !== '' && !empty($decl['dedupe']['required']);
+
+        return $parsed;
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-63, P3-64). Why a raw declaration is refused: ['reason' =>
+     * 'public_input', 'path' => <the declared path>] when a placeholder, a path key or a dedupe key token names a path
+     * under PUBLIC_INPUT_PATHS; ['reason' => 'required_without_key', 'path' => ''] when dedupe.required is set without
+     * a key; [] when it is not refused for these reasons.
+     *
+     * @param array<mixed,mixed> $decl
+     *
+     * @return array{reason?:string,path?:string}
+     */
+    public static function refusal(array $decl): array
+    {
+        $paths = [];
+        if (isset($decl['placeholders']) && is_array($decl['placeholders'])) {
+            foreach ($decl['placeholders'] as $path) {
+                $paths[] = $path;
+            }
+        }
+        foreach (self::PATH_KEYS as $key) {
+            $paths[] = $decl[$key] ?? null;
+        }
+        $dedupe = isset($decl['dedupe']) && is_array($decl['dedupe']) ? $decl['dedupe'] : [];
+        $template = isset($dedupe['key']) && is_string($dedupe['key']) ? $dedupe['key'] : '';
+        if ($template !== '' && preg_match_all('/\{([^{}]*)\}/', $template, $refs) > 0) {
+            foreach ($refs[1] as $ref) {
+                $paths[] = $ref;
+            }
+        }
+        foreach ($paths as $path) {
+            if (is_string($path) && self::isPublicInput($path)) {
+                return ['reason' => 'public_input', 'path' => $path];
+            }
+        }
+        if (!empty($dedupe['required']) && $template === '') {
+            return ['reason' => 'required_without_key', 'path' => ''];
+        }
+
+        return [];
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-63). True when a PUBLIC_INPUT_PATHS entry appears in $path as whole
+     * segments.
+     */
+    public static function isPublicInput(string $path): bool
+    {
+        $wrapped = '.' . $path . '.';
+        foreach (self::PUBLIC_INPUT_PATHS as $entry) {
+            if (strpos($wrapped, '.' . $entry . '.') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). The owning add-on id; '' = a core event or one of ours.
+     */
+    public function addon(): string
+    {
+        return $this->addon;
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-64). True when an unresolved dedupe key must stop the SMS (fail closed).
+     */
+    public function required(): bool
+    {
+        return $this->required;
     }
 
     public function eventId(): string
@@ -240,21 +355,33 @@ final class EventDeclaration
      * The dedupe key of one dispatch: {a.b} is replaced by the scalar at that path of $data, {receiver} by the
      * receiver. '' when the declaration has no dedupe or when a token cannot be resolved (then
      * dedupeKeyError() names it, for the error row).
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-64). Reserved tokens before any path: {receiver}, {event} (the event id
+     * given, else the declaration's own) and {hour} (intdiv($now ?? time(), 3600), a clock-hour bucket). Old callers
+     * that pass two arguments keep working.
      *
      * @param array<string,mixed> $data
      */
-    public function dedupeKey(array $data, string $receiver): string
+    public function dedupeKey(array $data, string $receiver, string $event_id = '', ?int $now = null): string
     {
         $this->key_error = '';
         if ($this->dedupe_key === '') {
             return '';
         }
         $bad = '';
+        $event = $event_id !== '' ? $event_id : $this->event_id;
+        $hour = (string) intdiv($now ?? time(), 3600);
         $key = (string) preg_replace_callback(
             '/\{([^{}]*)\}/',
-            function (array $m) use ($data, $receiver, &$bad): string {
+            function (array $m) use ($data, $receiver, $event, $hour, &$bad): string {
                 if ($m[1] === 'receiver') {
                     return $receiver;
+                }
+                // 2026-11-12 02:02 +03: task 596 M3.0 (P3-64). The reserved tokens.
+                if ($m[1] === 'event') {
+                    return $event;
+                }
+                if ($m[1] === 'hour') {
+                    return $hour;
                 }
                 $value = preg_match(self::PATH, $m[1]) === 1 ? self::value($data, $m[1]) : null;
                 if (!is_scalar($value) || is_bool($value) || (string) $value === '') {

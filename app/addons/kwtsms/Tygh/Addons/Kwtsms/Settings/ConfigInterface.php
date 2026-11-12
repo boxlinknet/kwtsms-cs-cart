@@ -279,6 +279,24 @@ interface ConfigInterface
     public function failSpikeThreshold(): int;
 
     /**
+     * 2026-11-12 02:02 +03: task 596 M3.0. The 1.4.0 settings, all OFF by default.
+     * Back-in-stock recipients per fan-out: 1..900 (above 900 reads as 900), default 500 (P3-65).
+     */
+    public function bisMaxRecipients(): int;
+
+    /** Hold and merge customer SMS of the same order (B8). Default N. */
+    public function coalesceCustomerSms(): bool;
+
+    /** Per-vendor Sender ID in Multi-Vendor (G2). Default N. */
+    public function vendorSenderIds(): bool;
+
+    /** Kuwait numbers must be mobile (G5). Default N. */
+    public function phoneKwMobileOnly(): bool;
+
+    /** Ask a customer without a phone to add one (G9). Default N. */
+    public function missingPhonePrompt(): bool;
+
+    /**
      * P3-59: true while any storefront code feature is on (B1, B2, B3 of any type, B4, B5, B6, vendor phone
      * self-verification); the one test every "does this store send codes" check uses.
      */

@@ -85,6 +85,8 @@ class LogsPage
         'customer_opt_out',
         // 2026-10-23 19:55 +03: Task M1.2 (P3-26), task 596. The store hourly cap stopped this number.
         'cap_store_hour',
+        // 2026-11-12 02:06 +03: task 596 M3.0 (P3-64). A required dedupe key did not resolve: not sent.
+        'dedupe_unresolved',
     ];
 
     /**

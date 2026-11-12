@@ -343,13 +343,16 @@ class PostUpgrade
         // (1.0.0, 1.1.0 or 1.2.0, final or any rc) is finished by PostUpgrade130, which runs the 1.2.0 content first
         // for 1.0.0 / 1.1.0 and the rc wording refresh for 1.2.0; a 1.3.0 store with a template missing is repaired by
         // it too (it never writes a version below 1.3.0).
+        // 2026-11-12 02:03 +03: task 596 M3.0 (P3-80). The files are 1.4.0 now: a stored version below 1.4.0 is
+        // finished by PostUpgrade140, which runs the 1.3.0 step first for a store still below 1.3.0; a 1.4.0 store
+        // with a template missing (its own list or the 1.3.0 one) is repaired by it too.
         if (
             $from === ''
-            || (version_compare($from, PostUpgrade130::VERSION, '>=') && PostUpgrade130::missingTemplates() === [])
+            || (version_compare($from, PostUpgrade140::VERSION, '>=') && PostUpgrade140::missingTemplates() === [])
         ) {
             return false;
         }
-        PostUpgrade130::runReported($from);
+        PostUpgrade140::runReported($from);
         \Tygh::$app['session'][self::HEAL_SESSION_KEY] = $now;
 
         return true;

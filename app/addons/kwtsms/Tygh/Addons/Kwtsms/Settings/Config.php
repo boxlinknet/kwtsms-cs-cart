@@ -131,6 +131,13 @@ class Config implements ConfigInterface
         'vendor_phone_self_verify' => 'N',
         'fail_spike_alert' => 'N',
         'fail_spike_threshold' => '10',
+        // 2026-11-12 02:02 +03: task 596 M3.0 (PLAN-1.4.0 "Data model"). The five 1.4.0 settings, every feature OFF;
+        // the task that builds each feature adds its Settings field and its MODE_KEYS entry. Equals addon.xml.
+        'bis_max_recipients' => '500',
+        'coalesce_customer_sms' => 'N',
+        'vendor_sender_ids' => 'N',
+        'phone_kw_mobile_only' => 'N',
+        'missing_phone_prompt' => 'N',
     ];
 
     /**
@@ -297,7 +304,19 @@ class Config implements ConfigInterface
         'vendor_phone_self_verify' => ['flag'],
         'fail_spike_alert' => ['flag'],
         'fail_spike_threshold' => ['int', 1, 10000],
+        // 2026-11-12 02:02 +03: task 596 M3.0. The 1.4.0 settings (validated on save once a mode names them).
+        'bis_max_recipients' => ['int', 1, self::BIS_MAX_RECIPIENTS_CAP],
+        'coalesce_customer_sms' => ['flag'],
+        'vendor_sender_ids' => ['flag'],
+        'phone_kw_mobile_only' => ['flag'],
+        'missing_phone_prompt' => ['flag'],
     ];
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-65). The hard cap of one back-in-stock fan-out, below the kwtSMS queue
+     * limit of 1,000 messages: a stored value above it reads as the cap.
+     */
+    public const BIS_MAX_RECIPIENTS_CAP = 900;
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
     /** 2026-10-23 17:13 +03: the one site key pattern, read and write side (fix round 1, I1, task 596). */
@@ -773,6 +792,44 @@ class Config implements ConfigInterface
     public function failSpikeThreshold(): int
     {
         return $this->number('fail_spike_threshold');
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-65). 1..900; a value above 900 reads as 900 (the cap is never exceeded),
+     * 0, a negative, a non-number or a value longer than 9 digits reads as the default 500.
+     */
+    public function bisMaxRecipients(): int
+    {
+        $value = $this->raw('bis_max_recipients');
+        if ($this->isDigits($value, 9) && (int) $value >= 1) {
+            return min((int) $value, self::BIS_MAX_RECIPIENTS_CAP);
+        }
+
+        return (int) self::DEFAULTS['bis_max_recipients'];
+    }
+
+    /** 2026-11-12 02:02 +03: task 596 M3.0 (B8, M3.8 builds it). */
+    public function coalesceCustomerSms(): bool
+    {
+        return $this->flag('coalesce_customer_sms');
+    }
+
+    /** 2026-11-12 02:02 +03: task 596 M3.0 (G2, M3.18 builds it). */
+    public function vendorSenderIds(): bool
+    {
+        return $this->flag('vendor_sender_ids');
+    }
+
+    /** 2026-11-12 02:02 +03: task 596 M3.0 (G5, M3.20 builds it). */
+    public function phoneKwMobileOnly(): bool
+    {
+        return $this->flag('phone_kw_mobile_only');
+    }
+
+    /** 2026-11-12 02:02 +03: task 596 M3.0 (G9, M3.21 builds it). */
+    public function missingPhonePrompt(): bool
+    {
+        return $this->flag('missing_phone_prompt');
     }
 
     /**

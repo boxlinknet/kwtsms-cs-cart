@@ -60,6 +60,10 @@
  *            order status" gets no order.status_changed.*, no order.updated and no order.shipment_updated (every event
  *            whose declaration says opt_out): switched_off / customer_opt_out, no key claimed. The receipt
  *            (kwtsms.order_placed) and security SMS never pass this check; a guest order (user_id 0) is never gated.
+ *            2026-11-12 02:05 +03, task 596 M3.0: a declared event's data_class that also implements PayloadEnricher
+ *            adds kwtsms_ctx to the payload first (an incoming kwtsms_ctx is removed in notify()); the dedupe key gets
+ *            the event id and the clock ({event}, {hour}); a declaration with dedupe 'required' whose key does not
+ *            resolve is not sent (switched_off / dedupe_unresolved and the error row, P3-64).
  * DEPENDS:   Sms\SmsService, Settings\ConfigInterface, Templates\{TemplateRepository,TemplateRenderer,Defaults},
  *            Orders\{DispatchKeys,CheckoutRules,RuntimeFlags,Diagnostics,OrderSource}, Notifications\OrderSmsData,
  *            Log\DebugLog, Vendors\VendorQuota.
@@ -72,6 +76,7 @@ use Tygh\Addons\Kwtsms\Notifications\DeclaredSmsData;
 use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
+use Tygh\Addons\Kwtsms\Notifications\PayloadEnricher; // 2026-11-12 02:05 +03: task 596 M3.0
 use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
@@ -85,6 +90,9 @@ use Tygh\Addons\Kwtsms\Vendors\VendorQuota;
 class OrderNotifier
 {
     public const SUPERSEDED = 'superseded';
+
+    /** 2026-11-12 02:05 +03: task 596 M3.0 (P3-64). Attempt reason of a required dedupe key that did not resolve (no send). */
+    public const DEDUPE_UNRESOLVED = 'dedupe_unresolved';
     /** 2026-10-22 22:18 +03: Task A8, task 596. A V SMS over the vendor's monthly quota (reason vendor_quota). */
     public const RATE_LIMITED = 'rate_limited';
     public const DUPLICATE = 'duplicate_event';
@@ -239,6 +247,10 @@ class OrderNotifier
         ) {
             return false;
         }
+        // 2026-11-12 02:05 +03: task 596 M3.0. kwtsms_ctx is the add-on's own key, filled only by a declaration's
+        // PayloadEnricher in declaredSms(): one that arrives with the core payload is removed before anything reads
+        // it (storefront path, order path, placeholders, dedupe tokens), so no spoofed phone or company reaches a send.
+        unset($payload['kwtsms_ctx']);
         $order = $this->orderOf($event_id, $payload);
         // 2026-10-21 07:53 +03: SMS off or not set up: nothing claimed, queued or written (Task 1.14 review
         // follow-up), task 596.
@@ -516,6 +528,26 @@ class OrderNotifier
         if (!in_array($receiver, $decl->receivers(), true)) {
             return false;
         }
+        // 2026-11-12 02:05 +03: task 596 M3.0 (ruling PayloadEnricher). First: a data_class that also implements
+        // PayloadEnricher adds kwtsms_ctx (language, user, company, plan id) before the declaration is read. Any
+        // incoming kwtsms_ctx is removed first (also done in notify()). A throw skips the SMS exactly as a throwing
+        // values() does (invalid / platform_missing); kwtsms_ctx.company_id is always an int afterwards.
+        unset($payload['kwtsms_ctx']);
+        if ($decl->dataClass() !== '' && is_subclass_of($decl->dataClass(), PayloadEnricher::class)) {
+            try {
+                $enricher = $this->dataClass($decl->dataClass());
+                $payload = $enricher instanceof PayloadEnricher ? $enricher->enrich($payload, $receiver) : $payload;
+            } catch (\Throwable $e) {
+                $this->dataClassFailed($decl->dataClass(), $e);
+                $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
+
+                return false;
+            }
+            $ctx = isset($payload['kwtsms_ctx']) && is_array($payload['kwtsms_ctx']) ? $payload['kwtsms_ctx'] : [];
+            $company = $ctx['company_id'] ?? 0;
+            $ctx['company_id'] = is_scalar($company) && !is_bool($company) ? (int) $company : 0;
+            $payload['kwtsms_ctx'] = $ctx;
+        }
         // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12, PRD 6.5 / R25), task 596. A public-form event
         // (registration) that comes from a
         // storefront request sends only while the core antibot scenario is active: Tygh\Web\Antibot::
@@ -640,14 +672,30 @@ class OrderNotifier
         }
 
         $dedupe = null;
-        $key = $decl->dedupeKey($payload, $receiver);
+        // 2026-11-12 02:05 +03: task 596 M3.0 (P3-64). The event id and the clock for the reserved tokens {event},
+        // {hour}.
+        $key = $decl->dedupeKey($payload, $receiver, $event_id, time());
         if ($key !== '') {
             $dedupe = ['key' => $key, 'window' => $decl->dedupeWindow(), 'reason' => $decl->dedupeReason()];
-        } elseif ($decl->dedupeKeyError() !== '' && $this->log !== null) {
-            // The send goes out without dedupe (the spec of format v2); the error row says why.
-            $this->log->log('error', 'order_sms.dedupe_key', 'dedupe key not resolved: no dedupe for this SMS', [
-                'event_id' => $event_id, 'receiver' => $receiver, 'token' => $decl->dedupeKeyError(),
-            ]);
+        } elseif ($decl->dedupeKeyError() !== '') {
+            // A declaration without 'required' (format v2 third parties, the 1.3.0 events): the send goes out without
+            // dedupe; the error row says why. 2026-11-12 02:05 +03: task 596 M3.0 (P3-64): with 'required' it fails
+            // closed: the same error row, one switched_off / dedupe_unresolved attempt, no send, no key.
+            if ($this->log !== null) {
+                $this->log->log(
+                    'error',
+                    'order_sms.dedupe_key',
+                    $decl->required()
+                        ? 'dedupe key not resolved: the SMS was not sent (the throttle is required)'
+                        : 'dedupe key not resolved: no dedupe for this SMS',
+                    ['event_id' => $event_id, 'receiver' => $receiver, 'token' => $decl->dedupeKeyError()]
+                );
+            }
+            if ($decl->required()) {
+                $this->skip(Diagnostics::SWITCHED_OFF, self::DEDUPE_UNRESOLVED, $order, $event_id, $receiver);
+
+                return false;
+            }
         }
 
         return $this->deliver($event_id, $receiver, $order, $extra, $this->orders->actor(), [

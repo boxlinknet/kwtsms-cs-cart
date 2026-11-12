@@ -7694,3 +7694,29 @@ msgstr "هذه الميزة مفعلة، لكن قالب واجهة المتجر
 msgctxt "Languages::kwtsms.help.codes.p12"
 msgid "A red note on the Settings page means this CS-Cart can't carry a feature, and the feature stays off. Two-step sign-in needs the login_user_pre hook and the password sign-in functions. Recovery by code needs fn_generate_ekey with its data parameter and the recovery key functions. The checkout code needs the hooks pre_place_order and place_order. The checkout code and sign-in by code also need template hooks in the storefront theme: checkout:final_section_customer_notes in views/checkout/components/final_section.tpl, orders:repay in views/orders/details.tpl, and index:login_buttons in views/auth/login_form.tpl. A custom theme that removed one of them needs it back."
 msgstr "الملاحظة الحمراء في صفحة الإعدادات تعني أن CS-Cart هذا لا يستطيع دعم ميزة، فتبقى الميزة متوقفة. التحقق بخطوتين يحتاج الخطاف login_user_pre ودوال تسجيل الدخول بكلمة المرور. واستعادة الحساب بالرمز تحتاج الدالة fn_generate_ekey بمعامل البيانات ودوال مفتاح الاستعادة. ورمز إتمام الطلب يحتاج الخطافين pre_place_order وplace_order. ورمز إتمام الطلب والدخول بالرمز يحتاجان أيضا خطافات قالب في قالب واجهة المتجر: checkout:final_section_customer_notes في views/checkout/components/final_section.tpl، وorders:repay في views/orders/details.tpl، وindex:login_buttons في views/auth/login_form.tpl. القالب المخصص الذي حذف أحدها يحتاج إلى إعادته."
+
+# 2026-11-12 02:06 +03: task 596 M3.0 (1.4.0 data model). Labels of the 5 hidden 1.4.0 settings (the Lifecycle test requires one per setting).
+msgctxt "SettingsOptions::kwtsms::bis_max_recipients"
+msgid "Most recipients of one back-in-stock SMS"
+msgstr "أقصى عدد مستلمين لرسالة توفر المنتج"
+
+msgctxt "SettingsOptions::kwtsms::coalesce_customer_sms"
+msgid "Combine customer SMS of the same order"
+msgstr "دمج رسائل العميل للطلب نفسه"
+
+msgctxt "SettingsOptions::kwtsms::vendor_sender_ids"
+msgid "Sender ID per vendor"
+msgstr "معرف مرسل لكل مورد"
+
+msgctxt "SettingsOptions::kwtsms::phone_kw_mobile_only"
+msgid "Kuwait numbers must be mobile numbers"
+msgstr "أرقام الكويت يجب أن تكون أرقام هاتف نقال"
+
+msgctxt "SettingsOptions::kwtsms::missing_phone_prompt"
+msgid "Ask customers without a phone to add one"
+msgstr "طلب رقم الهاتف من العملاء الذين ليس لديهم رقم"
+
+# 2026-11-12 02:06 +03: task 596 M3.0 (P3-64). The attempt reason of a required dedupe key that did not resolve (Admin\LogsPage::LABELLED_REASONS).
+msgctxt "Languages::kwtsms.logs.reason.dedupe_unresolved"
+msgid "Not sent: the repeat check of this SMS could not be worked out from the event data."
+msgstr "لم يتم الإرسال: تعذر تحديد فحص التكرار لهذه الرسالة من بيانات الحدث."

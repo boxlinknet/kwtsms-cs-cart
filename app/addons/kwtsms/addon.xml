@@ -21,6 +21,10 @@ USAGE:     Read by CS-Cart (Admin > Add-ons > Manage add-ons, or fn_install_addo
            recovery by code, two-step sign-in, checkout verification, the country selector, vendor phone
            self-verification and the send-failure spike alert, all OFF by default (Task M2.0, task 596); the upgrade path
            from 1.2.0, 1.1.0 and 1.0.0 is upgrades/1.3.0.
+2026-11-12 02:02 +03: 1.4.0 adds two tables (20 in all: kwtsms_event_conditions, kwtsms_vendor_senders) and 5 hidden settings
+           (bis_max_recipients, coalesce_customer_sms, vendor_sender_ids, phone_kw_mobile_only, missing_phone_prompt),
+           every feature OFF by default (task 596 M3.0); the upgrade path from 1.3.0, 1.2.0, 1.1.0 and 1.0.0 is
+           upgrades/1.4.0.
 DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_info),
            var/langs/{en,ar}/addons/kwtsms.po, design/backend/media/images/addons/kwtsms/icon.png.
 -->
@@ -29,7 +33,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
     <!-- 2026-10-22 13:13 +03: 1.1.0 (Phase 2: schema of Milestone A, setting vendor_monthly_quota, four tables), Task A1, task 596 -->
     <!-- 2026-10-23 15:11 +03: 1.2.0 (Phase 3 Milestone 1: phone and SMS-code set, three tables, 23 settings), Task M1.1a, task 596 -->
     <!-- 2026-11-04 18:18 +03: 1.3.0 (Milestone 2: schema of sign-in and security, two tables, 11 settings), Task M2.0, task 596 -->
-    <version>1.3.0</version>
+    <!-- 2026-11-12 02:02 +03: 1.4.0 (Milestone 3: schema of the add-on events, two tables, 5 settings), task 596 M3.0 -->
+    <version>1.4.0</version>
     <priority>4000</priority>
     <status>active</status>
     <default_language>en</default_language>
@@ -368,6 +373,31 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
                         <default_value>10</default_value>
                     </item>
 
+                    <!-- 2026-11-12 02:02 +03: task 596 M3.0 (1.4.0 data model). Written only by the Settings save modes (each feature
+                         task adds its own field and key). Every feature defaults to OFF; bis_max_recipients is the
+                         back-in-stock fan-out cap (1..900, P3-65). No install or upgrade step writes a switch, condition
+                         or vendor sender row. -->
+                    <item id="bis_max_recipients">
+                        <type>hidden</type>
+                        <default_value>500</default_value>
+                    </item>
+                    <item id="coalesce_customer_sms">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="vendor_sender_ids">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="phone_kw_mobile_only">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+                    <item id="missing_phone_prompt">
+                        <type>hidden</type>
+                        <default_value>N</default_value>
+                    </item>
+
                     <!-- Kept for marketplace documentation compliance (PRD 4.5). -->
                     <item id="marketplace_license_number">
                         <type>input</type>
@@ -670,6 +700,29 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
 
+        <!-- 2026-11-12 02:02 +03: task 596 M3.0 (1.4.0 data model). The per-event conditions of an SMS (M3.7: minimum total,
+             payments, shippings, staff quiet hours as JSON) and the per-vendor Sender ID (M3.18). Neither is written by
+             install or upgrade. The upgrade migration (upgrades/1.4.0) builds exactly these definitions. -->
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_event_conditions` (
+            `event_id` varchar(128) NOT NULL DEFAULT '',
+            `receiver` varchar(15) NOT NULL DEFAULT '',
+            `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `conditions` text,
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`event_id`, `receiver`, `storefront_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+        <item>
+            CREATE TABLE IF NOT EXISTS `?:kwtsms_vendor_senders` (
+            `company_id` int(11) unsigned NOT NULL DEFAULT 0,
+            `sender_id` varchar(11) NOT NULL DEFAULT '',
+            `updated_by` int(11) unsigned NOT NULL DEFAULT 0,
+            `updated_at` int(11) unsigned NOT NULL DEFAULT 0,
+            PRIMARY KEY (`company_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
+        </item>
+
         <!-- Privileges (PRD 7): section addons, group kwtsms. -->
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms', 'Y', 'addons', 'kwtsms', 'Y');</item>
         <item>REPLACE INTO ?:privileges (privilege, is_default, section_id, group_id, is_view) VALUES ('view_kwtsms_logs', 'Y', 'addons', 'kwtsms', 'Y');</item>
@@ -703,6 +756,9 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
         <!-- 2026-11-04 18:18 +03: the two 1.3.0 tables (PRD 13), Task M2.0, task 596. -->
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_twofa`;</item>
         <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_backup_codes`;</item>
+        <!-- 2026-11-12 02:02 +03: the two 1.4.0 tables (PRD 13), task 596 M3.0. -->
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_event_conditions`;</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:kwtsms_vendor_senders`;</item>
         <item for="uninstall">DELETE FROM ?:usergroup_privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:privileges WHERE privilege IN ('view_kwtsms', 'view_kwtsms_logs', 'manage_kwtsms', 'manage_kwtsms_gateway');</item>
         <item for="uninstall">DELETE FROM ?:notification_settings WHERE transport_id = 'kwtsms' OR event_id LIKE 'kwtsms.%';</item>

@@ -21,7 +21,9 @@
  *            2026-10-22 17:11 +03, Task A4, task 596: format v2 (see EventDeclaration and schemas/kwtsms/events.php):
  *            receivers C, A and, in Multi-Vendor only, V; a core event gets the transport only for receivers the merged
  *            schema already has; our own kwtsms.* events get every declared receiver.
- * USAGE:     $schema = (new EventsSchemaExtender(fn_get_schema('kwtsms', 'events'), $is_mve))->extend($schema);
+ *            2026-11-12 02:02 +03, task 596 M3.0: withActiveOwners() (P3-62) is the owning add-on gate of the
+ *            provider kwtsms.declared_events.
+ * USAGE:     $schema = (new EventsSchemaExtender($app['kwtsms.declared_events'], $is_mve))->extend($schema);
  * DEPENDS:   Notifications\SmsMessageSchema.
  */
 
@@ -111,6 +113,43 @@ class EventsSchemaExtender
         }
 
         return $schema;
+    }
+
+    /**
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). The owning add-on gate, applied once in the provider
+     * kwtsms.declared_events so that every consumer (order SMS scope, Templates, OrderNotifier, the events schema
+     * extension) sees the same set: a raw declaration whose 'addon' key is set is kept only while $is_active says
+     * that add-on is active; a malformed 'addon' (not an add-on id) is dropped (fail closed); a declaration without
+     * the key, or with '' or null, is kept (our own kwtsms.* events and core events). Pure: raw arrays in and out,
+     * the callback asked once per add-on id.
+     *
+     * @param array<mixed,mixed>     $declared  The raw kwtsms events schema
+     * @param callable(string): bool $is_active True when the add-on with that id is active
+     *
+     * @return array<mixed,mixed>
+     */
+    public static function withActiveOwners(array $declared, callable $is_active): array
+    {
+        $answers = [];
+        $out = [];
+        foreach ($declared as $event_id => $decl) {
+            $owner = is_array($decl) && array_key_exists('addon', $decl) ? $decl['addon'] : null;
+            if ($owner === null || $owner === '') {
+                $out[$event_id] = $decl;
+                continue;
+            }
+            if (!is_string($owner) || preg_match(EventDeclaration::ADDON_PATTERN, $owner) !== 1) {
+                continue;
+            }
+            if (!isset($answers[$owner])) {
+                $answers[$owner] = (bool) $is_active($owner);
+            }
+            if ($answers[$owner]) {
+                $out[$event_id] = $decl;
+            }
+        }
+
+        return $out;
     }
 
     /**
