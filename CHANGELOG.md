@@ -15,6 +15,15 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), as the CS-Cart Marketplace requires.
 
+<!-- 2026-11-12 06:59 +03: M3.17 (P3-74), task 596. First [Unreleased] entry of 1.4.0 -->
+## [Unreleased]
+
+### Changed
+
+- Texts about test messages (Settings, Dashboard, test-mode alert, Help and the test SMS note, English and Arabic) say a
+  test message holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. The
+  Dashboard line and the alert now say a message "may still hold" credits. No day or age is named.
+
 <!-- 2026-11-08 05:38 +03: the Unreleased entries became the 1.3.0 release (the date is the build date; the controller sets the publish date), Task M2.9, task 596 -->
 <!-- 2026-11-11 20:44 +03: release date set to 2026-11-11, the day 1.3.0 was rebuilt and sealed for publishing, task 596 -->
 ## [1.3.0] - 2026-11-11

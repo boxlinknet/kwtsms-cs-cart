@@ -204,8 +204,9 @@ cancel the send. Only install add-ons you trust; the context you pass is a reque
 ### Test mode
 
 While Test mode is on in Settings, every call goes to kwtSMS with `test=1`: the outcome is `test_queued`, `isTest()` is
-true, nothing is delivered, and the message waits in the kwtSMS queue until it is deleted there (credits are held until
-then). Your code does not need to know: the same call works in both modes.
+<!-- 2026-11-12 06:59 +03: M3.17 (P3-74), task 596: the monthly automatic purge, no day or age named -->
+true, nothing is delivered, and the message waits in the kwtSMS queue until you delete it there or it's purged
+automatically once a month (credits are held until then). Your code does not need to know: the same call works in both modes.
 
 ### Example
 
