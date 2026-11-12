@@ -248,9 +248,15 @@ class OrderNotifier
             return false;
         }
         // 2026-11-12 02:05 +03: task 596 M3.0. kwtsms_ctx is the add-on's own key, filled only by a declaration's
-        // PayloadEnricher in declaredSms(): one that arrives with the core payload is removed before anything reads
+        // PayloadEnricher: one that arrives with the core payload is removed before anything reads
         // it (storefront path, order path, placeholders, dedupe tokens), so no spoofed phone or company reaches a send.
         unset($payload['kwtsms_ctx']);
+        // 2026-11-12 04:49 +03: task 596 M3.0 fix round 1 (I1, P3-62: enrich BEFORE the declaration is evaluated). The
+        // enricher runs here, before orderOf(), storefrontOf() and optedOut(), so a storefront or user_id path into
+        // kwtsms_ctx.* reaches the storefront switch and the opt-out. A throw skips the SMS as invalid /
+        // platform_missing below, after the active check, with the order from orderOf().
+        $enrich_failed = false;
+        $payload = $this->enrich($event_id, $receiver, $payload, $enrich_failed);
         $order = $this->orderOf($event_id, $payload);
         // 2026-10-21 07:53 +03: SMS off or not set up: nothing claimed, queued or written (Task 1.14 review
         // follow-up), task 596.
@@ -269,6 +275,24 @@ class OrderNotifier
         $this->debug('order_sms.notify', 'enter', [
             'event_id' => $event_id, 'receiver' => $receiver, 'order_id' => (int) ($order['order_id'] ?? 0),
         ]);
+        // 2026-11-12 04:49 +03: task 596 M3.0 fix round 1 (I1). The enricher threw: no send, as a throwing values()
+        // does.
+        if ($enrich_failed) {
+            $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
+
+            return false;
+        }
+        // 2026-11-12 04:49 +03: task 596 M3.0 fix round 1 (I1). A declared user_id path (often kwtsms_ctx.user_id)
+        // reaches the order before optedOut(), so an opted-out customer is never treated as a guest. declaredSms()
+        // copies it too.
+        if (isset($this->declared[$event_id])) {
+            $user_path = $this->declared[$event_id]->path('user_id');
+            $user_raw = $user_path === '' ? null : EventDeclaration::value($payload, $user_path);
+            $user_id = is_scalar($user_raw) && !is_bool($user_raw) ? (int) $user_raw : 0;
+            if ($user_id > 0) {
+                $order['user_id'] = $user_id;
+            }
+        }
 
         // 2026-10-22 14:53 +03: ONE storefront id per send (ruling R3): the order's, else the event declaration's
         // `storefront` path, else the payload's, else 0. It is used by the storefront switch below, the template
@@ -528,26 +552,8 @@ class OrderNotifier
         if (!in_array($receiver, $decl->receivers(), true)) {
             return false;
         }
-        // 2026-11-12 02:05 +03: task 596 M3.0 (ruling PayloadEnricher). First: a data_class that also implements
-        // PayloadEnricher adds kwtsms_ctx (language, user, company, plan id) before the declaration is read. Any
-        // incoming kwtsms_ctx is removed first (also done in notify()). A throw skips the SMS exactly as a throwing
-        // values() does (invalid / platform_missing); kwtsms_ctx.company_id is always an int afterwards.
-        unset($payload['kwtsms_ctx']);
-        if ($decl->dataClass() !== '' && is_subclass_of($decl->dataClass(), PayloadEnricher::class)) {
-            try {
-                $enricher = $this->dataClass($decl->dataClass());
-                $payload = $enricher instanceof PayloadEnricher ? $enricher->enrich($payload, $receiver) : $payload;
-            } catch (\Throwable $e) {
-                $this->dataClassFailed($decl->dataClass(), $e);
-                $this->skip('invalid', 'platform_missing', $order, $event_id, $receiver);
-
-                return false;
-            }
-            $ctx = isset($payload['kwtsms_ctx']) && is_array($payload['kwtsms_ctx']) ? $payload['kwtsms_ctx'] : [];
-            $company = $ctx['company_id'] ?? 0;
-            $ctx['company_id'] = is_scalar($company) && !is_bool($company) ? (int) $company : 0;
-            $payload['kwtsms_ctx'] = $ctx;
-        }
+        // 2026-11-12 02:05 +03: task 596 M3.0 (ruling PayloadEnricher). 2026-11-12 04:49 +03: fix round 1 (I1): the
+        // payload arrives already enriched by notify() (enrich()), which also removed any incoming kwtsms_ctx.
         // 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12, PRD 6.5 / R25), task 596. A public-form event
         // (registration) that comes from a
         // storefront request sends only while the core antibot scenario is active: Tygh\Web\Antibot::
@@ -713,6 +719,43 @@ class OrderNotifier
     {
         return $company_id > 0 && function_exists('fn_get_company_language')
             ? strtolower((string) fn_get_company_language($company_id)) : '';
+    }
+
+    /**
+     * 2026-11-12 04:49 +03: task 596 M3.0 fix round 1 (I1, P3-62). The PayloadEnricher step of a declared event,
+     * run by notify() before the declaration is evaluated: a data_class that implements PayloadEnricher adds kwtsms_ctx
+     * (language, user, company, plan id). kwtsms_ctx.company_id is always an int afterwards. Any other event, or a
+     * receiver the declaration does not have, keeps its payload. A throw sets $failed (the caller skips as invalid /
+     * platform_missing) and returns the payload unenriched.
+     *
+     * @param array<string,mixed> $payload without kwtsms_ctx
+     *
+     * @return array<string,mixed>
+     */
+    private function enrich(string $event_id, string $receiver, array $payload, bool &$failed): array
+    {
+        $decl = $this->declared[$event_id] ?? null;
+        if (
+            $decl === null || !in_array($receiver, $decl->receivers(), true) || $decl->dataClass() === ''
+            || !is_subclass_of($decl->dataClass(), PayloadEnricher::class)
+        ) {
+            return $payload;
+        }
+        try {
+            $enricher = $this->dataClass($decl->dataClass());
+            $enriched = $enricher instanceof PayloadEnricher ? $enricher->enrich($payload, $receiver) : $payload;
+        } catch (\Throwable $e) {
+            $this->dataClassFailed($decl->dataClass(), $e);
+            $failed = true;
+
+            return $payload;
+        }
+        $ctx = isset($enriched['kwtsms_ctx']) && is_array($enriched['kwtsms_ctx']) ? $enriched['kwtsms_ctx'] : [];
+        $company = $ctx['company_id'] ?? 0;
+        $ctx['company_id'] = is_scalar($company) && !is_bool($company) ? (int) $company : 0;
+        $enriched['kwtsms_ctx'] = $ctx;
+
+        return $enriched;
     }
 
     /**

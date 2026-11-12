@@ -50,6 +50,12 @@ final class EventDeclaration
         'call_request_data.name',
         'certificate_data.message', 'certificate_data.recipient', 'certificate_data.sender',
         'gift_cert_code',
+        // 2026-11-12 04:49 +03: task 596 M3.0 fix round 1 (I2). More customer-typed text: the reviewer's name and city,
+        // the call request notes, the return comment, and the whole segments comment, notes and reply at any depth. A
+        // denylist: each M3 event task adds the free-text fields of its own event.
+        'product_review_data.name', 'product_review_data.user_data.name', 'product_review_data.city',
+        'call_request_data.notes', 'return_info.comment',
+        'comment', 'notes', 'reply',
     ];
 
     /** 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). An add-on id as CS-Cart stores it. */
