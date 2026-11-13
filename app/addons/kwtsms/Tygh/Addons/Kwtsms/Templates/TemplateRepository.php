@@ -406,6 +406,30 @@ class TemplateRepository
         // receiver order; only the receivers that have an SMS column (V therefore only in Multi-Vendor). `group` is
         // the language variable of the heading ('' = the shared "Other events" one).
         $sms = $this->smsReceivers();
+        // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. While rma has declared return-status events with an SMS
+        // column, the family text (rma.status_changed, used by every status without a text of its own, custom
+        // statuses included) gets generic rows of its own for the receivers those events have, ahead of them.
+        $return_receivers = [];
+        foreach ($this->declared as $event_id => $decl) {
+            if (strpos((string) $event_id, Defaults::EVENT_RMA . '.') === 0 && isset($sms[$event_id])) {
+                $return_receivers = array_merge(
+                    $return_receivers,
+                    array_intersect($decl->receivers(), $sms[$event_id])
+                );
+            }
+        }
+        foreach (['C', 'A', 'V'] as $family_receiver) {
+            if (in_array($family_receiver, $return_receivers, true)) {
+                $rows[] = $row(
+                    Defaults::EVENT_RMA,
+                    $family_receiver,
+                    'generic',
+                    '',
+                    (string) __('kwtsms.templates.row_returns_generic', [], $lang)
+                );
+            }
+        }
+        $return_names = null;
         foreach ($this->declared as $event_id => $decl) {
             if (
                 strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_PLACED
@@ -414,6 +438,14 @@ class TemplateRepository
                 continue;
             }
             $label = $this->eventLabel($event_id, $lang);
+            // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. A return-status row is named by the status.
+            if (strpos($event_id, Defaults::EVENT_RMA . '.') === 0) {
+                $return_names = $return_names ?? $this->returnStatuses($lang);
+                $code = strtoupper(substr($event_id, strlen(Defaults::EVENT_RMA) + 1));
+                $label = (string) __('kwtsms.templates.row_return_status', [
+                    '[status]' => $return_names[$code] ?? $code,
+                ], $lang);
+            }
             foreach ($decl->receivers() as $receiver) {
                 if (!in_array($receiver, $sms[$event_id], true)) {
                     continue;
@@ -487,6 +519,27 @@ class TemplateRepository
         }
 
         return $event_id;
+    }
+
+    /**
+     * The return statuses of the store as code => name (rma only; [] when they cannot be read). 2026-11-12 07:40 +03:
+     * Task M3.1 (B1), task 596.
+     *
+     * @return array<string,string>
+     */
+    protected function returnStatuses(string $lang): array
+    {
+        try {
+            if (!defined('STATUSES_RETURN') || !function_exists('fn_get_simple_statuses')) {
+                return [];
+            }
+
+            $names = (array) fn_get_simple_statuses(STATUSES_RETURN, false, false, $lang);
+
+            return array_change_key_case($names, CASE_UPPER);
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**

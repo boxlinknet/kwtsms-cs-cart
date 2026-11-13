@@ -50,7 +50,8 @@ class PostUpgrade140
      *
      * @var string[]
      */
-    private const TEMPLATES = [];
+    // 2026-11-12 07:40 +03: Task M3.1 (RMA status SMS), task 596: the return status family texts.
+    private const TEMPLATES = ['rma.status_changed|C', 'rma.status_changed|A', 'rma.status_changed|V'];
 
     /**
      * Language variables whose text changed between 1.3.0 and 1.4.0, with the text 1.3.0 shipped, per language

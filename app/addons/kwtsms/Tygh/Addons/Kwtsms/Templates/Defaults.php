@@ -92,6 +92,12 @@ class Defaults
         self::EVENT_PHONE_CHANGED => ['store_name', 'date'],
     ];
 
+    /**
+     * 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. The family event of the rma return status SMS: its C, A and V
+     * texts serve every rma.status_changed.<status> (custom statuses too) that has no text of its own.
+     */
+    public const EVENT_RMA = 'rma.status_changed';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -125,6 +131,8 @@ class Defaults
         // 2026-11-07 02:46 +03: Task M2.7 (M2.11 review minor), task 596. {window_minutes} replaces {minutes}: its own
         // label ("Minutes of the failure window") and preview sample (15), apart from the code lifetime.
         self::EVENT_SEND_FAIL_SPIKE => ['count', 'window_minutes'],
+        // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. The return id and the status name (Events\RmaSmsData).
+        self::EVENT_RMA => ['return_id', 'return_status'],
     ];
 
     /**
@@ -204,6 +212,10 @@ class Defaults
         // (customer only).
         $rows[] = self::row(self::EVENT_OTP_CODE, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_PHONE_CHANGED, self::RECEIVER_CUSTOMER);
+        // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. The return status family text (rma.status_changed), C, A, V.
+        $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_CUSTOMER);
+        $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_VENDOR, '', '', true);
 
         return $rows;
     }

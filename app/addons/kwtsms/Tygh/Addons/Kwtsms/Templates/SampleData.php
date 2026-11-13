@@ -208,6 +208,28 @@ final class SampleData
     }
 
     /**
+     * 2026-11-12 07:40 +03: Task M3.1 (RMA status SMS), task 596. The values of {return_id} and {return_status}: a
+     * reference return, or the worst case (6-digit id, a 12-character status name).
+     *
+     * @return array<string,string>
+     */
+    public static function rma(bool $worst = false, string $lang = 'en'): array
+    {
+        $ar = $lang === 'ar';
+        if ($worst) {
+            return [
+                'return_id' => '204800',
+                'return_status' => $ar ? str_repeat("\u{0639}", 12) : 'Awaiting customer',
+            ];
+        }
+
+        return [
+            'return_id' => '2048',
+            'return_status' => $ar ? "\u{0645}\u{0643}\u{062A}\u{0645}\u{0644}" : 'Completed',
+        ];
+    }
+
+    /**
      * 2026-11-06 22:08 +03: Task M2.11 (send failure alert SMS), task 596. The value of {count}: a reference count, or
      * the worst case (5 digits); {window_minutes} is the real window, 15 (2026-11-07 02:46 +03: Task M2.7, task 596,
      * its own placeholder instead of the code lifetime {minutes}, whose sample is 5).

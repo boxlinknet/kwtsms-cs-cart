@@ -7722,3 +7722,37 @@ msgstr "Ask customers without a phone to add one"
 msgctxt "Languages::kwtsms.logs.reason.dedupe_unresolved"
 msgid "Not sent: the repeat check of this SMS could not be worked out from the event data."
 msgstr "Not sent: the repeat check of this SMS could not be worked out from the event data."
+
+# 2026-11-12 07:40 +03: Task M3.1 (B1, RMA return status SMS), task 596. Default family texts of rma.status_changed (C, A, V), the Templates heading and row names.
+msgctxt "Languages::kwtsms.tpl.rma.status_changed.C"
+msgid "{store_name}: Return {return_id} for order {order_id} is now {return_status}."
+msgstr "{store_name}: Return {return_id} for order {order_id} is now {return_status}."
+
+msgctxt "Languages::kwtsms.tpl.rma.status_changed.A"
+msgid "{store_name}: Return {return_id} for order {order_id} changed to {return_status}."
+msgstr "{store_name}: Return {return_id} for order {order_id} changed to {return_status}."
+
+msgctxt "Languages::kwtsms.tpl.rma.status_changed.V"
+msgid "{store_name}: Return {return_id} for order {order_id} is now {return_status}."
+msgstr "{store_name}: Return {return_id} for order {order_id} is now {return_status}."
+
+msgctxt "Languages::kwtsms.templates.group_returns"
+msgid "Returns"
+msgstr "Returns"
+
+msgctxt "Languages::kwtsms.templates.row_returns_generic"
+msgid "Any return status (generic)"
+msgstr "Any return status (generic)"
+
+msgctxt "Languages::kwtsms.templates.row_return_status"
+msgid "Return status: [status]"
+msgstr "Return status: [status]"
+
+# 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. Names of the two return placeholders in the Templates editor.
+msgctxt "Languages::kwtsms.templates.ph_return_id"
+msgid "Return number"
+msgstr "Return number"
+
+msgctxt "Languages::kwtsms.templates.ph_return_status"
+msgid "Return status"
+msgstr "Return status"

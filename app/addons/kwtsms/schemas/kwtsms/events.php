@@ -45,7 +45,7 @@
 
 defined('BOOTSTRAP') or die('Access denied');
 
-return [
+$schema = [
     // 2026-10-22 22:23 +03: Task A8 (SafatMall F4, R9), task 596. V is the vendor of a child order of a Multi-Vendor
     // checkout (kept only
     // in Multi-Vendor): its approved number, its monthly quota, one SMS per child order (key order_placed:<child>:V),
@@ -174,3 +174,55 @@ return [
         'group' => 'kwtsms.events_group',
     ],
 ];
+
+// 2026-11-12 07:40 +03: Task M3.1 (B1, P3-62, P3-63, P3-64), task 596. RMA return status SMS: one declaration per
+// return status, event id rma.status_changed.<status lower case> as core's rma schema names them
+// (rma/schemas/notifications/events.post.php:94 reads the same statuses with the same call at the same time). Only
+// while
+// the rma add-on is active and the core constants and function exist, inside try: a throw gives no rma declaration
+// (never a fatal in a schema read). Receivers C, A, V (V only in Multi-Vendor); the data {order_info, return_info} of
+// fn_rma_send_notification(). Nothing the customer typed is mapped (the customer return comment is refused by
+// EventDeclaration). The customer opt-out applies; a repeat of the same status for the same return is a
+// duplicate_event for 24 h and an unresolved key is not sent (required). Default OFF (no switch row). The data class is
+// named as a string, no add-on function is called here (SchemaFuncPhpGuardTest).
+try {
+    if (
+        class_exists('\\Tygh\\Registry') && \Tygh\Registry::get('addons.rma.status') === 'A'
+        && defined('STATUSES_RETURN')
+        && function_exists('fn_get_simple_statuses')
+    ) {
+        foreach (array_keys((array) fn_get_simple_statuses(STATUSES_RETURN)) as $rma_status) {
+            $schema['rma.status_changed.' . strtolower((string) $rma_status)] = [
+                'addon' => 'rma',
+                'receivers' => ['C', 'A', 'V'],
+                'order' => 'order_info',
+                'placeholders' => [
+                    'return_id' => 'return_info.return_id',
+                    'return_status' => 'return_info.status',
+                ],
+                'dedupe' => [
+                    'key' => 'rma:{return_info.return_id}:{return_info.status}:{receiver}',
+                    'window' => 86400,
+                    'required' => true,
+                ],
+                'opt_out' => true,
+                'group' => 'kwtsms.templates.group_returns',
+                'data_class' => \Tygh\Addons\Kwtsms\Events\RmaSmsData::class,
+            ];
+        }
+    }
+} catch (\Throwable $e) {
+    // One debug row (the add-on's own log service); if even that is not available, the PHP error log.
+    try {
+        \Tygh\Tygh::$app['kwtsms.logs.debug']->log(
+            'debug',
+            'rma.statuses_failed',
+            'the rma return statuses could not be read, no rma SMS events',
+            ['error' => get_class($e)]
+        );
+    } catch (\Throwable $inner) {
+        error_log('kwtsms: the rma return statuses could not be read, no rma SMS events: ' . get_class($e));
+    }
+}
+
+return $schema;

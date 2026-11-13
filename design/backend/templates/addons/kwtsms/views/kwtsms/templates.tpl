@@ -149,7 +149,7 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
             {$edit_href = "kwtsms.templates?lang=`$t.lang``$sfq`&edit="|cat:($row.key|escape:"url")}
             {if $row.kind == "placed"}{$row_label = __("kwtsms.templates.row_placed")}
             {elseif $row.kind == "placed_multi"}{$row_label = __("kwtsms.templates.row_placed_multi")}
-            {elseif $row.kind == "generic"}{$row_label = __("kwtsms.templates.row_generic")}
+            {elseif $row.kind == "generic"}{* 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. The return status family row names itself. *}{if $row.status_name != ""}{$row_label = $row.status_name}{else}{$row_label = __("kwtsms.templates.row_generic")}{/if}
             {else}{$row_label = $row.status_name}{/if}
             {* 2026-10-22 22:24 +03: Task A8 (carry P2-R10b), task 596. A vendor row has its own label, not "Customer". *}
             {if $row.receiver == "A"}{$receiver_label = __("kwtsms.templates.admin")}{elseif $row.receiver == "V"}{$receiver_label = __("kwtsms.templates.vendor")}{else}{$receiver_label = __("kwtsms.templates.customer")}{/if}
