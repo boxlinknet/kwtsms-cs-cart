@@ -22,8 +22,9 @@
 namespace Tygh\Addons\Kwtsms\Events;
 
 use Tygh\Addons\Kwtsms\Notifications\DeclaredSmsData;
+use Tygh\Addons\Kwtsms\Notifications\PayloadEnricher;
 
-final class RmaSmsData implements DeclaredSmsData
+final class RmaSmsData implements DeclaredSmsData, PayloadEnricher
 {
     /** Longest status name put into an SMS, in characters. */
     public const MAX_STATUS = 40;
@@ -41,6 +42,31 @@ final class RmaSmsData implements DeclaredSmsData
     {
         self::$lookup = $lookup;
         self::$names = [];
+    }
+
+    /**
+     * 2026-11-13 21:20 +03: M3.1 fix round 1 (I2, 4.20.1 defensive read), task 596. Fails closed for EVERY receiver: a
+     * payload without order_info.order_id or return_info.return_id (a shape 4.20.1 may have) throws, so OrderNotifier
+     * writes attempt invalid / platform_missing and sends nothing, before the dedupe key or any phone is looked at.
+     * Reads with isset and is_scalar only (no PHP warning or notice). kwtsms_ctx.company_id is 0: the declaration
+     * has no company path.
+     *
+     * @param array<string,mixed> $payload
+     *
+     * @return array<string,mixed>
+     */
+    public function enrich(array $payload, string $receiver): array
+    {
+        $order = isset($payload['order_info']) && is_array($payload['order_info']) ? $payload['order_info'] : [];
+        $return = isset($payload['return_info']) && is_array($payload['return_info']) ? $payload['return_info'] : [];
+        foreach ([$order['order_id'] ?? null, $return['return_id'] ?? null] as $id) {
+            if (!is_scalar($id) || is_bool($id) || (int) $id <= 0) {
+                throw new \RuntimeException('rma payload without an order id or a return id');
+            }
+        }
+        $payload['kwtsms_ctx'] = ['company_id' => 0];
+
+        return $payload;
     }
 
     /**

@@ -367,8 +367,11 @@ class TemplatesPage
             'sf_switch' => $sf_switch,
             // 2026-10-22 17:13 +03: Task A4, task 596. The heading of a declared event's rows: its group langvar,
             // else "Other events".
-            'group_key' => $kind === 'declared' ? (string) ($source['group'] ?? '') : '',
-            'group_label' => $kind === 'declared' ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
+            // 2026-11-13 21:20 +03: M3.1 fix round 1 (review Minor 1), task 596.
+            // A generic row that names a group (the return status family) sits in it.
+            'group_key' => $kind === 'declared' || $kind === 'generic' ? (string) ($source['group'] ?? '') : '',
+            'group_label' => $kind === 'declared' || ($kind === 'generic' && (string) ($source['group'] ?? '') !== '')
+                ? $this->groupLabel((string) ($source['group'] ?? '')) : '',
             // 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. A public-form row shows the CAPTCHA notice.
             // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. Only while that scenario is off (the notice says
             // to

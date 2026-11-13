@@ -139,11 +139,11 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
         </thead>
         {$group = ""}
         {foreach $t.rows as $row}
-            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{elseif $row.kind == "declared"}{$row_group = "declared:`$row.group_key`"}{elseif $row.kind == "code"}{* 2026-10-24 12:35 +03: Task M1.4, task 596. "Codes and security" *}{$row_group = "codes"}{else}{$row_group = "generic"}{/if}
+            {if $row.kind == "placed" || $row.kind == "placed_multi"}{$row_group = "placed"}{elseif $row.kind == "status"}{$row_group = "statuses"}{elseif $row.kind == "declared"}{$row_group = "declared:`$row.group_key`"}{elseif $row.kind == "generic" && $row.group_key != ""}{* 2026-11-13 21:20 +03: M3.1 fix round 1 (review Minor 1), task 596. The return family rows sit in the Returns group. *}{$row_group = "declared:`$row.group_key`"}{elseif $row.kind == "code"}{* 2026-10-24 12:35 +03: Task M1.4, task 596. "Codes and security" *}{$row_group = "codes"}{else}{$row_group = "generic"}{/if}
             {if $row_group != $group}
                 {if $group != ""}</tbody>{/if}
                 <tbody>
-                <tr class="kwtsms-group"><th colspan="5" scope="rowgroup">{if $row.kind == "declared"}{$row.group_label}{else}{__("kwtsms.templates.group_`$row_group`")}{/if}</th></tr>
+                <tr class="kwtsms-group"><th colspan="5" scope="rowgroup">{if $row.kind == "declared" || $row.group_key != ""}{$row.group_label}{else}{__("kwtsms.templates.group_`$row_group`")}{/if}</th></tr>
                 {$group = $row_group}
             {/if}
             {$edit_href = "kwtsms.templates?lang=`$t.lang``$sfq`&edit="|cat:($row.key|escape:"url")}

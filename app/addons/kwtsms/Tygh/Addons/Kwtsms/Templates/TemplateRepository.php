@@ -418,24 +418,32 @@ class TemplateRepository
                 );
             }
         }
-        foreach (['C', 'A', 'V'] as $family_receiver) {
-            if (in_array($family_receiver, $return_receivers, true)) {
-                $rows[] = $row(
-                    Defaults::EVENT_RMA,
-                    $family_receiver,
-                    'generic',
-                    '',
-                    (string) __('kwtsms.templates.row_returns_generic', [], $lang)
-                );
-            }
-        }
         $return_names = null;
+        $family_done = false;
         foreach ($this->declared as $event_id => $decl) {
             if (
                 strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_PLACED
                 || !isset($sms[$event_id])
             ) {
                 continue;
+            }
+            if (strpos($event_id, Defaults::EVENT_RMA . '.') === 0 && !$family_done) {
+                // 2026-11-13 21:20 +03: M3.1 fix round 1 (review Minor 1), task 596. The family rows open the
+                // Returns group, just ahead of the first return status row.
+                $family_done = true;
+                foreach (['C', 'A', 'V'] as $family_receiver) {
+                    if (in_array($family_receiver, $return_receivers, true)) {
+                        $family_row = $row(
+                            Defaults::EVENT_RMA,
+                            $family_receiver,
+                            'generic',
+                            '',
+                            (string) __('kwtsms.templates.row_returns_generic', [], $lang)
+                        );
+                        $family_row['group'] = 'kwtsms.templates.group_returns';
+                        $rows[] = $family_row;
+                    }
+                }
             }
             $label = $this->eventLabel($event_id, $lang);
             // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. A return-status row is named by the status.
