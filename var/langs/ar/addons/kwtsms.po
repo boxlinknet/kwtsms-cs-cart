@@ -7794,3 +7794,16 @@ msgstr "طلب الشراء بنقرة واحدة"
 msgctxt "Languages::kwtsms.templates.ph_request_id"
 msgid "Request number"
 msgstr "رقم الطلب"
+
+# 2026-11-14 07:53 +03: task 596 M3.2 review I2. Logs reasons of the vendor SMS guards.
+msgctxt "Languages::kwtsms.logs.reason.vendor_day_ceiling"
+msgid "A vendor SMS from a public form was refused: the vendor reached its daily limit for that form."
+msgstr "رُفضت رسالة البائع من نموذج عام: بلغ البائع حده اليومي لهذا النموذج."
+
+msgctxt "Languages::kwtsms.logs.reason.vendor_quota_reserved"
+msgid "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
+msgstr "رُفضت رسالة البائع من نموذج عام: استهلك البائع نصف حصته الشهرية من الرسائل."
+
+msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
+msgid "The vendor is not active, so no vendor SMS was sent."
+msgstr "البائع غير نشط، لذلك لم تُرسل رسالة للبائع."

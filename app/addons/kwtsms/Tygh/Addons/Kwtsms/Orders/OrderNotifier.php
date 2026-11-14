@@ -79,6 +79,7 @@ use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Notifications\PayloadEnricher; // 2026-11-12 02:05 +03: task 596 M3.0
 use Tygh\Addons\Kwtsms\Notifications\VendorPhoneSourceInterface;
 use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10, task 596
+use Tygh\Addons\Kwtsms\Security\RateLimiter; // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Storefronts\StorefrontRules;
@@ -98,6 +99,16 @@ class OrderNotifier
     public const DUPLICATE = 'duplicate_event';
     public const NO_PHONE = 'no_phone';
     public const NO_TEMPLATE = 'no_template';
+    /**
+     * 2026-11-14 07:40 +03: Task M3.2 review I2 (ruling), task 596. A visitor can pick the vendor of a public-form
+     * event (call request), so those V SMS get a per-vendor daily ceiling and a quota reserve, and every V send needs
+     * an active vendor. Refused before the dedupe key is claimed: a refusal burns no key and no quota.
+     */
+    public const VENDOR_DAILY_CEILING = 10;
+    public const VENDOR_RESERVE_PERCENT = 50;
+    public const VENDOR_INACTIVE = 'vendor_inactive';
+    public const VENDOR_QUOTA_RESERVED = 'vendor_quota_reserved';
+    public const VENDOR_DAY_CEILING = 'vendor_day_ceiling';
 
     /** @var SmsService */
     private $sms;
@@ -137,6 +148,9 @@ class OrderNotifier
 
     /** @var callable|null 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Antibot scenario gate. */
     private $antibot_gate;
+
+    /** @var RateLimiter|null 2026-11-14 07:40 +03: Task M3.2 review I2, task 596 */
+    private $limiter;
 
     /** @var VendorQuota|null 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. Null = no quota (unit rigs). */
     private $vendor_quota;
@@ -207,8 +221,12 @@ class OrderNotifier
         ?CustomerPrefs $prefs = null,
         // 2026-10-23 03:30 +03: Task A12 item 1 (R8, R53), task 596. () => void: drains up to 5 due outbox rows;
         // called once after the request's own inline send when the cron heartbeat is stale. Nullable, appended last.
-        ?callable $drain_stale = null
+        ?callable $drain_stale = null,
+        // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. The daily ceiling of a public-form V SMS (null = no
+        // ceiling). Appended last.
+        ?RateLimiter $limiter = null
     ) {
+        $this->limiter = $limiter;
         $this->drain_stale = $drain_stale;
         $this->prefs = $prefs;
         $this->vendor_quota = $vendor_quota;
@@ -526,6 +544,11 @@ class OrderNotifier
             $ids = ['order_id' => $parent_id, 'parent_order_id' => $parent_id];
         }
 
+        // 2026-11-14 08:30 +03: Task M3.2 review I2 (c), task 596. An inactive vendor is refused BEFORE the placed
+        // key is claimed (deliver() asks again for the other events).
+        if ($this->vendorRefused($order, $ids, $template_event, $receiver)) {
+            return false;
+        }
         $key = DispatchKeys::orderPlaced($key_id, $receiver);
         if (!$this->keys->claim($key)) {
             $this->skip(self::DUPLICATE, $key, $order, $template_event, $receiver);
@@ -707,7 +730,7 @@ class OrderNotifier
         return $this->deliver($event_id, $receiver, $order, $extra, $this->orders->actor(), [
             'order_id' => (int) ($order['order_id'] ?? 0),
             'parent_order_id' => (int) ($order['parent_order_id'] ?? 0),
-        ], $dedupe);
+        ], $dedupe, $decl->publicForm());
     }
 
     /**
@@ -814,8 +837,14 @@ class OrderNotifier
         array $extra,
         array $actor,
         array $ids,
-        ?array $dedupe = null
+        ?array $dedupe = null,
+        string $public_form = ''
     ): bool {
+        // 2026-11-14 07:40 +03: Task M3.2 review I2 (c), task 596. Every V send needs an ACTIVE vendor, checked
+        // before its number is read; a company row that cannot be read is a platform_missing refusal.
+        if ($this->vendorRefused($order, $ids, $event_id, $receiver)) {
+            return false;
+        }
         if ($receiver === 'A') {
             $phones = $this->config->adminPhones();
             $lang = $this->data->adminLang($this->config->adminAlertLang());
@@ -853,6 +882,38 @@ class OrderNotifier
             $this->skip(self::RATE_LIMITED, 'vendor_quota', $log_order, $event_id, $receiver, $phones);
 
             return false;
+        }
+        // 2026-11-14 07:40 +03: Task M3.2 review I2 (a, b), task 596. A public-form V SMS (the visitor chose the
+        // vendor): refused once the vendor used the reserve share of its monthly quota (order and other V SMS keep
+        // the rest), and once the vendor's daily ceiling is reached. Both are read-only here; the day counter is hit
+        // only after the key is claimed, so a refusal or a duplicate burns neither.
+        $day_bucket = '';
+        if ($receiver === 'V' && $public_form !== '') {
+            if (
+                $this->vendor_quota !== null
+                && $this->vendor_quota->reserveReached((int) ($order['company_id'] ?? 0), self::VENDOR_RESERVE_PERCENT)
+            ) {
+                $this->skip(self::RATE_LIMITED, self::VENDOR_QUOTA_RESERVED, $log_order, $event_id, $receiver, $phones);
+
+                return false;
+            }
+            if ($this->limiter !== null) {
+                $day_bucket = 'vday:' . $public_form . ':' . (int) ($order['company_id'] ?? 0);
+                $seen = $this->limiter->peek($day_bucket);
+                $live = $seen['window_start'] > $this->limiter->now() - 86400;
+                if ($seen['hits'] >= self::VENDOR_DAILY_CEILING && $live) {
+                    $this->skip(
+                        self::RATE_LIMITED,
+                        self::VENDOR_DAY_CEILING,
+                        $log_order,
+                        $event_id,
+                        $receiver,
+                        $phones
+                    );
+
+                    return false;
+                }
+            }
         }
 
         // 2026-10-22 14:53 +03: the storefront's own text first (P2-3), Task A2, task 596.
@@ -920,6 +981,10 @@ class OrderNotifier
             $this->skip(self::DUPLICATE, $why, $log_order, $event_id, $receiver, $phones);
 
             return false;
+        }
+        if ($day_bucket !== '') {
+            // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. Counts a claimed SMS only.
+            $this->limiter->hit($day_bucket, 86400);
         }
         $mode = $this->sendMode($actor);
         if (AfterResponse::afterResponse($mode) || $mode === AfterResponse::CRON) {
@@ -1055,6 +1120,34 @@ class OrderNotifier
      * @param array<string,mixed> $order
      * @param string[]|null       $phones
      */
+    /**
+     * 2026-11-14 08:30 +03: Task M3.2 review I2 (c), task 596. A V SMS needs an active vendor: companies.status A. A
+     * company row that cannot be read is invalid / platform_missing (no warning), a vendor that is not active is
+     * no_phone / vendor_inactive. Writes the attempt row and answers true when it refused.
+     *
+     * @param array<string,mixed> $order
+     * @param array<string,mixed> $ids
+     */
+    private function vendorRefused(array $order, array $ids, string $event_id, string $receiver): bool
+    {
+        if ($receiver !== 'V' || $this->vendor_quota === null) {
+            return false;
+        }
+        $status = $this->vendor_quota->companyStatus((int) ($order['company_id'] ?? 0));
+        if ($status === '') {
+            $this->skip('invalid', 'platform_missing', array_merge($order, $ids), $event_id, $receiver);
+
+            return true;
+        }
+        if ($status !== 'A') {
+            $this->skip(self::NO_PHONE, self::VENDOR_INACTIVE, array_merge($order, $ids), $event_id, $receiver);
+
+            return true;
+        }
+
+        return false;
+    }
+
     private function skip(
         string $outcome,
         string $reason,

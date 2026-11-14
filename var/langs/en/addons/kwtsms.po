@@ -7789,3 +7789,16 @@ msgstr "Buy with one click request"
 msgctxt "Languages::kwtsms.templates.ph_request_id"
 msgid "Request number"
 msgstr "Request number"
+
+# 2026-11-14 07:53 +03: task 596 M3.2 review I2. Logs reasons of the vendor SMS guards.
+msgctxt "Languages::kwtsms.logs.reason.vendor_day_ceiling"
+msgid "A vendor SMS from a public form was refused: the vendor reached its daily limit for that form."
+msgstr "A vendor SMS from a public form was refused: the vendor reached its daily limit for that form."
+
+msgctxt "Languages::kwtsms.logs.reason.vendor_quota_reserved"
+msgid "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
+msgstr "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
+
+msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
+msgid "The vendor is not active, so no vendor SMS was sent."
+msgstr "The vendor is not active, so no vendor SMS was sent."

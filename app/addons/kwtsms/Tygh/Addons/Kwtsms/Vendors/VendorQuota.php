@@ -83,6 +83,40 @@ class VendorQuota
     }
 
     /**
+     * 2026-11-14 07:42 +03: Task M3.2 review I2 (b), task 596. True when the vendor has used (sent + waiting in the
+     * outbox) at least $percent of its monthly limit, so a public-form V SMS leaves the rest to order and other V SMS.
+     * A limit of 0 reads as reached.
+     */
+    public function reserveReached(int $company_id, int $percent): bool
+    {
+        $limit = $this->limit($company_id);
+        if ($limit <= 0) {
+            return true;
+        }
+        $used = $this->used($company_id, $this->monthStart()) + $this->queuedRecipients($company_id, 0);
+
+        return $used * 100 >= $limit * max(0, $percent);
+    }
+
+    /**
+     * 2026-11-14 07:42 +03: Task M3.2 review I2 (c), task 596. The status of the vendor company (A active), '' when the
+     * row cannot be read (no such company, a failing query): the caller refuses that as platform_missing.
+     */
+    public function companyStatus(int $company_id): string
+    {
+        if ($company_id <= 0) {
+            return '';
+        }
+        try {
+            $status = $this->readCompanyStatus($company_id);
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        return is_string($status) ? $status : '';
+    }
+
+    /**
      * Unix time of the first day of the month of $at (default now), 00:00 in the store time zone (PHP's default time
      * zone, which CS-Cart sets from the store setting).
      */
@@ -129,6 +163,12 @@ class VendorQuota
     protected function plansActive(): bool
     {
         return (string) \Tygh\Registry::get('addons.vendor_plans.status') === 'A';
+    }
+
+    /** @return mixed 2026-11-14 07:42 +03: Task M3.2 review I2, task 596. companies.status, false when no row. */
+    protected function readCompanyStatus(int $company_id)
+    {
+        return db_get_field('SELECT status FROM ?:companies WHERE company_id = ?i', $company_id);
     }
 
     protected function companyPlan(int $company_id): int

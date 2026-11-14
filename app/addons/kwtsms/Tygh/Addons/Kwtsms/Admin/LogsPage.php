@@ -87,6 +87,9 @@ class LogsPage
         'cap_store_hour',
         // 2026-11-12 02:06 +03: task 596 M3.0 (P3-64). A required dedupe key did not resolve: not sent.
         'dedupe_unresolved',
+        // 2026-11-14 07:52 +03: task 596 M3.2 review I2. Public-form V SMS over the vendor's daily ceiling or inside
+        // the quota reserve; a V SMS of a vendor that is not active.
+        'vendor_day_ceiling', 'vendor_quota_reserved', 'vendor_inactive',
     ];
 
     /**

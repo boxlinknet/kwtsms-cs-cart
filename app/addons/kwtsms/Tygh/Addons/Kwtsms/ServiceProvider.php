@@ -927,7 +927,9 @@ class ServiceProvider implements ServiceProviderInterface
                         return;
                     }
                     $app['kwtsms.sms']->drainDue(5, 2.0, false);
-                }
+                },
+                // 2026-11-14 07:50 +03: Task M3.2 review I2, task 596. The daily ceiling of a public-form V SMS.
+                $app['kwtsms.rate_limiter']
             );
         };
 
