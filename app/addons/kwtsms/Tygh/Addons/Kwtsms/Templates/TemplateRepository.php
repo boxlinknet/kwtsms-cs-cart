@@ -420,6 +420,16 @@ class TemplateRepository
         }
         $return_names = null;
         $family_done = false;
+        // 2026-11-14 13:26 +03: Task M3.4 (B4), task 596. The same for the gift certificate status family
+        // (gift_certificates.gift_certificate.status_changed, receiver C): a generic row ahead of the first status row.
+        $gift_receivers = [];
+        foreach ($this->declared as $event_id => $decl) {
+            if (strpos((string) $event_id, Defaults::EVENT_GIFT . '.') === 0 && isset($sms[$event_id])) {
+                $gift_receivers = array_merge($gift_receivers, array_intersect($decl->receivers(), $sms[$event_id]));
+            }
+        }
+        $gift_names = null;
+        $gift_done = false;
         foreach ($this->declared as $event_id => $decl) {
             if (
                 strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_PLACED
@@ -445,7 +455,31 @@ class TemplateRepository
                     }
                 }
             }
+            if (strpos($event_id, Defaults::EVENT_GIFT . '.') === 0 && !$gift_done) {
+                $gift_done = true;
+                foreach (['C', 'A', 'V'] as $family_receiver) {
+                    if (in_array($family_receiver, $gift_receivers, true)) {
+                        $family_row = $row(
+                            Defaults::EVENT_GIFT,
+                            $family_receiver,
+                            'generic',
+                            '',
+                            (string) __('kwtsms.templates.row_gift_generic', [], $lang)
+                        );
+                        $family_row['group'] = 'kwtsms.templates.group_gift_certificates';
+                        $rows[] = $family_row;
+                    }
+                }
+            }
             $label = $this->eventLabel($event_id, $lang);
+            // 2026-11-14 13:26 +03: Task M3.4 (B4), task 596. A gift certificate status row is named by the status.
+            if (strpos($event_id, Defaults::EVENT_GIFT . '.') === 0) {
+                $gift_names = $gift_names ?? $this->giftStatuses($lang);
+                $code = strtoupper(substr($event_id, strlen(Defaults::EVENT_GIFT) + 1));
+                $label = (string) __('kwtsms.templates.row_gift_status', [
+                    '[status]' => $gift_names[$code] ?? $code,
+                ], $lang);
+            }
             // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. A return-status row is named by the status.
             if (strpos($event_id, Defaults::EVENT_RMA . '.') === 0) {
                 $return_names = $return_names ?? $this->returnStatuses($lang);
@@ -545,6 +579,28 @@ class TemplateRepository
             $names = (array) fn_get_simple_statuses(STATUSES_RETURN, false, false, $lang);
 
             return array_change_key_case($names, CASE_UPPER);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * The gift certificate statuses of the store as code => name ([] when they cannot be read). 2026-11-14 13:26 +03:
+     * Task M3.4 (B4), task 596.
+     *
+     * @return array<string,string>
+     */
+    protected function giftStatuses(string $lang): array
+    {
+        try {
+            if (!defined('STATUSES_GIFT_CERTIFICATE') || !function_exists('fn_get_simple_statuses')) {
+                return [];
+            }
+
+            return array_change_key_case(
+                (array) fn_get_simple_statuses(STATUSES_GIFT_CERTIFICATE, false, false, $lang),
+                CASE_UPPER
+            );
         } catch (\Throwable $e) {
             return [];
         }

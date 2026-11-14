@@ -111,6 +111,15 @@ class Defaults
      */
     public const EVENT_BIS = 'product.back_in_stock';
 
+    /**
+     * 2026-11-14 13:26 +03: Task M3.4 (B4), task 596. Core's gift certificate events (gift_certificates add-on): the
+     * family event of the status events (its C text serves every
+     * gift_certificates.gift_certificate.status_changed.<status>
+     * that has no text of its own, custom statuses too) and the "updated" event. C only: the purchaser.
+     */
+    public const EVENT_GIFT = 'gift_certificates.gift_certificate.status_changed';
+    public const EVENT_GIFT_UPDATED = 'gift_certificates.gift_certificate.updated';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -153,6 +162,10 @@ class Defaults
         // 2026-11-14 09:35 +03: Task M3.3 (B3), task 596. The product name (in the recipient's language) and its
         // storefront URL; no name or e-mail of the subscriber.
         self::EVENT_BIS => ['product_name', 'product_url'],
+        // 2026-11-14 13:26 +03: Task M3.4 (B4), task 596. The certificate number, its amount, the currency (global name
+        // above) and its status name (Events\GiftCertificateSmsData). Never the code, sender, recipient or message.
+        self::EVENT_GIFT => ['gift_cert_id', 'amount', 'gc_status'],
+        self::EVENT_GIFT_UPDATED => ['gift_cert_id', 'amount', 'gc_status'],
     ];
 
     /**
@@ -243,6 +256,10 @@ class Defaults
         $rows[] = self::row(self::EVENT_CALL_PRODUCT, self::RECEIVER_VENDOR, '', '', true);
         // 2026-11-14 09:35 +03: Task M3.3 (B3), task 596. The back-in-stock text: C.
         $rows[] = self::row(self::EVENT_BIS, self::RECEIVER_CUSTOMER);
+        // 2026-11-14 13:26 +03: Task M3.4 (B4), task 596. The gift certificate texts: the status family and
+        // "updated", C.
+        $rows[] = self::row(self::EVENT_GIFT, self::RECEIVER_CUSTOMER);
+        $rows[] = self::row(self::EVENT_GIFT_UPDATED, self::RECEIVER_CUSTOMER);
 
         return $rows;
     }

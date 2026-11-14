@@ -58,6 +58,9 @@ class PostUpgrade140
         'call_requests.request_about_product_created|A', 'call_requests.request_about_product_created|V',
         // 2026-11-14 09:37 +03: Task M3.3 (back-in-stock SMS), task 596: the customer text.
         'product.back_in_stock|C',
+        // 2026-11-14 13:26 +03: Task M3.4 (gift certificate SMS), task 596: the purchaser texts (status family,
+        // updated).
+        'gift_certificates.gift_certificate.status_changed|C', 'gift_certificates.gift_certificate.updated|C',
     ];
 
     /**

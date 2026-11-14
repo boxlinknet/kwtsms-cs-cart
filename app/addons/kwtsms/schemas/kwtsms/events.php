@@ -276,4 +276,69 @@ try {
     }
 }
 
+// 2026-11-14 13:26 +03: Task M3.4 (B4, P3-62, P3-63, P3-64), task 596. Gift certificate SMS to the PURCHASER: one
+// declaration per certificate status, event id gift_certificates.gift_certificate.status_changed.<status lower case> as
+// core's gift_certificates schema names them (gift_certificates/schemas/notifications/events.post.php reads the same
+// statuses with the same call), and gift_certificates.gift_certificate.updated. Only while the gift_certificates
+// add-on is active and the core constants and function exist, inside try (a throw gives no declaration, never a fatal).
+// Receiver C only. Core's mail goes to the RECIPIENT address typed at checkout; the SMS goes to the purchaser, the
+// customer of the first order in certificate_data.order_ids (Events\GiftCertificateSmsData adds phone, language, user,
+// storefront and company as kwtsms_ctx.*; a certificate without an order has no phone and ends as no_phone). A postal
+// certificate (send_via P) makes core dispatch no event at all, so no row. The certificate code is a bearer secret: it
+// is never mapped (EventDeclaration refuses gift_cert_code, sender, recipient and message), it is masked in every
+// stored copy through the data class' secret_values, and the dedupe key holds the certificate id only. The throttle is
+// one SMS per certificate, event and receiver in 24 h and it is required. Default OFF (no switch row). No add-on
+// function is called here (SchemaFuncPhpGuardTest).
+try {
+    if (
+        class_exists('\\Tygh\\Registry') && \Tygh\Registry::get('addons.gift_certificates.status') === 'A'
+        && defined('STATUSES_GIFT_CERTIFICATE')
+        && function_exists('fn_get_simple_statuses')
+    ) {
+        $gift_events = [];
+        foreach (array_keys((array) fn_get_simple_statuses(STATUSES_GIFT_CERTIFICATE)) as $gift_status) {
+            $gift_events[] = 'gift_certificates.gift_certificate.status_changed.' . strtolower((string) $gift_status);
+        }
+        $gift_events[] = 'gift_certificates.gift_certificate.updated';
+        foreach ($gift_events as $gift_event) {
+            $schema[$gift_event] = [
+                'addon' => 'gift_certificates',
+                'receivers' => ['C'],
+                'placeholders' => [
+                    'gift_cert_id' => 'certificate_data.gift_cert_id',
+                    'amount' => 'certificate_data.amount',
+                    'gc_status' => 'certificate_data.status',
+                ],
+                'phone' => 'kwtsms_ctx.phone',
+                'lang' => 'kwtsms_ctx.lang',
+                'user_id' => 'kwtsms_ctx.user_id',
+                'storefront' => 'kwtsms_ctx.storefront_id',
+                'company_id' => 'kwtsms_ctx.company_id',
+                'dedupe' => [
+                    'key' => 'gc:{event}:{certificate_data.gift_cert_id}:{receiver}',
+                    'window' => 86400,
+                    'required' => true,
+                ],
+                'opt_out' => true,
+                'group' => 'kwtsms.templates.group_gift_certificates',
+                'data_class' => \Tygh\Addons\Kwtsms\Events\GiftCertificateSmsData::class,
+            ];
+        }
+    }
+} catch (\Throwable $e) {
+    // One debug row (the add-on's own log service); if even that is not available, the PHP error log.
+    try {
+        \Tygh\Tygh::$app['kwtsms.logs.debug']->log(
+            'debug',
+            'gift_certificates.statuses_failed',
+            'the gift certificate statuses could not be read, no gift certificate SMS events',
+            ['error' => get_class($e)]
+        );
+    } catch (\Throwable $inner) {
+        error_log(
+            'kwtsms: the gift certificate statuses could not be read, no gift certificate SMS events: ' . get_class($e)
+        );
+    }
+}
+
 return $schema;

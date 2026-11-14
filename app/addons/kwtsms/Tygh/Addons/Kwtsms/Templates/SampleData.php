@@ -230,6 +230,31 @@ final class SampleData
     }
 
     /**
+     * 2026-11-14 13:26 +03: Task M3.4 (gift certificate SMS), task 596. The values of {gift_cert_id}, {amount} and
+     * {gc_status}: a reference certificate, or the worst case (6-digit id, a 9-character amount, a 12-character status
+     * name). {currency} has its value in reference() and worst().
+     *
+     * @return array<string,string>
+     */
+    public static function giftCertificate(bool $worst = false, string $lang = 'en'): array
+    {
+        $ar = $lang === 'ar';
+        if ($worst) {
+            return [
+                'gift_cert_id' => '204800',
+                'amount' => '12345.678',
+                'gc_status' => $ar ? str_repeat("\u{0639}", 12) : 'Used and disabled',
+            ];
+        }
+
+        return [
+            'gift_cert_id' => '2048',
+            'amount' => '25.000',
+            'gc_status' => $ar ? "\u{0646}\u{0634}\u{0637}" : 'Active',
+        ];
+    }
+
+    /**
      * 2026-11-14 05:30 +03: Task M3.2 (call request SMS), task 596. The value of {request_id}: a reference id, or the
      * worst case (6 digits). {customer_phone} and {product_name} have their values in profile() and lowStock().
      *
