@@ -280,7 +280,7 @@ interface ConfigInterface
 
     /**
      * 2026-11-12 02:02 +03: task 596 M3.0. The 1.4.0 settings, all OFF by default.
-     * Back-in-stock recipients per fan-out: 1..900 (above 900 reads as 900), default 500 (P3-65).
+     * Back-in-stock recipients per fan-out: 1..500 (above 500 reads as 500), default 500 (P3-65).
      */
     public function bisMaxRecipients(): int;
 

@@ -206,7 +206,7 @@ foreach (['call_requests.request_created', 'call_requests.request_about_product_
 // 2026-11-14 09:41 +03: Task M3.3 (B3, P3-63, P3-64, P3-65), task 596. Back in stock: core dispatches
 // product.back_in_stock once per company group with the subscribers' E-MAIL addresses only. OrderNotifier hands it
 // to Orders\BackInStockNotifier (after the storefront switch), which looks up the registered, active customer accounts
-// with a phone (one SELECT per 500 e-mails), caps the fan-out at bis_max_recipients (1..900, below the kwtSMS queue
+// with a phone (one SELECT per 500 e-mails), caps the fan-out at bis_max_recipients (1..500, below the kwtSMS queue
 // limit) and, per recipient, asks THIS declaration for the key bis:<product id>:<user id> (window 86400, required: a
 // key that cannot be resolved sends nothing) and claims it: one SMS per account and product per day, however often
 // the product is restocked or the e-mail is subscribed. The key holds ids only, no e-mail or phone. The user id is

@@ -7825,5 +7825,5 @@ msgid "Subscribers per restock"
 msgstr "Subscribers per restock"
 
 msgctxt "Languages::kwtsms.settings.bis_max_recipients_help"
-msgid "The most subscribers who get the back in stock SMS for one restock (1 to 900, the default is 500). Only registered customers with a phone number are counted; the rest of the subscribers get the e-mail only. Switch the SMS on in Administration > Notifications."
-msgstr "The most subscribers who get the back in stock SMS for one restock (1 to 900, the default is 500). Only registered customers with a phone number are counted; the rest of the subscribers get the e-mail only. Switch the SMS on in Administration > Notifications."
+msgid "The most subscribers who get the back in stock SMS for one restock (1 to 500, the default is 500). Only registered customers with a phone number are counted; the rest of the subscribers get the e-mail only. Switch the SMS on in Administration > Notifications."
+msgstr "The most subscribers who get the back in stock SMS for one restock (1 to 500, the default is 500). Only registered customers with a phone number are counted; the rest of the subscribers get the e-mail only. Switch the SMS on in Administration > Notifications."

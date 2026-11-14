@@ -8,7 +8,7 @@
  * WHAT:      The back-in-stock fan-out (B3, P3-65): one dispatch of core's product.back_in_stock (a product is
  *            available again; payload = subscribers' e-mail list, product, product_id, url, company_id,
  *            storefront_id, lang_code) becomes one SMS per registered subscriber that has a phone, at most
- *            bis_max_recipients (1..900) per dispatch, one API call per text language.
+ *            bis_max_recipients (1..500) per dispatch, one API call per text language.
  * WHY:       The only event where one dispatch reaches many strangers' phones, so cost and abuse are bounded here:
  *            (1) the recipients are accounts, not e-mails (Orders\BackInStockRecipients: active customer accounts
  *            with a phone; Ultimate with share_users = N only the dispatch's company), so subscribing someone
@@ -140,15 +140,12 @@ class BackInStockNotifier
             return 0;
         }
 
-        // The hard cap: first come, first served, in subscription order.
+        // 2026-11-14 11:40 +03: M3.3 fix round 1 (I1), task 596. The cap counts messages claimed, not accounts seen:
+        // the walk below claims each key in order, skips the deduped and unresolved ones, and stops claiming when
+        // `claimed` reaches the cap, so an account that already got today's SMS never uses up a slot.
         $cap = $this->config->bisMaxRecipients();
-        if ($eligible > $cap) {
-            $this->debug('bis.capped', 'more subscribers than the cap: the rest get the e-mail only', [
-                'product_id' => $product_id, 'cap' => $cap, 'count' => $eligible - $cap,
-            ]);
-            $accounts = array_slice($accounts, 0, $cap);
-        }
-        $stats['capped'] = $eligible - count($accounts);
+        $claimed = 0;
+        $stats['capped'] = 0;
 
         // Group by the language of the text that really answers (a missing text falls back, so two languages can
         // share one call). A group without any text sends nothing and claims nothing.
@@ -183,6 +180,11 @@ class BackInStockNotifier
         foreach ($groups as $text_lang => $group) {
             $phones = [];
             foreach ($group['accounts'] as $account) {
+                if ($claimed >= $cap) {
+                    // The cap is reached: no further claim; this eligible account gets the e-mail only.
+                    $stats['capped']++;
+                    continue;
+                }
                 $key = $decl->dedupeKey(
                     $payload + ['kwtsms_ctx' => ['user_id' => $account['user_id']]],
                     Defaults::RECEIVER_CUSTOMER,
@@ -198,6 +200,7 @@ class BackInStockNotifier
                     $stats['duplicates']++;
                     continue;
                 }
+                $claimed++;
                 $phones[] = $account['phone'];
             }
             if ($phones === []) {
@@ -236,6 +239,11 @@ class BackInStockNotifier
             }
         }
 
+        if ($stats['capped'] > 0) {
+            $this->debug('bis.capped', 'more subscribers than the cap: the rest get the e-mail only', [
+                'product_id' => $product_id, 'cap' => $cap, 'count' => $stats['capped'],
+            ]);
+        }
         if ($stats['unresolved'] > 0 && $this->log !== null) {
             // The token name only (the key itself would hold ids, never an e-mail, but the row stays minimal).
             $this->log->log('error', 'bis.dedupe_key', 'dedupe key not resolved: those recipients got no SMS', [

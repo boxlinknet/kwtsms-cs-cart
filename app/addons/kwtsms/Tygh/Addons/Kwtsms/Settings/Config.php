@@ -167,7 +167,7 @@ class Config implements ConfigInterface
             // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: next to the low
             // balance alert in the Settings form.
             'fail_spike_alert', 'fail_spike_threshold',
-            // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap (1..900).
+            // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap (1..500).
             'bis_max_recipients',
             'enabled',
         ],
@@ -318,7 +318,7 @@ class Config implements ConfigInterface
      * 2026-11-12 02:02 +03: task 596 M3.0 (P3-65). The hard cap of one back-in-stock fan-out, below the kwtSMS queue
      * limit of 1,000 messages: a stored value above it reads as the cap.
      */
-    public const BIS_MAX_RECIPIENTS_CAP = 900;
+    public const BIS_MAX_RECIPIENTS_CAP = 500;
 
     private const TIME_PATTERN = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D';
     /** 2026-10-23 17:13 +03: the one site key pattern, read and write side (fix round 1, I1, task 596). */
@@ -797,7 +797,7 @@ class Config implements ConfigInterface
     }
 
     /**
-     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-65). 1..900; a value above 900 reads as 900 (the cap is never exceeded),
+     * 2026-11-12 02:02 +03: task 596 M3.0 (P3-65). 1..500; a value above 500 reads as 500 (the cap is never exceeded),
      * 0, a negative, a non-number or a value longer than 9 digits reads as the default 500.
      */
     public function bisMaxRecipients(): int

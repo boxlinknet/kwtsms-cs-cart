@@ -375,7 +375,7 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
 
                     <!-- 2026-11-12 02:02 +03: task 596 M3.0 (1.4.0 data model). Written only by the Settings save modes (each feature
                          task adds its own field and key). Every feature defaults to OFF; bis_max_recipients is the
-                         back-in-stock fan-out cap (1..900, P3-65). No install or upgrade step writes a switch, condition
+                         back-in-stock fan-out cap (1..500, P3-65). No install or upgrade step writes a switch, condition
                          or vendor sender row. -->
                     <item id="bis_max_recipients">
                         <type>hidden</type>
