@@ -255,6 +255,20 @@ final class SampleData
     }
 
     /**
+     * 2026-11-14 17:25 +03: Task M3.5 (review, discussion and message SMS), task 596. The values of {object_name} and
+     * {thread_id}: a reference page and thread, or the worst case (40-character name, 6-digit thread number).
+     * {product_name} and {order_id} have their values in lowStock() and reference().
+     *
+     * @return array<string,string>
+     */
+    public static function community(bool $worst = false): array
+    {
+        return $worst
+            ? ['object_name' => 'Wireless Noise Cancelling Headphones Pro', 'thread_id' => '204800']
+            : ['object_name' => 'Ceramic Mug', 'thread_id' => '2048'];
+    }
+
+    /**
      * 2026-11-14 05:30 +03: Task M3.2 (call request SMS), task 596. The value of {request_id}: a reference id, or the
      * worst case (6 digits). {customer_phone} and {product_name} have their values in profile() and lowStock().
      *

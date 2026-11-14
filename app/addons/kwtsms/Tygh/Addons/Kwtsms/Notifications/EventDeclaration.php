@@ -56,6 +56,9 @@ final class EventDeclaration
         'product_review_data.name', 'product_review_data.user_data.name', 'product_review_data.city',
         'call_request_data.notes', 'return_info.comment',
         'comment', 'notes', 'reply',
+        // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The thread subject and the author name a vendor thread
+        // carries (typed by the customer), as whole segments at any depth.
+        'subject', 'message_author',
     ];
 
     /** 2026-11-12 02:02 +03: task 596 M3.0 (P3-62). An add-on id as CS-Cart stores it. */

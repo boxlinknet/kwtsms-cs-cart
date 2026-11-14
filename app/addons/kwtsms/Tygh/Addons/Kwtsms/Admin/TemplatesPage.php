@@ -1483,6 +1483,7 @@ class TemplatesPage
             + SampleData::callRequest(false) // 2026-11-14 05:30 +03: Task M3.2, task 596
             + SampleData::backInStock(false) // 2026-11-14 09:36 +03: Task M3.3, task 596
             + SampleData::giftCertificate(false, $lang) // 2026-11-14 13:26 +03: Task M3.4, task 596
+            + SampleData::community(false) // 2026-11-14 17:25 +03: Task M3.5, task 596
             + SampleData::codes(false); // 2026-10-24 12:34 +03: Task M1.4, task 596
     }
 
@@ -1570,6 +1571,7 @@ class TemplatesPage
             + SampleData::lowStock(true) // 2026-10-22 21:29 +03: Task A7, task 596
             + SampleData::backInStock(true) // 2026-11-14 09:36 +03: Task M3.3, task 596
             + SampleData::giftCertificate(true, $lang) // 2026-11-14 13:26 +03: Task M3.4, task 596
+            + SampleData::community(true) // 2026-11-14 17:25 +03: Task M3.5, task 596
             + SampleData::lowBalance(true) // 2026-10-23 00:14 +03: Task A9, task 596
             + SampleData::failSpike(true) // 2026-11-06 22:08 +03: Task M2.11, task 596
             + SampleData::codes(true); // 2026-10-24 12:34 +03: Task M1.4, task 596

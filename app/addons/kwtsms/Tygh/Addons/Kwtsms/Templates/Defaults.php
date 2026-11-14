@@ -120,6 +120,24 @@ class Defaults
     public const EVENT_GIFT = 'gift_certificates.gift_certificate.status_changed';
     public const EVENT_GIFT_UPDATED = 'gift_certificates.gift_certificate.updated';
 
+    /**
+     * 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. Review, discussion and vendor communication events (core's
+     * product_reviews, discussion and vendor_communication add-ons) with the receivers their text exists for. Their
+     * placeholders are in EVENT_PLACEHOLDERS. Nothing a visitor typed is a placeholder.
+     */
+    public const COMMUNITY = [
+        'discussion.products.new_post' => ['A', 'V'],
+        'discussion.testimonials.new_post' => ['A', 'V'],
+        'discussion.orders.new_post' => ['A', 'V'],
+        'discussion.categories.new_post' => ['A', 'V'],
+        'discussion.pages.new_post' => ['A', 'V'],
+        'discussion.vendors.new_post' => ['A', 'V'],
+        'product_reviews.new_post' => ['A', 'V'],
+        'vendor_communication.message_received' => ['C', 'A', 'V'],
+        'vendor_communication.order_message_received' => ['C', 'V'],
+        'vendor_communication.vendor_to_admin_message_received' => ['A'],
+    ];
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -166,6 +184,19 @@ class Defaults
         // above) and its status name (Events\GiftCertificateSmsData). Never the code, sender, recipient or message.
         self::EVENT_GIFT => ['gift_cert_id', 'amount', 'gc_status'],
         self::EVENT_GIFT_UPDATED => ['gift_cert_id', 'amount', 'gc_status'],
+        // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The discussed object's name and the thread number
+        // (discussion), the product name (review), the thread number (messages). {order_id} is global. Never a text,
+        // rating or name.
+        'discussion.products.new_post' => ['object_name', 'thread_id'],
+        'discussion.testimonials.new_post' => ['object_name', 'thread_id'],
+        'discussion.orders.new_post' => ['object_name', 'thread_id'],
+        'discussion.categories.new_post' => ['object_name', 'thread_id'],
+        'discussion.pages.new_post' => ['object_name', 'thread_id'],
+        'discussion.vendors.new_post' => ['object_name', 'thread_id'],
+        'product_reviews.new_post' => ['product_name'],
+        'vendor_communication.message_received' => ['thread_id'],
+        'vendor_communication.order_message_received' => ['thread_id'],
+        'vendor_communication.vendor_to_admin_message_received' => ['thread_id'],
     ];
 
     /**
@@ -260,6 +291,14 @@ class Defaults
         // "updated", C.
         $rows[] = self::row(self::EVENT_GIFT, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_GIFT_UPDATED, self::RECEIVER_CUSTOMER);
+        // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The review, discussion and message texts (V rows only in
+        // Multi-Vendor).
+        foreach (self::COMMUNITY as $community_event => $community_receivers) {
+            foreach ($community_receivers as $community_receiver) {
+                $is_vendor = $community_receiver === self::RECEIVER_VENDOR;
+                $rows[] = self::row($community_event, $community_receiver, '', '', $is_vendor);
+            }
+        }
 
         return $rows;
     }

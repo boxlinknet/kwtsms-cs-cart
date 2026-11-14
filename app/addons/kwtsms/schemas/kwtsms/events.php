@@ -344,4 +344,67 @@ try {
     }
 }
 
+// 2026-11-14 17:25 +03: Task M3.5 (B5, P3-62, P3-63, P3-64), task 596. Review, discussion and vendor communication
+// alerts. Event ids are core's: the six discussion.<products|testimonials|orders|categories|pages|vendors>.new_post
+// (vendors only in Multi-Vendor; A, and V where core's merged schema has it), product_reviews.new_post (A, V),
+// vendor_communication.message_received (C, A, V), .order_message_received (C, V) and
+// .vendor_to_admin_message_received (A). Each only while its owning add-on is active (owner gate). Nothing a visitor or
+// customer typed is mapped: no post, review or message text, rating, author name or thread subject (EventDeclaration
+// refuses them); the data class computes the catalog name, the thread number and the order number from ids. The
+// throttle is one SMS per event, receiver, COMPANY and clock hour (required: a key that cannot be resolved sends
+// nothing); the key has no product, thread, post or poster, so switching them cannot reset it. kwtsms_ctx.scope is
+// '0' for A and V and the thread customer's id for the C text (one vendor reply must not silence another customer's;
+// the sender of a C text is staff, never a visitor). Storefront discussion posts send only while the core antibot
+// scenario "discussion" is on (product reviews have no antibot rule: the hourly key is their gate). The C text of a
+// vendor thread is a service message, not under the order-SMS opt-out (Open 5), and goes only for a vendor-to-customer
+// thread. Default OFF (no switch row). No add-on function is called here (SchemaFuncPhpGuardTest).
+$community_dedupe = [
+    'key' => 'rev:{event}:{receiver}:{kwtsms_ctx.company_id}:{kwtsms_ctx.scope}:{hour}',
+    'window' => 3600,
+    'required' => true,
+];
+$community_discussions = ['products', 'testimonials', 'orders', 'categories', 'pages'];
+if (function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR')) {
+    $community_discussions[] = 'vendors';
+}
+foreach ($community_discussions as $community_type) {
+    $schema['discussion.' . $community_type . '.new_post'] = [
+        'addon' => 'discussion',
+        'receivers' => ['A', 'V'],
+        'company_id' => 'kwtsms_ctx.company_id',
+        'dedupe' => $community_dedupe,
+        'public_form' => 'discussion',
+        'group' => 'kwtsms.templates.group_community',
+        'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
+    ];
+}
+$schema['product_reviews.new_post'] = [
+    'addon' => 'product_reviews',
+    'receivers' => ['A', 'V'],
+    'company_id' => 'kwtsms_ctx.company_id',
+    'dedupe' => $community_dedupe,
+    'group' => 'kwtsms.templates.group_community',
+    'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
+];
+foreach (
+    [
+        'vendor_communication.message_received' => ['C', 'A', 'V'],
+        'vendor_communication.order_message_received' => ['C', 'V'],
+        'vendor_communication.vendor_to_admin_message_received' => ['A'],
+    ] as $community_event => $community_receivers
+) {
+    $schema[$community_event] = [
+        'addon' => 'vendor_communication',
+        'receivers' => $community_receivers,
+        'phone' => 'kwtsms_ctx.phone',
+        'lang' => 'kwtsms_ctx.lang',
+        'user_id' => 'kwtsms_ctx.user_id',
+        'storefront' => 'storefront_id',
+        'company_id' => 'kwtsms_ctx.company_id',
+        'dedupe' => $community_dedupe,
+        'group' => 'kwtsms.templates.group_community',
+        'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
+    ];
+}
+
 return $schema;

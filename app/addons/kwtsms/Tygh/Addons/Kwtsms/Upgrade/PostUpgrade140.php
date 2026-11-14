@@ -61,6 +61,18 @@ class PostUpgrade140
         // 2026-11-14 13:26 +03: Task M3.4 (gift certificate SMS), task 596: the purchaser texts (status family,
         // updated).
         'gift_certificates.gift_certificate.status_changed|C', 'gift_certificates.gift_certificate.updated|C',
+        // 2026-11-14 17:25 +03: Task M3.5 (review, discussion and message SMS), task 596: the A, V and C texts.
+        'discussion.products.new_post|A', 'discussion.products.new_post|V',
+        'discussion.testimonials.new_post|A', 'discussion.testimonials.new_post|V',
+        'discussion.orders.new_post|A', 'discussion.orders.new_post|V',
+        'discussion.categories.new_post|A', 'discussion.categories.new_post|V',
+        'discussion.pages.new_post|A', 'discussion.pages.new_post|V',
+        'discussion.vendors.new_post|A', 'discussion.vendors.new_post|V',
+        'product_reviews.new_post|A', 'product_reviews.new_post|V',
+        'vendor_communication.message_received|C', 'vendor_communication.message_received|A',
+        'vendor_communication.message_received|V',
+        'vendor_communication.order_message_received|C', 'vendor_communication.order_message_received|V',
+        'vendor_communication.vendor_to_admin_message_received|A',
     ];
 
     /**

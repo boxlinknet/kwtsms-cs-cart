@@ -7864,3 +7864,136 @@ msgstr "Gift certificate amount"
 msgctxt "Languages::kwtsms.templates.ph_gc_status"
 msgid "Gift certificate status"
 msgstr "Gift certificate status"
+
+# 2026-11-14 17:25 +03: Task M3.5 (B5, review, discussion and vendor message SMS), task 596. Default texts of the ten events, the Templates heading, row names and the placeholder names. No post, review or message text, rating or author name is a placeholder.
+msgctxt "Languages::kwtsms.tpl.discussion.products.new_post.A"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.products.new_post.V"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.A"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.V"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.orders.new_post.A"
+msgid "{store_name}: New post on order {order_id}."
+msgstr "{store_name}: New post on order {order_id}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.orders.new_post.V"
+msgid "{store_name}: New post on order {order_id}."
+msgstr "{store_name}: New post on order {order_id}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.A"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.V"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.pages.new_post.A"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.pages.new_post.V"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.vendors.new_post.A"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.discussion.vendors.new_post.V"
+msgid "{store_name}: New post on {object_name}."
+msgstr "{store_name}: New post on {object_name}."
+
+msgctxt "Languages::kwtsms.tpl.product_reviews.new_post.A"
+msgid "{store_name}: New review for {product_name}."
+msgstr "{store_name}: New review for {product_name}."
+
+msgctxt "Languages::kwtsms.tpl.product_reviews.new_post.V"
+msgid "{store_name}: New review for {product_name}."
+msgstr "{store_name}: New review for {product_name}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.message_received.C"
+msgid "{store_name}: You have a new message in your conversation {thread_id}."
+msgstr "{store_name}: You have a new message in your conversation {thread_id}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.message_received.A"
+msgid "{store_name}: New message. Thread {thread_id}."
+msgstr "{store_name}: New message. Thread {thread_id}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.message_received.V"
+msgid "{store_name}: New message. Thread {thread_id}."
+msgstr "{store_name}: New message. Thread {thread_id}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.order_message_received.C"
+msgid "{store_name}: New message about your order {order_id}."
+msgstr "{store_name}: New message about your order {order_id}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.order_message_received.V"
+msgid "{store_name}: New message. Thread {thread_id}."
+msgstr "{store_name}: New message. Thread {thread_id}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_communication.vendor_to_admin_message_received.A"
+msgid "{store_name}: New message from a vendor. Thread {thread_id}."
+msgstr "{store_name}: New message from a vendor. Thread {thread_id}."
+
+msgctxt "Languages::kwtsms.templates.group_community"
+msgid "Reviews, discussions and messages"
+msgstr "Reviews, discussions and messages"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.products.new_post"
+msgid "Product discussion post"
+msgstr "Product discussion post"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.testimonials.new_post"
+msgid "Testimonial post"
+msgstr "Testimonial post"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.orders.new_post"
+msgid "Order discussion post"
+msgstr "Order discussion post"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.categories.new_post"
+msgid "Category discussion post"
+msgstr "Category discussion post"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.pages.new_post"
+msgid "Page discussion post"
+msgstr "Page discussion post"
+
+msgctxt "Languages::kwtsms.templates.event.discussion.vendors.new_post"
+msgid "Vendor discussion post"
+msgstr "Vendor discussion post"
+
+msgctxt "Languages::kwtsms.templates.event.product_reviews.new_post"
+msgid "New product review"
+msgstr "New product review"
+
+msgctxt "Languages::kwtsms.templates.event.vendor_communication.message_received"
+msgid "Vendor thread message"
+msgstr "Vendor thread message"
+
+msgctxt "Languages::kwtsms.templates.event.vendor_communication.order_message_received"
+msgid "Order thread message"
+msgstr "Order thread message"
+
+msgctxt "Languages::kwtsms.templates.event.vendor_communication.vendor_to_admin_message_received"
+msgid "Vendor to administrator message"
+msgstr "Vendor to administrator message"
+
+msgctxt "Languages::kwtsms.templates.ph_object_name"
+msgid "Discussed item name"
+msgstr "Discussed item name"
+
+msgctxt "Languages::kwtsms.templates.ph_thread_id"
+msgid "Thread number"
+msgstr "Thread number"
