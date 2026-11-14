@@ -315,7 +315,10 @@ try {
                 'storefront' => 'kwtsms_ctx.storefront_id',
                 'company_id' => 'kwtsms_ctx.company_id',
                 'dedupe' => [
-                    'key' => 'gc:{event}:{certificate_data.gift_cert_id}:{receiver}',
+                    // 2026-11-14 15:41 +03: no {event}: one admin save fires status_changed then updated with the
+                    // same new status, the second is a duplicate, so the purchaser gets one SMS; task 596 M3.4
+                    // review I1.
+                    'key' => 'gc:{certificate_data.gift_cert_id}:{certificate_data.status}:{receiver}',
                     'window' => 86400,
                     'required' => true,
                 ],

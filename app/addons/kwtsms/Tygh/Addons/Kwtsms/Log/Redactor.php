@@ -67,9 +67,10 @@ class Redactor
         #[\SensitiveParameter]
         array $secrets
     ): string {
-        $map = self::replacementMap(self::plainSecrets($secrets));
+        $plain = self::plainSecrets($secrets);
+        $map = self::replacementMap($plain);
 
-        return $map === [] ? $text : strtr($text, $map);
+        return self::apply($text, $map, $plain, self::REPLACEMENT);
     }
 
     /**
@@ -84,9 +85,10 @@ class Redactor
         #[\SensitiveParameter]
         array $secret_values
     ): string {
-        $map = self::replacementMap(self::plainSecrets($secret_values), self::MASK);
+        $plain = self::plainSecrets($secret_values);
+        $map = self::replacementMap($plain, self::MASK);
 
-        return $map === [] ? $text : strtr($text, $map);
+        return self::apply($text, $map, $plain, self::MASK);
     }
 
     /**
@@ -113,6 +115,39 @@ class Redactor
         }
 
         return $plain;
+    }
+
+    /**
+     * One case-insensitive pass over every encoded form of every secret (strtr() fallback).
+     * 2026-11-14 15:40 +03: the case-insensitive pass is new, a hand-typed gift certificate code in lower or mixed case
+     * (core compares codes case-insensitively) was stored in clear, task 596 M3.4 review ruling A.
+     *
+     * @param array<string, string> $map
+     * @param string[]              $plain
+     */
+    private static function apply(
+        string $text,
+        #[\SensitiveParameter]
+        array $map,
+        #[\SensitiveParameter]
+        array $plain,
+        string $replacement
+    ): string {
+        if ($map === []) {
+            return $text;
+        }
+        $keys = array_keys($map);
+        usort($keys, static function (string $x, string $y): int {
+            return strlen($y) <=> strlen($x);
+        });
+        $pattern = '/' . implode('|', array_map(static function (string $k): string {
+            return preg_quote($k, '/');
+        }, $keys)) . '/iu';
+        // One pass, longest form first, replaced text is never rescanned; a text that is not valid UTF-8 falls back to
+        // the exact strtr() pass.
+        $done = @preg_replace($pattern, str_replace(['\\', '$'], ['\\\\', '\\$'], $replacement), $text);
+
+        return is_string($done) ? $done : strtr($text, $map);
     }
 
     /**
@@ -237,7 +272,7 @@ class Redactor
         int $depth
     ) {
         if (is_string($value)) {
-            return $map === [] ? $value : strtr($value, $map);
+            return self::apply($value, $map, $plain, self::REPLACEMENT);
         }
         if (is_array($value)) {
             return $depth + 1 >= self::MAX_DEPTH ? '[max depth]' : self::walk($value, $map, $plain, $depth + 1);

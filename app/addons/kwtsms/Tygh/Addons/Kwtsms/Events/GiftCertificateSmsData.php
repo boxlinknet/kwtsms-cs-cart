@@ -103,6 +103,12 @@ final class GiftCertificateSmsData implements DeclaredSmsData, PayloadEnricher
         if (!is_scalar($id) || is_bool($id) || (int) $id <= 0) {
             throw new \RuntimeException('gift certificate payload without a certificate id');
         }
+        // 2026-11-14 15:41 +03: ruling B, a payload without the certificate code cannot be masked, so no SMS goes
+        // (the code is a secret and a merchant may have typed it into the text), task 596 M3.4 review.
+        $code = $cert['gift_cert_code'] ?? null;
+        if (!is_scalar($code) || is_bool($code) || trim((string) $code) === '') {
+            throw new \RuntimeException('gift certificate payload without a certificate code');
+        }
         $payload['kwtsms_ctx'] = ['company_id' => 0];
         $raw = $cert['order_ids'] ?? '';
         $first = is_scalar($raw) && !is_bool($raw) ? (int) trim(explode(',', (string) $raw)[0]) : 0;
