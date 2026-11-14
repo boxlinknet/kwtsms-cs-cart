@@ -78,6 +78,8 @@ class SettingsPage
         'log_level', 'retention_messages_days', 'retention_attempts_days', 'retention_debug_days', 'cron_url_enabled',
         // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert.
         'fail_spike_alert', 'fail_spike_threshold',
+        // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap.
+        'bis_max_recipients',
     ];
 
     /** Keys posted as a list (multi-select, checkboxes); every other key must be one string. */
@@ -1994,6 +1996,9 @@ class SettingsPage
                 return $this->config->failSpikeAlert() ? 'Y' : 'N';
             case 'fail_spike_threshold':
                 return $this->config->failSpikeThreshold();
+            // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596.
+            case 'bis_max_recipients':
+                return $this->config->bisMaxRecipients();
         }
 
         return '';

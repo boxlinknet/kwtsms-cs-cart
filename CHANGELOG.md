@@ -18,6 +18,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 <!-- 2026-11-12 06:59 +03: M3.17 (P3-74), task 596. First [Unreleased] entry of 1.4.0 -->
 ## [Unreleased]
 
+<!-- 2026-11-14 11:40 +03: M3.3 back-in-stock SMS, task 596 -->
+### Added
+
+- Back-in-stock SMS: when a product is restocked, subscribers who are registered customers with a phone number get an SMS
+  (template "Back in stock", English and Arabic); other subscribers still get the e-mail. One SMS per customer and
+  product per day. Settings > Back in stock SMS sets the most subscribers messaged per restock (default 500).
+
 ### Changed
 
 - Texts about test messages (Settings, Dashboard, test-mode alert, Help and the test SMS note, English and Arabic) say a

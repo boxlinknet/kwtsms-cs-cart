@@ -167,6 +167,8 @@ class Config implements ConfigInterface
             // 2026-11-06 22:06 +03: Task M2.11 (P3-41, P3-57), task 596. The send-failure spike alert: next to the low
             // balance alert in the Settings form.
             'fail_spike_alert', 'fail_spike_threshold',
+            // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap (1..900).
+            'bis_max_recipients',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

@@ -111,6 +111,8 @@ use Tygh\Addons\Kwtsms\Orders\AfterResponse;
 use Tygh\Addons\Kwtsms\Orders\CheckoutCode; // 2026-11-05 20:54 +03: Task M2.4, task 596
 use Tygh\Addons\Kwtsms\Orders\CheckoutRules;
 use Tygh\Addons\Kwtsms\Orders\Diagnostics;
+use Tygh\Addons\Kwtsms\Orders\BackInStockNotifier; // 2026-11-14 09:58 +03: Task M3.3, task 596
+use Tygh\Addons\Kwtsms\Orders\BackInStockRecipients; // 2026-11-14 09:58 +03: Task M3.3, task 596
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
 use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
 use Tygh\Addons\Kwtsms\Orders\OrderHooks;
@@ -929,7 +931,29 @@ class ServiceProvider implements ServiceProviderInterface
                     $app['kwtsms.sms']->drainDue(5, 2.0, false);
                 },
                 // 2026-11-14 07:50 +03: Task M3.2 review I2, task 596. The daily ceiling of a public-form V SMS.
-                $app['kwtsms.rate_limiter']
+                $app['kwtsms.rate_limiter'],
+                // 2026-11-14 09:58 +03: Task M3.3 (B3), task 596. The back-in-stock fan-out.
+                $app['kwtsms.back_in_stock']
+            );
+        };
+
+        // 2026-11-14 09:58 +03: Task M3.3 (B3, P3-65), task 596. One SMS per registered subscriber with a phone, capped
+        // at bis_max_recipients; the product name in the language of each text, else the dispatch's.
+        $app['kwtsms.back_in_stock'] = function (Container $app): BackInStockNotifier {
+            return new BackInStockNotifier(
+                $app['kwtsms.sms'],
+                $app['kwtsms.config'],
+                new BackInStockRecipients(),
+                $app['kwtsms.dispatch_keys'],
+                $app['kwtsms.templates'],
+                $app['kwtsms.order_sms_data'],
+                $app['kwtsms.order_diagnostics'],
+                $app['kwtsms.logs.debug'],
+                static function (int $product_id, string $lang, string $fallback): string {
+                    $name = function_exists('fn_get_product_name') ? fn_get_product_name($product_id, $lang) : '';
+
+                    return is_string($name) && $name !== '' ? $name : $fallback;
+                }
             );
         };
 

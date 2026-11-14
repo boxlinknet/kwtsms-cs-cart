@@ -56,6 +56,8 @@ class PostUpgrade140
         'rma.status_changed|C', 'rma.status_changed|A', 'rma.status_changed|V',
         'call_requests.request_created|A', 'call_requests.request_created|V',
         'call_requests.request_about_product_created|A', 'call_requests.request_about_product_created|V',
+        // 2026-11-14 09:37 +03: Task M3.3 (back-in-stock SMS), task 596: the customer text.
+        'product.back_in_stock|C',
     ];
 
     /**

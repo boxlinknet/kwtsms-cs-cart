@@ -105,6 +105,12 @@ class Defaults
     public const EVENT_CALL = 'call_requests.request_created';
     public const EVENT_CALL_PRODUCT = 'call_requests.request_about_product_created';
 
+    /**
+     * 2026-11-14 09:35 +03: Task M3.3 (B3), task 596. Core's product.back_in_stock: one SMS per registered subscriber
+     * (Orders\BackInStockNotifier). C only.
+     */
+    public const EVENT_BIS = 'product.back_in_stock';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -144,6 +150,9 @@ class Defaults
         // and the product name (Events\CallRequestSmsData). Never the requester's name.
         self::EVENT_CALL => ['request_id', 'customer_phone'],
         self::EVENT_CALL_PRODUCT => ['request_id', 'customer_phone', 'product_name'],
+        // 2026-11-14 09:35 +03: Task M3.3 (B3), task 596. The product name (in the recipient's language) and its
+        // storefront URL; no name or e-mail of the subscriber.
+        self::EVENT_BIS => ['product_name', 'product_url'],
     ];
 
     /**
@@ -232,6 +241,8 @@ class Defaults
         $rows[] = self::row(self::EVENT_CALL, self::RECEIVER_VENDOR, '', '', true);
         $rows[] = self::row(self::EVENT_CALL_PRODUCT, self::RECEIVER_ADMIN);
         $rows[] = self::row(self::EVENT_CALL_PRODUCT, self::RECEIVER_VENDOR, '', '', true);
+        // 2026-11-14 09:35 +03: Task M3.3 (B3), task 596. The back-in-stock text: C.
+        $rows[] = self::row(self::EVENT_BIS, self::RECEIVER_CUSTOMER);
 
         return $rows;
     }

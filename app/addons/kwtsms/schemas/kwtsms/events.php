@@ -203,6 +203,29 @@ foreach (['call_requests.request_created', 'call_requests.request_about_product_
     ];
 }
 
+// 2026-11-14 09:41 +03: Task M3.3 (B3, P3-63, P3-64, P3-65), task 596. Back in stock: core dispatches
+// product.back_in_stock once per company group with the subscribers' E-MAIL addresses only. OrderNotifier hands it
+// to Orders\BackInStockNotifier (after the storefront switch), which looks up the registered, active customer accounts
+// with a phone (one SELECT per 500 e-mails), caps the fan-out at bis_max_recipients (1..900, below the kwtSMS queue
+// limit) and, per recipient, asks THIS declaration for the key bis:<product id>:<user id> (window 86400, required: a
+// key that cannot be resolved sends nothing) and claims it: one SMS per account and product per day, however often
+// the product is restocked or the e-mail is subscribed. The key holds ids only, no e-mail or phone. The user id is
+// not in the core payload: the fan-out adds kwtsms_ctx.user_id per recipient (the add-on's own key). The customer
+// order-SMS opt-out does not apply (the customer asked for this SMS). Only the product name and its storefront link
+// are placeholders (catalog data, no subscriber data). Default OFF (no switch row). No add-on function is called here
+// (SchemaFuncPhpGuardTest).
+$schema['product.back_in_stock'] = [
+    'receivers' => ['C'],
+    'placeholders' => ['product_name' => 'product.name', 'product_url' => 'url'],
+    'storefront' => 'storefront_id',
+    'dedupe' => [
+        'key' => 'bis:{product_id}:{kwtsms_ctx.user_id}',
+        'window' => 86400,
+        'required' => true,
+    ],
+    'group' => 'kwtsms.templates.group_products',
+];
+
 // 2026-11-12 07:40 +03: Task M3.1 (B1, P3-62, P3-63, P3-64), task 596. RMA return status SMS: one declaration per
 // return status, event id rma.status_changed.<status lower case> as core's rma schema names them
 // (rma/schemas/notifications/events.post.php:94 reads the same statuses with the same call at the same time). Only

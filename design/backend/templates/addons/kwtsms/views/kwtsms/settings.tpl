@@ -406,6 +406,18 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             </div>
         </section>
 
+        {* 2026-11-14 09:38 +03: Task M3.3 (B3, P3-65), task 596. The back-in-stock fan-out cap: at most this many subscribers get the SMS of one restock (1 to 900, below the kwtSMS queue limit of 1,000). The SMS itself is switched on per event in Notifications. *}
+        <section class="kwtsms-section" id="kwtsms_bis" aria-labelledby="kwtsms_bis_title">
+            <h4 class="subheader" id="kwtsms_bis_title">{__("kwtsms.settings.bis_title")}</h4>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_bis_max_recipients">{__("kwtsms.settings.field.bis_max_recipients")}:</label>
+                <div class="controls">
+                    <input type="number" id="kwtsms_bis_max_recipients" name="kwtsms_settings[bis_max_recipients]" value="{$s.bis_max_recipients}" min="1" max="900" step="1" class="input-small" dir="ltr" aria-describedby="kwtsms_bis_max_recipients_help">
+                    <p class="muted description" id="kwtsms_bis_max_recipients_help">{__("kwtsms.settings.bis_max_recipients_help")}</p>
+                </div>
+            </div>
+        </section>
+
         <section class="kwtsms-section" id="kwtsms_quiet" aria-labelledby="kwtsms_quiet_title">
             <h4 class="subheader" id="kwtsms_quiet_title">{__("kwtsms.settings.quiet_hours")}</h4>
             <div class="control-group">

@@ -152,6 +152,9 @@ class OrderNotifier
     /** @var RateLimiter|null 2026-11-14 07:40 +03: Task M3.2 review I2, task 596 */
     private $limiter;
 
+    /** @var BackInStockNotifier|null 2026-11-14 09:55 +03: Task M3.3 (B3), task 596 */
+    private $back_in_stock;
+
     /** @var VendorQuota|null 2026-10-22 22:18 +03: Task A8 (R8, R11), task 596. Null = no quota (unit rigs). */
     private $vendor_quota;
 
@@ -224,8 +227,11 @@ class OrderNotifier
         ?callable $drain_stale = null,
         // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. The daily ceiling of a public-form V SMS (null = no
         // ceiling). Appended last.
-        ?RateLimiter $limiter = null
+        ?RateLimiter $limiter = null,
+        // 2026-11-14 09:55 +03: Task M3.3, task 596. The back-in-stock fan-out (null = it sends nothing).
+        ?BackInStockNotifier $back_in_stock = null
     ) {
+        $this->back_in_stock = $back_in_stock;
         $this->limiter = $limiter;
         $this->drain_stale = $drain_stale;
         $this->prefs = $prefs;
@@ -327,6 +333,14 @@ class OrderNotifier
             return false;
         }
 
+        // 2026-11-14 09:55 +03: Task M3.3 (B3, P3-65), task 596. Back in stock is a fan-out of many accounts, not one
+        // order: BackInStockNotifier looks up the registered subscribers, caps them, claims one key per account and
+        // sends one call per language. Its checks replace the single-order ones below (no order, no opt-out: the
+        // customer asked for this SMS). A transport without the notifier sends nothing.
+        if ($event_id === Defaults::EVENT_BIS && $receiver === 'C' && isset($this->declared[$event_id])) {
+            return $this->backInStock($payload, $this->declared[$event_id]);
+        }
+
         // 2026-10-23 00:54 +03: Task A10 (SafatMall F6, P2-4, ruling R10), task 596. The customer opt-out comes right
         // after the storefront
         // switch and before any dispatch-key claim: the first failing check sets the reason.
@@ -362,6 +376,38 @@ class OrderNotifier
         ], $started);
 
         return $sent;
+    }
+
+    /**
+     * 2026-11-14 09:55 +03: Task M3.3 (B3), task 596. Runs the back-in-stock fan-out with this notifier's send rule.
+     * True when at least one number was handed to the send pipeline. Never throws (the transport's catch is the
+     * last resort, but a lookup error must not lose the e-mail path either).
+     *
+     * @param array<string,mixed> $payload
+     */
+    private function backInStock(array $payload, EventDeclaration $decl): bool
+    {
+        if ($this->back_in_stock === null) {
+            return false;
+        }
+        $actor = $this->orders->actor();
+        $send = function (array $phones, string $text, array $context) use ($actor): bool {
+            $context['actor_user_id'] = (int) ($actor['user_id'] ?? 0);
+            $context['actor_company_id'] = (int) ($actor['company_id'] ?? 0);
+            $context['audience'] = ($actor['area'] ?? '') === 'C' ? 'storefront' : 'admin';
+            $log = [
+                'event_id' => Defaults::EVENT_BIS,
+                'receiver' => 'C',
+                'order_id' => 0,
+                'template' => '',
+                'lang' => (string) $context['lang_code'],
+                'recipients' => count($phones),
+            ];
+
+            return $this->dispatchSms($phones, $text, $context, $log, $actor);
+        };
+
+        return $this->back_in_stock->notify($payload, $this->storefront, $decl, $send) > 0;
     }
 
     /**
@@ -986,6 +1032,21 @@ class OrderNotifier
             // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. Counts a claimed SMS only.
             $this->limiter->hit($day_bucket, 86400);
         }
+        return $this->dispatchSms($phones, $text, $context, $log, $actor);
+    }
+
+    /**
+     * 2026-11-14 09:55 +03: Task M3.3 (back-in-stock SMS), task 596. The send tail of deliver(), unchanged, split out
+     * so the back-in-stock fan-out uses the same after-response / cron / inline rule: the rendered text goes to the
+     * outbox (fpm, litespeed, cron) or is sent in the request.
+     *
+     * @param string[]            $phones
+     * @param array<string,mixed> $context SmsService::send() context
+     * @param array<string,mixed> $log     info row context (ids only)
+     * @param array<string,mixed> $actor   OrderSource::actor()
+     */
+    private function dispatchSms(array $phones, string $text, array $context, array $log, array $actor): bool
+    {
         $mode = $this->sendMode($actor);
         if (AfterResponse::afterResponse($mode) || $mode === AfterResponse::CRON) {
             $outbox_id = $this->sms->queueAfterResponse($phones, $text, $context);

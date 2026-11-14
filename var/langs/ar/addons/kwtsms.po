@@ -7807,3 +7807,28 @@ msgstr "رُفضت رسالة البائع من نموذج عام: استهلك 
 msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
 msgid "The vendor is not active, so no vendor SMS was sent."
 msgstr "البائع غير نشط، لذلك لم تُرسل رسالة للبائع."
+
+# 2026-11-14 09:40 +03: Task M3.3 (B3, back-in-stock SMS), task 596. The customer text, the Templates row name, the {product_url} placeholder and the Settings field of the fan-out cap. One SMS goes to each registered subscriber that has a phone, at most the cap per restock.
+msgctxt "Languages::kwtsms.tpl.product.back_in_stock.C"
+msgid "{store_name}: {product_name} is back in stock. {product_url}"
+msgstr "متوفر الآن من {store_name}: {product_name} {product_url}"
+
+msgctxt "Languages::kwtsms.templates.event.product.back_in_stock"
+msgid "Back in stock"
+msgstr "عودة المنتج للمخزون"
+
+msgctxt "Languages::kwtsms.templates.ph_product_url"
+msgid "Product link"
+msgstr "رابط المنتج"
+
+msgctxt "Languages::kwtsms.settings.bis_title"
+msgid "Back in stock SMS"
+msgstr "رسائل عودة المنتج للمخزون"
+
+msgctxt "Languages::kwtsms.settings.field.bis_max_recipients"
+msgid "Subscribers per restock"
+msgstr "المشتركون لكل عودة للمخزون"
+
+msgctxt "Languages::kwtsms.settings.bis_max_recipients_help"
+msgid "The most subscribers who get the back in stock SMS for one restock (1 to 900, the default is 500). Only registered customers with a phone number are counted; the rest of the subscribers get the e-mail only. Switch the SMS on in Administration > Notifications."
+msgstr "أكبر عدد من المشتركين يصلهم الرسالة عند عودة منتج للمخزون (من 1 إلى 900، والافتراضي 500). يُحتسب فقط العملاء المسجلون الذين لديهم رقم هاتف، وبقية المشتركين يصلهم البريد الإلكتروني فقط. فعّل الرسالة من الإدارة > الإشعارات."
