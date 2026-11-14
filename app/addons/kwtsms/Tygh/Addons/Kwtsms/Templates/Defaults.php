@@ -98,6 +98,13 @@ class Defaults
      */
     public const EVENT_RMA = 'rma.status_changed';
 
+    /**
+     * 2026-11-14 05:30 +03: Task M3.2 (B2), task 596. The two call request events (core's call_requests add-on): the
+     * call request and the "buy with one click" request about a product. A and V texts each.
+     */
+    public const EVENT_CALL = 'call_requests.request_created';
+    public const EVENT_CALL_PRODUCT = 'call_requests.request_about_product_created';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -133,6 +140,10 @@ class Defaults
         self::EVENT_SEND_FAIL_SPIKE => ['count', 'window_minutes'],
         // 2026-11-12 07:40 +03: Task M3.1 (B1), task 596. The return id and the status name (Events\RmaSmsData).
         self::EVENT_RMA => ['return_id', 'return_status'],
+        // 2026-11-14 05:30 +03: Task M3.2 (B2), task 596. The request id, the requester's normalized number (digits)
+        // and the product name (Events\CallRequestSmsData). Never the requester's name.
+        self::EVENT_CALL => ['request_id', 'customer_phone'],
+        self::EVENT_CALL_PRODUCT => ['request_id', 'customer_phone', 'product_name'],
     ];
 
     /**
@@ -216,6 +227,11 @@ class Defaults
         $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_ADMIN);
         $rows[] = self::row(self::EVENT_RMA, self::RECEIVER_VENDOR, '', '', true);
+        // 2026-11-14 05:30 +03: Task M3.2 (B2), task 596. The call request alerts: A and V (V only in Multi-Vendor).
+        $rows[] = self::row(self::EVENT_CALL, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_CALL, self::RECEIVER_VENDOR, '', '', true);
+        $rows[] = self::row(self::EVENT_CALL_PRODUCT, self::RECEIVER_ADMIN);
+        $rows[] = self::row(self::EVENT_CALL_PRODUCT, self::RECEIVER_VENDOR, '', '', true);
 
         return $rows;
     }

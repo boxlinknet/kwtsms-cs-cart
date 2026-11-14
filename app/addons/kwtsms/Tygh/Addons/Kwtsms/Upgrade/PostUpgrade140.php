@@ -51,7 +51,12 @@ class PostUpgrade140
      * @var string[]
      */
     // 2026-11-12 07:40 +03: Task M3.1 (RMA status SMS), task 596: the return status family texts.
-    private const TEMPLATES = ['rma.status_changed|C', 'rma.status_changed|A', 'rma.status_changed|V'];
+    // 2026-11-14 05:30 +03: Task M3.2 (call request SMS), task 596: the A and V texts of the two call request events.
+    private const TEMPLATES = [
+        'rma.status_changed|C', 'rma.status_changed|A', 'rma.status_changed|V',
+        'call_requests.request_created|A', 'call_requests.request_created|V',
+        'call_requests.request_about_product_created|A', 'call_requests.request_about_product_created|V',
+    ];
 
     /**
      * Language variables whose text changed between 1.3.0 and 1.4.0, with the text 1.3.0 shipped, per language

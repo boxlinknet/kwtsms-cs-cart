@@ -175,6 +175,34 @@ $schema = [
     ],
 ];
 
+// 2026-11-14 05:30 +03: Task M3.2 (B2, P3-62, P3-63, P3-64), task 596. Call request SMS: the staff alert of a call
+// request (call_requests.request_created) and of a "buy with one click" request about a product
+// (call_requests.request_about_product_created). A and V: core's merged notification schema decides which of them an
+// event really has (Ultimate: A; Multi-Vendor: request_created A and V, the product request V only), V only in
+// Multi-Vendor. Only while the call_requests add-on is active (owner gate). The form is public: a storefront request
+// sends only while the core antibot scenario call_request is on (public_form), and the throttle is one SMS per event,
+// receiver and COMPANY in 15 minutes: the key has no requester phone, name or note, so rotating numbers cannot reset
+// it, and it is required (a key that cannot be resolved sends nothing). The requester name and notes are never
+// mapped, nor is any other value of the form (no storefront path: the visitor could post it); the phone is text only
+// ({customer_phone}, from CallRequestSmsData). Default OFF (no switch row). The data class is named as a string, no
+// add-on function is called here (SchemaFuncPhpGuardTest).
+foreach (['call_requests.request_created', 'call_requests.request_about_product_created'] as $call_event) {
+    $schema[$call_event] = [
+        'addon' => 'call_requests',
+        'receivers' => ['A', 'V'],
+        'placeholders' => ['request_id' => 'call_request_data.request_id'],
+        'company_id' => 'kwtsms_ctx.company_id',
+        'dedupe' => [
+            'key' => 'call:{event}:{receiver}:{kwtsms_ctx.company_id}',
+            'window' => 900,
+            'required' => true,
+        ],
+        'public_form' => 'call_request',
+        'group' => 'kwtsms.templates.group_call_requests',
+        'data_class' => \Tygh\Addons\Kwtsms\Events\CallRequestSmsData::class,
+    ];
+}
+
 // 2026-11-12 07:40 +03: Task M3.1 (B1, P3-62, P3-63, P3-64), task 596. RMA return status SMS: one declaration per
 // return status, event id rma.status_changed.<status lower case> as core's rma schema names them
 // (rma/schemas/notifications/events.post.php:94 reads the same statuses with the same call at the same time). Only

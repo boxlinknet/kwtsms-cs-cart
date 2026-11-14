@@ -7761,3 +7761,36 @@ msgstr "رقم طلب الإرجاع"
 msgctxt "Languages::kwtsms.templates.ph_return_status"
 msgid "Return status"
 msgstr "حالة الإرجاع"
+
+# 2026-11-14 05:30 +03: Task M3.2 (B2, call request SMS), task 596. Default A and V texts of the two call request events, the Templates heading, row names and the request number placeholder. {customer_phone} is the requester's number as digits; the requester's name is never a placeholder.
+msgctxt "Languages::kwtsms.tpl.call_requests.request_created.A"
+msgid "{store_name}: New call request {request_id}. Phone: {customer_phone}"
+msgstr "طلب اتصال {request_id}: {customer_phone}"
+
+msgctxt "Languages::kwtsms.tpl.call_requests.request_created.V"
+msgid "{store_name}: New call request {request_id}. Phone: {customer_phone}"
+msgstr "طلب اتصال {request_id}: {customer_phone}"
+
+msgctxt "Languages::kwtsms.tpl.call_requests.request_about_product_created.A"
+msgid "{store_name}: Buy with one click {request_id}: {product_name}. Phone: {customer_phone}"
+msgstr "شراء سريع {request_id}: {product_name} {customer_phone}"
+
+msgctxt "Languages::kwtsms.tpl.call_requests.request_about_product_created.V"
+msgid "{store_name}: Buy with one click {request_id}: {product_name}. Phone: {customer_phone}"
+msgstr "شراء سريع {request_id}: {product_name} {customer_phone}"
+
+msgctxt "Languages::kwtsms.templates.group_call_requests"
+msgid "Call requests"
+msgstr "طلبات الاتصال"
+
+msgctxt "Languages::kwtsms.templates.event.call_requests.request_created"
+msgid "Call request"
+msgstr "طلب اتصال"
+
+msgctxt "Languages::kwtsms.templates.event.call_requests.request_about_product_created"
+msgid "Buy with one click request"
+msgstr "طلب الشراء بنقرة واحدة"
+
+msgctxt "Languages::kwtsms.templates.ph_request_id"
+msgid "Request number"
+msgstr "رقم الطلب"

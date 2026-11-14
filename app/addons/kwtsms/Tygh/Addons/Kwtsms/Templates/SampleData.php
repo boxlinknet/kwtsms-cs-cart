@@ -230,6 +230,17 @@ final class SampleData
     }
 
     /**
+     * 2026-11-14 05:30 +03: Task M3.2 (call request SMS), task 596. The value of {request_id}: a reference id, or the
+     * worst case (6 digits). {customer_phone} and {product_name} have their values in profile() and lowStock().
+     *
+     * @return array<string,string>
+     */
+    public static function callRequest(bool $worst = false): array
+    {
+        return ['request_id' => $worst ? '204800' : '2048'];
+    }
+
+    /**
      * 2026-11-06 22:08 +03: Task M2.11 (send failure alert SMS), task 596. The value of {count}: a reference count, or
      * the worst case (5 digits); {window_minutes} is the real window, 15 (2026-11-07 02:46 +03: Task M2.7, task 596,
      * its own placeholder instead of the code lifetime {minutes}, whose sample is 5).
