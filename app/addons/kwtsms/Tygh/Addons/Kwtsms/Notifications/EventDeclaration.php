@@ -100,6 +100,12 @@ final class EventDeclaration
     /** @var string 2026-10-22 20:27 +03: Task A6 fix round 1 (P2-R12), task 596. Antibot scenario a storefront send needs ('' = none). */
     private $public_form;
 
+    /**
+     * @var string 2026-11-14 21:32 +03: task 596 M3.5 review I1. Vendor cap bucket ('' = none): the V send of this
+     * event keeps the 10/day ceiling and the quota reserve, with no antibot effect.
+     */
+    private $vendor_cap = '';
+
     /** @var string What the last dedupeKey() call could not resolve ('' = nothing) */
     private $key_error = '';
 
@@ -255,6 +261,10 @@ final class EventDeclaration
         $parsed->addon = isset($decl['addon']) && is_string($decl['addon'])
             && preg_match(self::ADDON_PATTERN, $decl['addon']) === 1 ? $decl['addon'] : '';
         $parsed->required = $key !== '' && !empty($decl['dedupe']['required']);
+        // 2026-11-14 21:32 +03: task 596 M3.5 review I1. `vendor_cap` => the bucket name of the V ceiling
+        // (a-z and _ only).
+        $parsed->vendor_cap = isset($decl['vendor_cap']) && is_string($decl['vendor_cap'])
+            && preg_match('/^[a-z_]{1,40}$/D', $decl['vendor_cap']) === 1 ? $decl['vendor_cap'] : '';
 
         return $parsed;
     }
@@ -480,6 +490,15 @@ final class EventDeclaration
     public function publicForm(): string
     {
         return $this->public_form;
+    }
+
+    /**
+     * 2026-11-14 21:32 +03: task 596 M3.5 review I1. The V guard bucket of an event that is not a public form:
+     * the V send keeps the daily ceiling and the quota reserve, the antibot scenario is not involved. '' = none.
+     */
+    public function vendorCap(): string
+    {
+        return $this->vendor_cap;
     }
 
     /**

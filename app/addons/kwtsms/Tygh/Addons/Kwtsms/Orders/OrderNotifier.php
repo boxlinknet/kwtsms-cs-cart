@@ -776,7 +776,7 @@ class OrderNotifier
         return $this->deliver($event_id, $receiver, $order, $extra, $this->orders->actor(), [
             'order_id' => (int) ($order['order_id'] ?? 0),
             'parent_order_id' => (int) ($order['parent_order_id'] ?? 0),
-        ], $dedupe, $decl->publicForm());
+        ], $dedupe, $decl->publicForm() !== '' ? $decl->publicForm() : $decl->vendorCap());
     }
 
     /**

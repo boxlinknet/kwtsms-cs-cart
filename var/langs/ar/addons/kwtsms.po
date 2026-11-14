@@ -7883,10 +7883,6 @@ msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.A"
 msgid "{store_name}: New post on {object_name}."
 msgstr "مشاركة جديدة على {object_name}"
 
-msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.V"
-msgid "{store_name}: New post on {object_name}."
-msgstr "مشاركة جديدة على {object_name}"
-
 msgctxt "Languages::kwtsms.tpl.discussion.orders.new_post.A"
 msgid "{store_name}: New post on order {order_id}."
 msgstr "مشاركة جديدة على الطلب رقم {order_id} في {store_name}"
@@ -7896,10 +7892,6 @@ msgid "{store_name}: New post on order {order_id}."
 msgstr "مشاركة جديدة على الطلب رقم {order_id} في {store_name}"
 
 msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.A"
-msgid "{store_name}: New post on {object_name}."
-msgstr "مشاركة جديدة على {object_name}"
-
-msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.V"
 msgid "{store_name}: New post on {object_name}."
 msgstr "مشاركة جديدة على {object_name}"
 

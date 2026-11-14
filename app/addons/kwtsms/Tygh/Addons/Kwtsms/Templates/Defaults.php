@@ -127,9 +127,11 @@ class Defaults
      */
     public const COMMUNITY = [
         'discussion.products.new_post' => ['A', 'V'],
-        'discussion.testimonials.new_post' => ['A', 'V'],
+        // 2026-11-14 21:40 +03: task 596 M3.5 review M4. Core has no V receiver on testimonials and categories:
+        // no V row.
+        'discussion.testimonials.new_post' => ['A'],
         'discussion.orders.new_post' => ['A', 'V'],
-        'discussion.categories.new_post' => ['A', 'V'],
+        'discussion.categories.new_post' => ['A'],
         'discussion.pages.new_post' => ['A', 'V'],
         'discussion.vendors.new_post' => ['A', 'V'],
         'product_reviews.new_post' => ['A', 'V'],
@@ -295,7 +297,9 @@ class Defaults
         // Multi-Vendor).
         foreach (self::COMMUNITY as $community_event => $community_receivers) {
             foreach ($community_receivers as $community_receiver) {
-                $is_vendor = $community_receiver === self::RECEIVER_VENDOR;
+                // 2026-11-14 21:40 +03: task 596 M3.5 review M4. Core declares vendor_to_admin only in Multi-Vendor.
+                $is_vendor = $community_receiver === self::RECEIVER_VENDOR
+                    || $community_event === 'vendor_communication.vendor_to_admin_message_received';
                 $rows[] = self::row($community_event, $community_receiver, '', '', $is_vendor);
             }
         }

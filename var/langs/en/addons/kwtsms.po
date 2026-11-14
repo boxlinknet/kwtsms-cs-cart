@@ -7878,10 +7878,6 @@ msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.A"
 msgid "{store_name}: New post on {object_name}."
 msgstr "{store_name}: New post on {object_name}."
 
-msgctxt "Languages::kwtsms.tpl.discussion.testimonials.new_post.V"
-msgid "{store_name}: New post on {object_name}."
-msgstr "{store_name}: New post on {object_name}."
-
 msgctxt "Languages::kwtsms.tpl.discussion.orders.new_post.A"
 msgid "{store_name}: New post on order {order_id}."
 msgstr "{store_name}: New post on order {order_id}."
@@ -7891,10 +7887,6 @@ msgid "{store_name}: New post on order {order_id}."
 msgstr "{store_name}: New post on order {order_id}."
 
 msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.A"
-msgid "{store_name}: New post on {object_name}."
-msgstr "{store_name}: New post on {object_name}."
-
-msgctxt "Languages::kwtsms.tpl.discussion.categories.new_post.V"
 msgid "{store_name}: New post on {object_name}."
 msgstr "{store_name}: New post on {object_name}."
 

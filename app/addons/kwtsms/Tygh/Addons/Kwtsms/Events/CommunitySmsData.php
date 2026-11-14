@@ -160,6 +160,10 @@ final class CommunitySmsData implements DeclaredSmsData, PayloadEnricher
             throw new \RuntimeException('payload of no known review, discussion or thread shape');
         }
         $ctx['company_id'] = $company;
+        // 2026-11-14 21:32 +03: task 596 M3.5 review I2. The throttle company: the vendor for V and C, 0 for the
+        // administrator, so a visitor who moves between vendors' products cannot make the administrator's SMS repeat
+        // within the hour.
+        $ctx['key_company'] = $receiver === 'A' ? 0 : $company;
         $payload['kwtsms_ctx'] = $ctx;
 
         return $payload;

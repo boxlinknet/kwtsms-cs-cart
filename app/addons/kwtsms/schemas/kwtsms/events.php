@@ -359,18 +359,28 @@ try {
 // vendor thread is a service message, not under the order-SMS opt-out (Open 5), and goes only for a vendor-to-customer
 // thread. Default OFF (no switch row). No add-on function is called here (SchemaFuncPhpGuardTest).
 $community_dedupe = [
-    'key' => 'rev:{event}:{receiver}:{kwtsms_ctx.company_id}:{kwtsms_ctx.scope}:{hour}',
+    // 2026-11-14 21:32 +03: task 596 M3.5 review I2. key_company is the vendor for V and C
+    // and 0 for A (one store-wide administrator SMS).
+    'key' => 'rev:{event}:{receiver}:{kwtsms_ctx.key_company}:{kwtsms_ctx.scope}:{hour}',
     'window' => 3600,
     'required' => true,
 ];
-$community_discussions = ['products', 'testimonials', 'orders', 'categories', 'pages'];
+// 2026-11-14 21:40 +03: task 596 M3.5 review M4. Core's merged schema has a V receiver on products, orders, pages
+// and vendors only.
+$community_discussions = [
+    'products' => ['A', 'V'],
+    'testimonials' => ['A'],
+    'orders' => ['A', 'V'],
+    'categories' => ['A'],
+    'pages' => ['A', 'V'],
+];
 if (function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR')) {
-    $community_discussions[] = 'vendors';
+    $community_discussions['vendors'] = ['A', 'V'];
 }
-foreach ($community_discussions as $community_type) {
+foreach ($community_discussions as $community_type => $community_discussion_receivers) {
     $schema['discussion.' . $community_type . '.new_post'] = [
         'addon' => 'discussion',
-        'receivers' => ['A', 'V'],
+        'receivers' => $community_discussion_receivers,
         'company_id' => 'kwtsms_ctx.company_id',
         'dedupe' => $community_dedupe,
         'public_form' => 'discussion',
@@ -384,6 +394,9 @@ $schema['product_reviews.new_post'] = [
     'company_id' => 'kwtsms_ctx.company_id',
     'dedupe' => $community_dedupe,
     'group' => 'kwtsms.templates.group_community',
+    // 2026-11-14 21:32 +03: task 596 M3.5 review I1. The V text keeps the 10/day ceiling and the quota
+    // reserve (no antibot gate).
+    'vendor_cap' => 'reviews',
     'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
 ];
 foreach (
@@ -402,6 +415,8 @@ foreach (
         'storefront' => 'storefront_id',
         'company_id' => 'kwtsms_ctx.company_id',
         'dedupe' => $community_dedupe,
+        // 2026-11-14 21:32 +03: task 596 M3.5 review I1. The V text keeps the 10/day ceiling and the quota reserve.
+        'vendor_cap' => 'messages',
         'group' => 'kwtsms.templates.group_community',
         'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
     ];

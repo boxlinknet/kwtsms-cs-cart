@@ -63,9 +63,10 @@ class PostUpgrade140
         'gift_certificates.gift_certificate.status_changed|C', 'gift_certificates.gift_certificate.updated|C',
         // 2026-11-14 17:25 +03: Task M3.5 (review, discussion and message SMS), task 596: the A, V and C texts.
         'discussion.products.new_post|A', 'discussion.products.new_post|V',
-        'discussion.testimonials.new_post|A', 'discussion.testimonials.new_post|V',
+        // 2026-11-14 22:30 +03: task 596 M3.5 review M4. Core has no V receiver on testimonials and categories.
+        'discussion.testimonials.new_post|A',
         'discussion.orders.new_post|A', 'discussion.orders.new_post|V',
-        'discussion.categories.new_post|A', 'discussion.categories.new_post|V',
+        'discussion.categories.new_post|A',
         'discussion.pages.new_post|A', 'discussion.pages.new_post|V',
         'discussion.vendors.new_post|A', 'discussion.vendors.new_post|V',
         'product_reviews.new_post|A', 'product_reviews.new_post|V',
