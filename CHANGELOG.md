@@ -17,7 +17,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 <!-- 2026-11-08 05:38 +03: the Unreleased entries became the 1.3.0 release (the date is the build date; the controller sets the publish date), Task M2.9, task 596 -->
 <!-- 2026-11-11 20:44 +03: release date set to 2026-11-11, the day 1.3.0 was rebuilt and sealed for publishing, task 596 -->
-## [1.3.0] - 2026-11-11
+<!-- 2026-11-15 11:00 +03: release date set to the publish day (Boss: publish Sunday 2026-11-15 11:00); CHANGELOG is not in the package, so the sealed zips are unchanged, task 596 -->
+## [1.3.0] - 2026-11-15
 
 Upgrading from 1.2.0, 1.1.0 or 1.0.0: download `kwtsms-upgrade-1.2.0-1.3.0.zip`, `kwtsms-upgrade-1.1.0-1.3.0.zip` or
 `kwtsms-upgrade-1.0.0-1.3.0.zip`, rename it to `kwtsms.zip`, and upload it in Administration > Upgrade Center > Upload
