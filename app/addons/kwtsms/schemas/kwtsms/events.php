@@ -425,7 +425,7 @@ foreach (
     ];
 }
 
-// 2026-11-15 01:51 +03: task 596 M3.6 (B6, P3-67). Core's vendor_plans.plan_changed (Multi-Vendor, vendor_plans add-on):
+// 2026-11-15 01:51 +03: task 596 M3.6 (B6). Core's vendor_plans.plan_changed (Multi-Vendor, vendor_plans add-on):
 // the administrator (A) and the vendor (V) learn the vendor's plan changed. The core payload has only company_id,
 // old_plan_id, lang_code and new_account: VendorPlanSmsData reads the company's current plan id (kwtsms_ctx.plan_id)
 // and computes {plan_name}. One SMS per company, plan and receiver in 24 h (saving the same plan again is a

@@ -7851,8 +7851,8 @@ msgid "{store_name}: Order {order_id} was updated."
 msgstr "تم تحديث الطلب رقم {order_id} في {store_name}"
 
 msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.A"
-msgid "{store_name}: A vendor plan changed to {plan_name}."
-msgstr "تغيرت خطة بائع في {store_name} إلى {plan_name}"
+msgid "{store_name}: Vendor {company_id} plan changed to {plan_name}."
+msgstr "خطة البائع {company_id} في {store_name}: {plan_name}"
 
 msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.V"
 msgid "{store_name}: Your vendor plan is now {plan_name}."
@@ -8023,3 +8023,7 @@ msgstr "تغيير خطة بائع"
 msgctxt "Languages::kwtsms.templates.ph_plan_name"
 msgid "Vendor plan name"
 msgstr "اسم خطة البائع"
+
+msgctxt "Languages::kwtsms.templates.ph_company_id"
+msgid "Vendor id"
+msgstr "رقم البائع"

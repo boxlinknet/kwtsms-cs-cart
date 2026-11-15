@@ -383,7 +383,9 @@ class OrderNotifier
             $actor = $this->orders->actor();
             if (
                 $this->rules->isMultiVendor() && ($actor['area'] ?? '') === 'A'
-                && (int) ($actor['company_id'] ?? 0) === $order_company
+                // 2026-11-15 18:12 +03: task 596 M3.6 fix round 1 (I1). The signed-in user's OWN company, never the
+                // selected one: a root administrator (0) working vendor 7's orders through the picker still texts it.
+                && (int) ($actor['auth_company_id'] ?? 0) === $order_company
             ) {
                 $this->skip(Diagnostics::SWITCHED_OFF, self::SELF_TRIGGERED, $order, $event_id, $receiver, []);
 

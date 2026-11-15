@@ -276,7 +276,11 @@ final class SampleData
      */
     public static function plan(bool $worst = false): array
     {
-        return ['plan_name' => $worst ? 'Professional Marketplace' : 'Standard'];
+        // 2026-11-15 18:13 +03: task 596 M3.6 fix round 1 (I3): {company_id}, a vendor id (worst case 6 digits).
+        return [
+            'plan_name' => $worst ? 'Professional Marketplace' : 'Standard',
+            'company_id' => $worst ? '204800' : '15',
+        ];
     }
 
     /**

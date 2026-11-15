@@ -80,7 +80,11 @@ class OrderSource
      * Who causes the current change: area (C storefront, A admin and API and CLI), dispatch controller and mode,
      * the session user, and the runtime vendor company (Multi-Vendor vendor panel; 0 otherwise).
      *
-     * @return array{area:string,controller:string,mode:string,user_id:int,company_id:int}
+     * 2026-11-15 18:12 +03: task 596 M3.6 fix round 1 (I1). auth_company_id is the signed-in user's OWN company (the
+     * session auth), 0 for a root administrator whatever vendor the company picker has selected, and for a guest, the
+     * cron and the CLI. company_id stays the runtime (selected) company.
+     *
+     * @return array{area:string,controller:string,mode:string,user_id:int,company_id:int,auth_company_id:int}
      */
     public function actor(): array
     {
@@ -98,7 +102,38 @@ class OrderSource
             'mode' => (string) $this->runtime('mode'),
             'user_id' => $user_id,
             'company_id' => (int) $this->runtime('company_id'),
+            'auth_company_id' => $this->authCompanyId(),
         ];
+    }
+
+    /**
+     * The signed-in user's own company id (session auth), 0 when there is none or it cannot be read.
+     * 2026-11-15 18:12 +03: added as a test seam, task 596 M3.6 fix round 1 (I1).
+     */
+    protected function authCompanyId(): int
+    {
+        try {
+            $auth = $this->sessionAuth();
+
+            return isset($auth['company_id']) ? (int) $auth['company_id'] : 0;
+        } catch (\Throwable $e) {
+            // 2026-11-15 18:16 +03: task 596 M3.6 fix round 1 (I1). Not logged again: the same session failure is
+            // already logged by sessionUserId() in actor(). 0 = never self_triggered, so the vendor is still texted.
+            return 0;
+        }
+    }
+
+    /**
+     * The session auth array (user_id, company_id, ...), [] when there is no session. May throw.
+     * 2026-11-15 18:12 +03: the one session read of authCompanyId(), test seam, task 596 M3.6 fix round 1 (I1).
+     *
+     * @return array<string,mixed>
+     */
+    protected function sessionAuth(): array
+    {
+        $auth = Tygh::$app['session']['auth'] ?? [];
+
+        return is_array($auth) ? $auth : [];
     }
 
     /**

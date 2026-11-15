@@ -105,7 +105,15 @@ final class VendorPlanSmsData implements DeclaredSmsData, PayloadEnricher
             $lang = 'en';
         }
 
-        return ['placeholders' => ['plan_name' => $plan > 0 ? self::name($plan, $lang) : '']];
+        // 2026-11-15 18:13 +03: task 596 M3.6 fix round 1 (I3). {company_id}: the numeric id (not the vendor name:
+        // at account creation the name is public application input).
+        $company = $ctx['company_id'] ?? 0;
+        $company = is_scalar($company) && !is_bool($company) && ctype_digit((string) $company) ? (int) $company : 0;
+
+        return ['placeholders' => [
+            'plan_name' => $plan > 0 ? self::name($plan, $lang) : '',
+            'company_id' => $company > 0 ? (string) $company : '',
+        ]];
     }
 
     /**

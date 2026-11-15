@@ -7846,8 +7846,8 @@ msgid "{store_name}: Order {order_id} was updated."
 msgstr "{store_name}: Order {order_id} was updated."
 
 msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.A"
-msgid "{store_name}: A vendor plan changed to {plan_name}."
-msgstr "{store_name}: A vendor plan changed to {plan_name}."
+msgid "{store_name}: Vendor {company_id} plan changed to {plan_name}."
+msgstr "{store_name}: Vendor {company_id} plan changed to {plan_name}."
 
 msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.V"
 msgid "{store_name}: Your vendor plan is now {plan_name}."
@@ -8018,3 +8018,7 @@ msgstr "Vendor plan changed"
 msgctxt "Languages::kwtsms.templates.ph_plan_name"
 msgid "Vendor plan name"
 msgstr "Vendor plan name"
+
+msgctxt "Languages::kwtsms.templates.ph_company_id"
+msgid "Vendor id"
+msgstr "Vendor id"

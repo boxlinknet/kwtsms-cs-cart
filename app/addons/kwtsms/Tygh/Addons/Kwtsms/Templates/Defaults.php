@@ -142,7 +142,7 @@ class Defaults
 
     /**
      * 2026-11-15 01:51 +03: Task M3.6 (B6), task 596. Core's vendor_plans.plan_changed (Multi-Vendor): an A text and a
-     * V text. {plan_name} is the vendor's new plan (Events\VendorPlanSmsData).
+     * V text. {plan_name} is the vendor's new plan and {company_id} its numeric id (Events\VendorPlanSmsData).
      */
     public const EVENT_PLAN = 'vendor_plans.plan_changed';
 
@@ -193,7 +193,8 @@ class Defaults
         self::EVENT_GIFT => ['gift_cert_id', 'amount', 'gc_status'],
         self::EVENT_GIFT_UPDATED => ['gift_cert_id', 'amount', 'gc_status'],
         // 2026-11-15 01:51 +03: Task M3.6 (B6), task 596. The vendor's new plan name (Events\VendorPlanSmsData).
-        self::EVENT_PLAN => ['plan_name'],
+        // 2026-11-15 18:13 +03: task 596 M3.6 fix round 1 (I3). {company_id}: the vendor's numeric id, never its name.
+        self::EVENT_PLAN => ['plan_name', 'company_id'],
         // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The discussed object's name and the thread number
         // (discussion), the product name (review), the thread number (messages). {order_id} is global. Never a text,
         // rating or name.
