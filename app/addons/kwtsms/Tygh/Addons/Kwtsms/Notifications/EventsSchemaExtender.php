@@ -35,14 +35,29 @@ class EventsSchemaExtender
 
     public const STATUS_PREFIX = 'order.status_changed.';
 
-    /** Receivers of the order status events (the vendor receiver of a status event is not in Phase 2). */
-    public const STATUS_RECEIVERS = ['C', 'A'];
+    /**
+     * 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). The events that may carry the vendor receiver V in Multi-Vendor:
+     * exact ids and prefixes ending in `*`. A declaration (ours or a third party's) of any other event loses its V
+     * receiver (a vendor SMS needs a vendor-bound event: its own company, approved number and quota). Replaces
+     * STATUS_RECEIVERS.
+     */
+    public const MVE_VENDOR_EVENTS = [
+        'kwtsms.order_placed', 'kwtsms.low_stock', 'order.status_changed.*', 'order.updated', 'rma.status_changed.*',
+        'call_requests.request_created', 'call_requests.request_about_product_created',
+        'discussion.orders.new_post', 'discussion.pages.new_post', 'discussion.products.new_post',
+        'discussion.vendors.new_post', 'product_reviews.new_post',
+        'vendor_communication.message_received', 'vendor_communication.order_message_received',
+        'vendor_communication.vendor_to_admin_message_received', 'vendor_plans.plan_changed',
+    ];
 
     /** Prefix of the add-on's own events: their declared receivers are attached even where the schema lacks them. */
     public const OWN_PREFIX = 'kwtsms.';
 
     /** @var array<string,EventDeclaration> */
     private $declared;
+
+    /** @var bool 2026-11-15 01:51 +03: task 596 M3.6. Multi-Vendor: the status events also get V */
+    private $is_mve;
 
     /**
      * @param array<mixed,mixed> $declared The kwtsms events schema: event id => ['receivers' => [...], ...]
@@ -51,6 +66,7 @@ class EventsSchemaExtender
     public function __construct(array $declared = [], bool $is_mve = false)
     {
         $this->declared = self::declarations($declared, $is_mve);
+        $this->is_mve = $is_mve;
     }
 
     /**
@@ -63,6 +79,39 @@ class EventsSchemaExtender
     public static function receivers(bool $is_mve): array
     {
         return $is_mve ? ['C', 'A', 'V'] : ['C', 'A'];
+    }
+
+    /**
+     * 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). The receivers an order status event gets an SMS column for: C and
+     * A, and V in Multi-Vendor (only where the core schema has that receiver).
+     *
+     * @return string[]
+     */
+    public static function statusReceivers(bool $is_mve): array
+    {
+        return $is_mve ? ['C', 'A', 'V'] : ['C', 'A'];
+    }
+
+    /**
+     * 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). True when $event_id is in MVE_VENDOR_EVENTS (exact, or under a
+     * `prefix.*` entry).
+     */
+    public static function vendorEvent(string $event_id): bool
+    {
+        foreach (self::MVE_VENDOR_EVENTS as $entry) {
+            if ($entry === $event_id) {
+                return true;
+            }
+            $last = strlen($entry) - 1;
+            if (
+                $last > 0 && $entry[$last] === '*' && strlen($event_id) > $last
+                && strncmp($event_id, $entry, $last) === 0
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -80,7 +129,7 @@ class EventsSchemaExtender
                 if (!isset($event['receivers']) || !is_array($event['receivers'])) {
                     continue;
                 }
-                foreach (self::STATUS_RECEIVERS as $receiver) {
+                foreach (self::statusReceivers($this->is_mve) as $receiver) {
                     if (isset($event['receivers'][$receiver]) && is_array($event['receivers'][$receiver])) {
                         $sms = self::schemaFor($event_id, $receiver);
                         $schema[$event_id]['receivers'][$receiver][self::TRANSPORT_ID] = $sms;

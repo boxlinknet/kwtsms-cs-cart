@@ -74,6 +74,9 @@ class PostUpgrade140
         'vendor_communication.message_received|V',
         'vendor_communication.order_message_received|C', 'vendor_communication.order_message_received|V',
         'vendor_communication.vendor_to_admin_message_received|A',
+        // 2026-11-15 01:51 +03: Task M3.6 (vendor status, update and plan SMS), task 596: the vendor family and update
+        // texts, the plan change texts of A and V.
+        'order.status_changed|V', 'order.updated|V', 'vendor_plans.plan_changed|A', 'vendor_plans.plan_changed|V',
     ];
 
     /**

@@ -109,6 +109,8 @@ class OrderNotifier
     public const VENDOR_INACTIVE = 'vendor_inactive';
     public const VENDOR_QUOTA_RESERVED = 'vendor_quota_reserved';
     public const VENDOR_DAY_CEILING = 'vendor_day_ceiling';
+    /** 2026-11-15 01:51 +03: task 596 M3.6. The vendor changed its own order: it gets no SMS about it. */
+    public const SELF_TRIGGERED = 'self_triggered';
 
     /** @var SmsService */
     private $sms;
@@ -265,9 +267,13 @@ class OrderNotifier
         }
         // 2026-10-22 17:11 +03: Task A4, task 596. The vendor receiver belongs to declared events only (A8 opens it for
         // kwtsms.order_placed by declaring it).
+        // 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). V is also accepted for the order status events in Multi-Vendor
+        // (EventsSchemaExtender::statusReceivers): the core schema only has the receiver there, and the SMS column
+        // only where the merchant switched it on.
         if (
             $receiver === 'V'
             && !(isset($this->declared[$event_id]) && in_array('V', $this->declared[$event_id]->receivers(), true))
+            && !($this->rules->isMultiVendor() && strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0)
         ) {
             return false;
         }
@@ -358,6 +364,31 @@ class OrderNotifier
             $this->skip(self::SUPERSEDED, 'new_order', $order, $event_id, $receiver);
 
             return false;
+        }
+
+        // 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). A vendor SMS for an order status or update event: only for the
+        // vendor's own child order (a parent order or a marketplace order has no vendor), and never for a change the
+        // vendor made itself. Both write one attempt row and burn no key.
+        if (
+            $receiver === 'V'
+            && (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0 || $event_id === Defaults::EVENT_UPDATED)
+        ) {
+            $order_company = (int) ($order['company_id'] ?? 0);
+            if ($order_company <= 0) {
+                // [] phones: the order's customer number is not this receiver's number.
+                $this->skip(self::SUPERSEDED, 'no_vendor', $order, $event_id, $receiver, []);
+
+                return false;
+            }
+            $actor = $this->orders->actor();
+            if (
+                $this->rules->isMultiVendor() && ($actor['area'] ?? '') === 'A'
+                && (int) ($actor['company_id'] ?? 0) === $order_company
+            ) {
+                $this->skip(Diagnostics::SWITCHED_OFF, self::SELF_TRIGGERED, $order, $event_id, $receiver, []);
+
+                return false;
+            }
         }
 
         if (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0) {
@@ -550,6 +581,15 @@ class OrderNotifier
         }
 
         $key = DispatchKeys::status($scope_id, $status, $receiver);
+        // 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). The vendor's status key is claimed by deliver() once the
+        // approved number, the quota and the text are known, so a vendor without an approved number or over its quota
+        // burns no key (C and A keep claiming here, as since 1.0.0).
+        if ($receiver === 'V') {
+            return $this->deliver($event_id, $receiver, $context_order, $extra, $actor, [
+                'order_id' => $order_id,
+                'parent_order_id' => $parent_id,
+            ], ['key' => $key, 'window' => DispatchKeys::STATUS_WINDOW, 'reason' => '']);
+        }
         if (!$this->keys->claim($key, DispatchKeys::STATUS_WINDOW)) {
             $this->skip(self::DUPLICATE, $key, $order, $event_id, $receiver);
 

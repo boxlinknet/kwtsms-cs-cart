@@ -269,6 +269,17 @@ final class SampleData
     }
 
     /**
+     * 2026-11-15 01:51 +03: Task M3.6 (vendor plan SMS), task 596. The value of {plan_name}: a reference plan name, or
+     * the worst case (the 24-character cut of Events\VendorPlanSmsData::MAX_NAME).
+     *
+     * @return array<string,string>
+     */
+    public static function plan(bool $worst = false): array
+    {
+        return ['plan_name' => $worst ? 'Professional Marketplace' : 'Standard'];
+    }
+
+    /**
      * 2026-11-14 05:30 +03: Task M3.2 (call request SMS), task 596. The value of {request_id}: a reference id, or the
      * worst case (6 digits). {customer_phone} and {product_name} have their values in profile() and lowStock().
      *

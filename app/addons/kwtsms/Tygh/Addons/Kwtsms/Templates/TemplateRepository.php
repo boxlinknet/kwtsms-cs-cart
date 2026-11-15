@@ -386,6 +386,11 @@ class TemplateRepository
         foreach ($receivers as $receiver) {
             $rows[] = $row(Defaults::EVENT_STATUS, $receiver, 'generic', '', '');
         }
+        // 2026-11-15 01:51 +03: Task M3.6 (B6, P3-67), task 596. The vendor's one status text (the family text, used by
+        // every order status; no per-status vendor rows), Multi-Vendor only.
+        if (fn_allowed_for('MULTIVENDOR')) {
+            $rows[] = $row(Defaults::EVENT_STATUS, Defaults::RECEIVER_VENDOR, 'generic', '', '');
+        }
         // 2026-10-29 00:02 +03: Task M1.11s item 1 (SafatMall note 1), task 596. Was DESCR_SL (the CONTENT language):
         // an English admin whose content language was Arabic read the event and status names in Arabic. The labels
         // follow the admin INTERFACE language (CART_LANGUAGE); the per-language body tabs are separate.

@@ -140,6 +140,12 @@ class Defaults
         'vendor_communication.vendor_to_admin_message_received' => ['A'],
     ];
 
+    /**
+     * 2026-11-15 01:51 +03: Task M3.6 (B6), task 596. Core's vendor_plans.plan_changed (Multi-Vendor): an A text and a
+     * V text. {plan_name} is the vendor's new plan (Events\VendorPlanSmsData).
+     */
+    public const EVENT_PLAN = 'vendor_plans.plan_changed';
+
     /** Core's generic status event; order.status_changed.<status> events are its children. */
     public const EVENT_STATUS = 'order.status_changed';
 
@@ -186,6 +192,8 @@ class Defaults
         // above) and its status name (Events\GiftCertificateSmsData). Never the code, sender, recipient or message.
         self::EVENT_GIFT => ['gift_cert_id', 'amount', 'gc_status'],
         self::EVENT_GIFT_UPDATED => ['gift_cert_id', 'amount', 'gc_status'],
+        // 2026-11-15 01:51 +03: Task M3.6 (B6), task 596. The vendor's new plan name (Events\VendorPlanSmsData).
+        self::EVENT_PLAN => ['plan_name'],
         // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The discussed object's name and the thread number
         // (discussion), the product name (review), the thread number (messages). {order_id} is global. Never a text,
         // rating or name.
@@ -293,6 +301,13 @@ class Defaults
         // "updated", C.
         $rows[] = self::row(self::EVENT_GIFT, self::RECEIVER_CUSTOMER);
         $rows[] = self::row(self::EVENT_GIFT_UPDATED, self::RECEIVER_CUSTOMER);
+        // 2026-11-15 01:51 +03: Task M3.6 (B6), task 596. The vendor's texts for an order status change (the family
+        // text, used by every status) and for an order update, and the vendor plan change texts for A and V. All
+        // Multi-Vendor only.
+        $rows[] = self::row(self::EVENT_STATUS, self::RECEIVER_VENDOR, '', '', true);
+        $rows[] = self::row(self::EVENT_UPDATED, self::RECEIVER_VENDOR, '', '', true);
+        $rows[] = self::row(self::EVENT_PLAN, self::RECEIVER_ADMIN, '', '', true);
+        $rows[] = self::row(self::EVENT_PLAN, self::RECEIVER_VENDOR, '', '', true);
         // 2026-11-14 17:25 +03: Task M3.5 (B5), task 596. The review, discussion and message texts (V rows only in
         // Multi-Vendor).
         foreach (self::COMMUNITY as $community_event => $community_receivers) {

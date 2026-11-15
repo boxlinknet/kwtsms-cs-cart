@@ -168,6 +168,12 @@ final class EventDeclaration
             EventsSchemaExtender::receivers($is_mve),
             array_filter($decl['receivers'], 'is_string')
         ));
+        // 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). V survives only on an event of the MVE allow-list
+        // (EventsSchemaExtender::MVE_VENDOR_EVENTS); on any other event the V receiver is dropped, and a declaration
+        // that had only V is not usable.
+        if (!EventsSchemaExtender::vendorEvent($event_id)) {
+            $receivers = array_values(array_diff($receivers, ['V']));
+        }
         if ($receivers === []) {
             return null;
         }

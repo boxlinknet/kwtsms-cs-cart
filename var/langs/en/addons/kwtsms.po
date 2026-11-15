@@ -7837,6 +7837,22 @@ msgctxt "Languages::kwtsms.tpl.gift_certificates.gift_certificate.updated.C"
 msgid "{store_name}: Your gift certificate {gift_cert_id} ({amount} {currency}) was updated. Status: {gc_status}."
 msgstr "{store_name}: Your gift certificate {gift_cert_id} ({amount} {currency}) was updated. Status: {gc_status}."
 
+msgctxt "Languages::kwtsms.tpl.order.status_changed.V"
+msgid "{store_name}: Order {order_id} changed to {order_status}."
+msgstr "{store_name}: Order {order_id} changed to {order_status}."
+
+msgctxt "Languages::kwtsms.tpl.order.updated.V"
+msgid "{store_name}: Order {order_id} was updated."
+msgstr "{store_name}: Order {order_id} was updated."
+
+msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.A"
+msgid "{store_name}: A vendor plan changed to {plan_name}."
+msgstr "{store_name}: A vendor plan changed to {plan_name}."
+
+msgctxt "Languages::kwtsms.tpl.vendor_plans.plan_changed.V"
+msgid "{store_name}: Your vendor plan is now {plan_name}."
+msgstr "{store_name}: Your vendor plan is now {plan_name}."
+
 msgctxt "Languages::kwtsms.templates.group_gift_certificates"
 msgid "Gift certificates"
 msgstr "Gift certificates"
@@ -7989,3 +8005,16 @@ msgstr "Discussed item name"
 msgctxt "Languages::kwtsms.templates.ph_thread_id"
 msgid "Thread number"
 msgstr "Thread number"
+
+# 2026-11-15 01:51 +03: Task M3.6 (B6, vendor status, update and plan SMS), task 596. Default texts of the vendor status family, the vendor order update and the two plan change texts, the Templates heading, the row name and the placeholder name. No vendor or customer name is a placeholder.
+msgctxt "Languages::kwtsms.templates.group_vendor_plans"
+msgid "Vendor plans"
+msgstr "Vendor plans"
+
+msgctxt "Languages::kwtsms.templates.event.vendor_plans.plan_changed"
+msgid "Vendor plan changed"
+msgstr "Vendor plan changed"
+
+msgctxt "Languages::kwtsms.templates.ph_plan_name"
+msgid "Vendor plan name"
+msgstr "Vendor plan name"

@@ -57,8 +57,11 @@ $schema = [
     // (Orders > details, or Order management). C and A (V comes with B6). Sent once per order and receiver in 10
     // minutes (saving again is a duplicate_event). An order flagged new or admin-created in this request is
     // superseded by the order-placed SMS (OrderNotifier). Default OFF.
+    // 2026-11-15 01:51 +03: task 596 M3.6 (P3-67). V (Multi-Vendor only; Ultimate drops it): the vendor of the child
+    // order, for a change an administrator made (never one the vendor made itself, self_triggered), its approved
+    // number and monthly quota as for every V SMS; the same key and window as C and A.
     'order.updated' => [
-        'receivers' => ['C', 'A'],
+        'receivers' => ['C', 'A', 'V'],
         'order' => 'order_info',
         'group' => 'kwtsms.templates.group_order_updates',
         'dedupe' => ['key' => 'updated:{order_info.order_id}:{receiver}', 'window' => 600],
@@ -421,5 +424,24 @@ foreach (
         'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
     ];
 }
+
+// 2026-11-15 01:51 +03: task 596 M3.6 (B6, P3-67). Core's vendor_plans.plan_changed (Multi-Vendor, vendor_plans add-on):
+// the administrator (A) and the vendor (V) learn the vendor's plan changed. The core payload has only company_id,
+// old_plan_id, lang_code and new_account: VendorPlanSmsData reads the company's current plan id (kwtsms_ctx.plan_id)
+// and computes {plan_name}. One SMS per company, plan and receiver in 24 h (saving the same plan again is a
+// duplicate_event); an unresolved key is not sent (required). V needs an active vendor with an approved number. Default
+// OFF (no switch row). The data class is named as a string (SchemaFuncPhpGuardTest).
+$schema['vendor_plans.plan_changed'] = [
+    'addon' => 'vendor_plans',
+    'receivers' => ['A', 'V'],
+    'company_id' => 'kwtsms_ctx.company_id',
+    'dedupe' => [
+        'key' => 'plan:{company_id}:{kwtsms_ctx.plan_id}:{receiver}',
+        'window' => 86400,
+        'required' => true,
+    ],
+    'group' => 'kwtsms.templates.group_vendor_plans',
+    'data_class' => \Tygh\Addons\Kwtsms\Events\VendorPlanSmsData::class,
+];
 
 return $schema;
