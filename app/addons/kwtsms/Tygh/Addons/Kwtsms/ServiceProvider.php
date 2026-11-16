@@ -1204,7 +1204,12 @@ class ServiceProvider implements ServiceProviderInterface
                 null, // $notify: core's fn_set_notification
                 null, // $checkout_profile: the backtrace test
                 // 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. The SMS code before an order is placed.
-                $app['kwtsms.checkout_code']
+                $app['kwtsms.checkout_code'],
+                // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596. The "number in use" counters.
+                $app['kwtsms.rate_limiter'],
+                static function (): string {
+                    return \Tygh\Addons\Kwtsms\Security\ClientIp::current();
+                }
             );
         };
     }

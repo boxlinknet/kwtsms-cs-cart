@@ -42,6 +42,7 @@ use Tygh\Addons\Kwtsms\Phones\AccountPhone;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
 use Tygh\Addons\Kwtsms\Phones\PhoneLock;
 use Tygh\Addons\Kwtsms\Phones\PhoneRules;
+use Tygh\Addons\Kwtsms\Security\RateLimiter; // 2026-11-17 01:40 +03: fix round 1 (I1), task 596
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 
 final class ProfileHooks
@@ -93,6 +94,9 @@ final class ProfileHooks
     /** The three profile fields that hold a phone (2026-10-25 04:36 +03: Task M1.9, task 596). */
     private const PHONE_FIELDS = ['phone', 'b_phone', 's_phone'];
 
+    /** Seconds of the window of the "number in use" counters (2026-11-17 01:40 +03: fix round 1 (I1), task 596). */
+    private const C4_WINDOW = 3600;
+
     /** @var ConfigInterface|null 2026-10-25 04:36 +03: Task M1.9 (R8), task 596. Null = no phone checks (unit rigs). */
     private $config;
 
@@ -122,6 +126,15 @@ final class ProfileHooks
      */
     private $held = [];
 
+    /** @var RateLimiter|null 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596 */
+    private $limiter;
+
+    /** @var callable|null () => string, the request address (2026-11-17 01:40 +03: fix round 1 (I1), task 596) */
+    private $client_ip;
+
+    /** @var int 2026-11-17 01:40 +03: fix round 1 (I1): seconds of the neutral wait when the C4 counters refused, else 0 */
+    private $c4_wait = 0;
+
     /** @var CheckoutCode|null 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. Null = no checkout code. */
     private $checkout;
 
@@ -143,8 +156,14 @@ final class ProfileHooks
         ?callable $stored_loader = null,
         ?callable $notify = null,
         ?callable $checkout_profile = null,
-        ?CheckoutCode $checkout = null // 2026-11-05 20:55 +03: Task M2.4 (R8), task 596
+        ?CheckoutCode $checkout = null, // 2026-11-05 20:55 +03: Task M2.4 (R8), task 596
+        // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1, review M3.22), task 596. The counters of the "number in use"
+        // refusals and the request address (string).
+        ?RateLimiter $limiter = null,
+        ?callable $client_ip = null
     ) {
+        $this->limiter = $limiter;
+        $this->client_ip = $client_ip;
         $this->checkout = $checkout;
         $this->config = $config;
         $this->rules = $rules;
@@ -273,7 +292,7 @@ final class ProfileHooks
                 }
             }
             if ($c4 && $this->accountPhoneTaken($user_id, $user_data, $stored, $new)) {
-                $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
+                $this->tell('E', $this->takenText($lang));
                 if (!$this->insideCheckoutProfile()) {
                     $can_update = false;
 
@@ -418,7 +437,7 @@ final class ProfileHooks
                 $posted = $user_data;
                 unset($posted['phone']);
                 if ($this->accountPhoneTaken($user_id, $posted, $stored, false)) {
-                    $this->tell('E', (string) __('kwtsms.code.in_use', [], $lang));
+                    $this->tell('E', $this->takenText($lang));
 
                     return true;
                 }
@@ -657,6 +676,7 @@ final class ProfileHooks
      */
     private function accountPhoneTaken(int $user_id, array $user_data, array $stored, bool $new): bool
     {
+        $this->c4_wait = 0;
         $posted = AccountPhone::field($user_data);
         if ($posted === '' || $this->lock === null) {
             return false;
@@ -677,7 +697,20 @@ final class ProfileHooks
             return true;
         }
         $this->held[$canonical] = true;
+        // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1, review M3.22), task 596. The "number in use" refusal is a
+        // lookup of whether a number is registered, so it is limited like a code request: per address and per account,
+        // capIpHour() an hour. Over the limit every changed phone is refused with the neutral wait text (held or free),
+        // so the refusal stops telling anything.
+        $limited = $this->c4Limit($user_id);
+        if ($limited > 0) {
+            $this->c4_wait = $limited;
+            $this->lock->release($canonical);
+            unset($this->held[$canonical]);
+
+            return true;
+        }
         if ($this->index->ownerOf($canonical, $user_id) > 0) {
+            $this->c4Count($user_id);
             $this->lock->release($canonical);
             unset($this->held[$canonical]);
 
@@ -685,6 +718,74 @@ final class ProfileHooks
         }
 
         return false;
+    }
+
+    /**
+     * 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596. The seconds left of the window when this address or
+     * this account used up its "number in use" refusals of the hour, else 0. A counter that cannot be read fails closed.
+     */
+    private function c4Limit(int $user_id): int
+    {
+        if ($this->limiter === null || $this->config === null) {
+            return 0;
+        }
+        try {
+            $now = $this->limiter->now();
+            foreach ($this->c4Buckets($user_id) as $bucket) {
+                $stat = $this->limiter->peek($bucket);
+                $left = (int) $stat['window_start'] + self::C4_WINDOW - $now;
+                if ((int) $stat['hits'] >= $this->config->capIpHour() && $left > 0) {
+                    return $left;
+                }
+            }
+        } catch (\Throwable $e) {
+            return self::C4_WINDOW;
+        }
+
+        return 0;
+    }
+
+    private function c4Count(int $user_id): void
+    {
+        if ($this->limiter === null) {
+            return;
+        }
+        try {
+            foreach ($this->c4Buckets($user_id) as $bucket) {
+                $this->limiter->hit($bucket, self::C4_WINDOW);
+            }
+        } catch (\Throwable $e) {
+            return;
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    private function c4Buckets(int $user_id): array
+    {
+        $ip = $this->client_ip === null ? '' : \Tygh\Addons\Kwtsms\Security\ClientIp::bucketKey(
+            (string) call_user_func($this->client_ip)
+        );
+        $buckets = [];
+        if ($ip !== '') {
+            $buckets[] = 'c4_ip:' . $ip;
+        }
+        if ($user_id > 0) {
+            $buckets[] = 'c4_acct:' . $user_id;
+        }
+
+        return $buckets;
+    }
+
+    /**
+     * The notice of a taken number: "in use", or the neutral wait text when the counters above refused.
+     */
+    private function takenText(string $lang): string
+    {
+        return $this->c4_wait > 0
+            ? (string) __('kwtsms.code.wait', ['[seconds]' => $this->c4_wait], $lang)
+            : (string) __('kwtsms.code.in_use', [], $lang);
     }
 
     /**
