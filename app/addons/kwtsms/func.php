@@ -1274,10 +1274,13 @@ function fn_kwtsms_missing_phone_redirect()
             return;
         }
         $prompt->markShown((int) $auth['user_id']);
-        $back = \Tygh\Addons\Kwtsms\Auth\ReturnUrl::safe(
-            (string) ($_SERVER['REQUEST_URI'] ?? ''),
+        // 2026-11-17 00:20 +03: Task M3.21 fix round 2 (M2), task 596. The way core builds its own redirects: the current
+        // dispatch and its query as "index.php?dispatch=..." (config.current_url, made by the router from the resolved
+        // dispatch, so the same with SEO URLs on or off and under a sub-directory), not the raw REQUEST_URI path that
+        // fn_url()/fn_redirect() would prefix a second time.
+        $back = \Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt::returnTarget(
+            (string) Registry::get('config.current_url'),
             (string) Registry::get('config.current_host'),
-            '',
             defined('HTTPS')
         );
         fn_redirect(fn_url('kwtsms_phone.add' . ($back !== '' ? '?return_url=' . rawurlencode($back) : '')));

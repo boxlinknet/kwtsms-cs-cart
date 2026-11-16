@@ -30,6 +30,7 @@
 
 namespace Tygh\Addons\Kwtsms\Profiles;
 
+use Tygh\Addons\Kwtsms\Auth\ReturnUrl;
 use Tygh\Addons\Kwtsms\Codes\OtpResult;
 use Tygh\Addons\Kwtsms\Codes\OtpService;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
@@ -205,6 +206,23 @@ final class MissingPhonePrompt
         }
 
         return true;
+    }
+
+    /**
+     * 2026-11-17 00:20 +03: Task M3.21 fix round 2 (M2), task 596. The return address kept on the add page: core's
+     * config.current_url ("index.php?dispatch=...", relative to the store root, the same with SEO URLs on or off and under
+     * a sub-directory such as /shop/, where fn_url() / fn_redirect() add the path), through ReturnUrl::safe (same host
+     * only, no scheme-relative or external address). '' = none.
+     */
+    public static function returnTarget(string $current_url, string $current_host, bool $secure): string
+    {
+        $back = ReturnUrl::safe($current_url, $current_host, '', $secure);
+        // The add page and the exempt flows are never a return target (no bounce back into the prompt).
+        if ($back === '' || preg_match('/[?&]dispatch=(kwtsms_phone|kwtsms_code|kwtsms_auth|kwtsms_twofa)[.&]/', $back . '&') === 1) {
+            return '';
+        }
+
+        return $back;
     }
 
     /** The one redirect of this session for this user is spent. */
