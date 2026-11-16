@@ -974,10 +974,6 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label|fn_html_escape])}</p>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="kwtsms_test_suffix">{__("kwtsms.test_sms.suffix")}:</label>
-                <div class="controls">
-                    <input type="text" id="kwtsms_test_suffix" name="kwtsms_test[suffix]" value="" class="input-large" maxlength="{$kwtsms.test_sms_suffix_max}" autocomplete="off">
             {* 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The number again and the permission tick; the server checks both. *}
             <div class="control-group">
                 <label class="control-label cm-required" for="kwtsms_test_phone_confirm">{__("kwtsms.test_sms.phone_confirm")}:</label>
@@ -991,6 +987,10 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                     <label class="checkbox"><input type="checkbox" id="kwtsms_test_consent" name="kwtsms_test[consent]" value="Y" required="required"> {__("kwtsms.test_sms.consent")}</label>
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="kwtsms_test_suffix">{__("kwtsms.test_sms.suffix")}:</label>
+                <div class="controls">
+                    <input type="text" id="kwtsms_test_suffix" name="kwtsms_test[suffix]" value="" class="input-large" maxlength="{$kwtsms.test_sms_suffix_max}" autocomplete="off">
                     <p class="muted description">{__("kwtsms.test_sms.suffix_help", ["[max]" => $kwtsms.test_sms_suffix_max|fn_html_escape])}</p>
                 </div>
             </div>
