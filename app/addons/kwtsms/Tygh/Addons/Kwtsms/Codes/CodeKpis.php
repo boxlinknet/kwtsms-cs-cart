@@ -116,7 +116,7 @@ class CodeKpis
     }
 
     /**
-     * @return array{issued:int, verified_pct:?float, locked_other:int,
+     * @return array{issued:int, verified_pct:?float, locked_other:int, unlock_enabled:bool,
      *               locked:array<int,array{masked:string, subject:string, token:string, until:int}>}
      */
     public function summary(int $now): array
@@ -159,6 +159,8 @@ class CodeKpis
             'verified_pct' => $issued > 0 ? round($verified * 100 / $issued, 1) : null,
             'locked' => $locked,
             'locked_other' => (int) $locks['other'] + max(0, count($subjects) - count($locked)),
+            // 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. The page shows no Unlock button without a key.
+            'unlock_enabled' => $this->canUnlock(),
         ];
     }
 
@@ -194,7 +196,19 @@ class CodeKpis
      */
     public function token(string $subject): string
     {
+        // 2026-11-17 00:30 +03: Task M3.19 ruling (coordinator, M6), task 596. The HMAC never runs with an empty key: a
+        // key that is a public constant would make the tokens guessable for a known number.
+        if (!$this->canUnlock()) {
+            return '';
+        }
+
         return hash_hmac('sha256', $subject, 'kwtsms-unlock|' . $this->secret);
+    }
+
+    /** False when the key of the unlock token is empty (config.crypt_key): then no token is made or accepted. */
+    public function canUnlock(): bool
+    {
+        return $this->secret !== '';
     }
 
     /**
@@ -204,7 +218,7 @@ class CodeKpis
      */
     public function unlockByToken(string $token, int $admin_id): int
     {
-        if (preg_match('/^[0-9a-f]{64}$/', $token) !== 1) {
+        if (!$this->canUnlock() || preg_match('/^[0-9a-f]{64}$/', $token) !== 1) {
             return 0;
         }
         foreach (array_keys($this->otp()->lockedSubjects($this->now())['subjects']) as $subject) {

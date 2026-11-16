@@ -8303,3 +8303,8 @@ msgstr "تم فتح قفل الرقم. يمكنه تجربة الرموز مرة
 msgctxt "Languages::kwtsms.dash.codes.unlock_none"
 msgid "That number is not locked now. Nothing was changed."
 msgstr "هذا الرقم غير مقفل الآن. لم يتغير شيء."
+
+# 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. The unlock needs the store's crypt_key.
+msgctxt "Languages::kwtsms.dash.codes.unlock_key"
+msgid "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
+msgstr "فتح القفل متوقف: لا يوجد مفتاح تشفير لهذا المتجر (crypt_key في config.php). لم يتغير شيء."

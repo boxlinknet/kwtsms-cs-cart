@@ -275,7 +275,8 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                             <tr>
                                 <th scope="col">{__("kwtsms.dash.codes.number")}</th>
                                 <th scope="col">{__("kwtsms.dash.codes.until")}</th>
-                                {if $kwtsms.can.gateway}<th scope="col"><span class="hidden">{__("kwtsms.dash.codes.unlock")}</span></th>{/if}
+                                {* 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. No Unlock without the token key. *}
+                                {if $kwtsms.can.gateway && $k.unlock_enabled}<th scope="col"><span class="hidden">{__("kwtsms.dash.codes.unlock")}</span></th>{/if}
                             </tr>
                         </thead>
                         <tbody>
@@ -283,7 +284,7 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                                 <tr data-kwtsms-locked="{$lock@iteration}">
                                     <td><bdi dir="ltr">{$lock.masked}</bdi></td>
                                     <td>{$lock.until|date_format:$date_time}</td>
-                                    {if $kwtsms.can.gateway}
+                                    {if $kwtsms.can.gateway && $k.unlock_enabled}
                                         <td>
                                             <form action="{""|fn_url}" method="post" name="kwtsms_unlock_form_{$lock@iteration}" class="kwtsms-inline-form">
                                                 <input type="hidden" name="kwtsms_unlock" value="{$lock.token}">
@@ -298,6 +299,9 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
                 </div>
             {else}
                 <p class="muted" id="kwtsms_codes_none">{__("kwtsms.dash.codes.none")}</p>
+            {/if}
+            {if $k.locked && $kwtsms.can.gateway && !$k.unlock_enabled}
+                <p class="muted" id="kwtsms_codes_nokey">{__("kwtsms.dash.codes.unlock_key")}</p>
             {/if}
             {if $k.locked_other}
                 <p class="muted" id="kwtsms_codes_other">{__("kwtsms.dash.codes.other", ["[n]" => $k.locked_other|fn_html_escape])}</p>

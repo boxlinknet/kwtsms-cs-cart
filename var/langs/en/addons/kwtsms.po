@@ -8298,3 +8298,8 @@ msgstr "The number is unlocked. It can try codes again."
 msgctxt "Languages::kwtsms.dash.codes.unlock_none"
 msgid "That number is not locked now. Nothing was changed."
 msgstr "That number is not locked now. Nothing was changed."
+
+# 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. The unlock needs the store's crypt_key.
+msgctxt "Languages::kwtsms.dash.codes.unlock_key"
+msgid "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
+msgstr "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."

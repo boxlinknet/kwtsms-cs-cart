@@ -456,6 +456,16 @@ try {
             // security hash. CodeKpis::unlockByToken() accepts only the token of a number locked right now (the
             // page holds no number). Always back to the Dashboard.
             case 'unlock_number':
+                // 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. No key, no unlock: refused with a notice.
+                if (!Tygh::$app['kwtsms.code_kpis']->canUnlock()) {
+                    fn_set_notification(
+                        'W',
+                        __('warning'),
+                        fn_html_escape((string) __('kwtsms.dash.codes.unlock_key'))
+                    );
+
+                    return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.dashboard'];
+                }
                 $kwtsms_unlocked = Tygh::$app['kwtsms.code_kpis']->unlockByToken(
                     isset($_POST['kwtsms_unlock']) && is_string($_POST['kwtsms_unlock']) ? $_POST['kwtsms_unlock'] : '',
                     isset($auth['user_id']) ? (int) $auth['user_id'] : 0
