@@ -199,6 +199,15 @@ class OrderNotifier
     /** @var EventConditions|null 2026-11-16 13:30 +03: Task M3.7 (B7, P3-68), task 596. The SMS conditions per event */
     private $conditions;
 
+    /** @var Coalescer 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The customer SMS held for the request */
+    private $coalescer;
+
+    /** @var callable 2026-11-16 18:45 +03: Task M3.8, task 596. register_shutdown_function, or a test's counter */
+    private $register_shutdown;
+
+    /** @var array<string,mixed> 2026-11-16 18:45 +03: Task M3.8, task 596. The actor of the last held SMS (send mode) */
+    private $held_actor = [];
+
     /** @var bool Whether the conditions row of the notification being handled asks for staff quiet hours (A / V) */
     private $staff_quiet = false;
 
@@ -242,8 +251,18 @@ class OrderNotifier
         // 2026-11-14 09:55 +03: Task M3.3, task 596. The back-in-stock fan-out (null = it sends nothing).
         ?BackInStockNotifier $back_in_stock = null,
         // 2026-11-16 13:30 +03: Task M3.7 (B7, P3-68), task 596. The conditions per event (null = none apply).
-        ?EventConditions $conditions = null
+        ?EventConditions $conditions = null,
+        // 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The same-order customer SMS holder (null = a
+        // default one) and the shutdown registrar (null = register_shutdown_function; a test seam, appended last).
+        ?Coalescer $coalescer = null,
+        ?callable $register_shutdown = null
     ) {
+        $this->register_shutdown = $register_shutdown ?? 'register_shutdown_function';
+        $this->coalescer = $coalescer ?? new Coalescer(
+            function (string $event_id, int $order_id, array $phones, array $context): void {
+                $this->recordCoalesced($event_id, $order_id, $phones, $context);
+            }
+        );
         $this->conditions = $conditions;
         $this->back_in_stock = $back_in_stock;
         $this->limiter = $limiter;
@@ -1156,7 +1175,43 @@ class OrderNotifier
             // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. Counts a claimed SMS only.
             $this->limiter->hit($day_bucket, 86400);
         }
+        // 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. With coalesce_customer_sms ON a customer SMS of a
+        // status change, an edit or a shipment waits for the end of the request: the key is claimed above, so a
+        // loser's change counts as handled; flushDeferred() sends one winner per order. OFF = today's path.
+        if (
+            $this->config->coalesceCustomerSms()
+            && $this->coalescer->eligible($event_id, $receiver, (string) $context['source'])
+        ) {
+            $this->coalescer->hold($event_id, (int) ($ids['order_id'] ?? 0), $phones, $text, $context);
+            $this->held_actor = $actor;
+            if (!$this->shutdown_registered) {
+                $this->shutdown_registered = true;
+                call_user_func($this->register_shutdown, [$this, 'flushDeferred']);
+            }
+            $this->info('order_sms.held', 'customer SMS held for the end of the request (same-order coalescing)', $log);
+
+            return true;
+        }
+
         return $this->dispatchSms($phones, $text, $context, $log, $actor);
+    }
+
+    /**
+     * 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The attempt row of a held SMS that lost to a later one of
+     * the same order: superseded / coalesced (its dispatch key stays claimed).
+     *
+     * @param string[]            $phones
+     * @param array<string,mixed> $context
+     */
+    private function recordCoalesced(string $event_id, int $order_id, array $phones, array $context): void
+    {
+        $this->skip(self::SUPERSEDED, Coalescer::REASON, [
+            'order_id' => $order_id,
+            'parent_order_id' => (int) ($context['parent_order_id'] ?? 0),
+            'company_id' => (int) ($context['company_id'] ?? 0),
+            'storefront_id' => (int) ($context['storefront_id'] ?? 0),
+            'user_id' => (int) ($context['user_id'] ?? 0),
+        ], $event_id, 'C', $phones);
     }
 
     /**
@@ -1207,7 +1262,7 @@ class OrderNotifier
                 $this->deferred[] = $outbox_id;
                 if (!$this->shutdown_registered) {
                     $this->shutdown_registered = true;
-                    register_shutdown_function([$this, 'flushDeferred']);
+                    call_user_func($this->register_shutdown, [$this, 'flushDeferred']);
                 }
                 $this->info('order_sms.deferred', 'order SMS queued to go out after the response', $log + [
                     'outbox_id' => $outbox_id,
@@ -1262,6 +1317,23 @@ class OrderNotifier
      */
     public function flushDeferred(): void
     {
+        // 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The held customer SMS first: one winner per order goes
+        // through the send mode of its request (outbox + this drain, outbox only in CRON mode, inline), then today's
+        // drain runs. Never throws; a second call finds nothing held.
+        try {
+            foreach ($this->coalescer->flush() as $winner) {
+                $ctx = $winner['context'];
+                $log = [
+                    'event_id' => (string) ($ctx['event_id'] ?? ''),
+                    'receiver' => 'C',
+                    'order_id' => (int) ($ctx['order_id'] ?? 0),
+                    'lang' => (string) ($ctx['lang_code'] ?? ''),
+                ];
+                $this->dispatchSms($winner['phones'], $winner['text'], $ctx, $log, $this->held_actor);
+            }
+        } catch (\Throwable $e) {
+            FailureLog::report($this->log, 'order_sms.coalesce_flush_failed', $e);
+        }
         if ($this->deferred === []) {
             return;
         }

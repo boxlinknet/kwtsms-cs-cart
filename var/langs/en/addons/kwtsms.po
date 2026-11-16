@@ -7803,6 +7803,10 @@ msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
 msgid "The vendor is not active, so no vendor SMS was sent."
 msgstr "The vendor is not active, so no vendor SMS was sent."
 
+msgctxt "Languages::kwtsms.logs.reason.coalesced"
+msgid "This SMS was combined with a later SMS about the same order, so only the later one was sent."
+msgstr "This SMS was combined with a later SMS about the same order, so only the later one was sent."
+
 # 2026-11-14 09:40 +03: Task M3.3 (B3, back-in-stock SMS), task 596. The customer text, the Templates row name, the {product_url} placeholder and the Settings field of the fan-out cap. One SMS goes to each registered subscriber that has a phone, at most the cap per restock.
 msgctxt "Languages::kwtsms.tpl.product.back_in_stock.C"
 msgid "{store_name}: {product_name} is back in stock. {product_url}"
@@ -8103,6 +8107,22 @@ msgstr "When on, the new order SMS to a vendor and the SMS to a customer about t
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_mve_only"
 msgid "Vendor accounts exist in Multi-Vendor only. Vendor Sender IDs were not turned on."
 msgstr "Vendor accounts exist in Multi-Vendor only. Vendor Sender IDs were not turned on."
+
+msgctxt "Languages::kwtsms.settings.coalesce_title"
+msgid "Same-order customer SMS"
+msgstr "Same-order customer SMS"
+
+msgctxt "Languages::kwtsms.settings.field.coalesce_customer_sms"
+msgid "Same-order customer SMS"
+msgstr "Same-order customer SMS"
+
+msgctxt "Languages::kwtsms.settings.coalesce_customer_sms_label"
+msgid "Send one SMS per order when several customer SMS happen in one save"
+msgstr "Send one SMS per order when several customer SMS happen in one save"
+
+msgctxt "Languages::kwtsms.settings.coalesce_customer_sms_help"
+msgid "When on, a shipment saved together with a status change, or two status changes in one save, send the customer one SMS for that order: the shipment SMS wins over a status SMS, a status SMS over an order edit SMS, and the last one wins between two of a kind. The others are logged as superseded. Code, password and security SMS are never combined. Off: every change sends its own SMS."
+msgstr "When on, a shipment saved together with a status change, or two status changes in one save, send the customer one SMS for that order: the shipment SMS wins over a status SMS, a status SMS over an order edit SMS, and the last one wins between two of a kind. The others are logged as superseded. Code, password and security SMS are never combined. Off: every change sends its own SMS."
 
 msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.title"
 msgid "A vendor Sender ID is not usable"

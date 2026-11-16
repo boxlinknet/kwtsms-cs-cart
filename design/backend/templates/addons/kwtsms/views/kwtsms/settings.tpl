@@ -433,6 +433,19 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
         </section>
         {/if}
 
+        {* 2026-11-16 18:56 +03: Task M3.8 (B8, P3-69), task 596. One customer SMS per order per request: a shipment saved with a status change, or two status changes in one save, send the one that says the most. Default off. *}
+        <section class="kwtsms-section" id="kwtsms_coalesce" aria-labelledby="kwtsms_coalesce_title">
+            <h4 class="subheader" id="kwtsms_coalesce_title">{__("kwtsms.settings.coalesce_title")}</h4>
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.coalesce_customer_sms")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_settings[coalesce_customer_sms]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_coalesce_customer_sms" name="kwtsms_settings[coalesce_customer_sms]" value="Y"{if $s.coalesce_customer_sms == "Y"} checked="checked"{/if} aria-describedby="kwtsms_coalesce_customer_sms_help"> {__("kwtsms.settings.coalesce_customer_sms_label")}</label>
+                    <p class="muted description" id="kwtsms_coalesce_customer_sms_help">{__("kwtsms.settings.coalesce_customer_sms_help")}</p>
+                </div>
+            </div>
+        </section>
+
         <section class="kwtsms-section" id="kwtsms_quiet" aria-labelledby="kwtsms_quiet_title">
             <h4 class="subheader" id="kwtsms_quiet_title">{__("kwtsms.settings.quiet_hours")}</h4>
             <div class="control-group">

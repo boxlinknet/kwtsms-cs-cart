@@ -92,6 +92,8 @@ class LogsPage
         'vendor_day_ceiling', 'vendor_quota_reserved', 'vendor_inactive',
         // 2026-11-16 13:45 +03: Task M3.7 (B7, P3-68), task 596. An event condition of the row did not match.
         'condition_min_total', 'condition_payment', 'condition_shipping',
+        // 2026-11-16 18:58 +03: Task M3.8 (B8, P3-69), task 596. A customer SMS that lost to a later one.
+        'coalesced',
     ];
 
     /**

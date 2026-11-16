@@ -82,6 +82,8 @@ class SettingsPage
         'bis_max_recipients',
         // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch (Multi-Vendor only).
         'vendor_sender_ids',
+        // 2026-11-16 18:55 +03: Task M3.8 (B8, P3-69), task 596. One customer SMS per order per request.
+        'coalesce_customer_sms',
     ];
 
     /** Keys posted as a list (multi-select, checkboxes); every other key must be one string. */
@@ -2021,6 +2023,9 @@ class SettingsPage
             // 2026-11-15 20:55 +03: Task M3.18 (G2), task 596.
             case 'vendor_sender_ids':
                 return $this->config->vendorSenderIds() ? 'Y' : 'N';
+            // 2026-11-16 18:55 +03: Task M3.8 (B8, P3-69), task 596.
+            case 'coalesce_customer_sms':
+                return $this->config->coalesceCustomerSms() ? 'Y' : 'N';
         }
 
         return '';
