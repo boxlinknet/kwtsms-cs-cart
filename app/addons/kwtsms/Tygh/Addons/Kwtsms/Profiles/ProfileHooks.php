@@ -623,7 +623,7 @@ final class ProfileHooks
             }
             $hint = AccountPhone::hint($field, $data, $stored, $default_cc);
             $was = isset($stored[$field]) && is_string($stored[$field]) ? $stored[$field] : '';
-            if (!$new && !AccountPhone::changed($posted, $was, $hint)) {
+            if (!$new && !AccountPhone::changed($posted, $was, $hint, AccountPhone::storedHint($field, $stored, $default_cc))) { // 2026-11-16 23:53 +03: M6, task 596
                 continue;
             }
             $result = $this->rules->check($posted, $hint);
@@ -662,7 +662,7 @@ final class ProfileHooks
         $default_cc = $this->default_cc === null ? '965' : (string) call_user_func($this->default_cc);
         $field = isset($user_data['phone']) && trim((string) $user_data['phone']) !== '' ? 'phone' : 'b_phone';
         $hint = AccountPhone::hint($field, $user_data, $stored, $default_cc);
-        if (!$new && !AccountPhone::changed($posted, AccountPhone::field($stored), $hint)) {
+        if (!$new && !AccountPhone::changed($posted, AccountPhone::field($stored), $hint, AccountPhone::storedHint($field, $stored, $default_cc))) { // 2026-11-16 23:53 +03: M6, task 596
             return false;
         }
         $canonical = AccountPhone::canonicalOf($user_data, $stored, $default_cc);

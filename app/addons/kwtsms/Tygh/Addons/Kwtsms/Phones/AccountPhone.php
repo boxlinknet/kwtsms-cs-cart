@@ -70,9 +70,30 @@ final class AccountPhone
      * trimmed string, so a legacy value that is posted back unchanged is not a change.
      * 2026-10-24 16:27 +03: example corrected (it named two different numbers), Task M1.5 fix round 1, task 596.
      */
-    public static function changed(string $posted, string $stored, string $hint_cc): bool
+    public static function changed(string $posted, string $stored, string $hint_cc, ?string $stored_hint_cc = null): bool
     {
-        return self::comparable($posted, $hint_cc) !== self::comparable($stored, $hint_cc);
+        // 2026-11-16 23:53 +03: M6 (branch review 1.2.0, task M3.22, task 596): the stored value is read with the calling
+        // code of the STORED country ($stored_hint_cc), the posted one with the posted country ($hint_cc). Before, both
+        // used the posted hint, so a stored 50123401 (KW) posted back with the country changed to SA compared equal and
+        // skipped B5 and C4 while the index read it as +96650123401. null keeps the old single-hint behaviour.
+        return self::comparable($posted, $hint_cc)
+            !== self::comparable($stored, $stored_hint_cc ?? $hint_cc);
+    }
+
+    /**
+     * 2026-11-16 23:53 +03: M6 (task M3.22, task 596). The calling code a STORED phone field is read with: the stored
+     * country of its field, else the store default. Ignores the posted country and the country selector.
+     *
+     * @param array<string,mixed> $stored the stored user_data (may be [])
+     */
+    public static function storedHint(string $field, array $stored, string $default_cc): string
+    {
+        $country_field = self::COUNTRY_FIELD[$field] ?? '';
+        $iso = $country_field !== '' && isset($stored[$country_field]) && is_string($stored[$country_field])
+            ? $stored[$country_field] : '';
+        $cc = $iso === '' ? null : PhoneNormalizer::callingCodeForIso($iso);
+
+        return $cc ?? $default_cc;
     }
 
     /**
