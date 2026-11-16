@@ -81,6 +81,8 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
     {if $kwtsms.suspended}
         <div class="alert alert-error kwtsms-alert" id="kwtsms_suspended">
             <p>{__("kwtsms.settings.suspended", ["[reason]" => $kwtsms.suspended_text|fn_html_escape])}</p>
+            {* 2026-11-16 23:47 +03: Task M3.19 (G6), task 596. ERR024: the IP lockdown guidance. *}
+            {if $kwtsms.suspended_ip}<p id="kwtsms_ip_lockdown_suspended">{__("kwtsms.settings.ip_lockdown")}</p>{/if}
             <form action="{""|fn_url}" method="post" name="kwtsms_retry_form" class="kwtsms-inline-form">
                 <input type="submit" class="btn" name="dispatch[kwtsms.retry_gateway]" value="{__("kwtsms.settings.retry_now")}">
             </form>
@@ -175,6 +177,8 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                         <input type="password" id="kwtsms_gw_p" name="kwtsms_gw_p" value="" class="input-large kwtsms-ltr" dir="ltr"
                                autocomplete="new-password" autocapitalize="off" spellcheck="false" maxlength="200">
                         <p class="muted description">{__("kwtsms.settings.api_user_help")}</p>
+                        {* 2026-11-16 23:47 +03: Task M3.19 (G6), task 596. IP lockdown guidance next to the login. *}
+                        <p class="muted description" id="kwtsms_ip_lockdown">{__("kwtsms.settings.ip_lockdown")}</p>
                     </div>
                 </div>
                 <div class="control-group">
