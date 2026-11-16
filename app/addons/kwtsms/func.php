@@ -907,8 +907,13 @@ function fn_kwtsms_post_delete_user($user_id = null, $user_data = [], $result = 
     try {
         $id = (int) $user_id;
         $index = Tygh::$app['kwtsms.phone_index'];
-        if ($id > 0 && $index->active()) {
+        // 2026-11-17 00:40 +03: task M3.22 P3 (M3.18 review), task 596. The account's phone_index row goes with the
+        // account whatever the switches say (an exact-id delete of our own row): a row left by a feature that was
+        // switched off later no longer outlives the user. The SMS code rows stay behind the active() check.
+        if ($id > 0) {
             $index->delete($id);
+        }
+        if ($id > 0 && $index->active()) {
             OtpService::deleteUserCodes($id);
         }
         // 2026-11-04 22:45 +03: Task M2.2a (P3-48), task 596. The account's 2FA row and backup codes go with it,
