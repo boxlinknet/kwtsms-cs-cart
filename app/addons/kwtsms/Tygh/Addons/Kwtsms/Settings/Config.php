@@ -131,12 +131,11 @@ class Config implements ConfigInterface
         'vendor_phone_self_verify' => 'N',
         'fail_spike_alert' => 'N',
         'fail_spike_threshold' => '10',
-        // 2026-11-12 02:02 +03: task 596 M3.0 (PLAN-1.4.0 "Data model"). The five 1.4.0 settings, every feature OFF;
+        // 2026-11-12 02:02 +03: task 596 M3.0 (PLAN-1.4.0 "Data model"). The four 1.4.0 settings, every feature OFF;
         // the task that builds each feature adds its Settings field and its MODE_KEYS entry. Equals addon.xml.
         'bis_max_recipients' => '500',
         'coalesce_customer_sms' => 'N',
         'vendor_sender_ids' => 'N',
-        'phone_kw_mobile_only' => 'N',
         'missing_phone_prompt' => 'N',
     ];
 
@@ -224,8 +223,6 @@ class Config implements ConfigInterface
             // 2026-11-06 18:30 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a
             // code (Multi-Vendor).
             'vendor_phone_self_verify',
-            // 2026-11-16 23:40 +03: Task M3.20 (G5, P3-78), task 596. Kuwait numbers must be mobile numbers.
-            'phone_kw_mobile_only',
         ],
     ];
 
@@ -314,7 +311,6 @@ class Config implements ConfigInterface
         'bis_max_recipients' => ['int', 1, self::BIS_MAX_RECIPIENTS_CAP],
         'coalesce_customer_sms' => ['flag'],
         'vendor_sender_ids' => ['flag'],
-        'phone_kw_mobile_only' => ['flag'],
         'missing_phone_prompt' => ['flag'],
     ];
 
@@ -824,12 +820,6 @@ class Config implements ConfigInterface
     public function vendorSenderIds(): bool
     {
         return $this->flag('vendor_sender_ids');
-    }
-
-    /** 2026-11-12 02:02 +03: task 596 M3.0 (G5, M3.20 builds it). */
-    public function phoneKwMobileOnly(): bool
-    {
-        return $this->flag('phone_kw_mobile_only');
     }
 
     /** 2026-11-12 02:02 +03: task 596 M3.0 (G9, M3.21 builds it). */

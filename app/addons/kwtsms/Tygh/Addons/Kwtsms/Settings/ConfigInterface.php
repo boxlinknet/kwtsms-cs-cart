@@ -290,9 +290,6 @@ interface ConfigInterface
     /** Per-vendor Sender ID in Multi-Vendor (G2). Default N. */
     public function vendorSenderIds(): bool;
 
-    /** Kuwait numbers must be mobile (G5). Default N. */
-    public function phoneKwMobileOnly(): bool;
-
     /** Ask a customer without a phone to add one (G9). Default N. */
     public function missingPhonePrompt(): bool;
 

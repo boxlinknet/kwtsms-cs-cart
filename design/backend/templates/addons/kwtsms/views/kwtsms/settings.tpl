@@ -588,15 +588,6 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
                 </div>
             </div>
             {/if}
-            {* 2026-11-16 23:41 +03: Task M3.20 (SafatMall G5, P3-78), task 596. Kuwait numbers must be mobile numbers (default OFF). The hidden N is posted when the box is cleared. *}
-            <div class="control-group">
-                <span class="control-label">{__("kwtsms.settings.field.phone_kw_mobile_only")}:</span>
-                <div class="controls">
-                    <input type="hidden" name="kwtsms_codes[phone_kw_mobile_only]" value="N">
-                    <label class="checkbox"><input type="checkbox" id="kwtsms_phone_kw_mobile_only" name="kwtsms_codes[phone_kw_mobile_only]" value="Y"{if $kwtsms.codes.phone_kw_mobile_only == "Y"} checked="checked"{/if} aria-describedby="kwtsms_phone_kw_mobile_only_help"> {__("kwtsms.settings.phone_kw_mobile_only_label")}</label>
-                    <p class="muted description" id="kwtsms_phone_kw_mobile_only_help">{__("kwtsms.settings.phone_kw_mobile_only_help")}</p>
-                </div>
-            </div>
             {* 2026-10-24 17:15 +03: Task M1.6 (SafatMall C4, P3-31), task 596. One account per phone (default OFF). While the phone index is being built the state line reads "Starts after indexing: n of m customers". *}
             <div class="control-group">
                 <span class="control-label">{__("kwtsms.settings.field.phone_unique")}:</span>
