@@ -418,6 +418,21 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             </div>
         </section>
 
+        {* 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch (Multi-Vendor only). The Sender ID of each vendor is picked on the Vendor SMS page, from the synced list. *}
+        {if $kwtsms.vendor_sender_ids_shown}
+        <section class="kwtsms-section" id="kwtsms_vendor_senders" aria-labelledby="kwtsms_vendor_senders_title">
+            <h4 class="subheader" id="kwtsms_vendor_senders_title">{__("kwtsms.settings.vendor_sender_ids_title")}</h4>
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.vendor_sender_ids")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_settings[vendor_sender_ids]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_vendor_sender_ids" name="kwtsms_settings[vendor_sender_ids]" value="Y"{if $s.vendor_sender_ids == "Y"} checked="checked"{/if} aria-describedby="kwtsms_vendor_sender_ids_help"> {__("kwtsms.settings.vendor_sender_ids_label")}</label>
+                    <p class="muted description" id="kwtsms_vendor_sender_ids_help">{__("kwtsms.settings.vendor_sender_ids_help")}</p>
+                </div>
+            </div>
+        </section>
+        {/if}
+
         <section class="kwtsms-section" id="kwtsms_quiet" aria-labelledby="kwtsms_quiet_title">
             <h4 class="subheader" id="kwtsms_quiet_title">{__("kwtsms.settings.quiet_hours")}</h4>
             <div class="control-group">

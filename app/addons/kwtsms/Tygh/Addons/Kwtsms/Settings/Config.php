@@ -169,6 +169,8 @@ class Config implements ConfigInterface
             'fail_spike_alert', 'fail_spike_threshold',
             // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap (1..500).
             'bis_max_recipients',
+            // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch.
+            'vendor_sender_ids',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

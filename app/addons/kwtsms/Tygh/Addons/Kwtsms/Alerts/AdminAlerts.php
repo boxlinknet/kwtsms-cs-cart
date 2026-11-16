@@ -77,6 +77,11 @@ class AdminAlerts
         // 15 minutes (Alerts\FailSpike): bell and e-mail, once per clock hour (the instance is the hour). The text
         // carries [count] and [minutes] only.
         'send_fail_spike',
+        // 2026-11-15 20:36 +03: Task M3.18 (G2, P3-75), task 596. A vendor's Sender ID left the synced list or was
+        // banned; its SMS go out under the storefront Sender ID. Bell and e-mail, once per vendor per 24 h (the
+        // instance
+        // is v<company id>).
+        'vendor_sender_invalid',
     ];
 
     /**

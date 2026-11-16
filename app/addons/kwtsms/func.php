@@ -1101,6 +1101,16 @@ function fn_kwtsms_delete_company($company_id = null, $result = null, $storefron
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('delete_company', $e);
     }
+    // 2026-11-15 20:37 +03: Task M3.18 (G2), task 596. The vendor's Sender ID row goes with the vendor. Its own
+    // try, so a
+    // failure above never leaves the row behind.
+    try {
+        if ($result && fn_allowed_for('MULTIVENDOR')) {
+            Tygh::$app['kwtsms.vendor_senders']->clear((int) $company_id);
+        }
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('delete_company', $e);
+    }
 }
 
 /**

@@ -30,7 +30,7 @@
  *            2026-10-21 08:39 +03: WHAT describes the finished seven pages (cleanup item 13, task 596).
  *            2026-10-22 22:26 +03: Task A8, task 596: the Vendor SMS page (GET vendors, Multi-Vendor only) and its
  *            POST modes update_vendor_phone (.approve | .revoke) and update_vendor_quotas, handled by
- *            Admin\VendorsPage.
+ *            Admin\VendorsPage. 2026-11-15 20:50 +03: Task M3.18 added update_vendor_senders (a vendor's Sender ID).
  *            2026-10-23 02:12 +03: Task A11, task 596: POST send_order_sms (manual SMS of the admin order page),
  *            handled by Admin\OrderSmsSender.
  *            2026-10-23 15:14 +03: Task M1.1a, task 596: POST update_codes (the "Phone and codes" section of Settings),
@@ -425,6 +425,23 @@ try {
                 } else {
                     $kwtsms_vendors->updateQuotas(isset($_POST['kwtsms_quota']) ? $_POST['kwtsms_quota'] : []);
                 }
+                $kwtsms_vendor_page = isset($_POST['kwtsms_page']) && is_string($_POST['kwtsms_page'])
+                    && ctype_digit($_POST['kwtsms_page']) && strlen($_POST['kwtsms_page']) <= 6
+                    ? (int) $_POST['kwtsms_page'] : 1;
+
+                return [
+                    CONTROLLER_STATUS_REDIRECT,
+                    'kwtsms.vendors' . ($kwtsms_vendor_page > 1 ? '?page=' . $kwtsms_vendor_page : ''),
+                ];
+
+            // 2026-11-15 20:50 +03: Task M3.18 (G2, P3-75), task 596. One vendor's Sender ID from the Vendor SMS
+            // page. The
+            // gate has asked for a root administrator on All storefronts, manage_kwtsms_gateway and the security hash.
+            case 'update_vendor_senders':
+                VendorsPage::fromContainer(Tygh::$app)->updateSender(
+                    isset($_POST['kwtsms_vendor']) ? $_POST['kwtsms_vendor'] : [],
+                    isset($auth['user_id']) ? (int) $auth['user_id'] : 0
+                );
                 $kwtsms_vendor_page = isset($_POST['kwtsms_page']) && is_string($_POST['kwtsms_page'])
                     && ctype_digit($_POST['kwtsms_page']) && strlen($_POST['kwtsms_page']) <= 6
                     ? (int) $_POST['kwtsms_page'] : 1;
@@ -920,8 +937,10 @@ try {
         $kwtsms_failed_url = 'kwtsms.admin_alerts';
     } elseif ((string) $mode === 'update_integrations') {
         $kwtsms_failed_url = 'kwtsms.integrations';
-    } elseif ((string) $mode === 'update_vendor_phone' || (string) $mode === 'update_vendor_quotas') {
-        // 2026-10-22 22:26 +03: Task A8, task 596.
+    } elseif (
+        in_array((string) $mode, ['update_vendor_phone', 'update_vendor_quotas', 'update_vendor_senders'], true)
+    ) {
+        // 2026-10-22 22:26 +03: Task A8, task 596. 2026-11-15 20:50 +03: update_vendor_senders added, Task M3.18.
         $kwtsms_failed_url = 'kwtsms.vendors';
     }
     // 2026-10-21 05:55 +03: a failed Clear or Resend goes back to the Logs page (Task 1.14, task 596).

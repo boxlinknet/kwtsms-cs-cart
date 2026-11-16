@@ -124,6 +124,7 @@ use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
 use Tygh\Addons\Kwtsms\Vendors\VendorPhoneCode; // 2026-11-06 18:32 +03: Task M2.6, task 596
 use Tygh\Addons\Kwtsms\Vendors\VendorPhones; // 2026-10-22 22:22 +03: Task A8, task 596
 use Tygh\Addons\Kwtsms\Vendors\VendorQuota; // 2026-10-22 22:22 +03: Task A8, task 596
+use Tygh\Addons\Kwtsms\Vendors\VendorSenders; // 2026-11-15 20:35 +03: Task M3.18, task 596
 use Tygh\Notifications\EventIdProviders\IProvider;
 
 class ServiceProvider implements ServiceProviderInterface
@@ -246,6 +247,11 @@ class ServiceProvider implements ServiceProviderInterface
             return new SenderResolver($app['kwtsms.config'], $app['kwtsms.state'], $app['kwtsms.alerts']);
         };
 
+        // 2026-11-15 20:35 +03: Task M3.18 (G2, P3-75), task 596. The Sender ID per vendor.
+        $app['kwtsms.vendor_senders'] = function (Container $app): VendorSenders {
+            return new VendorSenders($app['kwtsms.state'], $app['kwtsms.alerts']);
+        };
+
         $app['kwtsms.sms'] = function (Container $app): SmsService {
             return new SmsService(
                 $app['kwtsms.config'],
@@ -276,7 +282,9 @@ class ServiceProvider implements ServiceProviderInterface
                     }
 
                     return null;
-                }
+                },
+                // 2026-11-15 20:35 +03: Task M3.18 (G2), task 596. The Sender ID per vendor.
+                $app['kwtsms.vendor_senders']
             );
         };
 

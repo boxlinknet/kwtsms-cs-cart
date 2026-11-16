@@ -8027,3 +8027,84 @@ msgstr "اسم خطة البائع"
 msgctxt "Languages::kwtsms.templates.ph_company_id"
 msgid "Vendor id"
 msgstr "رقم البائع"
+
+# 2026-11-15 21:02 +03: Task M3.18 (G2, P3-75), task 596. Per-vendor Sender ID: the Vendor SMS page column, the Settings switch and the admin alert vendor_sender_invalid.
+msgctxt "Languages::kwtsms.vendors.col.sender"
+msgid "Sender ID"
+msgstr "معرف المرسل"
+
+msgctxt "Languages::kwtsms.vendors.sender.storefront"
+msgid "Storefront Sender ID"
+msgstr "معرف مرسل المتجر"
+
+msgctxt "Languages::kwtsms.vendors.sender.save"
+msgid "Save"
+msgstr "حفظ"
+
+msgctxt "Languages::kwtsms.vendors.sender.aria"
+msgid "Sender ID of [vendor]"
+msgstr "معرف المرسل الخاص بالبائع [vendor]"
+
+msgctxt "Languages::kwtsms.vendors.sender.unusable"
+msgid "not usable"
+msgstr "غير صالح"
+
+msgctxt "Languages::kwtsms.vendors.sender.on"
+msgid "Vendor Sender IDs are on. The new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the vendor's Sender ID. A vendor without one, and every SMS to the store administrator, use the storefront Sender ID."
+msgstr "معرفات مرسل البائعين مفعلة. رسالة الطلب الجديد إلى البائع، والرسالة إلى العميل عن طلب هذا البائع نفسه، تخرج بمعرف مرسل البائع. أما البائع الذي ليس له معرف، وكل رسائل مدير المتجر، فتستخدم معرف مرسل المتجر."
+
+msgctxt "Languages::kwtsms.vendors.sender.off"
+msgid "Vendor Sender IDs are off. A Sender ID you pick here is saved but not used until you turn them on in Settings."
+msgstr "معرفات مرسل البائعين معطلة. معرف المرسل الذي تختاره هنا يُحفظ لكنه لا يُستخدم حتى تفعّله من الإعدادات."
+
+msgctxt "Languages::kwtsms.vendors.sender.saved"
+msgid "[vendor] now sends under the Sender ID [sender]."
+msgstr "أصبح البائع [vendor] يرسل بمعرف المرسل [sender]."
+
+msgctxt "Languages::kwtsms.vendors.sender.cleared"
+msgid "[vendor] now sends under the storefront Sender ID."
+msgstr "أصبح البائع [vendor] يرسل بمعرف مرسل المتجر."
+
+msgctxt "Languages::kwtsms.vendors.sender.not_saved"
+msgid "The Sender ID of [vendor] was not saved: [reason]"
+msgstr "لم يتم حفظ معرف المرسل للبائع [vendor]: [reason]"
+
+msgctxt "Languages::kwtsms.vendors.sender.reason.not_in_list"
+msgid "it is not on your kwtSMS account. Sync the Sender IDs on the Settings page and pick one from the list."
+msgstr "ليس ضمن حسابك في kwtSMS. زامن معرفات المرسل من صفحة الإعدادات ثم اختر واحدا من القائمة."
+
+msgctxt "Languages::kwtsms.vendors.sender.reason.kwtsms_test_sender"
+msgid "KWT-SMS is the kwtSMS test Sender ID and cannot be given to a vendor."
+msgstr "KWT-SMS هو معرف المرسل التجريبي من kwtSMS ولا يمكن إعطاؤه لبائع."
+
+msgctxt "Languages::kwtsms.vendors.sender.reason.not_vendor"
+msgid "that vendor was not found."
+msgstr "لم يتم العثور على هذا البائع."
+
+msgctxt "Languages::kwtsms.settings.vendor_sender_ids_title"
+msgid "Vendor Sender IDs"
+msgstr "معرفات مرسل البائعين"
+
+msgctxt "Languages::kwtsms.settings.field.vendor_sender_ids"
+msgid "Vendor Sender IDs"
+msgstr "معرفات مرسل البائعين"
+
+msgctxt "Languages::kwtsms.settings.vendor_sender_ids_label"
+msgid "Send a vendor's SMS under the vendor's own Sender ID"
+msgstr "إرسال رسائل البائع بمعرف المرسل الخاص به"
+
+msgctxt "Languages::kwtsms.settings.vendor_sender_ids_help"
+msgid "When on, the new order SMS to a vendor and the SMS to a customer about that vendor's own order use the Sender ID picked for the vendor on the Vendor SMS page. SMS to the store administrator, and the SMS of an order that spans several vendors, always use the storefront Sender ID. A Sender ID that leaves your kwtSMS account falls back to the storefront Sender ID and raises an alert."
+msgstr "عند التفعيل، تستخدم رسالة الطلب الجديد إلى البائع والرسالة إلى العميل عن طلب هذا البائع نفسه معرف المرسل المختار للبائع في صفحة رسائل البائعين. أما رسائل مدير المتجر ورسائل الطلب الذي يضم عدة بائعين فتستخدم دائما معرف مرسل المتجر. وإذا خرج معرف مرسل من حساب kwtSMS فسيُستخدم معرف مرسل المتجر ويظهر تنبيه."
+
+msgctxt "Languages::kwtsms.settings.vendor_sender_ids_mve_only"
+msgid "Vendor accounts exist in Multi-Vendor only. Vendor Sender IDs were not turned on."
+msgstr "حسابات البائعين موجودة في نسخة تعدد البائعين فقط، لذلك لم يتم تفعيل معرفات مرسل البائعين."
+
+msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.title"
+msgid "A vendor Sender ID is not usable"
+msgstr "معرف مرسل بائع غير صالح"
+
+msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.text"
+msgid "The Sender ID [sender] of vendor [vendor] is no longer on your kwtSMS account or was banned, so that vendor's SMS go out under the storefront Sender ID. Pick another Sender ID for it on the Vendor SMS page."
+msgstr "معرف المرسل [sender] الخاص بالبائع رقم [vendor] لم يعد في حساب kwtSMS أو تم حظره، لذلك تخرج رسائل هذا البائع بمعرف مرسل المتجر. اختر له معرف مرسل آخر من صفحة رسائل البائعين."

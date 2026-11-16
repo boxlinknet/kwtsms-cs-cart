@@ -16,6 +16,7 @@
  *            controller's gate (Admin\RequestGate) already limits every mode to root administrators on All storefronts
  *            with the manage_kwtsms privilege and a valid security hash; a vendor administrator never reaches this
  *            class.
+ *            2026-11-15 20:45 +03: Task M3.18 (G2, P3-75), task 596: also update_vendor_senders (the Sender ID column).
  * USAGE:     $page = VendorsPage::fromContainer(Tygh::$app);
  *            $view = $page->viewData($has_privilege, $page_no);          // GET kwtsms.vendors
  *            $page->updatePhone($_POST['kwtsms_vendor'], 'approve', $admin_id);   // POST update_vendor_phone.approve
@@ -33,6 +34,8 @@ use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Addons\Kwtsms\Vendors\VendorPhones;
 use Tygh\Addons\Kwtsms\Vendors\VendorQuota;
+// 2026-11-15 20:45 +03: Task M3.18, task 596
+use Tygh\Addons\Kwtsms\Vendors\VendorSenders;
 
 class VendorsPage
 {
@@ -60,13 +63,18 @@ class VendorsPage
     /** @var callable (string $context): \Tygh\Addons\Kwtsms\Sms\ApiClient */
     private $client_factory;
 
+    /** @var VendorSenders|null 2026-11-15 20:45 +03: Task M3.18, task 596 */
+    private $senders;
+
     public function __construct(
         ConfigInterface $config,
         DebugLog $log,
         VendorPhones $phones,
         VendorQuota $quota,
-        callable $client_factory
+        callable $client_factory,
+        ?VendorSenders $senders = null
     ) {
+        $this->senders = $senders;
         $this->config = $config;
         $this->log = $log;
         $this->phones = $phones;
@@ -84,7 +92,8 @@ class VendorsPage
             $app['kwtsms.logs.debug'],
             $app['kwtsms.vendor_phones'],
             $app['kwtsms.vendor_quota'],
-            $app['kwtsms.api_client_factory']
+            $app['kwtsms.api_client_factory'],
+            $app['kwtsms.vendor_senders']
         );
     }
 
@@ -106,6 +115,8 @@ class VendorsPage
 
         $rows = [];
         $self_verify = $this->config->vendorPhoneSelfVerify();
+        // 2026-11-15 20:45 +03: Task M3.18 (G2), task 596. The Sender ID column: the choices are the synced list only.
+        $sender_options = $this->senders !== null ? $this->senders->options() : [];
         foreach ($this->listVendors(($page - 1) * self::PER_PAGE, self::PER_PAGE) as $vendor) {
             $id = (int) $vendor['company_id'];
             $state = $this->phones->state($id);
@@ -124,6 +135,10 @@ class VendorsPage
                 'status' => $state['status'],
                 'reason' => $state['reason'],
                 'approved_at' => $state['approved_at'],
+                // 2026-11-15 20:45 +03: Task M3.18, task 596. The stored Sender ID as it is, and whether it is
+                // usable now.
+                'sender' => $this->senders !== null ? $this->senders->stored($id) : '',
+                'sender_usable' => $this->senders !== null && $this->senders->usable($this->senders->stored($id)),
                 'used' => $this->quota->used($id, $month_start),
                 'limit' => $limit,
                 'can_approve' => (string) $vendor['status'] === VendorPhones::STATUS_ACTIVE
@@ -160,6 +175,9 @@ class VendorsPage
             // 2026-11-06 18:35 +03: Task M2.6 (P3-56), task 596. The page words "Waiting for the vendor's code" and
             // "Approve without code" show only while vendors can confirm their number themselves.
             'self_verify' => $self_verify,
+            // 2026-11-15 20:45 +03: Task M3.18 (G2, P3-75), task 596. Whether the setting is ON and the choices.
+            'sender_ids_on' => $this->config->vendorSenderIds(),
+            'sender_options' => $sender_options,
             'plans_active' => $active_plans,
             'plans' => $plans,
             'rows' => $rows,
@@ -264,6 +282,67 @@ class VendorsPage
         } elseif ($verdict['status'] === 'unchecked') {
             $this->notify('W', $this->text('kwtsms.vendors.warn.unchecked'), false);
         }
+    }
+
+    // ================================================================== POST update_vendor_senders
+
+    /**
+     * 2026-11-15 20:45 +03: Task M3.18 (G2, P3-75), task 596. Saves one vendor's Sender ID ('' clears it). The gate
+     * has already asked for a root administrator with manage_kwtsms_gateway and the security hash.
+     *
+     * @param mixed $posted kwtsms_vendor of the request: company_id, sender_id
+     * @param int   $admin_id The signed-in root administrator
+     *
+     * @return array{ok:bool,reason:string,company_id:int}
+     */
+    public function updateSender($posted, int $admin_id): array
+    {
+        $posted = is_array($posted) ? $posted : [];
+        $company_id = isset($posted['company_id']) && is_string($posted['company_id'])
+            && ctype_digit($posted['company_id']) && strlen($posted['company_id']) <= 10
+            ? (int) $posted['company_id'] : 0;
+        $sender = isset($posted['sender_id']) && is_string($posted['sender_id']) ? trim($posted['sender_id']) : null;
+        $result = ['ok' => false, 'reason' => '', 'company_id' => $company_id];
+
+        if (!$this->isMultiVendor()) {
+            $this->notify('E', $this->text('kwtsms.vendors.mve_only'), false);
+            $result['reason'] = 'not_multivendor';
+
+            return $result;
+        }
+        if ($this->senders === null || $sender === null || $company_id <= 0 || !$this->vendorExists($company_id)) {
+            $this->notify('E', $this->text('kwtsms.vendors.unknown'), false);
+            $result['reason'] = 'no_company';
+
+            return $result;
+        }
+        $name = $this->companyName($company_id);
+        $saved = $this->senders->set($company_id, $sender, $admin_id);
+        $this->log->log('info', 'vendors.sender', $saved['ok'] ? 'saved' : 'refused', [
+            'company_id' => $company_id, 'admin_id' => $admin_id, 'reason' => $saved['reason'],
+        ]);
+        if (!$saved['ok']) {
+            $this->notify(
+                'E',
+                $this->text('kwtsms.vendors.sender.not_saved', [
+                    '[vendor]' => $name,
+                    '[reason]' => $this->text('kwtsms.vendors.sender.reason.' . $saved['reason']),
+                ]),
+                false
+            );
+            $result['reason'] = $saved['reason'];
+
+            return $result;
+        }
+        $this->notify(
+            'N',
+            $this->text($sender === '' ? 'kwtsms.vendors.sender.cleared' : 'kwtsms.vendors.sender.saved', [
+                '[vendor]' => $name, '[sender]' => $sender,
+            ]),
+            false
+        );
+
+        return ['ok' => true, 'reason' => '', 'company_id' => $company_id];
     }
 
     // ================================================================== POST update_vendor_quotas

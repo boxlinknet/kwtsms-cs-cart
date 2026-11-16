@@ -105,6 +105,8 @@ use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
+// 2026-11-15 20:33 +03: Task M3.18, task 596
+use Tygh\Addons\Kwtsms\Vendors\VendorSenders;
 
 class SmsService
 {
@@ -210,6 +212,10 @@ class SmsService
         // cap_code_day, never
         // refused by it.
         'staff_code' => '',
+        // 2026-11-15 20:33 +03: Task M3.18 (G2, P3-75), task 596. '1' = this SMS goes out under the vendor's own
+        // Sender ID
+        // (set by the order notifier for a V SMS and for the C SMS of a single vendor's order; never for A).
+        'vendor_sender' => '',
     ];
 
     private const INT_KEYS = [
@@ -305,6 +311,9 @@ class SmsService
      *  int $outbox_id): ?array{0:string,1:string}, null = fine, else [outcome, reason]; null gate = no check */
     private $vendor_gate;
 
+    /** @var VendorSenders|null 2026-11-15 20:33 +03: The Sender ID per vendor, Task M3.18, task 596 */
+    private $vendor_senders;
+
     /** @var SenderResolver|null The Sender ID per storefront (2026-10-22 14:53 +03, Task A2, task 596) */
     private $senders;
 
@@ -316,6 +325,8 @@ class SmsService
      *                                 added, ruling R41, task 596
      * @param SenderResolver|null $senders The Sender ID per storefront; null = the global Sender ID for every send.
      *                                 2026-10-22 14:53 +03: added, Task A2, task 596
+     * @param VendorSenders|null $vendor_senders The Sender ID per vendor; null = never a vendor's.
+     *                                 2026-11-15 20:33 +03: added, Task M3.18, task 596
      */
     public function __construct(
         ConfigInterface $config,
@@ -329,8 +340,10 @@ class SmsService
         ?callable $clock = null,
         ?CapLock $cap_lock = null,
         ?SenderResolver $senders = null,
-        ?callable $vendor_gate = null
+        ?callable $vendor_gate = null,
+        ?VendorSenders $vendor_senders = null
     ) {
+        $this->vendor_senders = $vendor_senders;
         $this->vendor_gate = $vendor_gate;
         $this->senders = $senders;
         $this->config = $config;
@@ -891,15 +904,33 @@ class SmsService
      */
     private function senderFor(array $context): string
     {
+        $sender = $this->config->senderId();
         if ($this->senders !== null) {
             try {
-                return $this->senders->forStorefront((int) $context['storefront_id']);
+                $sender = $this->senders->forStorefront((int) $context['storefront_id']);
             } catch (\Throwable $e) {
                 $this->noteThrowable('sms.sender_resolve_failed', $e);
             }
         }
+        // 2026-11-15 20:33 +03: Task M3.18 (G2, P3-75), task 596. The vendor's own Sender ID, only for a V or C SMS
+        // that the notifier marked (vendor_sender = '1'), of a vendor (company_id > 0), while the switch is ON; an A
+        // SMS, a parent order or a customer-typed context never gets one. Any failure keeps the storefront's.
+        if (
+            $this->vendor_senders !== null
+            && $context['vendor_sender'] === '1'
+            && ($context['receiver'] === 'V' || $context['receiver'] === 'C')
+            && (int) $context['company_id'] > 0
+        ) {
+            try {
+                if ($this->config->vendorSenderIds()) {
+                    return $this->vendor_senders->forCompany((int) $context['company_id'], $sender);
+                }
+            } catch (\Throwable $e) {
+                $this->noteThrowable('sms.vendor_sender_resolve_failed', $e);
+            }
+        }
 
-        return $this->config->senderId();
+        return $sender;
     }
 
     /**

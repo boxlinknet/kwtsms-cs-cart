@@ -1047,6 +1047,13 @@ class OrderNotifier
         if ($ttl > 0) {
             $context['ttl'] = $ttl;
         }
+        // 2026-11-15 20:38 +03: Task M3.18 (G2, P3-75), task 596. The vendor's own Sender ID goes only on a V SMS
+        // and on
+        // the C SMS of one vendor's own order (an order with a company, never the parent of a multi-vendor checkout);
+        // never on A. The service still checks the switch, the receiver and the company.
+        if ($this->usesVendorSender($receiver, $order, $ids)) {
+            $context['vendor_sender'] = '1';
+        }
         $log = [
             'event_id' => $event_id,
             'receiver' => $receiver,
@@ -1075,6 +1082,33 @@ class OrderNotifier
             $this->limiter->hit($day_bucket, 86400);
         }
         return $this->dispatchSms($phones, $text, $context, $log, $actor);
+    }
+
+    /**
+     * 2026-11-15 20:38 +03: Task M3.18 (G2), task 596. Whether this SMS may go out under the vendor's own Sender ID:
+     * a V SMS of a vendor, or a C SMS of an order that belongs to one vendor (company_id > 0, not a parent order and
+     * linked to an order id). Multi-Vendor only; the A SMS never.
+     *
+     * @param array<string,mixed> $order
+     * @param array<string,int>   $ids
+     */
+    private function usesVendorSender(string $receiver, array $order, array $ids): bool
+    {
+        if (!$this->rules->isMultiVendor() || (int) ($order['company_id'] ?? 0) <= 0) {
+            return false;
+        }
+        // The per-checkout SMS is logged against the parent (order id = parent id): never a vendor's.
+        $parent_id = (int) ($ids['parent_order_id'] ?? 0);
+        if ($parent_id > 0 && $parent_id === (int) ($ids['order_id'] ?? 0)) {
+            return false;
+        }
+        if ($receiver === 'V') {
+            return true;
+        }
+
+        return $receiver === 'C'
+            && (int) ($ids['order_id'] ?? 0) > 0
+            && (string) ($order['is_parent_order'] ?? 'N') !== 'Y';
     }
 
     /**

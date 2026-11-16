@@ -103,6 +103,10 @@ class Outbox
         'ttl' => 'i',
         // 2026-11-04 22:40 +03: Task M2.2a (P3-52 (2)), task 596. A retried staff code keeps its cap exemption.
         'staff_code' => 's',
+        // 2026-11-15 20:34 +03: Task M3.18 (G2), task 596. A queued vendor SMS keeps the mark, so the drain, which
+        // asks for
+        // the Sender ID again, still uses the vendor's own.
+        'vendor_sender' => 's',
     ];
 
     /** @var callable|null returns the current Unix time */

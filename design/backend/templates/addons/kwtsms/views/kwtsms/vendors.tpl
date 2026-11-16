@@ -89,6 +89,13 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
         </section>
     </form>
 
+    {* 2026-11-15 20:58 +03: Task M3.18, task 596. Says whether the vendor Sender IDs are in use. *}
+    {if $v.sender_ids_on}
+        <div class="alert alert-info kwtsms-alert" id="kwtsms_vendors_sender_on"><p>{__("kwtsms.vendors.sender.on")}</p></div>
+    {else}
+        <p class="muted description" id="kwtsms_vendors_sender_off">{__("kwtsms.vendors.sender.off")}</p>
+    {/if}
+
     {* ---- the vendors ------------------------------------------------------------------------------------------------- *}
     <section class="kwtsms-section" id="kwtsms_vendors_list" aria-labelledby="kwtsms_vendors_list_title">
         <h4 class="subheader" id="kwtsms_vendors_list_title">{__("kwtsms.vendors.list.title")}</h4>
@@ -103,6 +110,7 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                             <th>{__("kwtsms.vendors.col.number")}</th>
                             <th>{__("kwtsms.vendors.col.status")}</th>
                             <th>{__("kwtsms.vendors.col.used")}</th>
+                            <th>{__("kwtsms.vendors.col.sender")}</th>
                             <th>{__("kwtsms.vendors.col.action")}</th>
                         </tr>
                     </thead>
@@ -144,6 +152,24 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                     {else}
                                         <span class="kwtsms-badge">{__("kwtsms.vendors.quota_off")}</span>
                                     {/if}
+                                </td>
+                                {* 2026-11-15 20:58 +03: Task M3.18 (G2, P3-75), task 596. The vendor's own Sender ID: a select of the synced list only, saved by its own form (POST update_vendor_senders, gateway privilege). A saved value that left the list stays visible as "not usable". *}
+                                <td data-th="{__("kwtsms.vendors.col.sender")}">
+                                    <form action="{""|fn_url}" method="post" name="kwtsms_vendor_sender_form_{$row.company_id}" class="kwtsms-inline-form kwtsms-sender-form">
+                                        <input type="hidden" name="kwtsms_vendor[company_id]" value="{$row.company_id}">
+                                        <input type="hidden" name="kwtsms_page" value="{$v.search.page}">
+                                        <select id="kwtsms_vendor_sender_{$row.company_id}" name="kwtsms_vendor[sender_id]" class="input-medium" dir="ltr" aria-label="{__("kwtsms.vendors.sender.aria", ["[vendor]" => $row.name|fn_html_escape])}">
+                                            <option value="">{__("kwtsms.vendors.sender.storefront")}</option>
+                                            {foreach $v.sender_options as $option}
+                                                <option value="{$option}"{if $row.sender == $option} selected="selected"{/if}>{$option}</option>
+                                            {/foreach}
+                                            {if $row.sender && !$row.sender_usable}
+                                                <option value="{$row.sender}" selected="selected" disabled="disabled">{$row.sender} ({__("kwtsms.vendors.sender.unusable")})</option>
+                                            {/if}
+                                        </select>
+                                        <button type="submit" class="btn" id="kwtsms_vendor_sender_save_{$row.company_id}" name="dispatch[kwtsms.update_vendor_senders]" value="1">{__("kwtsms.vendors.sender.save")}</button>
+                                    </form>
+                                    {if $row.sender && !$row.sender_usable}<span class="kwtsms-badge kwtsms-badge--danger" id="kwtsms_vendor_sender_bad_{$row.company_id}">{__("kwtsms.vendors.sender.unusable")}</span>{/if}
                                 </td>
                                 <td data-th="{__("kwtsms.vendors.col.action")}">
                                     <form action="{""|fn_url}" method="post" name="kwtsms_vendor_form_{$row.company_id}" class="kwtsms-inline-form">

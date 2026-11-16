@@ -80,6 +80,8 @@ class SettingsPage
         'fail_spike_alert', 'fail_spike_threshold',
         // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596. The back-in-stock fan-out cap.
         'bis_max_recipients',
+        // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch (Multi-Vendor only).
+        'vendor_sender_ids',
     ];
 
     /** Keys posted as a list (multi-select, checkboxes); every other key must be one string. */
@@ -220,6 +222,9 @@ class SettingsPage
             'main_sender' => $this->config->senderId(),
             'storefront_senders' => $this->storefrontSenders($senders),
             'settings' => $settings,
+            // 2026-11-15 20:55 +03: Task M3.18 (G2), task 596. The vendor Sender ID switch is shown in
+            // Multi-Vendor only.
+            'vendor_sender_ids_shown' => function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'),
             // 2026-10-21 03:16 +03: names in the admin language (fix round 1 item 8), task 596.
             'countries' => $this->countryOptions(),
             'max_pages' => range(1, 7),
@@ -1488,6 +1493,16 @@ class SettingsPage
             $values[$key] = $value;
         }
 
+        // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. Vendors exist in Multi-Vendor only: turning the
+        // vendor
+        // Sender ID switch ON elsewhere is refused (the rest of the post is still saved).
+        if (
+            ($values['vendor_sender_ids'] ?? '') === 'Y'
+            && !(function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'))
+        ) {
+            unset($values['vendor_sender_ids']);
+            $reasons['vendor_sender_ids'] = 'vendor_sender_mve_only';
+        }
         if (array_key_exists('default_country_code', $values)) {
             $code = trim($values['default_country_code']);
             if (!self::isCountryOption($code)) {
@@ -1865,6 +1880,10 @@ class SettingsPage
         if ($reason === 'needs_c3') {
             return $this->text('kwtsms.settings.phone_country_selector_needs_c3');
         }
+        // 2026-11-15 20:55 +03: Task M3.18 (G2), task 596. The vendor Sender ID switch outside Multi-Vendor.
+        if ($reason === 'vendor_sender_mve_only') {
+            return $this->text('kwtsms.settings.vendor_sender_ids_mve_only');
+        }
         // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4), task 596. The vendor phone code outside Multi-Vendor.
         if ($reason === 'mve_only') {
             return $this->text('kwtsms.settings.vendor_phone_self_verify_mve_only');
@@ -1999,6 +2018,9 @@ class SettingsPage
             // 2026-11-14 09:37 +03: Task M3.3 (P3-65), task 596.
             case 'bis_max_recipients':
                 return $this->config->bisMaxRecipients();
+            // 2026-11-15 20:55 +03: Task M3.18 (G2), task 596.
+            case 'vendor_sender_ids':
+                return $this->config->vendorSenderIds() ? 'Y' : 'N';
         }
 
         return '';
