@@ -90,6 +90,8 @@ class LogsPage
         // 2026-11-14 07:52 +03: task 596 M3.2 review I2. Public-form V SMS over the vendor's daily ceiling or inside
         // the quota reserve; a V SMS of a vendor that is not active.
         'vendor_day_ceiling', 'vendor_quota_reserved', 'vendor_inactive',
+        // 2026-11-17 00:20 +03: task M3.22 P2, task 596. A customer text over the per-customer daily ceiling.
+        'customer_day_ceiling',
         // 2026-11-16 13:45 +03: Task M3.7 (B7, P3-68), task 596. An event condition of the row did not match.
         'condition_min_total', 'condition_payment', 'condition_shipping',
         // 2026-11-16 18:58 +03: Task M3.8 (B8, P3-69), task 596. A customer SMS that lost to a later one.

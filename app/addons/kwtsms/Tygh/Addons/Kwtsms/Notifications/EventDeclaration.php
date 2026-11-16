@@ -106,6 +106,9 @@ final class EventDeclaration
      */
     private $vendor_cap = '';
 
+    /** @var string 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. The customer (C) daily ceiling bucket, '' = none. */
+    private $customer_cap = '';
+
     /** @var string What the last dedupeKey() call could not resolve ('' = nothing) */
     private $key_error = '';
 
@@ -271,6 +274,10 @@ final class EventDeclaration
         // (a-z and _ only).
         $parsed->vendor_cap = isset($decl['vendor_cap']) && is_string($decl['vendor_cap'])
             && preg_match('/^[a-z_]{1,40}$/D', $decl['vendor_cap']) === 1 ? $decl['vendor_cap'] : '';
+        // 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. `customer_cap` => the family name of the
+        // per-customer daily ceiling of the C text (a-z and _ only).
+        $parsed->customer_cap = isset($decl['customer_cap']) && is_string($decl['customer_cap'])
+            && preg_match('/^[a-z_]{1,40}$/D', $decl['customer_cap']) === 1 ? $decl['customer_cap'] : '';
 
         return $parsed;
     }
@@ -505,6 +512,16 @@ final class EventDeclaration
     public function vendorCap(): string
     {
         return $this->vendor_cap;
+    }
+
+    /**
+     * 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. The family of the per-customer daily ceiling of
+     * the C text of an event the customer cannot trigger (a vendor reply, a gift certificate status): a customer gets
+     * at most OrderNotifier::CUSTOMER_DAILY_CEILING such SMS a day. '' = none.
+     */
+    public function customerCap(): string
+    {
+        return $this->customer_cap;
     }
 
     /**

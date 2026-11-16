@@ -196,6 +196,8 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 {* 2026-10-29 20:10 +03: Task 596 (branch review I1, I2). The code daily cap and the old-number notice limit. *}
                 <p id="kwtsms_help_limits_code_cap">{__("kwtsms.help.limits.p4")}</p>
                 <p id="kwtsms_help_limits_notice">{__("kwtsms.help.limits.p5")}</p>
+                {* 2026-11-17 00:30 +03: task M3.22 P2, task 596. The per-customer daily limit of gift certificate and vendor reply SMS. *}
+                <p id="kwtsms_help_limits_customer_cap">{__("kwtsms.help.limits.p6")}</p>
             </section>
 
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_captcha" aria-labelledby="kwtsms_help_captcha_title">

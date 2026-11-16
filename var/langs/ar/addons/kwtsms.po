@@ -6595,6 +6595,11 @@ msgctxt "Languages::kwtsms.help.limits.p5"
 msgid "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
 msgstr "تُحتسب الرسالة المرسلة إلى الرقم القديم بعد تغيير الجوال ضمن حدود العنوان نفسها، ويحصل الحساب على رسالة واحدة منها كحد أقصى في الساعة. التغيير الإضافي خلال الساعة يُحفظ بدون الرسالة ويُسجل في سجل التصحيح."
 
+# 2026-11-17 00:30 +03: task M3.22 P2, task 596. Help line.
+msgctxt "Languages::kwtsms.help.limits.p6"
+msgid "A customer gets at most 5 SMS a day from the events the customer does not start: gift certificate updates and vendor replies in a message thread. More are refused and show in Logs as a customer limit. The limit counts each customer, over all vendors."
+msgstr "يتلقى العميل 5 رسائل كحد أقصى في اليوم من الأحداث التي لا يبدؤها بنفسه: تحديثات شهادات الهدايا وردود البائعين في محادثة الرسائل. تُرفض الرسائل الزائدة وتظهر في السجلات على أنها حد العميل. يُحتسب الحد لكل عميل عبر جميع البائعين."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.captcha.title"
 msgid "CAPTCHA for codes"
@@ -7803,6 +7808,11 @@ msgstr "رُفضت رسالة البائع من نموذج عام: بلغ الب
 msgctxt "Languages::kwtsms.logs.reason.vendor_quota_reserved"
 msgid "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
 msgstr "رُفضت رسالة البائع من نموذج عام: استهلك البائع نصف حصته الشهرية من الرسائل."
+
+# 2026-11-17 00:30 +03: task M3.22 P2, task 596. Logs reason of the per-customer daily ceiling.
+msgctxt "Languages::kwtsms.logs.reason.customer_day_ceiling"
+msgid "A customer SMS was refused: the customer already got 5 SMS of this kind today."
+msgstr "رُفضت رسالة العميل: تلقى العميل اليوم 5 رسائل من هذا النوع."
 
 msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
 msgid "The vendor is not active, so no vendor SMS was sent."
