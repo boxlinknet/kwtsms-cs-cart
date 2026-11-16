@@ -70,14 +70,19 @@ final class AccountPhone
      * trimmed string, so a legacy value that is posted back unchanged is not a change.
      * 2026-10-24 16:27 +03: example corrected (it named two different numbers), Task M1.5 fix round 1, task 596.
      */
-    public static function changed(string $posted, string $stored, string $hint_cc, ?string $stored_hint_cc = null): bool
-    {
-        // 2026-11-16 23:53 +03: M6 (branch review 1.2.0, task M3.22, task 596): the stored value is read with the calling
-        // code of the STORED country ($stored_hint_cc), the posted one with the posted country ($hint_cc). Before, both
-        // used the posted hint, so a stored 50123401 (KW) posted back with the country changed to SA compared equal and
-        // skipped B5 and C4 while the index read it as +96650123401. null keeps the old single-hint behaviour.
-        return self::comparable($posted, $hint_cc)
-            !== self::comparable($stored, $stored_hint_cc ?? $hint_cc);
+    public static function changed(
+        string $posted,
+        string $stored,
+        string $hint_cc,
+        ?string $stored_hint_cc = null
+    ): bool {
+        // 2026-11-16 23:53 +03: M6 (branch review 1.2.0, task M3.22, task 596): the stored value is read with the
+        // calling code of the STORED country ($stored_hint_cc), the posted one with the posted country ($hint_cc).
+        // Before, both used the posted hint, so a stored 50123401 (KW) posted back with the country changed to SA
+        // compared equal and skipped B5 and C4. null keeps the old single-hint behaviour.
+        $stored_hint = $stored_hint_cc ?? $hint_cc;
+
+        return self::comparable($posted, $hint_cc) !== self::comparable($stored, $stored_hint);
     }
 
     /**
