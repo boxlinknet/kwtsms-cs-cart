@@ -157,7 +157,7 @@ final class ProfileHooks
         ?callable $notify = null,
         ?callable $checkout_profile = null,
         ?CheckoutCode $checkout = null, // 2026-11-05 20:55 +03: Task M2.4 (R8), task 596
-        // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1, review M3.22), task 596. The counters of the "number in use"
+        // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596. The counters of the "number in use"
         // refusals and the request address (string).
         ?RateLimiter $limiter = null,
         ?callable $client_ip = null
@@ -722,7 +722,7 @@ final class ProfileHooks
 
     /**
      * 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596. The seconds left of the window when this address or
-     * this account used up its "number in use" refusals of the hour, else 0. A counter that cannot be read fails closed.
+     * this account used up its "number in use" refusals of the hour, else 0. An unreadable counter fails closed.
      */
     private function c4Limit(int $user_id): int
     {
