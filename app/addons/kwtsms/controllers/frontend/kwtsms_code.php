@@ -168,7 +168,12 @@ try {
         fn_kwtsms_code_json(200, $kwtsms_body);
     }
 
-    $kwtsms_body = $kwtsms_app['kwtsms.code_request']->handle(
+    // 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. As the blind purposes: on a host with a finish
+    // function the register and phone change send runs after the response; without one the answer is padded.
+    $kwtsms_cr = $kwtsms_app['kwtsms.code_request'];
+    $kwtsms_cr_mode = $kwtsms_app['kwtsms.blind_code_request']->mode();
+    $kwtsms_cr->deferSend(AfterResponse::afterResponse($kwtsms_cr_mode));
+    $kwtsms_body = $kwtsms_cr->handle(
         $kwtsms_purpose,
         $kwtsms_phone,
         $_REQUEST,
@@ -179,9 +184,16 @@ try {
         $kwtsms_lang,
         $kwtsms_checked
     );
-    // 2026-11-17 01:10 +03: task M3.22 fix round 1 (C1), task 596. A register or phone change answer lasts at least
-    // CodeTiming::FLOOR_MS whether the number is held by another account (no gateway call) or free (a send).
-    $kwtsms_app['kwtsms.code_request']->finishPadded($kwtsms_timing, $kwtsms_purpose);
+    $kwtsms_cr->finishRequest(
+        $kwtsms_timing,
+        $kwtsms_purpose,
+        static function (callable $work) use ($kwtsms_cr_mode): void {
+            register_shutdown_function(static function () use ($work, $kwtsms_cr_mode): void {
+                AfterResponse::finish($kwtsms_cr_mode);
+                $work();
+            });
+        }
+    );
     fn_kwtsms_code_json(200, $kwtsms_body);
 } catch (\Throwable $e) {
     fn_kwtsms_log_hook_error('kwtsms_code.send', $e);
