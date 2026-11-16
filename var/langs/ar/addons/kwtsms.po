@@ -8238,3 +8238,168 @@ msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. �
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."
+
+# 2026-11-16 23:55 +03: Task M3.10 (B10, P3-71), task 596. Templates export and import.
+msgctxt "Languages::kwtsms.templates.transfer_title"
+msgid "Export and import texts"
+msgstr "تصدير النصوص واستيرادها"
+
+msgctxt "Languages::kwtsms.templates.transfer_help"
+msgid "Export every stored template text to a JSON file, or import such a file. Import shows a preview first and writes nothing until you confirm. Switches, conditions, sender IDs and brand names are not part of the file."
+msgstr "صدّر كل نصوص القوالب المحفوظة إلى ملف JSON، أو استورد ملفًا كهذا. يعرض الاستيراد معاينة أولًا ولا يكتب شيئًا حتى تؤكد. المفاتيح والشروط ومعرفات المرسل وأسماء العلامة ليست ضمن الملف."
+
+msgctxt "Languages::kwtsms.templates.export_button"
+msgid "Export texts (JSON)"
+msgstr "تصدير النصوص (JSON)"
+
+msgctxt "Languages::kwtsms.templates.import_file"
+msgid "Import file (JSON, up to 1 MB)"
+msgstr "ملف الاستيراد (JSON، حتى 1 ميغابايت)"
+
+msgctxt "Languages::kwtsms.templates.import_preview_button"
+msgid "Preview import"
+msgstr "معاينة الاستيراد"
+
+msgctxt "Languages::kwtsms.templates.import_preview_title"
+msgid "Import preview"
+msgstr "معاينة الاستيراد"
+
+msgctxt "Languages::kwtsms.templates.import_counts"
+msgid "New: [new]. Changed: [changed]. Unchanged: [unchanged]. Refused: [refused]."
+msgstr "جديد: [new]. معدّل: [changed]. دون تغيير: [unchanged]. مرفوض: [refused]."
+
+msgctxt "Languages::kwtsms.templates.import_col_event"
+msgid "Event"
+msgstr "الحدث"
+
+msgctxt "Languages::kwtsms.templates.import_col_receiver"
+msgid "Receiver"
+msgstr "المستلم"
+
+msgctxt "Languages::kwtsms.templates.import_col_storefront"
+msgid "Storefront"
+msgstr "الواجهة"
+
+msgctxt "Languages::kwtsms.templates.import_col_language"
+msgid "Language"
+msgstr "اللغة"
+
+msgctxt "Languages::kwtsms.templates.import_col_status"
+msgid "Result"
+msgstr "النتيجة"
+
+msgctxt "Languages::kwtsms.templates.import_status_new"
+msgid "New"
+msgstr "جديد"
+
+msgctxt "Languages::kwtsms.templates.import_status_changed"
+msgid "Changed"
+msgstr "معدّل"
+
+msgctxt "Languages::kwtsms.templates.import_status_unchanged"
+msgid "Unchanged"
+msgstr "دون تغيير"
+
+msgctxt "Languages::kwtsms.templates.import_status_refused"
+msgid "Refused"
+msgstr "مرفوض"
+
+msgctxt "Languages::kwtsms.templates.import_more"
+msgid "Only the first 300 rows are listed. All of them are checked when you confirm."
+msgstr "تُعرض أول 300 صف فقط. تُفحص جميعها عند التأكيد."
+
+msgctxt "Languages::kwtsms.templates.import_keep_unknown"
+msgid "Keep unknown placeholders (import those texts as they are)"
+msgstr "الإبقاء على العناصر النائبة غير المعروفة (استيراد تلك النصوص كما هي)"
+
+msgctxt "Languages::kwtsms.templates.import_confirm"
+msgid "Import the new and changed texts"
+msgstr "استيراد النصوص الجديدة والمعدّلة"
+
+msgctxt "Languages::kwtsms.templates.import_discard"
+msgid "Discard"
+msgstr "تجاهل"
+
+msgctxt "Languages::kwtsms.templates.import_discarded"
+msgid "The import was discarded. Nothing was changed."
+msgstr "تم تجاهل الاستيراد. لم يتغير شيء."
+
+msgctxt "Languages::kwtsms.templates.import_done"
+msgid "Import finished. Saved: [saved]. Refused: [refused]."
+msgstr "اكتمل الاستيراد. تم الحفظ: [saved]. مرفوض: [refused]."
+
+msgctxt "Languages::kwtsms.templates.import_reason_no_file"
+msgid "No file was uploaded."
+msgstr "لم يتم رفع ملف."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_large"
+msgid "The file is larger than 1 MB."
+msgstr "حجم الملف أكبر من 1 ميغابايت."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_json"
+msgid "The file is not valid JSON text."
+msgstr "الملف ليس نص JSON صالحًا."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_format"
+msgid "The file is not a kwtSMS templates export (format or version)."
+msgstr "الملف ليس تصدير قوالب kwtSMS (الصيغة أو الإصدار)."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_many"
+msgid "The file has more than 5000 rows."
+msgstr "يحتوي الملف على أكثر من 5000 صف."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_row"
+msgid "The row is incomplete or has unexpected fields."
+msgstr "الصف ناقص أو يحتوي على حقول غير متوقعة."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_row"
+msgid "This store has no text row for this event and receiver."
+msgstr "لا يوجد في هذا المتجر صف نص لهذا الحدث والمستلم."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_language"
+msgid "This language is not installed."
+msgstr "هذه اللغة غير مثبتة."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_storefront"
+msgid "This storefront does not exist."
+msgstr "هذه الواجهة غير موجودة."
+
+msgctxt "Languages::kwtsms.templates.import_reason_duplicate"
+msgid "The same text appears twice in the file."
+msgstr "النص نفسه مكرر في الملف."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_long"
+msgid "The text is too long."
+msgstr "النص طويل جدًا."
+
+msgctxt "Languages::kwtsms.templates.import_reason_empty"
+msgid "The text is empty."
+msgstr "النص فارغ."
+
+msgctxt "Languages::kwtsms.templates.import_reason_code_template"
+msgid "A code text must contain {code}, no link and only its own placeholders."
+msgstr "يجب أن يحتوي نص الرمز على {code} وبدون رابط وبعناصره النائبة فقط."
+
+msgctxt "Languages::kwtsms.templates.import_reason_code_store_name"
+msgid "A code text must contain {store_name}."
+msgstr "يجب أن يحتوي نص الرمز على {store_name}."
+
+msgctxt "Languages::kwtsms.templates.import_reason_store_name"
+msgid "A customer text must contain {store_name}."
+msgstr "يجب أن يحتوي نص العميل على {store_name}."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_placeholders"
+msgid "Unknown placeholders"
+msgstr "عناصر نائبة غير معروفة"
+
+msgctxt "Languages::kwtsms.templates.import_reason_file_changed"
+msgid "The file changed after the preview or the preview expired. Upload it again."
+msgstr "تغير الملف بعد المعاينة أو انتهت صلاحية المعاينة. ارفعه مرة أخرى."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_found"
+msgid "The text row could not be created."
+msgstr "تعذر إنشاء صف النص."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_language"
+msgid "The language code is not valid."
+msgstr "رمز اللغة غير صالح."
