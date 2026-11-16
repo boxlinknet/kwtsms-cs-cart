@@ -64,6 +64,9 @@ final class RequestGate
         'regenerate_cron_key'    => [self::POST, 'manage_kwtsms_gateway'],
         'clear_logs'             => [self::POST, 'manage_kwtsms_gateway'],
         'resend'                 => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend of selected failed attempts: the same
+        // privilege as the single Resend, root administrators only like every mode here; POST with the CSRF hash.
+        'bulk_resend'            => [self::POST, 'manage_kwtsms_gateway'],
         'update_template'        => [self::POST, 'manage_kwtsms'],
         'reset_template'         => [self::POST, 'manage_kwtsms'],
         'load_template_defaults' => [self::POST, 'manage_kwtsms'],

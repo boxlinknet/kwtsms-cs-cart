@@ -8238,3 +8238,76 @@ msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. �
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."
+
+# 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend from the Logs: checkboxes, confirm step, notifications.
+msgctxt "Languages::kwtsms.logs.bulk.pick"
+msgid "Select for resend"
+msgstr "تحديد لإعادة الإرسال"
+
+msgctxt "Languages::kwtsms.logs.bulk.pick_row"
+msgid "Select attempt [id] for resend"
+msgstr "تحديد المحاولة [id] لإعادة الإرسال"
+
+msgctxt "Languages::kwtsms.logs.bulk.button"
+msgid "Resend selected"
+msgstr "إعادة إرسال المحدد"
+
+msgctxt "Languages::kwtsms.logs.bulk.help"
+msgid "Tick failed, deferred, expired or unknown attempts (at most [max] at a time), then press Resend selected. You see the count and the credits before anything is sent. Verification codes are never resent."
+msgstr "حدد المحاولات الفاشلة أو المؤجلة أو المنتهية أو غير المعروفة (بحد أقصى [max] في المرة الواحدة)، ثم اضغط إعادة إرسال المحدد. سترى العدد والرصيد قبل إرسال أي شيء. رموز التحقق لا يُعاد إرسالها أبدًا."
+
+msgctxt "Languages::kwtsms.logs.bulk.none"
+msgid "Select at least one attempt to resend."
+msgstr "حدد محاولة واحدة على الأقل لإعادة إرسالها."
+
+msgctxt "Languages::kwtsms.logs.bulk.too_many"
+msgid "Select at most [max] attempts at a time. Nothing was sent."
+msgstr "حدد [max] محاولة كحد أقصى في المرة الواحدة. لم يُرسل شيء."
+
+msgctxt "Languages::kwtsms.logs.bulk.expired"
+msgid "This bulk resend is no longer pending (already confirmed or expired). Select the attempts again."
+msgstr "لم تعد إعادة الإرسال الجماعية هذه معلقة (تم تأكيدها أو انتهت). حدد المحاولات من جديد."
+
+msgctxt "Languages::kwtsms.logs.bulk.done"
+msgid "Bulk resend: [sent] sent, [queued] queued for later, [refused] not resent."
+msgstr "إعادة الإرسال الجماعية: أُرسلت [sent]، وأُجلت [queued] لوقت لاحق، ولم يُعد إرسال [refused]."
+
+msgctxt "Languages::kwtsms.logs.bulk.refused"
+msgid "[count] not resent: [reason]"
+msgstr "لم يُعد إرسال [count]: [reason]"
+
+msgctxt "Languages::kwtsms.logs.bulk.not_tried"
+msgid "[count] not tried, because the sending stopped. Select them again once it is resolved."
+msgstr "لم تُجرَّب [count] لأن الإرسال توقف. حددها من جديد بعد معالجة السبب."
+
+msgctxt "Languages::kwtsms.logs.bulk.nothing_title"
+msgid "Nothing to resend"
+msgstr "لا شيء لإعادة إرساله"
+
+msgctxt "Languages::kwtsms.logs.bulk.nothing"
+msgid "None of the selected attempts can be resent now (already resent, sent later, or never resendable)."
+msgstr "لا يمكن إعادة إرسال أي من المحاولات المحددة الآن (أُعيد إرسالها أو أُرسلت لاحقًا أو لا تقبل ذلك)."
+
+msgctxt "Languages::kwtsms.logs.bulk.confirm_title"
+msgid "Resend [count] message?|Resend [count] messages?"
+msgstr "إعادة إرسال [count] رسالة؟|إعادة إرسال رسالة واحدة؟|إعادة إرسال رسالتين؟|إعادة إرسال [count] رسائل؟|إعادة إرسال [count] رسالة؟|إعادة إرسال [count] رسالة؟"
+
+msgctxt "Languages::kwtsms.logs.bulk.confirm"
+msgid "This uses about [credits] credits. Every send rule applies again, each message is a new attempt linked to the original, and the sending stops at the first limit reached."
+msgstr "سيستهلك هذا نحو [credits] رصيد. تسري كل قواعد الإرسال من جديد، وتُسجل كل رسالة كمحاولة جديدة مرتبطة بالأصلية، ويتوقف الإرسال عند أول حد يتم بلوغه."
+
+msgctxt "Languages::kwtsms.logs.bulk.skipped"
+msgid "[count] of the selected attempts are skipped: they can no longer be resent."
+msgstr "تم تخطي [count] من المحاولات المحددة لأنه لم يعد بالإمكان إعادة إرسالها."
+
+msgctxt "Languages::kwtsms.logs.bulk.submit"
+msgid "Resend [count] message|Resend [count] messages"
+msgstr "إعادة إرسال [count] رسالة|إعادة إرسال رسالة واحدة|إعادة إرسال رسالتين|إعادة إرسال [count] رسائل|إعادة إرسال [count] رسالة|إعادة إرسال [count] رسالة"
+
+msgctxt "Languages::kwtsms.logs.resend.too_many"
+msgid "Too many attempts selected for one bulk resend."
+msgstr "عدد المحاولات المحددة كبير جدًا لإعادة إرسال جماعية واحدة."
+
+msgctxt "Languages::kwtsms.logs.resend.bulk_cap"
+msgid "A sending limit was reached, so the bulk resend stopped here."
+msgstr "تم بلوغ حد للإرسال، لذلك توقفت إعادة الإرسال الجماعية هنا."

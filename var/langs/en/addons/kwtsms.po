@@ -8233,3 +8233,76 @@ msgstr "This storefront uses the conditions of All storefronts. Saving here make
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+
+# 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend from the Logs: checkboxes, confirm step, notifications.
+msgctxt "Languages::kwtsms.logs.bulk.pick"
+msgid "Select for resend"
+msgstr "Select for resend"
+
+msgctxt "Languages::kwtsms.logs.bulk.pick_row"
+msgid "Select attempt [id] for resend"
+msgstr "Select attempt [id] for resend"
+
+msgctxt "Languages::kwtsms.logs.bulk.button"
+msgid "Resend selected"
+msgstr "Resend selected"
+
+msgctxt "Languages::kwtsms.logs.bulk.help"
+msgid "Tick failed, deferred, expired or unknown attempts (at most [max] at a time), then press Resend selected. You see the count and the credits before anything is sent. Verification codes are never resent."
+msgstr "Tick failed, deferred, expired or unknown attempts (at most [max] at a time), then press Resend selected. You see the count and the credits before anything is sent. Verification codes are never resent."
+
+msgctxt "Languages::kwtsms.logs.bulk.none"
+msgid "Select at least one attempt to resend."
+msgstr "Select at least one attempt to resend."
+
+msgctxt "Languages::kwtsms.logs.bulk.too_many"
+msgid "Select at most [max] attempts at a time. Nothing was sent."
+msgstr "Select at most [max] attempts at a time. Nothing was sent."
+
+msgctxt "Languages::kwtsms.logs.bulk.expired"
+msgid "This bulk resend is no longer pending (already confirmed or expired). Select the attempts again."
+msgstr "This bulk resend is no longer pending (already confirmed or expired). Select the attempts again."
+
+msgctxt "Languages::kwtsms.logs.bulk.done"
+msgid "Bulk resend: [sent] sent, [queued] queued for later, [refused] not resent."
+msgstr "Bulk resend: [sent] sent, [queued] queued for later, [refused] not resent."
+
+msgctxt "Languages::kwtsms.logs.bulk.refused"
+msgid "[count] not resent: [reason]"
+msgstr "[count] not resent: [reason]"
+
+msgctxt "Languages::kwtsms.logs.bulk.not_tried"
+msgid "[count] not tried, because the sending stopped. Select them again once it is resolved."
+msgstr "[count] not tried, because the sending stopped. Select them again once it is resolved."
+
+msgctxt "Languages::kwtsms.logs.bulk.nothing_title"
+msgid "Nothing to resend"
+msgstr "Nothing to resend"
+
+msgctxt "Languages::kwtsms.logs.bulk.nothing"
+msgid "None of the selected attempts can be resent now (already resent, sent later, or never resendable)."
+msgstr "None of the selected attempts can be resent now (already resent, sent later, or never resendable)."
+
+msgctxt "Languages::kwtsms.logs.bulk.confirm_title"
+msgid "Resend [count] message?|Resend [count] messages?"
+msgstr "Resend [count] message?|Resend [count] messages?"
+
+msgctxt "Languages::kwtsms.logs.bulk.confirm"
+msgid "This uses about [credits] credits. Every send rule applies again, each message is a new attempt linked to the original, and the sending stops at the first limit reached."
+msgstr "This uses about [credits] credits. Every send rule applies again, each message is a new attempt linked to the original, and the sending stops at the first limit reached."
+
+msgctxt "Languages::kwtsms.logs.bulk.skipped"
+msgid "[count] of the selected attempts are skipped: they can no longer be resent."
+msgstr "[count] of the selected attempts are skipped: they can no longer be resent."
+
+msgctxt "Languages::kwtsms.logs.bulk.submit"
+msgid "Resend [count] message|Resend [count] messages"
+msgstr "Resend [count] message|Resend [count] messages"
+
+msgctxt "Languages::kwtsms.logs.resend.too_many"
+msgid "Too many attempts selected for one bulk resend."
+msgstr "Too many attempts selected for one bulk resend."
+
+msgctxt "Languages::kwtsms.logs.resend.bulk_cap"
+msgid "A sending limit was reached, so the bulk resend stopped here."
+msgstr "A sending limit was reached, so the bulk resend stopped here."

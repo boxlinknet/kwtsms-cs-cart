@@ -70,6 +70,12 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
         </section>
     {/if}
 
+    {* 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend, step 2: the count and the credits first, then the confirmation (the ids are kept in the session, the form carries only the token). *}
+    {if $l.bulk && $l.can.gateway}
+        {$b = $l.bulk}
+        {include file="addons/kwtsms/views/kwtsms/components/bulk_resend_confirm.tpl" bulk=$b list_url=$l.list_url}
+    {/if}
+
     {* ---- filters ---------------------------------------------------------------------------------------------- *}
     {$f = $l.form}
     <form action="{""|fn_url}" method="get" name="kwtsms_logs_filter" id="kwtsms_logs_filter" class="kwtsms-logs-filter">
@@ -218,11 +224,14 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
     {if !$l.rows}
         <p class="kwtsms-logs-empty" id="kwtsms_logs_empty">{if $l.active}{__("kwtsms.logs.empty_filtered")}{else}{__("kwtsms.logs.empty.`$l.tab`")}{/if}</p>
     {else}
+        {$kwtsms_bulk_on = ($l.tab == "attempts" && $l.can.gateway)}
+        {if $kwtsms_bulk_on}<form action="{""|fn_url}" method="post" name="kwtsms_bulk_form" id="kwtsms_bulk_form">{/if}
         <div class="kwtsms-table-wrap">
             {* The outcome comes right after the time; under 980 px each row is a card and data-label names its cells. *}
             <table class="table table-middle kwtsms-table kwtsms-logs-table" id="kwtsms_logs_table">
                 <thead>
                     <tr>
+                        {if $kwtsms_bulk_on}<th scope="col" class="kwtsms-logs-pick"><span class="hidden">{__("kwtsms.logs.bulk.pick")}</span></th>{/if}
                         <th scope="col">
                             <a href="{$l.sort_url|fn_url}" id="kwtsms_logs_sort">{__("kwtsms.logs.col.time")} <span aria-hidden="true">{if $l.search.sort_order == "asc"}&#9650;{else}&#9660;{/if}</span><span class="hidden">{if $l.search.sort_order == "asc"}{__("kwtsms.logs.sort_asc")}{else}{__("kwtsms.logs.sort_desc")}{/if}</span></a>
                         </th>
@@ -249,6 +258,9 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 <tbody>
                     {foreach $l.rows as $r}
                         <tr data-kwtsms-row="{$r.id}"{if $r.is_test} class="kwtsms-logs-row--test"{/if}>
+                            {if $kwtsms_bulk_on}
+                                <td class="kwtsms-logs-pick">{if $r.resendable}<input type="checkbox" name="bulk_ids[]" value="{$r.id}" id="kwtsms_pick_{$r.id}" aria-label="{__("kwtsms.logs.bulk.pick_row", ["[id]" => $r.id|fn_html_escape])}">{/if}</td>
+                            {/if}
                             <td class="kwtsms-logs-time" data-label="{__("kwtsms.logs.col.time")}">
                                 <bdi>{$r.created_at|date_format:$date_time}</bdi>
                                 <span class="kwtsms-logs-time__kwt" title="{__("kwtsms.logs.kwtsms_time_tip")}">{__("kwtsms.logs.kwtsms_time")} <bdi dir="ltr">{$r.kwt_time}</bdi></span>
@@ -287,6 +299,13 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 </tbody>
             </table>
         </div>
+        {if $kwtsms_bulk_on}
+            <div class="kwtsms-actions">
+                <input type="submit" class="btn" id="kwtsms_bulk_submit" name="dispatch[kwtsms.bulk_resend]" value="{__("kwtsms.logs.bulk.button", ["[max]" => $l.bulk_max|fn_html_escape])}">
+                <p class="muted description">{__("kwtsms.logs.bulk.help", ["[max]" => $l.bulk_max|fn_html_escape])}</p>
+            </div>
+            </form>
+        {/if}
     {/if}
 
     {* ---- paging ------------------------------------------------------------------------------------------------- *}
