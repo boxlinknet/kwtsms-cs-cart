@@ -42,6 +42,8 @@ use Tygh\Addons\Kwtsms\Log\Schema;
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
+// 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596.
+use Tygh\Addons\Kwtsms\Vendors\VendorSenders;
 
 class LogResender
 {
@@ -97,6 +99,15 @@ class LogResender
         $this->outbox = $outbox;
         $this->log = $log;
         $this->keys = $keys ?? new DispatchKeys();
+    }
+
+    /**
+     * 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596. Whether this is a Multi-Vendor store (the unit test
+     * replaces it).
+     */
+    protected function isMultiVendor(): bool
+    {
+        return function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR');
     }
 
     /**
@@ -361,6 +372,20 @@ class LogResender
                 // outbox row being resent from the vendor's queued count (it would count itself).
                 'resend_outbox_id' => (int) ($attempt['outbox_id'] ?? 0),
             ];
+            // 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596. A resend of a vendor SMS goes out under the
+            // same Sender ID as the first try: the same rule as the order notifier; the service
+            // still checks the switch.
+            if (
+                VendorSenders::marks(
+                    $this->isMultiVendor(),
+                    $context['receiver'],
+                    $context['company_id'],
+                    $context['order_id'],
+                    $context['parent_order_id']
+                )
+            ) {
+                $context['vendor_sender'] = '1';
+            }
             // The stored number is normalized; the + keeps it international so no default-country prefix is added.
             $result = $this->sms->send(['+' . (string) $attempt['phone']], $text['text'], $context);
             $first = $result->recipients()[0] ?? [];

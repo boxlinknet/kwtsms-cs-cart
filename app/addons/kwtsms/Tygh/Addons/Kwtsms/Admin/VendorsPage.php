@@ -194,6 +194,9 @@ class VendorsPage
             'prev_url' => $page > 1 ? 'kwtsms.vendors?page=' . ($page - 1) : '',
             'next_url' => $page < $pages ? 'kwtsms.vendors?page=' . ($page + 1) : '',
             'can_open_templates' => call_user_func($has_privilege, 'manage_kwtsms') === true,
+            // 2026-11-16 09:50 +03: M3.18 review round 1 (M8), task 596. The Sender ID form is for the gateway
+            // privilege.
+            'can_set_sender' => call_user_func($has_privilege, 'manage_kwtsms_gateway') === true,
         ];
     }
 
@@ -310,9 +313,17 @@ class VendorsPage
 
             return $result;
         }
-        if ($this->senders === null || $sender === null || $company_id <= 0 || !$this->vendorExists($company_id)) {
+        if ($this->senders === null || $company_id <= 0 || !$this->vendorExists($company_id)) {
             $this->notify('E', $this->text('kwtsms.vendors.unknown'), false);
             $result['reason'] = 'no_company';
+
+            return $result;
+        }
+        // 2026-11-16 09:50 +03: M3.18 review round 1 (M1), task 596. A known vendor and no sender_id in the post (the
+        // disabled "not usable" option is not submitted): say what to do, not "unknown vendor".
+        if ($sender === null) {
+            $this->notify('E', $this->text('kwtsms.vendors.sender.pick'), false);
+            $result['reason'] = 'no_sender';
 
             return $result;
         }

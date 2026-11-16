@@ -87,6 +87,8 @@ use Tygh\Addons\Kwtsms\Templates\Defaults;
 use Tygh\Addons\Kwtsms\Templates\TemplateRenderer;
 use Tygh\Addons\Kwtsms\Templates\TemplateRepository;
 use Tygh\Addons\Kwtsms\Vendors\VendorQuota;
+// 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596.
+use Tygh\Addons\Kwtsms\Vendors\VendorSenders;
 
 class OrderNotifier
 {
@@ -1094,21 +1096,15 @@ class OrderNotifier
      */
     private function usesVendorSender(string $receiver, array $order, array $ids): bool
     {
-        if (!$this->rules->isMultiVendor() || (int) ($order['company_id'] ?? 0) <= 0) {
-            return false;
-        }
-        // The per-checkout SMS is logged against the parent (order id = parent id): never a vendor's.
-        $parent_id = (int) ($ids['parent_order_id'] ?? 0);
-        if ($parent_id > 0 && $parent_id === (int) ($ids['order_id'] ?? 0)) {
-            return false;
-        }
-        if ($receiver === 'V') {
-            return true;
-        }
-
-        return $receiver === 'C'
-            && (int) ($ids['order_id'] ?? 0) > 0
-            && (string) ($order['is_parent_order'] ?? 'N') !== 'Y';
+        // 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596. One shared rule with the Logs resend.
+        return VendorSenders::marks(
+            $this->rules->isMultiVendor(),
+            $receiver,
+            (int) ($order['company_id'] ?? 0),
+            (int) ($ids['order_id'] ?? 0),
+            (int) ($ids['parent_order_id'] ?? 0),
+            (string) ($order['is_parent_order'] ?? 'N') === 'Y'
+        );
     }
 
     /**

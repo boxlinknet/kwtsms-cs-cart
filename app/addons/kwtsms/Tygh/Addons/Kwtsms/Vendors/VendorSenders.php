@@ -42,6 +42,9 @@ class VendorSenders
     /** @var AdminAlerts|null */
     private $alerts;
 
+    /** @var array<int,bool> company ids whose invalid-value alert was decided in this request (M5, task 596) */
+    private $alerted = [];
+
     /** @var array<int,string> company id => stored value read in this request */
     private $cache = [];
 
@@ -70,7 +73,12 @@ class VendorSenders
         if ($this->usable($own)) {
             return $own;
         }
-        $this->invalid($company_id, $own);
+        // 2026-11-16 09:50 +03: M3.18 review round 1 (M4, M5), task 596. An empty synced list (new account, failed
+        // first sync) falls back silently, and the alert decision is made once per company per request.
+        if ($this->state->senderIds() !== [] && empty($this->alerted[$company_id])) {
+            $this->alerted[$company_id] = true;
+            $this->invalid($company_id, $own);
+        }
 
         return $fallback;
     }
@@ -78,7 +86,7 @@ class VendorSenders
     /**
      * Saves the vendor's Sender ID ('' clears it). Only a value on the synced list is stored.
      *
-     * @return array{ok:bool,reason:string} reason: '', not_in_list, kwtsms_test_sender, not_vendor
+     * @return array{ok:bool,reason:string} reason: '', not_in_list, banned, kwtsms_test_sender, not_vendor
      */
     public function set(int $company_id, string $sender_id, int $admin_id): array
     {
@@ -98,10 +106,41 @@ class VendorSenders
         if (!in_array($sender_id, $this->state->senderIds(), true)) {
             return ['ok' => false, 'reason' => 'not_in_list'];
         }
+        // 2026-11-16 09:50 +03: M3.18 review round 1 (M2), task 596. A banned id is not on the pick list either.
+        if ($this->state->isSenderBanned($sender_id)) {
+            return ['ok' => false, 'reason' => 'banned'];
+        }
         $this->writeRow($company_id, $sender_id, $admin_id, $this->now());
         unset($this->cache[$company_id]);
 
         return ['ok' => true, 'reason' => ''];
+    }
+
+    /**
+     * 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596. The one rule for marking an SMS "send under the
+     * vendor's own Sender ID", used by the order notifier and by the Logs resend so they cannot drift: Multi-Vendor
+     * only, a vendor order (company > 0), never the per-checkout SMS (order id = parent id); V always, C only for an
+     * order of one vendor (order id > 0, not a parent order); never A.
+     */
+    public static function marks(
+        bool $multivendor,
+        string $receiver,
+        int $company_id,
+        int $order_id,
+        int $parent_order_id,
+        bool $is_parent_order = false
+    ): bool {
+        if (!$multivendor || $company_id <= 0) {
+            return false;
+        }
+        if ($parent_order_id > 0 && $parent_order_id === $order_id) {
+            return false;
+        }
+        if ($receiver === 'V') {
+            return true;
+        }
+
+        return $receiver === 'C' && $order_id > 0 && !$is_parent_order;
     }
 
     /** The stored value as it is, whether it is still usable or not ('' = none). */

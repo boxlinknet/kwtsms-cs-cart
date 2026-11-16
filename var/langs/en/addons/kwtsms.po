@@ -8068,6 +8068,14 @@ msgctxt "Languages::kwtsms.vendors.sender.reason.not_in_list"
 msgid "it is not on your kwtSMS account. Sync the Sender IDs on the Settings page and pick one from the list."
 msgstr "it is not on your kwtSMS account. Sync the Sender IDs on the Settings page and pick one from the list."
 
+msgctxt "Languages::kwtsms.vendors.sender.reason.banned"
+msgid "kwtSMS banned this Sender ID. Pick another one from the list."
+msgstr "kwtSMS banned this Sender ID. Pick another one from the list."
+
+msgctxt "Languages::kwtsms.vendors.sender.pick"
+msgid "Pick a Sender ID from the list, or the storefront Sender ID, before you save."
+msgstr "Pick a Sender ID from the list, or the storefront Sender ID, before you save."
+
 msgctxt "Languages::kwtsms.vendors.sender.reason.kwtsms_test_sender"
 msgid "KWT-SMS is the kwtSMS test Sender ID and cannot be given to a vendor."
 msgstr "KWT-SMS is the kwtSMS test Sender ID and cannot be given to a vendor."

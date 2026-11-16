@@ -168,7 +168,7 @@ Internal keys, not for external use (they are read, but their meaning can change
 dropped), `retry_of`, `resend_outbox_id`, `staff_code`, `vendor_sender`. The stored source `otp_code` is reserved for the code SMS this add-on sends
 itself; passing it is read as `manual`. `SmsService::sendCode()` is the sender of that code SMS; it is public in PHP
 only because the add-on's own classes call it, it is internal and not part of the interface above, and it can change
-without notice. Call `send()`.
+without notice. Call `send()`. `vendor_sender` is not checked against the caller: PHP code that passes it with a vendor `company_id` and receiver `V` or `C` sends under that vendor's Sender ID (when the switch is on), so treat it as add-on internal.
 
 **Hook handlers are trusted code.** `send()` runs the `kwtsms_send_pre` hook first; a handler of that hook (any active
 add-on) can edit the phones, the text and the whole context, including `source`, `receiver` and `secret_values`, or

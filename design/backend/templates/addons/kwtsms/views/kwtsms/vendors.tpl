@@ -155,6 +155,8 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                 </td>
                                 {* 2026-11-15 20:58 +03: Task M3.18 (G2, P3-75), task 596. The vendor's own Sender ID: a select of the synced list only, saved by its own form (POST update_vendor_senders, gateway privilege). A saved value that left the list stays visible as "not usable". *}
                                 <td data-th="{__("kwtsms.vendors.col.sender")}">
+{* 2026-11-16 09:50 +03: M3.18 review round 1 (M8), task 596. Without the gateway privilege the Sender ID is read-only text, no Save. *}
+                                    {if $v.can_set_sender}
                                     <form action="{""|fn_url}" method="post" name="kwtsms_vendor_sender_form_{$row.company_id}" class="kwtsms-inline-form kwtsms-sender-form">
                                         <input type="hidden" name="kwtsms_vendor[company_id]" value="{$row.company_id}">
                                         <input type="hidden" name="kwtsms_page" value="{$v.search.page}">
@@ -169,6 +171,9 @@ DEPENDS:   components/navigation.tpl, vendors.less, kwtsms.vendors.* and kwtsms.
                                         </select>
                                         <button type="submit" class="btn" id="kwtsms_vendor_sender_save_{$row.company_id}" name="dispatch[kwtsms.update_vendor_senders]" value="1">{__("kwtsms.vendors.sender.save")}</button>
                                     </form>
+                                    {else}
+                                        <span id="kwtsms_vendor_sender_text_{$row.company_id}" dir="ltr">{if $row.sender}{$row.sender}{else}{__("kwtsms.vendors.sender.storefront")}{/if}</span>
+                                    {/if}
                                     {if $row.sender && !$row.sender_usable}<span class="kwtsms-badge kwtsms-badge--danger" id="kwtsms_vendor_sender_bad_{$row.company_id}">{__("kwtsms.vendors.sender.unusable")}</span>{/if}
                                 </td>
                                 <td data-th="{__("kwtsms.vendors.col.action")}">
