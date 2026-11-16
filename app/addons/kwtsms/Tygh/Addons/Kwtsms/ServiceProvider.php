@@ -512,12 +512,20 @@ class ServiceProvider implements ServiceProviderInterface
                     return $index->enforcing() ? $index->ownerOf($phone, $user_id) : 0;
                 },
                 static function (int $user_id): ?array {
-                    if (!function_exists('fn_get_user_info')) {
+                    // 2026-11-17 00:30 +03: Task M3.21 fix round 1 (I2), task 596. Two primary-key / user_id
+                    // lookups instead of a full fn_get_user_info() (profile fields, usergroups, hooks of other add-ons) per page view.
+                    if (!function_exists('db_get_row')) {
                         return null;
                     }
-                    $user = fn_get_user_info($user_id, true);
+                    $user = db_get_row('SELECT user_type, status, phone FROM ?:users WHERE user_id = ?i', $user_id);
                     if (!is_array($user) || $user === []) {
                         return null;
+                    }
+                    if (trim((string) ($user['phone'] ?? '')) === '') {
+                        $user['b_phone'] = (string) db_get_field(
+                            "SELECT b_phone FROM ?:user_profiles WHERE user_id = ?i AND profile_type = 'P' LIMIT 1",
+                            $user_id
+                        );
                     }
 
                     return [

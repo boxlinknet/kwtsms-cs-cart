@@ -98,6 +98,8 @@ try {
 if ($mode === 'later') {
     $kwtsms_prompt->later($kwtsms_user_id);
 
+    unset($kwtsms_session['kwtsms_phone_typed']); // 2026-11-17 01:10 +03: Task M3.21 fix round 1 (M3), task 596
+
     return [CONTROLLER_STATUS_REDIRECT, $kwtsms_return !== '' ? $kwtsms_return : 'index.index'];
 }
 
@@ -120,6 +122,7 @@ if ($kwtsms_method === 'POST') {
     // The numbers go through fn_html_escape (a notification message is HTML).
     switch ($kwtsms_result['status']) {
         case 'ok':
+            unset($kwtsms_session['kwtsms_phone_typed']); // 2026-11-17 01:10 +03: Task M3.21 fix round 1 (M3), task 596
             fn_set_notification('N', __('notice'), __('kwtsms.phone_prompt.saved'));
 
             return [CONTROLLER_STATUS_REDIRECT, $kwtsms_return !== '' ? $kwtsms_return : 'index.index'];

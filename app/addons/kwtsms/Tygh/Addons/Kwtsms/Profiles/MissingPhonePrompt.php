@@ -42,6 +42,9 @@ final class MissingPhonePrompt
     /** The session key of the per-user marks. */
     public const SESSION_KEY = 'kwtsms_phone_prompt';
 
+    /** 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I2), task 596. A customer with a phone is not looked up again for this long. */
+    public const HAS_PHONE_SECONDS = 3600;
+
     /** "Later" lasts this long (seconds). */
     public const LATER_SECONDS = 604800;
 
@@ -125,6 +128,11 @@ final class MissingPhonePrompt
         if ($user_id <= 1) {
             return false;
         }
+        // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I1), task 596. An administrator who used "login as customer"
+        // (core fn_fill_auth: act_as_user) is never prompted and cannot bind a phone to the customer's account.
+        if (!empty($auth['act_as_user'])) {
+            return false;
+        }
         // The session says customer; the account row is read again for the phone below.
         return (string) ($auth['user_type'] ?? '') === 'C';
     }
@@ -157,9 +165,46 @@ final class MissingPhonePrompt
         if (!empty($mark['shown']) || (int) ($mark['later_until'] ?? 0) > $this->now()) {
             return false;
         }
+        // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I2), task 596. A customer found WITH a phone is not looked up
+        // again for HAS_PHONE_SECONDS (one cheap read per hour and session, not one per page view).
+        if ((int) ($mark['has_phone_until'] ?? 0) > $this->now()) {
+            return false;
+        }
         $account = $this->readAccount($user_id);
+        if ($account !== null && !$this->needsPhone($account)) {
+            $this->mark($user_id, ['has_phone_until' => $this->now() + self::HAS_PHONE_SECONDS]);
+        }
 
         return $account !== null && $this->needsPhone($account);
+    }
+
+    /**
+     * 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I3), task 596. Whether the request is a real top-level page
+     * navigation: Accept names text/html ("*" slash "*" alone is a fetch, an image or curl), Sec-Fetch-Mode and
+     * Sec-Fetch-Dest, when the browser sends them, say navigate and document, and it is not a prefetch.
+     *
+     * @param array<string,mixed> $server $_SERVER
+     */
+    public static function isPageNavigation(array $server): bool
+    {
+        if (stripos((string) ($server['HTTP_ACCEPT'] ?? ''), 'text/html') === false) {
+            return false;
+        }
+        $mode = strtolower(trim((string) ($server['HTTP_SEC_FETCH_MODE'] ?? '')));
+        if ($mode !== '' && $mode !== 'navigate') {
+            return false;
+        }
+        $dest = strtolower(trim((string) ($server['HTTP_SEC_FETCH_DEST'] ?? '')));
+        if ($dest !== '' && $dest !== 'document') {
+            return false;
+        }
+        foreach (['HTTP_SEC_PURPOSE', 'HTTP_PURPOSE', 'HTTP_X_PURPOSE', 'HTTP_X_MOZ'] as $key) {
+            if (stripos((string) ($server[$key] ?? ''), 'prefetch') !== false || stripos((string) ($server[$key] ?? ''), 'preview') !== false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** The one redirect of this session for this user is spent. */

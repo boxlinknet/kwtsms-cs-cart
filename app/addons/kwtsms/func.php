@@ -1255,8 +1255,9 @@ function fn_kwtsms_missing_phone_redirect()
         if (!empty($session[\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
             return;
         }
-        $accept = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
-        if ($accept !== '' && stripos($accept, 'html') === false && strpos($accept, '*/*') === false) {
+        // 2026-11-17 00:25 +03: Task M3.21 fix round 1 (I3), task 596. Only a real top-level page navigation (Accept names
+        // text/html, Sec-Fetch-Mode navigate and Sec-Fetch-Dest document when sent, no prefetch) is redirected.
+        if (!\Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt::isPageNavigation($_SERVER)) {
             return;
         }
         $auth = isset($session['auth']) && is_array($session['auth']) ? $session['auth'] : [];
@@ -1301,6 +1302,7 @@ function fn_kwtsms_missing_phone_write($user_id, $phone)
         $auth = Tygh::$app['session']['auth'];
         if (
             $user_id <= 1 || $phone === '' || !is_array($auth) || (int) ($auth['user_id'] ?? 0) !== $user_id
+            || !empty($auth['act_as_user']) // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I1), task 596: never while impersonating
             || !function_exists('fn_update_user') || !function_exists('fn_get_user_info')
         ) {
             return false;
