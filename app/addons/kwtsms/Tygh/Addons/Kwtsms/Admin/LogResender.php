@@ -24,6 +24,10 @@
  *            resend:<attempt_id> for 60 s (Orders\DispatchKeys, one atomic INSERT); a second POST inside the window
  *            (a double click, a second tab) is refused with kwtsms.logs.resend.in_progress and sends nothing; a key
  *            that cannot be written refuses too (no SMS is better than a duplicate).
+ *            2026-11-16 23:30 +03, Task M3.11 (B11, P3-72), task 596: resendMany() resends up to BULK_MAX selected
+ *            attempts through resend() (so every rule above applies to each one), stops at the first sign that the
+ *            rest cannot go (daily cap, suspended gateway, request budget) and reports the untried ids; estimate()
+ *            counts the rows that may be resent and their credits for the confirm step.
  * USAGE:     $resender = LogResender::fromContainer(Tygh::$app);
  *            $resender->verdict($attempt_row);   // ['ok' => bool, 'reason' => 'kwtsms.logs.resend.<why>']
  *            $resender->verdicts($attempt_rows); // attempt_id => verdict, for a message's recipients
@@ -41,6 +45,8 @@ use Tygh\Addons\Kwtsms\Log\Schema;
 // 2026-10-21 16:58 +03: the resend claim (final review M1), task 596.
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
 use Tygh\Addons\Kwtsms\Queue\Outbox;
+use Tygh\Addons\Kwtsms\Sms\MessageCleaner;
+use Tygh\Addons\Kwtsms\Sms\SendResult;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
 // 2026-11-16 09:50 +03: M3.18 review round 1 (I1), task 596.
 use Tygh\Addons\Kwtsms\Vendors\VendorSenders;
@@ -62,6 +68,21 @@ class LogResender
 
     /** Window of the resend:<attempt_id> claim (2026-10-21 16:58 +03: final review M1, task 596). */
     public const CLAIM_WINDOW = 60;
+
+    /**
+     * 2026-11-16 23:30 +03: Task M3.11 (P3-72), task 596. Most attempts one bulk action may carry: a web request
+     * has SmsService::REQUEST_BUDGET = 20 API calls, so 15 resends leave room for a probe and other sends.
+     */
+    public const BULK_MAX = 15;
+
+    /**
+     * 2026-11-17 00:05 +03: fix round 1 (I1), Task M3.11, task 596. Outcomes that hold for every following resend
+     * too (store caps, balance, setup, the SMS switch, the rate limit): the bulk loop stops there.
+     */
+    public const STOP_OUTCOMES = [
+        'blocked_daily_cap', 'blocked_hourly_cap', 'blocked_balance', 'blocked_not_configured', 'blocked_disabled',
+        'rate_limited',
+    ];
 
     /** @var array<int,array<string,mixed>|null> message rows read during one verdicts() call */
     private $messages = [];
@@ -321,13 +342,16 @@ class LogResender
     /**
      * Resends one attempt through the full pipeline. Never throws.
      *
-     * @return array{ok:bool,reason:string,outcome:string,attempt_id:int,status:string,original:int}
+     * 2026-11-16 23:30 +03: new_reason (the reason of the new attempt row, e.g. request_overflow) added for the bulk
+     * loop, Task M3.11, task 596.
+     *
+     * @return array{ok:bool,reason:string,outcome:string,attempt_id:int,status:string,original:int,new_reason:string}
      */
     public function resend(int $attempt_id, int $admin_id, string $ip): array
     {
         $out = [
             'ok' => false, 'reason' => '', 'outcome' => '', 'attempt_id' => 0, 'status' => '',
-            'original' => $attempt_id,
+            'original' => $attempt_id, 'new_reason' => '',
         ];
         try {
             $attempt = $this->store->find(Schema::ATTEMPTS, $attempt_id);
@@ -391,6 +415,7 @@ class LogResender
             $first = $result->recipients()[0] ?? [];
             $out['ok'] = true;
             $out['outcome'] = (string) ($first['outcome'] ?? '');
+            $out['new_reason'] = (string) ($first['reason'] ?? '');
             $out['attempt_id'] = (int) ($first['attempt_id'] ?? 0);
             $out['status'] = $result->status();
             if ($out['attempt_id'] > 0) {
@@ -408,6 +433,170 @@ class LogResender
         }
 
         return $out;
+    }
+
+    /**
+     * 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Resends the selected attempts, one resend() each (no
+     * second verdict(): resend() decides once), so the vendor Sender ID, the claim, every gate and the budgets apply
+     * to each. More than BULK_MAX ids (after dropping duplicates and bad ids) are refused whole, nothing is sent. The
+     * loop stops at the first outcome that says the rest cannot go either (STOP_OUTCOMES, refused for that id; a
+     * deferral to the outbox such as request_overflow or suspended is counted as queued); the ids not reached are
+     * listed in not_tried. Never throws.
+     *
+     * @param int[] $attempt_ids
+     *
+     * @return array{sent:int,queued:int,refused:array<int,string>,not_tried:int[]}
+     */
+    public function resendMany(array $attempt_ids, int $admin_id, string $ip): array
+    {
+        $out = ['sent' => 0, 'queued' => 0, 'refused' => [], 'not_tried' => []];
+        $ids = self::cleanIds($attempt_ids);
+        if (count($ids) > self::BULK_MAX) {
+            foreach ($ids as $id) {
+                $out['refused'][$id] = 'kwtsms.logs.resend.too_many';
+            }
+
+            return $out;
+        }
+        foreach ($ids as $i => $id) {
+            $r = $this->resend($id, $admin_id, $ip);
+            if (!$r['ok']) {
+                $out['refused'][$id] = $r['reason'] !== '' ? $r['reason'] : 'kwtsms.logs.resend.failed';
+                continue;
+            }
+            // 2026-11-17 00:05 +03: fix round 1 (I1), Task M3.11, task 596. Only a real accepted send counts as sent
+            // (SendResult::ACCEPTED_OUTCOMES: accepted, test_queued, partial_accept). A deferral is queued. Every
+            // other outcome is a refusal reported with its reason (kwtsms.logs.outcome.<outcome>), and the account-wide
+            // ones stop the loop: the rest could only meet the same block.
+            $outcome = $r['outcome'];
+            if (in_array($outcome, SendResult::ACCEPTED_OUTCOMES, true)) {
+                $out['sent']++;
+                continue;
+            }
+            if ($outcome === 'deferred') {
+                $out['queued']++;
+                $out['not_tried'] = array_slice($ids, $i + 1);
+                break;
+            }
+            $out['refused'][$id] = in_array($outcome, ['blocked_daily_cap', 'blocked_hourly_cap'], true)
+                ? 'kwtsms.logs.resend.bulk_cap'
+                : 'kwtsms.logs.outcome.' . ($outcome !== '' ? $outcome : 'failed');
+            if (in_array($outcome, self::STOP_OUTCOMES, true)) {
+                $out['not_tried'] = array_slice($ids, $i + 1);
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * 2026-11-16 23:30 +03: Task M3.11, task 596. What a bulk resend would do, for the confirm step: how many of the
+     * selected attempts may be resent (verdicts()) and the credits their texts need (MessageCleaner::pages() of the
+     * stored text: Arabic is 1 page up to 70 characters then 67 per page, GSM 160 then 153; the text sent may be
+     * cleaned, so it is an estimate).
+     * 2026-11-17 00:05 +03: fix round 1 (I2): attempts of one message to one number count once.
+     *
+     * @param int[] $attempt_ids
+     *
+     * @return array{count:int,credits:int}
+     */
+    public function estimate(array $attempt_ids): array
+    {
+        $out = ['count' => 0, 'credits' => 0];
+        $rows = [];
+        foreach (array_slice(self::cleanIds($attempt_ids), 0, self::BULK_MAX) as $id) {
+            $row = $this->store->find(Schema::ATTEMPTS, $id);
+            if ($row !== null) {
+                $rows[] = $row;
+            }
+        }
+        if ($rows === []) {
+            return $out;
+        }
+        $seen = [];
+        $verdicts = $this->verdicts($rows);
+        foreach ($rows as $row) {
+            if (!$verdicts[(int) $row['attempt_id']]['ok']) {
+                continue;
+            }
+            // 2026-11-17 00:05 +03: the siblings of one message or outbox row to one number are one resend (the
+            // second is refused as already resent at send time).
+            $keys = [];
+            if ((int) ($row['outbox_id'] ?? 0) > 0) {
+                $keys[] = 'o' . (int) $row['outbox_id'] . ':' . (string) $row['phone'];
+            }
+            if ((int) ($row['message_id'] ?? 0) > 0) {
+                $keys[] = 'm' . (int) $row['message_id'] . ':' . (string) $row['phone'];
+            }
+            foreach ($keys as $key) {
+                if (isset($seen[$key])) {
+                    continue 2;
+                }
+            }
+            foreach ($keys as $key) {
+                $seen[$key] = true;
+            }
+            $out['count']++;
+            $out['credits'] += max(1, MessageCleaner::pages($this->text($row)['text']));
+        }
+
+        return $out;
+    }
+
+    /**
+     * 2026-11-17 00:25 +03: fix round 1 (I3), Task M3.11, task 596. How long a bulk resend waits for its confirmation.
+     */
+    public const PENDING_TTL = 900;
+
+    /**
+     * 2026-11-17 00:25 +03: fix round 1 (I3), task 596. Whether the pending entry of step 1 (ids, token, at) is well
+     * formed and still fresh.
+     *
+     * @param mixed $pending
+     */
+    public static function pendingFresh($pending, int $now): bool
+    {
+        return is_array($pending) && isset($pending['ids'], $pending['token'], $pending['at'])
+            && is_array($pending['ids']) && is_string($pending['token']) && $pending['token'] !== ''
+            && $now - (int) $pending['at'] <= self::PENDING_TTL && $now >= (int) $pending['at'];
+    }
+
+    /**
+     * 2026-11-17 00:25 +03: fix round 1 (I3), task 596. The ids of a pending entry when the posted token matches and
+     * the entry is fresh, else null. The ids are the ones of step 1, never of the confirming request.
+     *
+     * @param mixed $pending
+     * @param mixed $token
+     *
+     * @return int[]|null
+     */
+    public static function pendingIds($pending, $token, int $now): ?array
+    {
+        if (!self::pendingFresh($pending, $now) || !is_string($token) || !hash_equals($pending['token'], $token)) {
+            return null;
+        }
+
+        return self::cleanIds($pending['ids']);
+    }
+
+    /**
+     * Positive, distinct ids in the order given.
+     *
+     * @param array<int,mixed> $ids
+     *
+     * @return int[]
+     */
+    public static function cleanIds(array $ids): array
+    {
+        $out = [];
+        foreach ($ids as $id) {
+            if ((is_int($id) || (is_string($id) && ctype_digit($id))) && (int) $id > 0) {
+                $out[(int) $id] = (int) $id;
+            }
+        }
+
+        return array_values($out);
     }
 
     /**

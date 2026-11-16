@@ -694,6 +694,68 @@ try {
             ];
         }
 
+        // 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend in two POST steps. Step 1 (no
+        // 'confirmed'): the selected attempt ids (at most LogResender::BULK_MAX) are kept in the SESSION with a random
+        // token and the browser is sent to the Logs page, which shows the count and the credits. Step 2 ('confirmed'
+        // plus the token): the session entry is removed first (a double submit finds nothing), then the ids of the
+        // session, never of this request, go through LogResender::resendMany().
+        if ($mode === 'bulk_resend') {
+            $kwtsms_posted = array_intersect_key($_REQUEST, $_POST);
+            $kwtsms_logs_page = LogsPage::fromContainer(Tygh::$app);
+            $kwtsms_notes = [];
+            $kwtsms_back = 'kwtsms.logs?tab=attempts';
+            if (!isset($kwtsms_posted['confirmed'])) {
+                $kwtsms_ids = LogResender::cleanIds(
+                    isset($kwtsms_posted['bulk_ids']) && is_array($kwtsms_posted['bulk_ids'])
+                        ? array_values($kwtsms_posted['bulk_ids'])
+                        : []
+                );
+                if ($kwtsms_ids === []) {
+                    $kwtsms_notes[] = ['W', (string) __('kwtsms.logs.bulk.none')];
+                } elseif (count($kwtsms_ids) > LogResender::BULK_MAX) {
+                    $kwtsms_notes[] = [
+                        'E',
+                        (string) __('kwtsms.logs.bulk.too_many', ['[max]' => LogResender::BULK_MAX]),
+                    ];
+                } else {
+                    $kwtsms_session['kwtsms_bulk_resend'] = [
+                        'ids' => $kwtsms_ids,
+                        'token' => bin2hex(random_bytes(16)),
+                        'at' => time(),
+                    ];
+                    $kwtsms_back .= '&bulk_resend=1';
+                }
+            } else {
+                $kwtsms_pending = isset($kwtsms_session['kwtsms_bulk_resend'])
+                    && is_array($kwtsms_session['kwtsms_bulk_resend'])
+                    ? $kwtsms_session['kwtsms_bulk_resend']
+                    : null;
+                unset($kwtsms_session['kwtsms_bulk_resend']);
+                $kwtsms_pending_ids = LogResender::pendingIds(
+                    $kwtsms_pending,
+                    $kwtsms_posted['bulk_token'] ?? null,
+                    time()
+                );
+                if ($kwtsms_pending_ids === null) {
+                    $kwtsms_notes[] = ['E', (string) __('kwtsms.logs.bulk.expired')];
+                } else {
+                    $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+                    $kwtsms_notes = $kwtsms_logs_page->bulkNotices(
+                        LogResender::fromContainer(Tygh::$app)->resendMany(
+                            $kwtsms_pending_ids,
+                            isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
+                            filter_var($kwtsms_ip, FILTER_VALIDATE_IP) !== false ? $kwtsms_ip : ''
+                        )
+                    );
+                }
+            }
+            foreach ($kwtsms_notes as $kwtsms_note) {
+                fn_set_notification($kwtsms_note[0], __($kwtsms_note[0] === 'E' ? 'error' : 'notice'), $kwtsms_note[1]);
+            }
+
+            return [CONTROLLER_STATUS_REDIRECT, $kwtsms_back];
+        }
+
         // POST modes of later tasks (templates, alerts, integrations, logs) do nothing until they are built.
         return [CONTROLLER_STATUS_NO_PAGE];
     }
@@ -894,6 +956,19 @@ try {
         $kwtsms_logs_page = LogsPage::fromContainer(Tygh::$app);
         if ($mode === 'logs') {
             $kwtsms_data = $kwtsms_logs_page->viewData($_REQUEST, $kwtsms_has('manage_kwtsms_gateway'));
+            // 2026-11-16 23:30 +03: Task M3.11 (B11), task 596. The bulk resend confirm step: count and credits of the
+            // ids kept in the session by step 1 (the ids never come from this GET).
+            $kwtsms_data['bulk'] = null;
+            if (
+                isset($_REQUEST['bulk_resend']) && $kwtsms_has('manage_kwtsms_gateway')
+                && isset($kwtsms_session['kwtsms_bulk_resend'])
+                && LogResender::pendingFresh($kwtsms_session['kwtsms_bulk_resend'], time())
+            ) {
+                $kwtsms_data['bulk'] = $kwtsms_logs_page->bulkPreview(
+                    (array) $kwtsms_session['kwtsms_bulk_resend']['ids'],
+                    (string) $kwtsms_session['kwtsms_bulk_resend']['token']
+                );
+            }
         } else {
             $kwtsms_data = $kwtsms_logs_page->details(
                 isset($_REQUEST['tab']) && is_string($_REQUEST['tab']) ? $_REQUEST['tab'] : '',
@@ -972,7 +1047,8 @@ try {
         $kwtsms_failed_url = 'kwtsms.vendors';
     }
     // 2026-10-21 05:55 +03: a failed Clear or Resend goes back to the Logs page (Task 1.14, task 596).
-    if ((string) $mode === 'clear_logs' || (string) $mode === 'resend') {
+    // 2026-11-16 23:30 +03: bulk_resend too, Task M3.11, task 596.
+    if (in_array((string) $mode, ['clear_logs', 'resend', 'bulk_resend'], true)) {
         $kwtsms_failed_url = 'kwtsms.logs';
     }
 

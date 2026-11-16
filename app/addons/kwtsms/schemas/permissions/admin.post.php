@@ -50,6 +50,8 @@ $schema['kwtsms'] = [
         'regenerate_cron_key'    => ['permissions' => 'manage_kwtsms_gateway'],
         'clear_logs'             => ['permissions' => 'manage_kwtsms_gateway'],
         'resend'                 => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. Bulk resend, same privilege as 'resend'.
+        'bulk_resend'            => ['permissions' => 'manage_kwtsms_gateway'],
         'update_template'        => ['permissions' => 'manage_kwtsms'],
         'reset_template'         => ['permissions' => 'manage_kwtsms'],
         'load_template_defaults' => ['permissions' => 'manage_kwtsms'],

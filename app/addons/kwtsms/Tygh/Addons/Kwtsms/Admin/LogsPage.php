@@ -17,6 +17,7 @@
  *            search stopped (every list and count stays under a second on 1M attempts and 2M debug rows, ruling R35).
  *            Lists never read the raw request and reply (DbLogStore::page()); the detail view reads them and redacts
  *            the saved credentials once more before showing them. The support text never holds the password.
+ *            2026-11-16 23:30 +03, Task M3.11 (P3-72), task 596: bulkPreview() and bulkNotices() for the bulk resend.
  * USAGE:     $page = LogsPage::fromContainer(Tygh::$app);
  *            $data = $page->viewData($_REQUEST, $can_gateway);              // GET kwtsms.logs
  *            $data = $page->details('messages', 15, $can_gateway);          // GET kwtsms.log_details (null: no row)
@@ -256,6 +257,8 @@ class LogsPage
             'options' => $this->options($parsed['tab']),
             'can' => ['gateway' => $can_gateway],
             'clear' => $clear,
+            // 2026-11-16 23:30 +03: Task M3.11 (P3-72), task 596. The most attempts one bulk resend takes.
+            'bulk_max' => LogResender::BULK_MAX,
             'retention' => [
                 'messages' => $this->config->retentionMessagesDays(),
                 'attempts' => $this->config->retentionAttemptsDays(),
@@ -579,6 +582,70 @@ class LogsPage
             '[outcome]' => $this->outcomeLabel($outcome),
             '[reason]' => $this->outcomeTip($outcome),
         ])];
+    }
+
+    /**
+     * 2026-11-16 23:30 +03: Task M3.11 (B11, P3-72), task 596. The confirm step of a bulk resend: the count and the
+     * credits of the selected attempts that may still be resent, and what is refused. The ids come from the session
+     * (the controller), never from this request.
+     *
+     * @param int[] $ids
+     *
+     * @return array{ids:int,count:int,credits:int,skipped:int,token:string}
+     */
+    public function bulkPreview(array $ids, string $token): array
+    {
+        $estimate = $this->resender !== null ? $this->resender->estimate($ids) : ['count' => 0, 'credits' => 0];
+
+        return [
+            'ids' => count($ids),
+            'count' => $estimate['count'],
+            'credits' => $estimate['credits'],
+            'skipped' => max(0, count($ids) - $estimate['count']),
+            'token' => $token,
+        ];
+    }
+
+    /**
+     * 2026-11-16 23:30 +03: Task M3.11, task 596. The notifications after a bulk resend: the summary, then why the
+     * refused ones were, then that the rest was not tried.
+     *
+     * @param array{sent:int,queued:int,refused:array<int,string>,not_tried:int[]} $result LogResender::resendMany()
+     *
+     * @return array<int,array{0:string,1:string}>
+     */
+    public function bulkNotices(array $result): array
+    {
+        $out = [];
+        $out[] = [
+            // 2026-11-17 00:05 +03: fix round 1 (minor 4), task 596: a warning when anything was refused or not tried.
+            ($result['sent'] > 0 || $result['queued'] > 0) && $result['refused'] === [] && $result['not_tried'] === []
+                ? 'N'
+                : 'W',
+            $this->text('kwtsms.logs.bulk.done', [
+                '[sent]' => (string) $result['sent'],
+                '[queued]' => (string) $result['queued'],
+                '[refused]' => (string) count($result['refused']),
+            ]),
+        ];
+        $reasons = [];
+        foreach ($result['refused'] as $reason) {
+            $reasons[$reason] = ($reasons[$reason] ?? 0) + 1;
+        }
+        foreach ($reasons as $reason => $count) {
+            $out[] = ['W', $this->text('kwtsms.logs.bulk.refused', [
+                '[count]' => (string) $count,
+                '[reason]' => $this->text((string) $reason),
+            ])];
+        }
+        if ($result['not_tried'] !== []) {
+            $out[] = ['W', $this->text(
+                'kwtsms.logs.bulk.not_tried',
+                ['[count]' => (string) count($result['not_tried'])]
+            )];
+        }
+
+        return $out;
     }
 
     // ================================================================== rows and labels
