@@ -84,6 +84,19 @@ try {
     // after one pass (hide_if_logged, hide_after_validation), which would send SMS with no CAPTCHA. The request counts
     // as checked only when a check really ran and passed; otherwise the suspicion gate still runs in handle(). The
     // driver sets no core notice, and no setting is read or changed.
+    // 2026-11-16 23:58 +03: M7 (branch review 1.2.0, task M3.22, task 596). The per-IP buckets (ip_h, ip_d) are hit
+    // BEFORE the scenario check: under "always" mode a flood without a token no longer makes one outbound siteverify
+    // call per request. The handler skips its own count for this request afterwards.
+    $kwtsms_is_blind = in_array($kwtsms_purpose, BlindCodeRequest::PURPOSES, true);
+    $kwtsms_handler = $kwtsms_is_blind ? $kwtsms_app['kwtsms.blind_code_request'] : $kwtsms_app['kwtsms.code_request'];
+    $kwtsms_ip_wait = $kwtsms_handler->countIp($kwtsms_purpose, ClientIp::current(), $kwtsms_lang);
+    if ($kwtsms_ip_wait !== null) {
+        if ($kwtsms_is_blind) {
+            $kwtsms_handler->finishInline($kwtsms_timing);
+        }
+        fn_kwtsms_code_json(200, $kwtsms_ip_wait);
+    }
+
     $kwtsms_checked = false;
     $kwtsms_scenario = isset($kwtsms_app['antibot'])
         ? SuspicionGate::checkScenario($kwtsms_app['antibot'], $_REQUEST) : null;
