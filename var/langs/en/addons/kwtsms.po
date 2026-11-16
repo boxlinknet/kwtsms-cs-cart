@@ -8233,3 +8233,20 @@ msgstr "This storefront uses the conditions of All storefronts. Saving here make
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+
+# 2026-11-16 23:42 +03: Task M3.20 (SafatMall G5, P3-78), task 596. The Kuwait mobile-only switch (Settings, Phone and codes) and the Logs label of a skipped landline.
+msgctxt "Languages::kwtsms.settings.field.phone_kw_mobile_only"
+msgid "Kuwait numbers"
+msgstr "Kuwait numbers"
+
+msgctxt "Languages::kwtsms.settings.phone_kw_mobile_only_label"
+msgid "Refuse Kuwaiti landline and service numbers"
+msgstr "Refuse Kuwaiti landline and service numbers"
+
+msgctxt "Languages::kwtsms.settings.phone_kw_mobile_only_help"
+msgid "When on, a Kuwait number (+965) whose 8 digits do not start with 4, 5, 6 or 9 is refused at registration and in the account (needs the phone check above), and no SMS is sent to it. Numbers of other countries are not affected. When off, nothing changes."
+msgstr "When on, a Kuwait number (+965) whose 8 digits do not start with 4, 5, 6 or 9 is refused at registration and in the account (needs the phone check above), and no SMS is sent to it. Numbers of other countries are not affected. When off, nothing changes."
+
+msgctxt "Languages::kwtsms.logs.reason.kw_not_mobile"
+msgid "Not sent: a Kuwait number that is not a mobile number (landline or service number)."
+msgstr "Not sent: a Kuwait number that is not a mobile number (landline or service number)."

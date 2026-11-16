@@ -101,6 +101,8 @@ use Tygh\Addons\Kwtsms\Log\AttemptLog;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Log\MessageLog;
 use Tygh\Addons\Kwtsms\Log\Redactor;
+// 2026-11-16 23:40 +03: Task M3.20 (G5, P3-78), task 596
+use Tygh\Addons\Kwtsms\Phones\KuwaitRanges;
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Storefronts\SenderResolver;
@@ -1087,6 +1089,15 @@ class SmsService
             if (!$rcpt[$i]['valid']) {
                 $raw_empty = trim($rcpt[$i]['phone_raw']) === '';
                 $reason = $rcpt[$i]['invalid_reason'] === 'empty' ? 'no_digits' : $rcpt[$i]['invalid_reason'];
+                // 2026-11-16 23:37 +03: Task M3.20 (G5, P3-78), task 596. phone_kw_mobile_only ON: a 965 landline or
+                // service number (normalised at step 4) is skipped as invalid / kw_not_mobile: no API call, no credit.
+                // OFF: the reason stays not_mobile as before.
+                if (
+                    $reason === 'not_mobile' && $this->config->phoneKwMobileOnly()
+                    && KuwaitRanges::isNonMobile((string) $rcpt[$i]['phone'])
+                ) {
+                    $reason = 'kw_not_mobile';
+                }
                 $rcpt[$i] = $raw_empty
                     ? $this->decided($rcpt[$i], 'no_phone', 'empty')
                     : $this->decided($rcpt[$i], 'invalid', $reason);

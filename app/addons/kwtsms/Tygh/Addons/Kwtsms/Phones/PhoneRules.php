@@ -30,6 +30,9 @@ final class PhoneRules
 
     public const REASON_INVALID = 'invalid';
     public const REASON_COUNTRY = 'country_not_allowed';
+    // 2026-11-16 23:36 +03: Task M3.20 (G5, P3-78), task 596. A 965 number whose 8 local digits do not start with a
+    // mobile prefix, refused only while phone_kw_mobile_only is ON.
+    public const REASON_KW_NOT_MOBILE = 'kw_not_mobile';
 
     /** @var ConfigInterface */
     private $config;
@@ -53,7 +56,8 @@ final class PhoneRules
      * @param string $hint_cc  Calling code for a number typed without one (see AccountPhone::hint())
      *
      * @return array{ok:bool,phone:string,reason:string} An empty input is ok with phone '' (required-ness is the
-     *         profile field's own rule); ok has the canonical phone; not ok has reason invalid or country_not_allowed
+     *         profile field's own rule); ok has the canonical phone; not ok has reason invalid, kw_not_mobile
+     *         (M3.20) or country_not_allowed
      */
     public function check(string $raw, string $hint_cc): array
     {
@@ -62,6 +66,15 @@ final class PhoneRules
         }
         $verdict = PhoneNormalizer::validateInput($raw, $hint_cc);
         if (!$verdict[0]) {
+            // 2026-11-16 23:36 +03: Task M3.20 (G5, P3-78), task 596. The number is already normalised here (digits
+            // mapped, + 00 and spaces gone, trunk zero stripped). OFF: the reason stays invalid as before.
+            if (
+                $verdict[1] === 'not_mobile' && $this->config->phoneKwMobileOnly()
+                && KuwaitRanges::isNonMobile($verdict[2])
+            ) {
+                return ['ok' => false, 'phone' => '', 'reason' => self::REASON_KW_NOT_MOBILE];
+            }
+
             return ['ok' => false, 'phone' => '', 'reason' => self::REASON_INVALID];
         }
         $cc = PhoneNormalizer::countryCode($verdict[2]);
@@ -84,7 +97,8 @@ final class PhoneRules
     public function message(string $reason, array $allowed_cc, ?string $lang = null): string
     {
         $lang = $lang ?? (defined('CART_LANGUAGE') ? (string) CART_LANGUAGE : 'en');
-        if ($reason === self::REASON_INVALID) {
+        // 2026-11-16 23:36 +03: Task M3.20, task 596. kw_not_mobile shows the C3 copy of an invalid number.
+        if ($reason === self::REASON_INVALID || $reason === self::REASON_KW_NOT_MOBILE) {
             return (string) __('kwtsms.phone.error_invalid', [], $lang);
         }
         if ($reason === self::REASON_COUNTRY) {

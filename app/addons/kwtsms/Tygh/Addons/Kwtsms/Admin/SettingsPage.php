@@ -436,6 +436,8 @@ class SettingsPage
             // 2026-11-06 18:35 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a
             // code: the switch and the edition (vendors exist in Multi-Vendor only, so the field is shown there only).
             'vendor_phone_self_verify' => $this->config->vendorPhoneSelfVerify() ? 'Y' : 'N',
+            // 2026-11-16 23:40 +03: Task M3.20 (G5, P3-78), task 596. Kuwait numbers must be mobile numbers.
+            'phone_kw_mobile_only' => $this->config->phoneKwMobileOnly() ? 'Y' : 'N',
             'vendor_phone_self_verify_shown' => function_exists('fn_allowed_for') && fn_allowed_for('MULTIVENDOR'),
             'gcc' => implode(',', PhoneRules::GCC),
             // 2026-10-24 17:21 +03: Task M1.6 (C4, P3-31), task 596. The C4 switch and, while it is ON but the index is

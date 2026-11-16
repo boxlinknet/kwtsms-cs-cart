@@ -224,6 +224,8 @@ class Config implements ConfigInterface
             // 2026-11-06 18:30 +03: Task M2.6 (SafatMall F4, P3-56), task 596. Vendors confirm their SMS number with a
             // code (Multi-Vendor).
             'vendor_phone_self_verify',
+            // 2026-11-16 23:40 +03: Task M3.20 (G5, P3-78), task 596. Kuwait numbers must be mobile numbers.
+            'phone_kw_mobile_only',
         ],
     ];
 
