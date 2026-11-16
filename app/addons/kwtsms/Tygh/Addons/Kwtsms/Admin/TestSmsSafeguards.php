@@ -42,11 +42,31 @@ final class TestSmsSafeguards
         bool $consent
     ): ?string {
         $first = self::normalized($phone, $intl, $default_cc);
-        if ($first === '' || $first !== self::normalized($phone_confirm, $intl, $default_cc)) {
+        $second = self::normalized($phone_confirm, $intl, $default_cc);
+        // 2026-11-17 00:20 +03: Task M3.19 ruling (coordinator), task 596. When either entry cannot be read, the two
+        // are compared as typed (spaces trimmed, Arabic, Persian and Hindi digits converted): an identical unreadable
+        // pair is not a mismatch, so the send path answers "invalid number"; entries that differ are a mismatch.
+        if ($first === '' || $second === '') {
+            $a = self::canon($phone);
+            if ($a === '' || $a !== self::canon($phone_confirm)) {
+                return self::MISMATCH;
+            }
+        } elseif ($first !== $second) {
             return self::MISMATCH;
         }
 
         return $consent ? null : self::NO_CONSENT;
+    }
+
+    /** The entry as typed: no spaces, Arabic-Indic, Persian and Devanagari (Hindi) digits as Latin digits. */
+    private static function canon(string $phone): string
+    {
+        $map = PhoneNormalizer::DIGITS_MAP;
+        for ($i = 0; $i < 10; $i++) {
+            $map[mb_chr(0x0966 + $i, 'UTF-8')] = (string) $i;
+        }
+
+        return (string) preg_replace('/\s+/u', '', strtr(trim($phone), $map));
     }
 
     private static function normalized(string $phone, bool $intl, string $default_cc): string
