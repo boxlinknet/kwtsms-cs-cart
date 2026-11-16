@@ -179,6 +179,9 @@ try {
         $kwtsms_lang,
         $kwtsms_checked
     );
+    // 2026-11-17 01:10 +03: task M3.22 fix round 1 (C1), task 596. A register or phone change answer lasts at least
+    // CodeTiming::FLOOR_MS whether the number is held by another account (no gateway call) or free (a send).
+    $kwtsms_app['kwtsms.code_request']->finishPadded($kwtsms_timing, $kwtsms_purpose);
     fn_kwtsms_code_json(200, $kwtsms_body);
 } catch (\Throwable $e) {
     fn_kwtsms_log_hook_error('kwtsms_code.send', $e);

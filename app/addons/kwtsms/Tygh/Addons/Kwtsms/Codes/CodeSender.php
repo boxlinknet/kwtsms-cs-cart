@@ -70,6 +70,9 @@ class CodeSender
     /** @var callable|null (int $outbox_id): bool, finalizes and masks a waiting outbox row (Outbox::markExpired) */
     private $cancel;
 
+    /** @var callable|null 2026-11-17 01:10 +03: task M3.22 fix round 1 (I2), task 596. See heldOutcome(). */
+    private $cap_check;
+
     /** @var AttemptLog|null 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596. no_template rows. */
     private $attempts;
 
@@ -92,8 +95,11 @@ class CodeSender
         ?DebugLog $log = null,
         ?callable $clock = null,
         ?callable $cancel = null,
-        ?AttemptLog $attempts = null
+        ?AttemptLog $attempts = null,
+        // 2026-11-17 01:10 +03: task M3.22 fix round 1 (I2), task 596. () => array{outcome,reason}: the store caps now.
+        ?callable $cap_check = null
     ) {
+        $this->cap_check = $cap_check;
         $this->attempts = $attempts;
         $this->cancel = $cancel;
         $this->send = $send;
@@ -121,6 +127,25 @@ class CodeSender
         $host = parse_url($url, PHP_URL_HOST);
 
         return is_string($host) ? rtrim(strtolower($host), '.') : '';
+    }
+
+    /**
+     * 2026-11-17 01:10 +03: task M3.22 fix round 1 (I2), task 596. The outcome a code SMS would get from the store
+     * caps, without sending or counting anything: for a number another account holds (CodeRequest silent path). A cap
+     * that cannot be read answers failed/exception, as a real send would.
+     *
+     * @return array{outcome:string,reason:string}
+     */
+    public function heldOutcome(): array
+    {
+        if ($this->cap_check === null) {
+            return ['outcome' => 'accepted', 'reason' => ''];
+        }
+        try {
+            return (array) call_user_func($this->cap_check);
+        } catch (\Throwable $e) {
+            return ['outcome' => 'failed', 'reason' => 'exception'];
+        }
     }
 
     /**

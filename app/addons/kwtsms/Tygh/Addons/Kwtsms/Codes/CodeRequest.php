@@ -220,6 +220,20 @@ class CodeRequest
     }
 
     /**
+     * 2026-11-17 01:10 +03: task M3.22 fix round 1 (C1, review M3.22), task 596. The answer to a register or a phone
+     * change code request lasts at least CodeTiming::FLOOR_MS from the request start, on EVERY path: a number another
+     * account holds (no gateway call) and a free one (a synchronous gateway call) answer at the same floor, so the
+     * response time says nothing about the number. The controller calls it just before it answers. A send that takes
+     * longer than the floor is the residual (CodeTiming::overran()).
+     */
+    public function finishPadded(CodeTiming $timing, string $purpose): void
+    {
+        if ($purpose === self::PURPOSE_REGISTER || $purpose === self::PURPOSE_PHONE_CHANGE) {
+            $timing->pad(CodeTiming::FLOOR_MS);
+        }
+    }
+
+    /**
      * 2026-11-16 23:58 +03: M7 (branch review 1.2.0, task M3.22, task 596). The per-IP hour and day buckets (P3-6),
      * hit once per request. The controller calls this BEFORE the CAPTCHA scenario check, so a flood without a token is
      * stopped by ip_h before any outbound siteverify call; handle() then skips its own count for the same address.
@@ -588,19 +602,13 @@ class CodeRequest
             return $this->wait($issued->retry_after, $lang);
         }
 
-        // 2026-11-17 00:30 +03: task M3.22 P5, task 596. The number is held by another account: count it like a sent
-        // code and answer like one, send nothing (the code is never shown to anyone and expires).
-        if ($silent) {
-            if (!$skip_phone_cap) {
-                $this->limiter->hit('phone_h:' . $phone, self::HOUR);
-            }
-
-            return $this->sentBody($issued, $lang);
-        }
-
         // 9. The SMS. Nothing may leave a live code behind when it fails.
         try {
-            $sent = $this->sender->sendCode(
+            // 2026-11-17 00:30 +03: task M3.22 P5, task 596. The number is held by another account: nothing is sent
+            // (the code is never shown to anyone and expires). 2026-11-17 01:10 +03: fix round 1 (I2): what the store
+            // caps would say stands in for the send, so a cap that refuses a free number refuses this one the same way
+            // and the answer below is the real path's.
+            $sent = $silent ? $this->sender->heldOutcome() : $this->sender->sendCode(
                 $phone,
                 $issued->code(),
                 $purpose,
@@ -642,7 +650,10 @@ class CodeRequest
         }
 
         // Not sendable (P3-13, P3-24): name the cause, cancel a deferred copy, then pause or continue.
-        $this->availability->alert($this->availability->reasonFor($outcome, $reason));
+        // 2026-11-17 01:10 +03: fix round 1 (I2), task 596. A held number raises no alert of its own.
+        if (!$silent) {
+            $this->availability->alert($this->availability->reasonFor($outcome, $reason));
+        }
         if (isset($sent['outbox_id'])) {
             $this->sender->cancelDeferred((int) $sent['outbox_id']);
         }
