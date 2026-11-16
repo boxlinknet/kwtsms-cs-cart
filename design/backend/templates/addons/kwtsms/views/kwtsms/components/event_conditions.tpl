@@ -47,6 +47,15 @@ DEPENDS:   templates.less (.kwtsms-cond).
             {/foreach}
             <span class="muted kwtsms-cond__hint">{__("kwtsms.conditions.any")}</span>
         </fieldset>
+        {* 2026-11-16 16:45 +03: M3.7 fix round 1 (I2, I3), task 596. Storefront inheritance note; one-line reason for the missing quiet-hours box on the placed events. *}
+        {if $c.inherit == "overrides"}
+            <p class="kwtsms-cond__help muted" id="kwtsms_cond_inherit_{$row.dom_id}">{__("kwtsms.conditions.overrides")}</p>
+        {elseif $c.inherit == "uses"}
+            <p class="kwtsms-cond__help muted" id="kwtsms_cond_inherit_{$row.dom_id}">{__("kwtsms.conditions.uses")}</p>
+        {/if}
+        {if $c.quiet_exempt}
+            <p class="muted kwtsms-cond__hint" id="kwtsms_cond_quiet_exempt_{$row.dom_id}">{__("kwtsms.conditions.quiet_exempt")}</p>
+        {/if}
         {if $c.can_quiet}
             <div class="kwtsms-cond__field">
                 <label class="kwtsms-cond__check"><input type="checkbox" name="kwtsms_tpl[staff_quiet]" value="1"{if $c.staff_quiet} checked="checked"{/if}> {__("kwtsms.conditions.staff_quiet")}</label>

@@ -30,9 +30,12 @@ class EventConditions
     public const REASON_MIN_TOTAL = 'condition_min_total';
     public const REASON_PAYMENT = 'condition_payment';
     public const REASON_SHIPPING = 'condition_shipping';
+    // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (M1): a minimum is set but the order has no readable total.
+    public const REASON_PLATFORM_MISSING = 'platform_missing';
 
     /** The decimal a minimum total is posted as: up to 10 integer digits and up to 3 fraction digits. */
-    public const DECIMAL = '/^\d{1,10}(\.\d{1,3})?$/';
+    // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (M2): the D modifier, so a trailing newline no longer matches.
+    public const DECIMAL = '/^\d{1,10}(\.\d{1,3})?$/D';
 
     /** At most this many ids of one list are stored (a store has far fewer methods; bounds the JSON). */
     private const MAX_IDS = 200;
@@ -54,11 +57,20 @@ class EventConditions
             return $none;
         }
         $cond = $this->effective($event_id, $receiver, max(0, $storefront_id));
-        $none['staff_quiet'] = $cond['staff_quiet'] && $receiver !== 'C';
+        // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (I2): the placed events are exempt from quiet hours (plan
+        // ruling 17), so no staff_quiet for them.
+        $none['staff_quiet'] = $cond['staff_quiet'] && $receiver !== 'C' && self::supportsQuiet($event_id);
         // Order conditions apply to an event that has an order; any other event ignores them.
         if ((int) ($order['order_id'] ?? 0) > 0) {
-            if ($cond['min_total'] !== '' && self::compare(self::totalOf($order), $cond['min_total']) < 0) {
-                return ['ok' => false, 'reason' => self::REASON_MIN_TOTAL, 'staff_quiet' => false];
+            if ($cond['min_total'] !== '') {
+                $total = self::totalOf($order);
+                if ($total === null) {
+                    // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (M1): fail closed, but do not blame the order.
+                    return ['ok' => false, 'reason' => self::REASON_PLATFORM_MISSING, 'staff_quiet' => false];
+                }
+                if (self::compare($total, $cond['min_total']) < 0) {
+                    return ['ok' => false, 'reason' => self::REASON_MIN_TOTAL, 'staff_quiet' => false];
+                }
             }
             $payment = (int) ($order['payment_id'] ?? 0);
             if ($cond['payment_ids'] !== [] && !in_array($payment, $cond['payment_ids'], true)) {
@@ -75,7 +87,8 @@ class EventConditions
 
     /**
      * Validates and writes the conditions of one scope. An empty form deletes the row (the scope then follows the
-     * storefront-0 row, or has no conditions).
+     * storefront-0 row, or has no conditions); for a storefront while All storefronts has a row it stores "{}", an
+     * override with no limits.
      *
      * @param array<string,mixed> $posted min_total (string), payment_ids (list), shipping_ids (list), staff_quiet
      *
@@ -118,7 +131,9 @@ class EventConditions
             'kwtsms.conditions.err_shipping',
             $errors
         );
-        $quiet = ($receiver === 'A' || $receiver === 'V')
+        // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (I2): not for the placed events (exempt from quiet hours,
+        // plan ruling 17).
+        $quiet = ($receiver === 'A' || $receiver === 'V') && self::supportsQuiet($event_id)
             && isset($posted['staff_quiet']) && $posted['staff_quiet'] === '1';
         if ($errors !== []) {
             return ['ok' => false, 'errors' => array_values(array_unique($errors))];
@@ -137,14 +152,28 @@ class EventConditions
         if ($quiet) {
             $json['staff_quiet'] = '1';
         }
-        if ($json === []) {
+        if ($json === [] && ($storefront_id === 0 || !$this->hasRow($event_id, $receiver, 0))) {
             $this->deleteRow($event_id, $receiver, $storefront_id);
+        } elseif ($json === []) {
+            // 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (I3): a storefront with an empty form while All
+            // storefronts has a row stores "{}", an
+            // override with no limits (effective() lets a storefront row win even when it is empty).
+            $this->writeRow($event_id, $receiver, $storefront_id, '{}');
         } else {
             $this->writeRow($event_id, $receiver, $storefront_id, (string) json_encode($json));
         }
         $this->forget();
 
         return ['ok' => true, 'errors' => []];
+    }
+
+    /**
+     * 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (I3): whether the All storefronts row of this event and
+     * receiver exists.
+     */
+    public function hasRow(string $event_id, string $receiver, int $storefront_id): bool
+    {
+        return isset($this->readRows($event_id, $receiver, $storefront_id)[$storefront_id]);
     }
 
     public function forget(): void
@@ -249,9 +278,12 @@ class EventConditions
      *
      * @param array<string,mixed> $order
      */
-    private static function totalOf(array $order): string
+    private static function totalOf(array $order): ?string
     {
-        $total = $order['total'] ?? 0;
+        if (!isset($order['total'])) {
+            return null;
+        }
+        $total = $order['total'];
         if (is_int($total)) {
             return $total > 0 ? (string) $total : '0';
         }
@@ -262,7 +294,16 @@ class EventConditions
             return trim($total);
         }
 
-        return '0';
+        return null;
+    }
+
+    /**
+     * 2026-11-16 16:40 +03: M3.7 fix round 1, task 596 (I2): quiet hours do not apply to kwtsms.order_placed and
+     * kwtsms.order_placed.multi (plan ruling 17).
+     */
+    public static function supportsQuiet(string $event_id): bool
+    {
+        return strncmp($event_id, 'kwtsms.order_placed', 19) !== 0;
     }
 
     /**

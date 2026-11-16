@@ -218,12 +218,22 @@ class TemplatesPage
         $sources = $this->templates->rowsForUi(null, $sf);
         // 2026-11-16 13:47 +03: Task M3.7 (B7, P3-68), task 596. The conditions of this scope, one query for the page.
         $scope = $this->conditions === null ? [] : $this->conditions->scope(array_column($sources, 'event_id'), $sf);
+        // 2026-11-16 16:45 +03: M3.7 fix round 1, task 596 (I3): for a storefront, which rows All storefronts holds
+        // (one more query).
+        $scope0 = $this->conditions === null || $sf <= 0
+            ? []
+            : $this->conditions->scope(array_column($sources, 'event_id'), 0);
         foreach ($sources as $source) {
             $row = $this->matrixRow($source, $lang, $switches, $sf);
             $own = $scope[$row['event_id'] . '|' . $row['receiver']] ?? null;
             $row['conditions'] = $this->conditions === null || (string) $source['kind'] === 'code'
                 ? null
-                : $this->conditionsView($own, (string) $row['receiver']);
+                : $this->conditionsView(
+                    $own,
+                    (string) $row['receiver'],
+                    (string) $row['event_id'],
+                    $sf > 0 ? isset($scope0[$row['event_id'] . '|' . $row['receiver']]) : null
+                );
             if ($row['key'] === $edit_key) {
                 $editor = $this->editor($source, $row, $lang, $languages[$lang], $draft, $sf);
                 $row['editing'] = true;
@@ -1260,14 +1270,25 @@ class TemplatesPage
      *
      * @return array<string,mixed>
      */
-    private function conditionsView(?array $cond, string $receiver): array
+    private function conditionsView(?array $cond, string $receiver, string $event_id, ?bool $zero_has): array
     {
+        // 2026-11-16 16:45 +03: M3.7 fix round 1, task 596 (I3): inherit = '' (All storefronts view), 'overrides'
+        // (this storefront has its own row while All
+        // storefronts has one) or 'uses' (All storefronts has a row and this storefront none).
+        $inherit = '';
+        if ($zero_has === true) {
+            $inherit = $cond === null ? 'uses' : 'overrides';
+        }
         $cond = $cond ?? ['min_total' => '', 'payment_ids' => [], 'shipping_ids' => [], 'staff_quiet' => false];
 
         return $cond + [
             'has' => $cond['min_total'] !== '' || $cond['payment_ids'] !== [] || $cond['shipping_ids'] !== []
                 || $cond['staff_quiet'],
-            'can_quiet' => $receiver === 'A' || $receiver === 'V',
+            // 2026-11-16 16:45 +03: M3.7 fix round 1, task 596 (I2): not for the placed events,
+            // which are exempt from quiet hours (plan ruling 17).
+            'can_quiet' => ($receiver === 'A' || $receiver === 'V') && EventConditions::supportsQuiet($event_id),
+            'quiet_exempt' => ($receiver === 'A' || $receiver === 'V') && !EventConditions::supportsQuiet($event_id),
+            'inherit' => $inherit,
         ];
     }
 

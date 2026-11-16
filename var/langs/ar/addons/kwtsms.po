@@ -8205,3 +8205,16 @@ msgstr "طريقة دفع الطلب ليست ضمن شروط هذا الصف، 
 msgctxt "Languages::kwtsms.logs.reason.condition_shipping"
 msgid "The order's shipping method is not in the Conditions of this row, so no SMS was sent."
 msgstr "طريقة شحن الطلب ليست ضمن شروط هذا الصف، لذلك لم تُرسل رسالة."
+
+# 2026-11-16 16:50 +03: M3.7 fix round 1, task 596 (I2, I3): storefront override notes and the quiet-hours exemption line.
+msgctxt "Languages::kwtsms.conditions.overrides"
+msgid "This storefront has its own conditions. They replace the ones of All storefronts, even when they are empty."
+msgstr "لهذه الواجهة شروطها الخاصة، وهي تحل محل شروط جميع الواجهات حتى لو كانت فارغة."
+
+msgctxt "Languages::kwtsms.conditions.uses"
+msgid "This storefront uses the conditions of All storefronts. Saving here makes its own, which replace them."
+msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. الحفظ هنا ينشئ شروطًا خاصة بها تحل محلها."
+
+msgctxt "Languages::kwtsms.conditions.quiet_exempt"
+msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."

@@ -372,14 +372,11 @@ class OrderNotifier
         // switch and the opt-out, before any dispatch key is claimed: a refused SMS writes one switched_off attempt
         // and burns no key. staff_quiet rides in the send context of an A / V SMS (deliver()).
         $this->staff_quiet = false;
-        if ($this->conditions !== null) {
-            $check = $this->conditions->passes($event_id, $receiver, $this->storefront, $order);
-            if (!$check['ok']) {
-                $this->skip(Diagnostics::SWITCHED_OFF, $check['reason'], $order, $event_id, $receiver);
-
-                return false;
-            }
-            $this->staff_quiet = $check['staff_quiet'];
+        // 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1): kwtsms.order_placed is checked in placedSms(), which
+        // knows the unit (a checkout reads the
+        // .multi rows against the parent order).
+        if ($event_id !== Defaults::EVENT_PLACED && !$this->conditionsPass($event_id, $receiver, $order)) {
+            return false;
         }
 
         // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
@@ -435,6 +432,43 @@ class OrderNotifier
         ], $started);
 
         return $sent;
+    }
+
+    /**
+     * 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1, M4). The event conditions of one notification: true to
+     * go on. A refusal writes one switched_off
+     * attempt (before any dispatch key). A failure of the check itself fails closed (nothing is sent) with a logged
+     * reason. Sets $this->staff_quiet for an A / V SMS whose row asks for it.
+     *
+     * @param array<string,mixed> $order
+     */
+    private function conditionsPass(string $event_id, string $receiver, array $order): bool
+    {
+        $this->staff_quiet = false;
+        if ($this->conditions === null) {
+            return true;
+        }
+        try {
+            $check = $this->conditions->passes($event_id, $receiver, $this->storefront, $order);
+        } catch (\Throwable $e) {
+            $this->skip(Diagnostics::SWITCHED_OFF, 'conditions_unreadable', $order, $event_id, $receiver);
+            if ($this->log !== null) {
+                $this->log->log('warning', 'order_sms.conditions_failed', get_class($e), [
+                    'event_id' => $event_id,
+                    'receiver' => $receiver,
+                ]);
+            }
+
+            return false;
+        }
+        if (!$check['ok']) {
+            $this->skip(Diagnostics::SWITCHED_OFF, $check['reason'], $order, $event_id, $receiver);
+
+            return false;
+        }
+        $this->staff_quiet = $check['staff_quiet'];
+
+        return true;
     }
 
     /**
@@ -656,6 +690,17 @@ class OrderNotifier
                 'vendor_name' => '',
             ];
             $ids = ['order_id' => $parent_id, 'parent_order_id' => $parent_id];
+        }
+
+        // 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1): the conditions of the placed SMS, the .multi rows
+        // for a checkout against the parent order.
+        $cond_order = $order;
+        if ($unit === CheckoutRules::UNIT_CHECKOUT) {
+            $parent = $this->orders->order((int) $ids['order_id']);
+            $cond_order = $parent !== [] ? $parent : $order;
+        }
+        if (!$this->conditionsPass($template_event, $receiver, $cond_order)) {
+            return false;
         }
 
         // 2026-11-14 08:30 +03: Task M3.2 review I2 (c), task 596. An inactive vendor is refused BEFORE the placed
