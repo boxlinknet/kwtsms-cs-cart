@@ -86,6 +86,9 @@ final class RequestGate
         // manage_notification_settings before it writes, like toggle_event) and the Sender ID per storefront on
         // Settings.
         'update_storefront_switch'  => [self::POST, 'manage_kwtsms'],
+        // 2026-11-16 13:36 +03: Task M3.7 (B7, P3-68), task 596. The per-row Conditions dialog of the Templates page
+        // (min total, payments, shippings, staff quiet hours). Root administrators only, like every mode here.
+        'update_event_conditions'   => [self::POST, 'manage_kwtsms'],
         'update_storefront_senders' => [self::POST, 'manage_kwtsms_gateway'],
         // 2026-10-22 22:22 +03: Task A8 (SafatMall F4), task 596. The Vendor SMS page (Multi-Vendor only; the
         // controller answers 404 elsewhere) and its two POST modes. Approving a number and setting quotas spend the

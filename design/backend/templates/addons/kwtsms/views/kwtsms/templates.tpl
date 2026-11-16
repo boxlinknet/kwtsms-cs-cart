@@ -225,6 +225,10 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                             <span class="kwtsms-length{if $row.unicode} is-unicode{/if}">{__("kwtsms.templates.length_summary", ["[units]" => $row.units|fn_html_escape, "[pages]" => $row.pages|fn_html_escape])}</span>
                         {/if}
                     </p>
+                    {* 2026-11-16 13:56 +03: Task M3.7 (B7, P3-68), task 596. The per-row Conditions dialog (not for the code rows). *}
+                    {if $row.conditions}
+                        {include file="addons/kwtsms/views/kwtsms/components/event_conditions.tpl" row=$row t=$t row_label=$row_label receiver_label=$receiver_label}
+                    {/if}
                 </td>
                 <td class="kwtsms-row__actions">
                     {if $row.editing}

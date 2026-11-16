@@ -483,6 +483,7 @@ try {
             case 'preview_template':
             case 'test_template':
             case 'update_storefront_switch':
+            case 'update_event_conditions': // 2026-11-16 13:37 +03: Task M3.7 (B7, P3-68), task 596
                 // PRD 10: a template body is raw text ("<", "&" must reach the cleaner as typed), and so is every other
                 // field (the confirmation of an unknown name such as {a<b} holds a "<" too). Core strips tags from the
                 // merged request array, so every field is read from the raw POST array, after the gate: the POST body
@@ -541,6 +542,31 @@ try {
                         $kwtsms_tpl,
                         fn_check_current_user_access('manage_notification_settings') === true
                     );
+                    $kwtsms_anchor = '';
+                    $kwtsms_event = isset($kwtsms_tpl['event_id']) ? $kwtsms_tpl['event_id'] : null;
+                    $kwtsms_receiver = isset($kwtsms_tpl['receiver']) ? $kwtsms_tpl['receiver'] : null;
+                    if (is_string($kwtsms_event) && is_string($kwtsms_receiver)) {
+                        $kwtsms_anchor = '#' . TemplatesPage::domId(
+                            TemplatesPage::rowKey($kwtsms_event, $kwtsms_receiver)
+                        );
+                    }
+
+                    return [
+                        CONTROLLER_STATUS_REDIRECT,
+                        $kwtsms_templates_url(
+                            $kwtsms_result['lang'],
+                            '',
+                            $kwtsms_anchor,
+                            $kwtsms_result['storefront_id']
+                        ),
+                    ];
+                }
+                if ($mode === 'update_event_conditions') {
+                    // 2026-11-16 13:38 +03: Task M3.7 (B7, P3-68), task 596. The Conditions dialog of one row: min
+                    // total,
+                    // payment and shipping methods, staff quiet hours. TemplatesPage validates every field and the
+                    // row; the gate already asked for manage_kwtsms and the CSRF hash.
+                    $kwtsms_result = $kwtsms_templates_page->saveConditions($kwtsms_tpl);
                     $kwtsms_anchor = '';
                     $kwtsms_event = isset($kwtsms_tpl['event_id']) ? $kwtsms_tpl['event_id'] : null;
                     $kwtsms_receiver = isset($kwtsms_tpl['receiver']) ? $kwtsms_tpl['receiver'] : null;
@@ -926,6 +952,8 @@ try {
     $kwtsms_templates_modes = [
         'update_template', 'reset_template', 'load_template_defaults', 'toggle_event', 'preview_template',
         'test_template', 'update_brand_names', 'update_storefront_switch',
+        // 2026-11-16 13:37 +03: Task M3.7 (B7, P3-68), task 596. A failed Conditions save returns to Templates.
+        'update_event_conditions',
     ];
     $kwtsms_failed_url = $kwtsms_settings_url;
     if (in_array((string) $mode, $kwtsms_templates_modes, true)) {

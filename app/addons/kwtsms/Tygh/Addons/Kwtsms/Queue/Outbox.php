@@ -107,6 +107,9 @@ class Outbox
         // asks for
         // the Sender ID again, still uses the vendor's own.
         'vendor_sender' => 's',
+        // 2026-11-16 13:22 +03: Task M3.7 (B7, P3-68), task 596. A deferred staff alert keeps the flag, so the drain
+        // sees the same context (the window is over by then).
+        'staff_quiet' => 's',
     ];
 
     /** @var callable|null returns the current Unix time */

@@ -73,6 +73,7 @@ namespace Tygh\Addons\Kwtsms\Orders;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Notifications\DeclaredSmsData;
+use Tygh\Addons\Kwtsms\Notifications\EventConditions;
 use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
@@ -195,6 +196,12 @@ class OrderNotifier
     /** @var int The storefront id of the notification being handled: one resolution per send (ruling R3) */
     private $storefront = 0;
 
+    /** @var EventConditions|null 2026-11-16 13:30 +03: Task M3.7 (B7, P3-68), task 596. The SMS conditions per event */
+    private $conditions;
+
+    /** @var bool Whether the conditions row of the notification being handled asks for staff quiet hours (A / V) */
+    private $staff_quiet = false;
+
     /**
      * @param array<mixed,mixed> $declared       The kwtsms events schema (fn_get_schema('kwtsms', 'events'))
      * @param callable|null      $after_response (array $actor): string|bool; null = sendsAfterResponse() (2026-10-21
@@ -233,8 +240,11 @@ class OrderNotifier
         // ceiling). Appended last.
         ?RateLimiter $limiter = null,
         // 2026-11-14 09:55 +03: Task M3.3, task 596. The back-in-stock fan-out (null = it sends nothing).
-        ?BackInStockNotifier $back_in_stock = null
+        ?BackInStockNotifier $back_in_stock = null,
+        // 2026-11-16 13:30 +03: Task M3.7 (B7, P3-68), task 596. The conditions per event (null = none apply).
+        ?EventConditions $conditions = null
     ) {
+        $this->conditions = $conditions;
         $this->back_in_stock = $back_in_stock;
         $this->limiter = $limiter;
         $this->drain_stale = $drain_stale;
@@ -356,6 +366,20 @@ class OrderNotifier
             $this->skip(Diagnostics::SWITCHED_OFF, 'customer_opt_out', $order, $event_id, $receiver);
 
             return false;
+        }
+
+        // 2026-11-16 13:31 +03: Task M3.7 (B7, P3-68), task 596. The event conditions come right after the storefront
+        // switch and the opt-out, before any dispatch key is claimed: a refused SMS writes one switched_off attempt
+        // and burns no key. staff_quiet rides in the send context of an A / V SMS (deliver()).
+        $this->staff_quiet = false;
+        if ($this->conditions !== null) {
+            $check = $this->conditions->passes($event_id, $receiver, $this->storefront, $order);
+            if (!$check['ok']) {
+                $this->skip(Diagnostics::SWITCHED_OFF, $check['reason'], $order, $event_id, $receiver);
+
+                return false;
+            }
+            $this->staff_quiet = $check['staff_quiet'];
         }
 
         // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
@@ -1055,6 +1079,10 @@ class OrderNotifier
         // never on A. The service still checks the switch, the receiver and the company.
         if ($this->usesVendorSender($receiver, $order, $ids)) {
             $context['vendor_sender'] = '1';
+        }
+        // 2026-11-16 13:32 +03: Task M3.7 (B7, P3-68), task 596. The conditions row asked for staff quiet hours.
+        if ($this->staff_quiet && ($receiver === 'A' || $receiver === 'V')) {
+            $context['staff_quiet'] = '1';
         }
         $log = [
             'event_id' => $event_id,

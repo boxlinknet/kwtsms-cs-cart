@@ -52,6 +52,7 @@
 namespace Tygh\Addons\Kwtsms\Admin;
 
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Notifications\EventConditions; // 2026-11-16 13:46 +03: task 596 M3.7
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
 use Tygh\Addons\Kwtsms\Settings\ConfigInterface;
 use Tygh\Addons\Kwtsms\Sms\MessageCleaner;
@@ -112,6 +113,9 @@ class TemplatesPage
     /** @var callable|null 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. (string $scenario): bool, true = the antibot scenario is on */
     private $antibot_gate;
 
+    /** @var EventConditions|null 2026-11-16 13:46 +03: Task M3.7 (B7, P3-68), task 596. The per-row SMS conditions */
+    private $conditions;
+
     public function __construct(
         TemplateRepository $templates,
         DebugLog $log,
@@ -119,8 +123,11 @@ class TemplatesPage
         ConfigInterface $config,
         ?SettingsPage $settings = null,
         ?StorefrontRules $rules = null,
-        ?callable $antibot_gate = null
+        ?callable $antibot_gate = null,
+        // 2026-11-16 13:46 +03: Task M3.7 (B7, P3-68), task 596. Appended last; null = no Conditions dialog.
+        ?EventConditions $conditions = null
     ) {
+        $this->conditions = $conditions;
         $this->antibot_gate = $antibot_gate;
         $this->templates = $templates;
         $this->log = $log;
@@ -143,7 +150,9 @@ class TemplatesPage
             SettingsPage::fromContainer($app),
             $app['kwtsms.storefront_rules'],
             // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. The same antibot gate the order notifier uses.
-            $app['kwtsms.antibot_gate']
+            $app['kwtsms.antibot_gate'],
+            // 2026-11-16 13:46 +03: Task M3.7 (B7, P3-68), task 596.
+            $app['kwtsms.event_conditions']
         );
     }
 
@@ -206,8 +215,15 @@ class TemplatesPage
 
         $rows = [];
         $editor = null;
-        foreach ($this->templates->rowsForUi(null, $sf) as $source) {
+        $sources = $this->templates->rowsForUi(null, $sf);
+        // 2026-11-16 13:47 +03: Task M3.7 (B7, P3-68), task 596. The conditions of this scope, one query for the page.
+        $scope = $this->conditions === null ? [] : $this->conditions->scope(array_column($sources, 'event_id'), $sf);
+        foreach ($sources as $source) {
             $row = $this->matrixRow($source, $lang, $switches, $sf);
+            $own = $scope[$row['event_id'] . '|' . $row['receiver']] ?? null;
+            $row['conditions'] = $this->conditions === null || (string) $source['kind'] === 'code'
+                ? null
+                : $this->conditionsView($own, (string) $row['receiver']);
             if ($row['key'] === $edit_key) {
                 $editor = $this->editor($source, $row, $lang, $languages[$lang], $draft, $sf);
                 $row['editing'] = true;
@@ -239,6 +255,8 @@ class TemplatesPage
             'storefront_name' => $sf > 0 ? $known[$sf] : '',
             'show_storefronts' => $show_storefronts,
             'storefronts' => $picker,
+            // 2026-11-16 13:47 +03: Task M3.7 (B7, P3-68), task 596. Active methods for the Conditions dialogs.
+            'conditions_options' => $this->conditions === null ? null : $this->conditionOptions(),
             'can_toggle' => $can_toggle,
             'sms_enabled' => $this->config->enabled(),
             'test_mode' => $this->config->testMode(),
@@ -1179,6 +1197,93 @@ class TemplatesPage
         $result['ok'] = true;
 
         return $result;
+    }
+
+    // ================================================================== POST update_event_conditions
+
+    /**
+     * 2026-11-16 13:48 +03: Task M3.7 (B7, P3-68), task 596. Saves the Conditions dialog of one row for the shown
+     * storefront (0 = All storefronts): min total, payment methods, shipping methods, staff quiet hours (A and V
+     * rows). Only rows the page lists, never a code row, only a storefront the store has. An empty form deletes the
+     * row. EventConditions validates every field (decimal regex, ids that exist and are active).
+     *
+     * @param array<string,mixed> $post event_id, receiver, lang, storefront_id, min_total, payment_ids[],
+     *                                  shipping_ids[], staff_quiet
+     *
+     * @return array{ok:bool,lang:string,storefront_id:int}
+     */
+    public function saveConditions(array $post): array
+    {
+        $input = $this->readInput($post);
+        $sf = $input['storefront_id'];
+        $result = ['ok' => false, 'lang' => $input['lang'], 'storefront_id' => max(0, $sf)];
+
+        if ($this->conditions === null || !$this->storefrontKnown($sf)) {
+            $result['storefront_id'] = 0;
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_storefront');
+
+            return $result;
+        }
+        $row = $this->rowFor($input['event_id'], $input['receiver'], $sf);
+        if ($row === null || (string) $row['kind'] === 'code') {
+            $this->say('E', 'kwtsms.templates.not_saved_unknown_row');
+
+            return $result;
+        }
+        $fields = [];
+        foreach (['min_total', 'payment_ids', 'shipping_ids', 'staff_quiet'] as $name) {
+            if (isset($post[$name])) {
+                $fields[$name] = $post[$name];
+            }
+        }
+        $saved = $this->conditions->save($input['event_id'], $input['receiver'], $sf, $fields);
+        if (!$saved['ok']) {
+            foreach ($saved['errors'] as $key) {
+                $this->say('E', $key);
+            }
+
+            return $result;
+        }
+        $this->log->log('info', 'templates.conditions', 'SMS conditions saved from the Templates page', [
+            'event_id' => $input['event_id'],
+            'receiver' => $input['receiver'],
+            'storefront_id' => $sf,
+        ]);
+        $this->say('N', 'kwtsms.conditions.saved', ['[row]' => $this->rowLabel($row)]);
+        $result['ok'] = true;
+
+        return $result;
+    }
+
+    /**
+     * @param array{min_total:string,payment_ids:int[],shipping_ids:int[],staff_quiet:bool}|null $cond
+     *
+     * @return array<string,mixed>
+     */
+    private function conditionsView(?array $cond, string $receiver): array
+    {
+        $cond = $cond ?? ['min_total' => '', 'payment_ids' => [], 'shipping_ids' => [], 'staff_quiet' => false];
+
+        return $cond + [
+            'has' => $cond['min_total'] !== '' || $cond['payment_ids'] !== [] || $cond['shipping_ids'] !== []
+                || $cond['staff_quiet'],
+            'can_quiet' => $receiver === 'A' || $receiver === 'V',
+        ];
+    }
+
+    /**
+     * @return array{payments:array<int,string>,shippings:array<int,string>}
+     */
+    private function conditionOptions(): array
+    {
+        $options = $this->conditions === null ? ['payments' => [], 'shippings' => []] : $this->conditions->options();
+        foreach (['payments', 'shippings'] as $kind) {
+            foreach ($options[$kind] as $id => $name) {
+                $options[$kind][$id] = trim((string) $name) !== '' ? (string) $name : '#' . $id;
+            }
+        }
+
+        return $options;
     }
 
     // ================================================================== POST preview_template

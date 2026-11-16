@@ -100,6 +100,7 @@ use Tygh\Addons\Kwtsms\Sms\SmsService;
 use Tygh\Addons\Kwtsms\Storage\StorageDataStore;
 // 2026-10-21 01:58 +03: Task 1.9, task 596.
 use Pimple\Exception\FrozenServiceException;
+use Tygh\Addons\Kwtsms\Notifications\EventConditions; // 2026-11-16 13:35 +03: task 596 M3.7
 use Tygh\Addons\Kwtsms\Notifications\EventsSchemaExtender;
 use Tygh\Addons\Kwtsms\Notifications\EventDeclaration; // 2026-11-12 02:02 +03: task 596 M3.0
 use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender;
@@ -941,8 +942,15 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-11-14 07:50 +03: Task M3.2 review I2, task 596. The daily ceiling of a public-form V SMS.
                 $app['kwtsms.rate_limiter'],
                 // 2026-11-14 09:58 +03: Task M3.3 (B3), task 596. The back-in-stock fan-out.
-                $app['kwtsms.back_in_stock']
+                $app['kwtsms.back_in_stock'],
+                // 2026-11-16 13:35 +03: Task M3.7 (B7, P3-68), task 596. The conditions per event.
+                $app['kwtsms.event_conditions']
             );
+        };
+
+        // 2026-11-16 13:35 +03: Task M3.7 (B7, P3-68), task 596. The SMS conditions per event, receiver and storefront.
+        $app['kwtsms.event_conditions'] = function (): EventConditions {
+            return new EventConditions();
         };
 
         // 2026-11-14 09:58 +03: Task M3.3 (B3, P3-65), task 596. One SMS per registered subscriber with a phone, capped

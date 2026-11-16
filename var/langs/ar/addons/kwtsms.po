@@ -8116,3 +8116,92 @@ msgstr "معرف مرسل بائع غير صالح"
 msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.text"
 msgid "The Sender ID [sender] of vendor [vendor] is no longer on your kwtSMS account or was banned, so that vendor's SMS go out under the storefront Sender ID. Pick another Sender ID for it on the Vendor SMS page."
 msgstr "معرف المرسل [sender] الخاص بالبائع رقم [vendor] لم يعد في حساب kwtSMS أو تم حظره، لذلك تخرج رسائل هذا البائع بمعرف مرسل المتجر. اختر له معرف مرسل آخر من صفحة رسائل البائعين."
+
+# 2026-11-16 14:00 +03: Task M3.7 (B7, P3-68), task 596. SMS conditions per event: the Conditions dialog of a Templates row and its Logs reasons.
+msgctxt "Languages::kwtsms.conditions.button"
+msgid "Conditions"
+msgstr "الشروط"
+
+msgctxt "Languages::kwtsms.conditions.on"
+msgid "On"
+msgstr "مفعّلة"
+
+msgctxt "Languages::kwtsms.conditions.help"
+msgid "Send this SMS only when every condition below matches. Leave a field empty to ignore it. Order conditions apply to events about an order only."
+msgstr "تُرسل هذه الرسالة فقط عند تحقق كل الشروط أدناه. اترك الحقل فارغاً لتجاهله. شروط الطلب تنطبق على الأحداث المتعلقة بطلب فقط."
+
+msgctxt "Languages::kwtsms.conditions.help_storefront"
+msgid "These conditions are for [storefront] only. Saving an empty form removes them, and the All storefronts conditions apply again."
+msgstr "هذه الشروط خاصة بالواجهة [storefront] فقط. حفظ نموذج فارغ يزيلها فتعود شروط كل الواجهات."
+
+msgctxt "Languages::kwtsms.conditions.min_total"
+msgid "Minimum order total"
+msgstr "الحد الأدنى لإجمالي الطلب"
+
+msgctxt "Languages::kwtsms.conditions.min_total_hint"
+msgid "In the store's main currency, up to 3 decimals. Empty means no minimum."
+msgstr "بعملة المتجر الرئيسية، حتى 3 خانات عشرية. الفارغ يعني بلا حد أدنى."
+
+msgctxt "Languages::kwtsms.conditions.payments"
+msgid "Payment methods"
+msgstr "طرق الدفع"
+
+msgctxt "Languages::kwtsms.conditions.shippings"
+msgid "Shipping methods"
+msgstr "طرق الشحن"
+
+msgctxt "Languages::kwtsms.conditions.any"
+msgid "None ticked means every method."
+msgstr "عدم تحديد أي طريقة يعني كل الطرق."
+
+msgctxt "Languages::kwtsms.conditions.none_available"
+msgid "No active methods."
+msgstr "لا توجد طرق نشطة."
+
+msgctxt "Languages::kwtsms.conditions.staff_quiet"
+msgid "Hold this alert during quiet hours"
+msgstr "تأجيل هذا التنبيه خلال ساعات الهدوء"
+
+msgctxt "Languages::kwtsms.conditions.staff_quiet_hint"
+msgid "Uses the quiet hours of Settings. The alert is sent when the window ends."
+msgstr "يستخدم ساعات الهدوء في الإعدادات. يُرسل التنبيه عند انتهاء الفترة."
+
+msgctxt "Languages::kwtsms.conditions.save"
+msgid "Save conditions"
+msgstr "حفظ الشروط"
+
+msgctxt "Languages::kwtsms.conditions.save_aria"
+msgid "Save the conditions of [row]"
+msgstr "حفظ شروط [row]"
+
+msgctxt "Languages::kwtsms.conditions.saved"
+msgid "Conditions saved: [row]."
+msgstr "تم حفظ الشروط: [row]."
+
+msgctxt "Languages::kwtsms.conditions.err_row"
+msgid "Nothing changed. That row doesn't exist."
+msgstr "لم يتغير شيء. هذا الصف غير موجود."
+
+msgctxt "Languages::kwtsms.conditions.err_min_total"
+msgid "Nothing changed. The minimum total must be a number such as 5 or 5.250 (up to 10 digits and 3 decimals)."
+msgstr "لم يتغير شيء. يجب أن يكون الحد الأدنى رقماً مثل 5 أو 5.250 (حتى 10 أرقام و3 خانات عشرية)."
+
+msgctxt "Languages::kwtsms.conditions.err_payment"
+msgid "Nothing changed. A payment method you ticked doesn't exist or is not active."
+msgstr "لم يتغير شيء. طريقة دفع حددتها غير موجودة أو غير نشطة."
+
+msgctxt "Languages::kwtsms.conditions.err_shipping"
+msgid "Nothing changed. A shipping method you ticked doesn't exist or is not active."
+msgstr "لم يتغير شيء. طريقة شحن حددتها غير موجودة أو غير نشطة."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_min_total"
+msgid "The order total is below the minimum set in the Conditions of this row, so no SMS was sent."
+msgstr "إجمالي الطلب أقل من الحد الأدنى في شروط هذا الصف، لذلك لم تُرسل رسالة."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_payment"
+msgid "The order's payment method is not in the Conditions of this row, so no SMS was sent."
+msgstr "طريقة دفع الطلب ليست ضمن شروط هذا الصف، لذلك لم تُرسل رسالة."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_shipping"
+msgid "The order's shipping method is not in the Conditions of this row, so no SMS was sent."
+msgstr "طريقة شحن الطلب ليست ضمن شروط هذا الصف، لذلك لم تُرسل رسالة."

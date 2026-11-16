@@ -8111,3 +8111,92 @@ msgstr "A vendor Sender ID is not usable"
 msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.text"
 msgid "The Sender ID [sender] of vendor [vendor] is no longer on your kwtSMS account or was banned, so that vendor's SMS go out under the storefront Sender ID. Pick another Sender ID for it on the Vendor SMS page."
 msgstr "The Sender ID [sender] of vendor [vendor] is no longer on your kwtSMS account or was banned, so that vendor's SMS go out under the storefront Sender ID. Pick another Sender ID for it on the Vendor SMS page."
+
+# 2026-11-16 14:00 +03: Task M3.7 (B7, P3-68), task 596. SMS conditions per event: the Conditions dialog of a Templates row and its Logs reasons.
+msgctxt "Languages::kwtsms.conditions.button"
+msgid "Conditions"
+msgstr "Conditions"
+
+msgctxt "Languages::kwtsms.conditions.on"
+msgid "On"
+msgstr "On"
+
+msgctxt "Languages::kwtsms.conditions.help"
+msgid "Send this SMS only when every condition below matches. Leave a field empty to ignore it. Order conditions apply to events about an order only."
+msgstr "Send this SMS only when every condition below matches. Leave a field empty to ignore it. Order conditions apply to events about an order only."
+
+msgctxt "Languages::kwtsms.conditions.help_storefront"
+msgid "These conditions are for [storefront] only. Saving an empty form removes them, and the All storefronts conditions apply again."
+msgstr "These conditions are for [storefront] only. Saving an empty form removes them, and the All storefronts conditions apply again."
+
+msgctxt "Languages::kwtsms.conditions.min_total"
+msgid "Minimum order total"
+msgstr "Minimum order total"
+
+msgctxt "Languages::kwtsms.conditions.min_total_hint"
+msgid "In the store's main currency, up to 3 decimals. Empty means no minimum."
+msgstr "In the store's main currency, up to 3 decimals. Empty means no minimum."
+
+msgctxt "Languages::kwtsms.conditions.payments"
+msgid "Payment methods"
+msgstr "Payment methods"
+
+msgctxt "Languages::kwtsms.conditions.shippings"
+msgid "Shipping methods"
+msgstr "Shipping methods"
+
+msgctxt "Languages::kwtsms.conditions.any"
+msgid "None ticked means every method."
+msgstr "None ticked means every method."
+
+msgctxt "Languages::kwtsms.conditions.none_available"
+msgid "No active methods."
+msgstr "No active methods."
+
+msgctxt "Languages::kwtsms.conditions.staff_quiet"
+msgid "Hold this alert during quiet hours"
+msgstr "Hold this alert during quiet hours"
+
+msgctxt "Languages::kwtsms.conditions.staff_quiet_hint"
+msgid "Uses the quiet hours of Settings. The alert is sent when the window ends."
+msgstr "Uses the quiet hours of Settings. The alert is sent when the window ends."
+
+msgctxt "Languages::kwtsms.conditions.save"
+msgid "Save conditions"
+msgstr "Save conditions"
+
+msgctxt "Languages::kwtsms.conditions.save_aria"
+msgid "Save the conditions of [row]"
+msgstr "Save the conditions of [row]"
+
+msgctxt "Languages::kwtsms.conditions.saved"
+msgid "Conditions saved: [row]."
+msgstr "Conditions saved: [row]."
+
+msgctxt "Languages::kwtsms.conditions.err_row"
+msgid "Nothing changed. That row doesn't exist."
+msgstr "Nothing changed. That row doesn't exist."
+
+msgctxt "Languages::kwtsms.conditions.err_min_total"
+msgid "Nothing changed. The minimum total must be a number such as 5 or 5.250 (up to 10 digits and 3 decimals)."
+msgstr "Nothing changed. The minimum total must be a number such as 5 or 5.250 (up to 10 digits and 3 decimals)."
+
+msgctxt "Languages::kwtsms.conditions.err_payment"
+msgid "Nothing changed. A payment method you ticked doesn't exist or is not active."
+msgstr "Nothing changed. A payment method you ticked doesn't exist or is not active."
+
+msgctxt "Languages::kwtsms.conditions.err_shipping"
+msgid "Nothing changed. A shipping method you ticked doesn't exist or is not active."
+msgstr "Nothing changed. A shipping method you ticked doesn't exist or is not active."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_min_total"
+msgid "The order total is below the minimum set in the Conditions of this row, so no SMS was sent."
+msgstr "The order total is below the minimum set in the Conditions of this row, so no SMS was sent."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_payment"
+msgid "The order's payment method is not in the Conditions of this row, so no SMS was sent."
+msgstr "The order's payment method is not in the Conditions of this row, so no SMS was sent."
+
+msgctxt "Languages::kwtsms.logs.reason.condition_shipping"
+msgid "The order's shipping method is not in the Conditions of this row, so no SMS was sent."
+msgstr "The order's shipping method is not in the Conditions of this row, so no SMS was sent."

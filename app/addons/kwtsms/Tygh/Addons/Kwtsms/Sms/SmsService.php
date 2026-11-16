@@ -216,6 +216,10 @@ class SmsService
         // Sender ID
         // (set by the order notifier for a V SMS and for the C SMS of a single vendor's order; never for A).
         'vendor_sender' => '',
+        // 2026-11-16 13:20 +03: Task M3.7 (B7, P3-68), task 596. '1' = the merchant ticked "staff quiet hours" for this
+        // event's row: an A or V SMS waits for the end of the quiet window whatever its source or audience (set by the
+        // order notifier from the event conditions; kept through the outbox).
+        'staff_quiet' => '',
     ];
 
     private const INT_KEYS = [
@@ -1940,8 +1944,13 @@ class SmsService
      */
     private function quietHoursEnd(array $context): ?int
     {
+        // 2026-11-16 13:21 +03: Task M3.7 (B7, P3-68), task 596. The staff branch: the flag counts for A and V only,
+        // and replaces the receiver test and the source / audience test below. OTP sources, ttl sends and
+        // kwtsms.order_placed stay exempt, so does a window that is off.
+        $staff = ($context['staff_quiet'] ?? '') === '1'
+            && ($context['receiver'] === 'A' || $context['receiver'] === 'V');
         if (
-            !$this->config->quietHoursEnabled() || $context['receiver'] !== 'C'
+            !$this->config->quietHoursEnabled() || ($context['receiver'] !== 'C' && !$staff)
             || self::isOtpSource($context['source'])
         ) {
             return null;
@@ -1955,7 +1964,8 @@ class SmsService
         if (strncmp($context['event_id'], 'kwtsms.order_placed', 19) === 0) {
             return null;
         }
-        if (!in_array($context['source'], ['manual', 'api', 'cron'], true) && $context['audience'] !== 'admin') {
+        $staff_source = in_array($context['source'], ['manual', 'api', 'cron'], true);
+        if (!$staff && !$staff_source && $context['audience'] !== 'admin') {
             return null;
         }
         $from = $this->config->quietHoursFrom();
