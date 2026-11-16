@@ -133,10 +133,13 @@ class OtpService
         $salt = $this->hasher->newSalt();
         $expiry = $this->config->otpExpirySeconds();
         try {
+            // 2026-11-16 23:51 +03: M5 (branch review 1.2.0, task M3.22, task 596): only this session's own active or
+            // verified codes are cancelled; a stranger asking for a code for the same phone no longer cancels the
+            // victim's verified code (verify and consume are session-bound already). Per-phone caps are unchanged.
             $this->run(
                 "UPDATE ?:kwtsms_otp_codes SET status = 'C'"
-                . " WHERE purpose = ?s AND subject = ?s AND status IN ('A','V')",
-                [$purpose, $subject]
+                . " WHERE purpose = ?s AND subject = ?s AND session_hash = ?s AND status IN ('A','V')",
+                [$purpose, $subject, $session_hash]
             );
             $code_id = $this->run('INSERT INTO ?:kwtsms_otp_codes ?e', [[
                 'purpose' => $purpose,
