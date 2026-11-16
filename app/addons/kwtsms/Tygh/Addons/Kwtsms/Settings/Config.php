@@ -171,6 +171,8 @@ class Config implements ConfigInterface
             'bis_max_recipients',
             // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch.
             'vendor_sender_ids',
+            // 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. Ask a customer without a phone to add one.
+            'missing_phone_prompt',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

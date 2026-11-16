@@ -8238,3 +8238,44 @@ msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. �
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."
+
+# 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596: the missing phone prompt (setting and the add page).
+msgctxt "Languages::kwtsms.settings.phone_prompt_title"
+msgid "Ask for a missing phone number"
+msgstr "طلب رقم الجوال الناقص"
+
+msgctxt "Languages::kwtsms.settings.field.missing_phone_prompt"
+msgid "Ask for a missing phone"
+msgstr "طلب رقم الجوال الناقص"
+
+msgctxt "Languages::kwtsms.settings.missing_phone_prompt_label"
+msgid "Ask signed-in customers without a mobile number to add one"
+msgstr "طلب إضافة رقم جوال من العملاء المسجلين الذين ليس لديهم رقم"
+
+msgctxt "Languages::kwtsms.settings.missing_phone_prompt_help"
+msgid "When on, a signed-in customer whose account has no phone number is sent once per session to a page where they add one, confirmed with an SMS code. They can choose Later, which stops the prompt for 7 days. It never interrupts checkout, orders, sign-in or the profile page, and never applies to guests or administrators. It needs the switch SMS code at phone change: the code proves the number is theirs, and the same limits, country rule and one-account-per-number rule apply."
+msgstr "عند التفعيل يتم توجيه العميل المسجل الذي ليس لحسابه رقم جوال، مرة واحدة في كل جلسة، إلى صفحة يضيف فيها رقمه ويؤكده برمز SMS. يستطيع اختيار لاحقاً فيتوقف الطلب لمدة 7 أيام. لا يقاطع هذا الطلب صفحة إتمام الطلب ولا الطلبات ولا تسجيل الدخول ولا صفحة الملف الشخصي، ولا ينطبق على الزوار ولا على المديرين. ويحتاج إلى تفعيل خيار رمز SMS عند تغيير رقم الجوال: فالرمز يثبت أن الرقم يخص العميل، وتسري الحدود نفسها وقاعدة الدول المسموحة وقاعدة حساب واحد لكل رقم."
+
+msgctxt "Languages::kwtsms.phone_prompt.title"
+msgid "Add your mobile number"
+msgstr "إضافة رقم جوالك"
+
+msgctxt "Languages::kwtsms.phone_prompt.intro"
+msgid "Add your mobile number to get SMS about your orders. Enter it, ask for a code, then type the code below."
+msgstr "أضف رقم جوالك لتصلك رسائل SMS عن طلباتك. أدخل الرقم واطلب رمزاً، ثم اكتب الرمز أدناه."
+
+msgctxt "Languages::kwtsms.phone_prompt.submit"
+msgid "Save number"
+msgstr "حفظ الرقم"
+
+msgctxt "Languages::kwtsms.phone_prompt.later"
+msgid "Later"
+msgstr "لاحقاً"
+
+msgctxt "Languages::kwtsms.phone_prompt.saved"
+msgid "Your mobile number was saved."
+msgstr "تم حفظ رقم جوالك."
+
+msgctxt "Languages::kwtsms.phone_prompt.failed"
+msgid "Your mobile number could not be saved. Try again in a few minutes."
+msgstr "تعذر حفظ رقم جوالك. حاول مرة أخرى بعد دقائق."

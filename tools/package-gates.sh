@@ -184,6 +184,33 @@ auth_controller_check() {
   echo "CHECKED 1"
 }
 gate "kwtsms_auth controller: verb, feature switch, hash_equals; templates ship" auth_controller_check
+# 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. The missing phone page ships: the controller checks the verb (405)
+# before the session security hash (hash_equals, 403) before anything else, takes the user id from the session auth only
+# (no request field), runs return_url through ReturnUrl::safe(); func.php redirects from before_dispatch only for the
+# storefront AFTER the two-step redirect; the template ships in both theme trees.
+phone_prompt_controller_check() {
+  local f="$A/controllers/frontend/kwtsms_phone.php" verb hash t order
+  [ -f "$f" ] || { echo "controllers/frontend/kwtsms_phone.php missing"; return 0; }
+  verb="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep "REQUEST_METHOD" | head -1 | cut -d: -f1)"
+  hash="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep 'hash_equals(' | head -1 | cut -d: -f1)"
+  [ -n "$verb" ] || echo "no REQUEST_METHOD check"
+  [ -n "$hash" ] || echo "no hash_equals"
+  if [ -n "$verb" ] && [ -n "$hash" ]; then
+    [ "$verb" -lt "$hash" ] || echo "the order is not verb, hash"
+  fi
+  grep -q "http_response_code(405)" "$f" || echo "no 405 answer"
+  grep -q "http_response_code(403)" "$f" || echo "no 403 answer"
+  grep -q "ReturnUrl::safe" "$f" || echo "return_url is not checked"
+  grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$f" | grep -q "\$_\(REQUEST\|POST\|GET\)\['user_id'\]" && echo "a user id is read from the request"
+  order="$(grep -nv '^[[:space:]]*\(\*\|//\|/\*\)' "$A/func.php" | grep -E 'fn_kwtsms_twofa_pending_redirect\(\);|fn_kwtsms_missing_phone_redirect\(\);' | cut -d: -f2 | tr -d ' ' | tr '\n' ' ')"
+  [ "$order" = "fn_kwtsms_twofa_pending_redirect(); fn_kwtsms_missing_phone_redirect(); " ] || echo "func.php: the prompt redirect is not after the two-step redirect"
+  for t in views/kwtsms_phone/add.tpl; do
+    [ -f "$src/design/themes/responsive/templates/addons/kwtsms/$t" ] || echo "template $t missing"
+    [ -f "$src/var/themes_repository/responsive/templates/addons/kwtsms/$t" ] || echo "repository copy of $t missing"
+  done
+  echo "CHECKED 1"
+}
+gate "kwtsms_phone controller: verb, hash_equals, session user id, safe return_url; template ships" phone_prompt_controller_check
 # 2026-11-04 23:16 +03: Task M2.2a (SafatMall B3, P3-50, P3-52 (4)), task 596. The two-step sign-in ships whole: the hook login_user_pre is
 # registered, the pre-controller and both kwtsms_twofa controllers exist, the shared controller body checks the verb (405)
 # before the mode (404) before the session security hash (hash_equals) and has the command line reset behind
