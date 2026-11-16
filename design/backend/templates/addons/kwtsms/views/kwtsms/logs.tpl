@@ -259,7 +259,7 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                     {foreach $l.rows as $r}
                         <tr data-kwtsms-row="{$r.id}"{if $r.is_test} class="kwtsms-logs-row--test"{/if}>
                             {if $kwtsms_bulk_on}
-                                <td class="kwtsms-logs-pick">{if $r.resendable}<input type="checkbox" name="bulk_ids[]" value="{$r.id}" id="kwtsms_pick_{$r.id}" aria-label="{__("kwtsms.logs.bulk.pick_row", ["[id]" => $r.id|fn_html_escape])}">{/if}</td>
+                                <td class="kwtsms-logs-pick" data-label="{__("kwtsms.logs.bulk.pick")}">{if $r.resendable}<input type="checkbox" name="bulk_ids[]" value="{$r.id}" id="kwtsms_pick_{$r.id}" aria-label="{__("kwtsms.logs.bulk.pick_row", ["[id]" => $r.id|fn_html_escape])}">{/if}</td>
                             {/if}
                             <td class="kwtsms-logs-time" data-label="{__("kwtsms.logs.col.time")}">
                                 <bdi>{$r.created_at|date_format:$date_time}</bdi>

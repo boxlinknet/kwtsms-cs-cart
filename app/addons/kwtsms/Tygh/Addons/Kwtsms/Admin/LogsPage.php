@@ -615,7 +615,10 @@ class LogsPage
     {
         $out = [];
         $out[] = [
-            $result['sent'] > 0 || $result['queued'] > 0 ? 'N' : 'W',
+            // 2026-11-17 00:05 +03: fix round 1 (minor 4), task 596: a warning when anything was refused or not tried.
+            ($result['sent'] > 0 || $result['queued'] > 0) && $result['refused'] === [] && $result['not_tried'] === []
+                ? 'N'
+                : 'W',
             $this->text('kwtsms.logs.bulk.done', [
                 '[sent]' => (string) $result['sent'],
                 '[queued]' => (string) $result['queued'],

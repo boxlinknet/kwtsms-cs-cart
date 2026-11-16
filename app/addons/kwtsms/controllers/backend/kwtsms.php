@@ -731,19 +731,18 @@ try {
                     ? $kwtsms_session['kwtsms_bulk_resend']
                     : null;
                 unset($kwtsms_session['kwtsms_bulk_resend']);
-                if (
-                    $kwtsms_pending === null
-                    || !isset($kwtsms_posted['bulk_token'], $kwtsms_pending['token'], $kwtsms_pending['ids'])
-                    || !is_string($kwtsms_posted['bulk_token'])
-                    || !hash_equals((string) $kwtsms_pending['token'], $kwtsms_posted['bulk_token'])
-                    || time() - (int) ($kwtsms_pending['at'] ?? 0) > 900
-                ) {
+                $kwtsms_pending_ids = LogResender::pendingIds(
+                    $kwtsms_pending,
+                    $kwtsms_posted['bulk_token'] ?? null,
+                    time()
+                );
+                if ($kwtsms_pending_ids === null) {
                     $kwtsms_notes[] = ['E', (string) __('kwtsms.logs.bulk.expired')];
                 } else {
                     $kwtsms_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
                     $kwtsms_notes = $kwtsms_logs_page->bulkNotices(
                         LogResender::fromContainer(Tygh::$app)->resendMany(
-                            (array) $kwtsms_pending['ids'],
+                            $kwtsms_pending_ids,
                             isset($auth['user_id']) ? (int) $auth['user_id'] : 0,
                             filter_var($kwtsms_ip, FILTER_VALIDATE_IP) !== false ? $kwtsms_ip : ''
                         )
@@ -962,8 +961,8 @@ try {
             $kwtsms_data['bulk'] = null;
             if (
                 isset($_REQUEST['bulk_resend']) && $kwtsms_has('manage_kwtsms_gateway')
-                && isset($kwtsms_session['kwtsms_bulk_resend']) && is_array($kwtsms_session['kwtsms_bulk_resend'])
-                && isset($kwtsms_session['kwtsms_bulk_resend']['ids'], $kwtsms_session['kwtsms_bulk_resend']['token'])
+                && isset($kwtsms_session['kwtsms_bulk_resend'])
+                && LogResender::pendingFresh($kwtsms_session['kwtsms_bulk_resend'], time())
             ) {
                 $kwtsms_data['bulk'] = $kwtsms_logs_page->bulkPreview(
                     (array) $kwtsms_session['kwtsms_bulk_resend']['ids'],
