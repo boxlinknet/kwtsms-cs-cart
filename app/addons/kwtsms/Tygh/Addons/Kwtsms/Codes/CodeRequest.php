@@ -314,6 +314,25 @@ class CodeRequest
 
         // 5. Purpose rules (C4). Only a complete index may refuse (P3-31).
         $refused = $this->purposeRefusal($purpose, $phone, $user_id, $lang);
+        // 2026-11-17 00:30 +03: task M3.22 P5 (M3.21 security review M1), task 596. A number another account holds is
+        // answered exactly like a sent code (same message, same counters, same resend step) but nothing is sent: the
+        // answer no longer tells a signed-in customer which numbers are registered. The in_use text comes at the
+        // form's save (ProfileHooks, C4), where the number is submitted for real.
+        if ($refused !== null && (string) ($refused['error'] ?? '') === 'in_use') {
+            return $this->deliver(
+                $purpose,
+                $phone,
+                $user_id,
+                $session_hash,
+                $ip,
+                $storefront_id,
+                $lang,
+                false,
+                '',
+                false,
+                true
+            );
+        }
         if ($refused !== null) {
             return $refused;
         }
@@ -515,7 +534,9 @@ class CodeRequest
         bool $staff,
         string $subject = '',
         // 2026-11-06 23:51 +03: M2.6-fix I2, task 596. true = the shared per-phone cap is neither read nor counted.
-        bool $skip_phone_cap = false
+        bool $skip_phone_cap = false,
+        // 2026-11-17 00:30 +03: task M3.22 P5, task 596. true = everything as a real request except the SMS.
+        bool $silent = false
     ): array {
         // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. $subject is the engine key of the code (the phone
         // unless
@@ -565,6 +586,16 @@ class CodeRequest
         $issued = $this->otp->issue($purpose, $subject, $user_id, $session_hash, $ip, $storefront_id);
         if ($issued->status !== OtpResult::ISSUED) {
             return $this->wait($issued->retry_after, $lang);
+        }
+
+        // 2026-11-17 00:30 +03: task M3.22 P5, task 596. The number is held by another account: count it like a sent
+        // code and answer like one, send nothing (the code is never shown to anyone and expires).
+        if ($silent) {
+            if (!$skip_phone_cap) {
+                $this->limiter->hit('phone_h:' . $phone, self::HOUR);
+            }
+
+            return $this->sentBody($issued, $lang);
         }
 
         // 9. The SMS. Nothing may leave a live code behind when it fails.
