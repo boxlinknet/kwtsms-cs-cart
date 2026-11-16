@@ -94,6 +94,9 @@ class LogsPage
         'condition_min_total', 'condition_payment', 'condition_shipping',
         // 2026-11-16 18:58 +03: Task M3.8 (B8, P3-69), task 596. A customer SMS that lost to a later one.
         'coalesced',
+        // 2026-11-16 23:54 +03: Task M3.20 (ruling: no Kuwait switch), task 596. A number the phone rules refuse as not
+        // a mobile number (PhoneNormalizer reason not_mobile, every country with a mobile prefix table).
+        'not_mobile',
     ];
 
     /**

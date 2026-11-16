@@ -7715,10 +7715,6 @@ msgctxt "SettingsOptions::kwtsms::vendor_sender_ids"
 msgid "Sender ID per vendor"
 msgstr "معرف مرسل لكل مورد"
 
-msgctxt "SettingsOptions::kwtsms::phone_kw_mobile_only"
-msgid "Kuwait numbers must be mobile numbers"
-msgstr "أرقام الكويت يجب أن تكون أرقام هاتف نقال"
-
 msgctxt "SettingsOptions::kwtsms::missing_phone_prompt"
 msgid "Ask customers without a phone to add one"
 msgstr "طلب رقم الهاتف من العملاء الذين ليس لديهم رقم"
@@ -8238,3 +8234,8 @@ msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. �
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."
+
+# 2026-11-16 23:54 +03: Task M3.20, task 596. Logs label of the attempt reason not_mobile (Admin\LogsPage::LABELLED_REASONS).
+msgctxt "Languages::kwtsms.logs.reason.not_mobile"
+msgid "Not a mobile number"
+msgstr "ليس رقم جوال"

@@ -7710,10 +7710,6 @@ msgctxt "SettingsOptions::kwtsms::vendor_sender_ids"
 msgid "Sender ID per vendor"
 msgstr "Sender ID per vendor"
 
-msgctxt "SettingsOptions::kwtsms::phone_kw_mobile_only"
-msgid "Kuwait numbers must be mobile numbers"
-msgstr "Kuwait numbers must be mobile numbers"
-
 msgctxt "SettingsOptions::kwtsms::missing_phone_prompt"
 msgid "Ask customers without a phone to add one"
 msgstr "Ask customers without a phone to add one"
@@ -8233,3 +8229,8 @@ msgstr "This storefront uses the conditions of All storefronts. Saving here make
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+
+# 2026-11-16 23:54 +03: Task M3.20, task 596. Logs label of the attempt reason not_mobile (Admin\LogsPage::LABELLED_REASONS).
+msgctxt "Languages::kwtsms.logs.reason.not_mobile"
+msgid "Not a mobile number"
+msgstr "Not a mobile number"
