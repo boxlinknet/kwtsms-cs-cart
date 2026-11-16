@@ -205,8 +205,8 @@ class OrderNotifier
     /** @var callable 2026-11-16 18:45 +03: Task M3.8, task 596. register_shutdown_function, or a test's counter */
     private $register_shutdown;
 
-    /** @var array<string,mixed> 2026-11-16 18:45 +03: Task M3.8, task 596. The actor of the last held SMS (send mode) */
-    private $held_actor = [];
+    /** @var bool 2026-11-16 21:30 +03: M3.8 fix round 1 I1b, task 596. flushDeferred() already ran: no more holding. */
+    private $flushed = false;
 
     /** @var bool Whether the conditions row of the notification being handled asks for staff quiet hours (A / V) */
     private $staff_quiet = false;
@@ -1180,15 +1180,19 @@ class OrderNotifier
         // loser's change counts as handled; flushDeferred() sends one winner per order. OFF = today's path.
         if (
             $this->config->coalesceCustomerSms()
+            && !$this->flushed
             && $this->coalescer->eligible($event_id, $receiver, (string) $context['source'])
         ) {
-            $this->coalescer->hold($event_id, (int) ($ids['order_id'] ?? 0), $phones, $text, $context);
-            $this->held_actor = $actor;
+            $this->coalescer->hold($event_id, (int) ($ids['order_id'] ?? 0), $phones, $text, $context, $actor);
             if (!$this->shutdown_registered) {
                 $this->shutdown_registered = true;
                 call_user_func($this->register_shutdown, [$this, 'flushDeferred']);
             }
             $this->info('order_sms.held', 'customer SMS held for the end of the request (same-order coalescing)', $log);
+            if ($this->coalescer->full()) {
+                // 2026-11-16 21:30 +03: M3.8 fix round 1 M1, task 596. A long CLI run never holds more than the cap.
+                $this->flushHeld();
+            }
 
             return true;
         }
@@ -1317,23 +1321,10 @@ class OrderNotifier
      */
     public function flushDeferred(): void
     {
-        // 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The held customer SMS first: one winner per order goes
-        // through the send mode of its request (outbox + this drain, outbox only in CRON mode, inline), then today's
-        // drain runs. Never throws; a second call finds nothing held.
-        try {
-            foreach ($this->coalescer->flush() as $winner) {
-                $ctx = $winner['context'];
-                $log = [
-                    'event_id' => (string) ($ctx['event_id'] ?? ''),
-                    'receiver' => 'C',
-                    'order_id' => (int) ($ctx['order_id'] ?? 0),
-                    'lang' => (string) ($ctx['lang_code'] ?? ''),
-                ];
-                $this->dispatchSms($winner['phones'], $winner['text'], $ctx, $log, $this->held_actor);
-            }
-        } catch (\Throwable $e) {
-            FailureLog::report($this->log, 'order_sms.coalesce_flush_failed', $e);
-        }
+        // 2026-11-16 21:30 +03: M3.8 fix round 1 I1b, task 596. After this, a change held by a later shutdown
+        // function would sit in memory for good: the flag makes deliver() send it by today's path instead.
+        $this->flushed = true;
+        $this->flushHeld();
         if ($this->deferred === []) {
             return;
         }
@@ -1352,6 +1343,37 @@ class OrderNotifier
             }
         } catch (\Throwable $e) {
             FailureLog::report($this->log, 'order_sms.deferred_failed', $e);
+        }
+    }
+
+    /**
+     * 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. The held customer SMS: one winner per order goes through
+     * the send mode of its own actor (outbox + the drain of flushDeferred(), outbox only in CRON mode, inline).
+     * 2026-11-16 21:30 +03: fix round 1 I2: one try/catch per winner (a throwing winner never drops the others, each
+     * failure is logged), the winner's own actor; M2: one line with the held count. Never throws; a second call
+     * finds nothing held.
+     */
+    private function flushHeld(): void
+    {
+        $held = $this->coalescer->count();
+        if ($held === 0) {
+            return;
+        }
+        $winners = $this->coalescer->flush();
+        $this->info('order_sms.flushed', 'held customer SMS flushed', ['held' => $held, 'sent' => count($winners)]);
+        foreach ($winners as $winner) {
+            try {
+                $ctx = $winner['context'];
+                $log = [
+                    'event_id' => (string) ($ctx['event_id'] ?? ''),
+                    'receiver' => 'C',
+                    'order_id' => (int) ($ctx['order_id'] ?? 0),
+                    'lang' => (string) ($ctx['lang_code'] ?? ''),
+                ];
+                $this->dispatchSms($winner['phones'], $winner['text'], $ctx, $log, $winner['actor']);
+            } catch (\Throwable $e) {
+                FailureLog::report($this->log, 'order_sms.coalesce_flush_failed', $e);
+            }
         }
     }
 

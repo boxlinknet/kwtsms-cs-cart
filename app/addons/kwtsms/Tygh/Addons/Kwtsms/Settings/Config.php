@@ -171,6 +171,9 @@ class Config implements ConfigInterface
             'bis_max_recipients',
             // 2026-11-15 20:55 +03: Task M3.18 (G2, P3-75), task 596. The vendor Sender ID switch.
             'vendor_sender_ids',
+            // 2026-11-17 00:05 +03: Task M3.8 fix round 1 (controller note), task 596. The same-order customer SMS
+            // switch: without this key save_settings dropped it and the Settings form never stored it.
+            'coalesce_customer_sms',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

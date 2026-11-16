@@ -35,15 +35,37 @@ class Coalescer
     /** @var callable|null */
     private $record;
 
-    /** @var array<int,array<int,array{event_id:string,phones:array,text:string,context:array}>> order id => entries */
+    /** @var int 2026-11-16 21:30 +03: Task M3.8 fix round 1 M1, task 596. Held orders that trigger an early flush. */
+    private $cap;
+
+    /** @var array<int,array<int,array{event_id:string,phones:array,text:string,context:array,actor:array}>> order id => entries */
     private $held = [];
 
     /**
      * @param callable|null $record callable(string $event_id, int $order_id, array $phones, array $context): void
+     * @param int           $cap    held orders at which full() turns true (default 200; a test injects a small one)
      */
-    public function __construct(?callable $record = null)
+    public function __construct(?callable $record = null, int $cap = 200)
     {
         $this->record = $record;
+        $this->cap = max(1, $cap);
+    }
+
+    /** 2026-11-16 21:30 +03: M3.8 fix round 1 M1, task 596. True when the held orders reached the cap: flush early. */
+    public function full(): bool
+    {
+        return count($this->held) >= $this->cap;
+    }
+
+    /** 2026-11-16 21:30 +03: M3.8 fix round 1 M2, task 596. Held SMS count (all orders), for the flush log line. */
+    public function count(): int
+    {
+        $n = 0;
+        foreach ($this->held as $entries) {
+            $n += count($entries);
+        }
+
+        return $n;
     }
 
     /** Whether this SMS may be held: a customer SMS of a status change, an order edit or a shipment, from an event. */
@@ -64,9 +86,17 @@ class Coalescer
      * @param string[]            $phones
      * @param array<string,mixed> $context SmsService::send() context
      */
-    public function hold(string $event_id, int $order_id, array $phones, string $text, array $context): void
-    {
+    public function hold(
+        string $event_id,
+        int $order_id,
+        array $phones,
+        string $text,
+        array $context,
+        array $actor = []
+    ): void {
         $this->held[$order_id][] = [
+            // 2026-11-16 21:30 +03: M3.8 fix round 1 I2, task 596. The actor of THIS SMS: its winner sends in its mode.
+            'actor' => $actor,
             'event_id' => $event_id,
             'phones' => $phones,
             'text' => $text,
@@ -78,7 +108,7 @@ class Coalescer
      * The winners, one per order, in the order their orders were first held. Clears everything held first, so a
      * second call (or a fatal that runs the shutdown function twice) returns nothing. Losers are recorded here.
      *
-     * @return array<int,array{phones:array,text:string,context:array}>
+     * @return array<int,array{phones:array,text:string,context:array,actor:array}>
      */
     public function flush(): array
     {
@@ -93,12 +123,17 @@ class Coalescer
                     $win = $i;
                 }
             }
+            // 2026-11-16 21:30 +03: M3.8 fix round 1 M3 (coordinator ruling), task 596. Shipment SMS are never
+            // coalesced with each other (different tracking numbers): every shipment of the order wins; a status
+            // or edit text still loses to a shipment.
+            $all_ship = self::rank($entries[$win]['event_id']) === 3;
             foreach ($entries as $i => $entry) {
-                if ($i === $win) {
+                if ($i === $win || ($all_ship && self::rank($entry['event_id']) === 3)) {
                     $winners[] = [
                         'phones' => $entry['phones'],
                         'text' => $entry['text'],
                         'context' => $entry['context'],
+                        'actor' => $entry['actor'],
                     ];
                     continue;
                 }
