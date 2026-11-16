@@ -8304,13 +8304,9 @@ msgctxt "Languages::kwtsms.templates.import_status_refused"
 msgid "Refused"
 msgstr "مرفوض"
 
-msgctxt "Languages::kwtsms.templates.import_more"
-msgid "Only the first 300 rows are listed. All of them are checked when you confirm."
-msgstr "تُعرض أول 300 صف فقط. تُفحص جميعها عند التأكيد."
-
 msgctxt "Languages::kwtsms.templates.import_keep_unknown"
 msgid "Keep unknown placeholders (import those texts as they are)"
-msgstr "الإبقاء على العناصر النائبة غير المعروفة (استيراد تلك النصوص كما هي)"
+msgstr "استيراد هذا النص مع عناصره النائبة غير المعروفة"
 
 msgctxt "Languages::kwtsms.templates.import_confirm"
 msgid "Import the new and changed texts"
@@ -8403,3 +8399,16 @@ msgstr "تعذر إنشاء صف النص."
 msgctxt "Languages::kwtsms.templates.import_reason_bad_language"
 msgid "The language code is not valid."
 msgstr "رمز اللغة غير صالح."
+
+# 2026-11-17 00:40 +03: Task M3.10 fix round 1, task 596. Refusal reasons of the write set.
+msgctxt "Languages::kwtsms.templates.import_reason_too_many_changes"
+msgid "More than 300 rows would change or be refused. Split the file so that every row can be checked in the preview."
+msgstr "سيتغير أو سيُرفض أكثر من 300 صف. قسّم الملف ليمكن فحص كل صف في المعاينة."
+
+msgctxt "Languages::kwtsms.templates.import_reason_changed_since_preview"
+msgid "The stored text changed after the preview. Preview again."
+msgstr "تغير النص المحفوظ بعد المعاينة. أعد المعاينة."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_previewed"
+msgid "This row was not part of the preview. Preview again."
+msgstr "لم يكن هذا الصف ضمن المعاينة. أعد المعاينة."

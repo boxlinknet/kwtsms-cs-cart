@@ -76,6 +76,18 @@ if ($kwtsms_method !== RequestGate::GET && $kwtsms_method !== RequestGate::POST)
     return [CONTROLLER_STATUS_DENIED];
 }
 
+// 2026-11-17 00:35 +03: Task M3.10 fix round 1 (M2), task 596. A body above post_max_size reaches PHP as an empty POST
+// and would fail the security hash with a generic notice: say "too large" instead (no data is read; the real gate
+// runs for every other request). Core may refuse such a request earlier still.
+if (
+    $kwtsms_method === RequestGate::POST && (string) $mode === 'import_templates'
+    && isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > 0 && $_POST === [] && $_FILES === []
+) {
+    fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.templates.import_reason_too_large')));
+
+    return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.templates#kwtsms_import'];
+}
+
 // 2. Mode map, mode method, root context, privilege, security hash.
 $kwtsms_session = Tygh::$app['session'];
 $kwtsms_denied = RequestGate::deny(
@@ -705,11 +717,13 @@ try {
                     return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.templates#kwtsms_import'];
                 }
                 $kwtsms_preview = $kwtsms_transfer->preview($kwtsms_json);
+                // 2026-11-17 00:35 +03: Task M3.10 fix round 1 (I2), task 596. Every row that is not unchanged is shown
+                // (the transfer refuses a file with more than MAX_SHOWN of them), so the write set is the shown set.
                 $kwtsms_shown = [];
                 $kwtsms_counts = ['new' => 0, 'changed' => 0, 'unchanged' => 0, 'refused' => 0];
                 foreach ($kwtsms_preview['rows'] as $kwtsms_import_row) {
                     $kwtsms_counts[$kwtsms_import_row['status']]++;
-                    if ($kwtsms_import_row['status'] !== 'unchanged' && count($kwtsms_shown) < 300) {
+                    if ($kwtsms_import_row['status'] !== 'unchanged') {
                         $kwtsms_shown[] = $kwtsms_import_row;
                     }
                 }
@@ -720,6 +734,8 @@ try {
                     'rows' => $kwtsms_shown,
                     'counts' => $kwtsms_counts,
                     'errors' => $kwtsms_preview['errors'],
+                    // 2026-11-17 00:35 +03: Task M3.10 fix round 1 (I1), task 596. The previewed write set.
+                    'fingerprints' => $kwtsms_preview['errors'] === [] ? $kwtsms_preview['fingerprints'] : [],
                 ];
                 Tygh::$app['kwtsms.logs.debug']->log('info', 'templates.import_preview', 'Import previewed', [
                     'admin_id' => $kwtsms_admin_id,
@@ -752,11 +768,21 @@ try {
                     fn_html_escape((string) __('kwtsms.templates.import_reason_file_changed'))
                 );
             } else {
+                // 2026-11-17 00:35 +03: Task M3.10 fix round 1 (I1, I2), task 596. Per-row consent (the keys of the
+                // ticked rows) and the preview's fingerprints; the pending slot was already removed above.
+                $kwtsms_keep = [];
+                $kwtsms_ticked = isset($kwtsms_in['keep']) && is_array($kwtsms_in['keep']) ? $kwtsms_in['keep'] : [];
+                foreach ($kwtsms_ticked as $kwtsms_k) {
+                    if (is_string($kwtsms_k) && strlen($kwtsms_k) <= 200) {
+                        $kwtsms_keep[] = $kwtsms_k;
+                    }
+                }
                 $kwtsms_applied = $kwtsms_transfer->apply(
                     $kwtsms_pending['json'],
                     $kwtsms_sha,
-                    isset($kwtsms_in['keep_unknown']) && $kwtsms_in['keep_unknown'] === '1',
-                    $kwtsms_admin_id
+                    $kwtsms_keep,
+                    $kwtsms_admin_id,
+                    is_array($kwtsms_pending['fingerprints'] ?? null) ? $kwtsms_pending['fingerprints'] : []
                 );
                 fn_set_notification(
                     $kwtsms_applied['refused'] === [] ? 'N' : 'W',
@@ -891,9 +917,15 @@ try {
         Tygh::$app['view']->assign('kwtsms_templates', $kwtsms_data);
         // 2026-11-16 23:45 +03: Task M3.10 (B10, P3-71), task 596. The import preview waits in the session (no JSON).
         $kwtsms_import_view = null;
+        // 2026-11-17 00:35 +03: Task M3.10 fix round 1 (M1), task 596. A preview older than 30 minutes is dropped
+        // (with its JSON) when the page is opened, not only when it is confirmed.
+        $kwtsms_import_at = isset($kwtsms_session['kwtsms_import']) ? (int) ($kwtsms_session['kwtsms_import']['at'] ?? 0) : 0;
+        if (isset($kwtsms_session['kwtsms_import']) && $kwtsms_import_at < time() - 1800) {
+            unset($kwtsms_session['kwtsms_import']);
+        }
         if (isset($kwtsms_session['kwtsms_import']) && is_array($kwtsms_session['kwtsms_import'])) {
             $kwtsms_import_view = $kwtsms_session['kwtsms_import'];
-            unset($kwtsms_import_view['json']);
+            unset($kwtsms_import_view['json'], $kwtsms_import_view['fingerprints']);
         }
         Tygh::$app['view']->assign('kwtsms_import', $kwtsms_import_view);
         Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);

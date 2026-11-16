@@ -18,7 +18,8 @@
  * USAGE:     $t = TemplateTransfer::fromContainer(Tygh::$app);
  *            $json = $t->export();                                  // download body
  *            $p = $t->preview($json_from_upload);   // ['rows' => [...], 'sha' => sha256, 'errors' => [codes]]
- *            $r = $t->apply($json, $sha, $keep, $admin_id); // ['saved' => int, 'refused' => [rows with reason]]
+ *            $r = $t->apply($json, $sha, $keep_keys, $admin_id, $p['fingerprints']);
+ *                                                // ['saved' => int, 'refused' => [rows with reason]]
  *            Row: event_id, receiver, storefront_id, lang, status (new|changed|unchanged|refused), reason,
  *            unknown (placeholders not known to the event; reason unknown_placeholders is applied only when
  *            $keep_unknown is true).
@@ -40,6 +41,12 @@ class TemplateTransfer
 
     /** The most rows one file may carry (a full store is a few hundred). */
     public const MAX_ROWS = 5000;
+
+    /**
+     * 2026-11-17 00:30 +03: Task M3.10 fix round 1 (review I2), task 596. The most rows a preview lists (every row that
+     * is not "unchanged"). A file with more is refused whole (too_many_changes): apply writes only rows the admin saw.
+     */
+    public const MAX_SHOWN = 300;
 
     public const STATUS_NEW = 'new';
     public const STATUS_CHANGED = 'changed';
@@ -94,27 +101,44 @@ class TemplateTransfer
     /**
      * Dry run: what an import of this file would do. Writes nothing.
      *
-     * @return array{rows:array<int,array<string,mixed>>,sha:string,errors:string[]}
+     * 2026-11-17 00:30 +03: Task M3.10 fix round 1 (review I1), task 596. 'fingerprints' = key => sha1 of the stored
+     * body of every new or changed row (and of every unknown-placeholder row) at preview time: the write set apply()
+     * is limited to.
+     *
+     * @return array{rows:array<int,array<string,mixed>>,sha:string,errors:string[],fingerprints:array<string,string>}
      */
     public function preview(string $json): array
     {
         $ev = $this->evaluate($json);
         $rows = [];
+        $fp = [];
         foreach ($ev['rows'] as $row) {
-            unset($row['stored']);
+            $writable = !in_array($row['status'], [self::STATUS_UNCHANGED, self::STATUS_REFUSED], true);
+            if ($writable || $row['reason'] === 'unknown_placeholders') {
+                $fp[$row['key']] = $row['fp'];
+            }
+            unset($row['stored'], $row['fp']);
             $rows[] = $row;
         }
 
-        return ['rows' => $rows, 'sha' => hash('sha256', $json), 'errors' => $ev['errors']];
+        return ['rows' => $rows, 'sha' => hash('sha256', $json), 'errors' => $ev['errors'], 'fingerprints' => $fp];
     }
 
     /**
      * Writes the new and changed rows of the file the preview was made from. Refuses the whole file when its sha256 is
      * not the one previewed. Rows are re-evaluated at write time (the store may have changed since the preview).
      *
+     * 2026-11-17 00:30 +03: Task M3.10 fix round 1 (review I1, I2), task 596. $fingerprints is the preview's write set
+     * (key => sha1 of the stored body then): a row not in it is skipped (not_previewed), a row whose stored body is no
+     * longer that one is skipped (changed_since_preview). $keep lists the row keys whose unknown placeholders the
+     * admin accepted one by one (it replaces the old single yes for every row).
+     *
+     * @param array<string,string> $fingerprints
+     * @param string[]             $keep
+     *
      * @return array{saved:int,refused:array<int,array<string,mixed>>}
      */
-    public function apply(string $json, string $sha, bool $keep_unknown, int $admin_id): array
+    public function apply(string $json, string $sha, array $keep, int $admin_id, array $fingerprints): array
     {
         $result = ['saved' => 0, 'refused' => []];
         if ($sha === '' || !hash_equals(hash('sha256', $json), $sha)) {
@@ -129,11 +153,21 @@ class TemplateTransfer
         }
         foreach ($ev['rows'] as $row) {
             $unknown_ok = $row['status'] === self::STATUS_REFUSED && $row['reason'] === 'unknown_placeholders'
-                && $keep_unknown;
+                && in_array($row['key'], $keep, true);
             if (!in_array($row['status'], [self::STATUS_NEW, self::STATUS_CHANGED], true) && !$unknown_ok) {
                 if ($row['status'] === self::STATUS_REFUSED) {
                     $result['refused'][] = $this->brief($row);
                 }
+                continue;
+            }
+            if (!isset($fingerprints[$row['key']])) {
+                $row['reason'] = 'not_previewed';
+                $result['refused'][] = $this->brief($row);
+                continue;
+            }
+            if (!hash_equals((string) $fingerprints[$row['key']], $row['fp'])) {
+                $row['reason'] = 'changed_since_preview';
+                $result['refused'][] = $this->brief($row);
                 continue;
             }
             $id = $this->templates->ensureTemplate($row['event_id'], $row['receiver'], $row['storefront_id']);
@@ -151,7 +185,7 @@ class TemplateTransfer
             'admin_id' => $admin_id,
             'saved' => $result['saved'],
             'refused' => count($result['refused']),
-            'keep_unknown' => $keep_unknown,
+            'kept_unknown' => count($keep),
         ]);
 
         return $result;
@@ -169,6 +203,11 @@ class TemplateTransfer
         };
         if (strlen($json) > self::MAX_BYTES) {
             return $none('too_large');
+        }
+        // 2026-11-17 00:30 +03: Task M3.10 fix round 1 (M3), task 596. A leading UTF-8 BOM is dropped before
+        // decoding; the sha stays on the original bytes.
+        if (strncmp($json, "\xEF\xBB\xBF", 3) === 0) {
+            $json = substr($json, 3);
         }
         if ($json === '' || !mb_check_encoding($json, 'UTF-8')) {
             return $none('not_json');
@@ -202,6 +241,7 @@ class TemplateTransfer
             $row = [
                 'event_id' => '', 'receiver' => '', 'storefront_id' => 0, 'lang' => '',
                 'status' => self::STATUS_REFUSED, 'reason' => '', 'unknown' => [], 'stored' => '',
+                'key' => '', 'fp' => '',
             ];
             if (!is_array($raw)) {
                 $row['reason'] = 'bad_row';
@@ -212,8 +252,19 @@ class TemplateTransfer
             $row['receiver'] = is_string($raw['receiver'] ?? null) ? mb_substr($raw['receiver'], 0, 4, 'UTF-8') : '';
             $row['storefront_id'] = is_int($raw['storefront_id'] ?? null) ? $raw['storefront_id'] : -1;
             $row['lang'] = is_string($raw['lang_code'] ?? null) ? mb_substr($raw['lang_code'], 0, 8, 'UTF-8') : '';
+            $row['key'] = $row['event_id'] . '|' . $row['receiver'] . '|' . $row['storefront_id'] . '|' . $row['lang'];
             $row['reason'] = $this->checkRow($raw, $languages, $storefronts, $ui, $seen, $row);
             $rows[] = $row;
+        }
+
+        $shown = 0;
+        foreach ($rows as $r) {
+            if ($r['status'] !== self::STATUS_UNCHANGED) {
+                $shown++;
+            }
+        }
+        if ($shown > self::MAX_SHOWN) {
+            return $none('too_many_changes');
         }
 
         return ['rows' => $rows, 'errors' => []];
@@ -302,6 +353,7 @@ class TemplateTransfer
 
         $current = isset($listed['bodies'][$row['lang']]['body'])
             ? (string) $listed['bodies'][$row['lang']]['body'] : null;
+        $row['fp'] = sha1((string) $current);
         if ($current === $stored) {
             $row['status'] = self::STATUS_UNCHANGED;
 
@@ -331,6 +383,7 @@ class TemplateTransfer
             'receiver' => $row['receiver'],
             'storefront_id' => $row['storefront_id'],
             'lang' => $row['lang'],
+            'key' => $row['key'],
             'reason' => $row['reason'],
         ];
     }

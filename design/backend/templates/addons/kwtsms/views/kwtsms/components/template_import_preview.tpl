@@ -34,6 +34,9 @@ DEPENDS:   the import and transfer language variables of the Templates page.
                 {/foreach}
             {else}
                 <p id="kwtsms_import_counts">{__("kwtsms.templates.import_counts", ["[new]" => $import.counts.new|fn_html_escape, "[changed]" => $import.counts.changed|fn_html_escape, "[unchanged]" => $import.counts.unchanged|fn_html_escape, "[refused]" => $import.counts.refused|fn_html_escape])}</p>
+                {* 2026-11-17 00:40 +03: Task M3.10 fix round 1 (I2), task 596. One form around the table: each unknown-placeholder row has its own consent box. *}
+                <form action="{""|fn_url}" method="post" name="kwtsms_import_confirm_form" id="kwtsms_import_confirm_form" class="kwtsms-inline-form">
+                <input type="hidden" name="kwtsms_import[sha]" value="{$import.sha}">
                 {if $import.rows}
                 <div class="table-responsive-wrapper">
                     <table class="table table-middle kwtsms-import__table" id="kwtsms_import_table">
@@ -53,24 +56,21 @@ DEPENDS:   the import and transfer language variables of the Templates page.
                                 <td><bdi dir="ltr">{$r.receiver}</bdi></td>
                                 <td><bdi dir="ltr">{$r.storefront_id}</bdi></td>
                                 <td><bdi dir="ltr">{$r.lang}</bdi></td>
-                                <td>{__("kwtsms.templates.import_status_`$r.status`")}{if $r.reason} : {__("kwtsms.templates.import_reason_`$r.reason`")}{if $r.unknown} <bdi dir="ltr">{$r.unknown|implode:" "}</bdi>{/if}{/if}</td>
+                                <td>{__("kwtsms.templates.import_status_`$r.status`")}{if $r.reason} : {__("kwtsms.templates.import_reason_`$r.reason`")}{if $r.unknown} <bdi dir="ltr">{$r.unknown|implode:" "}</bdi>{/if}{/if}
+                                    {if $r.reason == "unknown_placeholders"}
+                                    <label class="checkbox" for="kwtsms_import_keep_{$r@index}">
+                                        <input type="checkbox" id="kwtsms_import_keep_{$r@index}" name="kwtsms_import[keep][]" value="{$r.key}">
+                                        {__("kwtsms.templates.import_keep_unknown")}
+                                    </label>
+                                    {/if}</td>
                             </tr>
                             {/foreach}
                         </tbody>
                     </table>
                 </div>
-                {if count($import.rows) >= 300}<p class="muted">{__("kwtsms.templates.import_more")}</p>{/if}
                 {/if}
-                <form action="{""|fn_url}" method="post" name="kwtsms_import_confirm_form" id="kwtsms_import_confirm_form" class="kwtsms-inline-form">
-                    <input type="hidden" name="kwtsms_import[sha]" value="{$import.sha}">
-                    {if $import.counts.new + $import.counts.changed + $import.counts.refused > 0}
-                    <label class="checkbox" for="kwtsms_import_keep">
-                        <input type="checkbox" id="kwtsms_import_keep" name="kwtsms_import[keep_unknown]" value="1">
-                        {__("kwtsms.templates.import_keep_unknown")}
-                    </label>
-                    {/if}
                     <input type="submit" class="btn btn-primary" id="kwtsms_import_confirm" name="dispatch[kwtsms.import_templates_confirm]"
-                           value="{__("kwtsms.templates.import_confirm")}"{if $import.counts.new + $import.counts.changed + $import.counts.refused == 0} disabled="disabled"{/if}>
+                           value="{__("kwtsms.templates.import_confirm")}"{if $import.counts.new + $import.counts.changed == 0 && !$import.counts.refused} disabled="disabled"{/if}>
                     <input type="submit" class="btn" id="kwtsms_import_discard" name="dispatch[kwtsms.import_templates_confirm.discard]" value="{__("kwtsms.templates.import_discard")}">
                 </form>
             {/if}
