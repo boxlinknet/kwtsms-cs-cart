@@ -8238,3 +8238,68 @@ msgstr "تستخدم هذه الواجهة شروط جميع الواجهات. �
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "ساعات الهدوء لا تؤخر تنبيه الطلب الجديد، لذلك لا يوجد خيار ساعات الهدوء هنا."
+
+# 2026-11-16 23:47 +03: Task M3.19 (G3, G4, G6; P3-76, P3-77), task 596: code KPIs and Unlock, test SMS safeguards, IP lockdown guidance.
+msgctxt "Languages::kwtsms.settings.ip_lockdown"
+msgid "If your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024."
+msgstr "إذا كان حساب kwtSMS يحدّ الوصول إلى الواجهة البرمجية بعناوين IP محددة، فأضف عنوان IP الصادر لهذا الخادم في kwtsms.com، وإلا سترد kwtSMS بالخطأ ERR024."
+
+msgctxt "Languages::kwtsms.test_sms.phone_confirm"
+msgid "Mobile number again"
+msgstr "أعد كتابة رقم الجوال"
+
+msgctxt "Languages::kwtsms.test_sms.consent"
+msgid "I have permission to send an SMS to this number"
+msgstr "لدي إذن بإرسال رسالة نصية إلى هذا الرقم"
+
+msgctxt "Languages::kwtsms.test_sms.confirm_mismatch"
+msgid "The two numbers do not match, so nothing was sent. Type the same number twice."
+msgstr "الرقمان غير متطابقين، لذلك لم تُرسل أي رسالة. اكتب الرقم نفسه مرتين."
+
+msgctxt "Languages::kwtsms.test_sms.consent_required"
+msgid "Tick the box to confirm you have permission to send an SMS to this number. Nothing was sent."
+msgstr "ضع علامة في المربع لتأكيد أن لديك إذنًا بإرسال رسالة نصية إلى هذا الرقم. لم تُرسل أي رسالة."
+
+msgctxt "Languages::kwtsms.dash.codes.title"
+msgid "SMS codes"
+msgstr "رموز التحقق عبر الرسائل"
+
+msgctxt "Languages::kwtsms.dash.codes.issued"
+msgid "Codes sent, last 30 days"
+msgstr "الرموز المرسلة خلال آخر 30 يومًا"
+
+msgctxt "Languages::kwtsms.dash.codes.verified"
+msgid "Verified"
+msgstr "نسبة التحقق"
+
+msgctxt "Languages::kwtsms.dash.codes.locked"
+msgid "Numbers locked now"
+msgstr "الأرقام المقفلة الآن"
+
+msgctxt "Languages::kwtsms.dash.codes.number"
+msgid "Number"
+msgstr "الرقم"
+
+msgctxt "Languages::kwtsms.dash.codes.until"
+msgid "Locked until"
+msgstr "مقفل حتى"
+
+msgctxt "Languages::kwtsms.dash.codes.unlock"
+msgid "Unlock"
+msgstr "فتح القفل"
+
+msgctxt "Languages::kwtsms.dash.codes.none"
+msgid "No number is locked."
+msgstr "لا يوجد رقم مقفل."
+
+msgctxt "Languages::kwtsms.dash.codes.other"
+msgid "[n] more locked, too long to list."
+msgstr "[n] أرقام أخرى مقفلة، لا يمكن عرضها."
+
+msgctxt "Languages::kwtsms.dash.codes.unlocked"
+msgid "The number is unlocked. It can try codes again."
+msgstr "تم فتح قفل الرقم. يمكنه تجربة الرموز مرة أخرى."
+
+msgctxt "Languages::kwtsms.dash.codes.unlock_none"
+msgid "That number is not locked now. Nothing was changed."
+msgstr "هذا الرقم غير مقفل الآن. لم يتغير شيء."

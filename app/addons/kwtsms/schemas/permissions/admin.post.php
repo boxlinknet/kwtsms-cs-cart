@@ -76,6 +76,8 @@ $schema['kwtsms'] = [
         'update_vendor_quotas'      => ['permissions' => 'manage_kwtsms'],
         // 2026-11-15 20:50 +03: Task M3.18 (G2, P3-75), task 596. A vendor's Sender ID: the gateway privilege.
         'update_vendor_senders'     => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:47 +03: Task M3.19 (G3, P3-76), task 596. Same privilege as Admin\RequestGate::MODES.
+        'unlock_number'             => ['permissions' => 'manage_kwtsms_gateway'],
         // 2026-10-23 02:08 +03: Task A11, task 596 (same privilege as Admin\RequestGate::MODES).
         'send_order_sms'            => ['permissions' => 'manage_kwtsms_gateway'],
         // 2026-10-23 15:14 +03: Task M1.1a (P3-23), task 596 (same privilege as Admin\RequestGate::MODES).

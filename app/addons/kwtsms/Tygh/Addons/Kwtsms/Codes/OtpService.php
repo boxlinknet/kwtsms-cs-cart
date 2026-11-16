@@ -454,6 +454,64 @@ class OtpService
     }
 
     /**
+     * 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The numbers whose wrong-code lock (the per-phone bucket
+     * otp_failp:<purpose>:<subject>) is active now: [subject => locked-until of the longest lock]. A bucket name that
+     * holds no subject (a hashed name, "otp_failp:<sha256>") cannot be read back: it only counts in "other".
+     * At most 200 locks are read (the newest first).
+     *
+     * @return array{subjects: array<string,int>, other: int}
+     */
+    public function lockedSubjects(int $now): array
+    {
+        $rows = $this->rows(
+            'SELECT bucket, locked_until FROM ?:kwtsms_rate_limits WHERE bucket LIKE ?s AND locked_until > ?i'
+            . ' ORDER BY locked_until DESC LIMIT 200',
+            [RateLimiter::likeEscape('otp_failp:') . '%', $now]
+        );
+        $subjects = [];
+        $other = 0;
+        foreach ($rows as $row) {
+            $rest = substr((string) $row['bucket'], strlen('otp_failp:'));
+            $pos = strpos($rest, ':');
+            if ($pos === false || $pos === 0 || $pos === strlen($rest) - 1) {
+                ++$other;
+                continue;
+            }
+            $subject = substr($rest, $pos + 1);
+            $until = (int) $row['locked_until'];
+            if (!isset($subjects[$subject]) || $subjects[$subject] < $until) {
+                $subjects[$subject] = $until;
+            }
+        }
+
+        return ['subjects' => $subjects, 'other' => $other];
+    }
+
+    /**
+     * 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. Lifts the wrong-code lock of one subject: deletes ONLY its
+     * otp_failp:<purpose>:<subject> and otp_fail:<purpose>:<subject>:<ip> buckets, every purpose and address. The
+     * subject is matched whole: the first pattern is end-anchored, the second is closed by the colon after the
+     * subject, and a name of a longer subject that ends in or contains this one (a 2FA subject "<user id>:<phone>"
+     * against the phone alone) is excluded by the second pattern, because a purpose never holds a colon. The send
+     * caps (otp_send:, ip_h, ip_d) are never touched. An empty subject deletes nothing.
+     *
+     * @return int Rows deleted
+     */
+    public function unlockSubject(string $subject): int
+    {
+        if ($subject === '') {
+            return 0;
+        }
+        $s = RateLimiter::likeEscape($subject);
+        $phone = RateLimiter::likeEscape('otp_failp:');
+        $ip = RateLimiter::likeEscape('otp_fail:');
+        $deleted = $this->limiter->deleteLike($phone . '%:' . $s, $phone . '%:%:' . $s);
+        $deleted += $this->limiter->deleteLike($ip . '%:' . $s . ':%', $ip . '%:%:' . $s . ':%');
+
+        return $deleted;
+    }
+
+    /**
      * Seconds the (phone, IP) pair or the whole phone is locked for (0 = not locked).
      */
     private function lockRemaining(string $purpose, string $subject, string $ip_part, int $now): int
@@ -526,6 +584,20 @@ class OtpService
     protected function run(string $sql, array $args): int
     {
         return (int) db_query($sql, ...$args);
+    }
+
+    /**
+     * 2026-11-16 23:47 +03: Task M3.19, task 596. Several rows (a test seam).
+     *
+     * @param array<int,mixed> $args
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    protected function rows(string $sql, array $args): array
+    {
+        $rows = db_get_array($sql, ...$args);
+
+        return is_array($rows) ? $rows : [];
     }
 
     /**

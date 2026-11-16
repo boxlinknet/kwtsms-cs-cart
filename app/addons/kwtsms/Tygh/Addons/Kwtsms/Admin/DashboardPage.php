@@ -36,6 +36,7 @@ use Tygh\Addons\Kwtsms\Alerts\AdminAlerts;
 use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Antibot\TurnstileDriver; // 2026-10-29 04:12 +03: Task M1.12, task 596
 use Tygh\Addons\Kwtsms\Auth\TwoFactorStats; // 2026-11-07 02:46 +03: Task M2.7, task 596
+use Tygh\Addons\Kwtsms\Codes\CodeKpis; // 2026-11-16 23:47 +03: Task M3.19, task 596
 use Tygh\Addons\Kwtsms\Gateway\GatewayState;
 use Tygh\Addons\Kwtsms\Gateway\SyncService;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
@@ -119,6 +120,9 @@ class DashboardPage
     /** @var callable|null Returns microtime(true) (tests); null = microtime(true) */
     private $timer;
 
+    /** @var CodeKpis|null 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The SMS-code figures box */
+    private $code_kpis;
+
     /**
      * 2026-10-21 05:16 +03: $marks (cron watch, R36 step marks) and $timer (page time budget) added, Task 1.11 fix
      * round 1, task 596.
@@ -133,8 +137,10 @@ class DashboardPage
         DebugLog $log,
         ?callable $clock = null,
         ?DashboardState $marks = null,
-        ?callable $timer = null
+        ?callable $timer = null,
+        ?CodeKpis $code_kpis = null // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596
     ) {
+        $this->code_kpis = $code_kpis;
         $this->config = $config;
         $this->state = $state;
         $this->sync = $sync;
@@ -161,7 +167,9 @@ class DashboardPage
             $app['kwtsms.alerts'],
             $app['kwtsms.logs.debug'],
             null,
-            new DashboardState($app['kwtsms.storage'])
+            new DashboardState($app['kwtsms.storage']),
+            null,
+            $app['kwtsms.code_kpis'] // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596
         );
     }
 
@@ -508,6 +516,9 @@ class DashboardPage
                 'queue' => 'https://www.kwtsms.com/',
             ],
             'has_templates_page' => in_array('templates', $pages, true),
+            // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The SMS-code box: codes sent in 30 days, percent
+            // verified, numbers locked now (masked) with Unlock. null = no code feature is on (no box).
+            'code_kpis' => $this->codeKpis($facts['code_feature_on'], $now),
         ];
         $this->leave('dashboard.view', $started, 'built', [
             'warnings' => count($data['warnings']),
@@ -1163,6 +1174,32 @@ class DashboardPage
             $context,
             (int) round(($this->microtime() - $started) * 1000)
         );
+    }
+
+    /**
+     * 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The code figures while a code feature is on; null when none
+     * is, or when they cannot be read (the page still renders; the failure is logged).
+     *
+     * @return array<string,mixed>|null
+     */
+    private function codeKpis(bool $on, int $now): ?array
+    {
+        if (!$on || $this->code_kpis === null) {
+            return null;
+        }
+        try {
+            $summary = $this->code_kpis->summary($now);
+            // The page holds the masked number and its token, never the number itself.
+            foreach ($summary['locked'] as $i => $lock) {
+                unset($summary['locked'][$i]['subject']);
+            }
+
+            return $summary;
+        } catch (\Throwable $e) {
+            $this->failed('dashboard.code_kpis', $e);
+
+            return null;
+        }
     }
 
     /** The balance level under which the page warns: the setting, else the cached daily "auto" level, else 100. */

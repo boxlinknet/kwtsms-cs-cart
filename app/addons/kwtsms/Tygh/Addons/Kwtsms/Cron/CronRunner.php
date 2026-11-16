@@ -176,6 +176,9 @@ class CronRunner
     /** @var callable|null 2026-10-23 00:13 +03: Task A9, task 596. (): bool, LowBalanceSms::dispatchPending() */
     private $low_balance_sms;
 
+    /** @var callable|null 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. CodeKpis::fold(int $day_start): void */
+    private $fold_codes;
+
     /** @var callable|null 2026-10-23 19:56 +03: Task M1.2, task 596. (int $before, int $limit): int, RateLimiter::prune */
     private $prune_buckets;
 
@@ -229,8 +232,10 @@ class CronRunner
         ?callable $prune_codes = null, // 2026-10-23 19:56 +03: Task M1.2, task 596
         ?callable $index_phones = null, // 2026-10-24 17:16 +03: Task M1.6 (R8), task 596
         ?callable $fail_spike_check = null, // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596
-        ?callable $fail_spike_sms = null // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596
+        ?callable $fail_spike_sms = null, // 2026-11-06 22:09 +03: Task M2.11 (P3-57), task 596
+        ?callable $fold_codes = null // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. (int $day_start): void
     ) {
+        $this->fold_codes = $fold_codes;
         $this->fail_spike_check = $fail_spike_check;
         $this->fail_spike_sms = $fail_spike_sms;
         $this->index_phones = $index_phones;
@@ -528,6 +533,19 @@ class CronRunner
         }
         // 2026-10-23 19:56 +03: Task M1.2 (P3-18, P3-26), task 596. SMS code rows older than a day and idle,
         // unlocked rate-limit buckets older than two days, in the same 5,000-row chunks and 120 s budget.
+        // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The finished UTC days (yesterday and the day before, so
+        // one missed run loses nothing) go into kwtsms_code_days BEFORE the code rows are pruned. fold() never lowers a
+        // stored count, so a day folded twice is safe. A failed fold is logged and does not stop the prune.
+        if ($this->fold_codes !== null) {
+            try {
+                $today = $now - ($now % self::DAY);
+                call_user_func($this->fold_codes, $today - 2 * self::DAY);
+                call_user_func($this->fold_codes, $today - self::DAY);
+            } catch (\Throwable $e) {
+                $errors[] = 'code_kpis: ' . $this->describe($e);
+                $this->noteThrowable('cron.prune_failed', $e, ['table' => 'code_kpis']);
+            }
+        }
         $windows = [
             'otp_codes' => [$this->prune_codes, self::CODE_ROW_DAYS],
             'rate_limits' => [$this->prune_buckets, self::BUCKET_DAYS],

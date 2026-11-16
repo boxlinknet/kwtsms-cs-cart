@@ -8233,3 +8233,68 @@ msgstr "This storefront uses the conditions of All storefronts. Saving here make
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+
+# 2026-11-16 23:47 +03: Task M3.19 (G3, G4, G6; P3-76, P3-77), task 596: code KPIs and Unlock, test SMS safeguards, IP lockdown guidance.
+msgctxt "Languages::kwtsms.settings.ip_lockdown"
+msgid "If your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024."
+msgstr "If your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024."
+
+msgctxt "Languages::kwtsms.test_sms.phone_confirm"
+msgid "Mobile number again"
+msgstr "Mobile number again"
+
+msgctxt "Languages::kwtsms.test_sms.consent"
+msgid "I have permission to send an SMS to this number"
+msgstr "I have permission to send an SMS to this number"
+
+msgctxt "Languages::kwtsms.test_sms.confirm_mismatch"
+msgid "The two numbers do not match, so nothing was sent. Type the same number twice."
+msgstr "The two numbers do not match, so nothing was sent. Type the same number twice."
+
+msgctxt "Languages::kwtsms.test_sms.consent_required"
+msgid "Tick the box to confirm you have permission to send an SMS to this number. Nothing was sent."
+msgstr "Tick the box to confirm you have permission to send an SMS to this number. Nothing was sent."
+
+msgctxt "Languages::kwtsms.dash.codes.title"
+msgid "SMS codes"
+msgstr "SMS codes"
+
+msgctxt "Languages::kwtsms.dash.codes.issued"
+msgid "Codes sent, last 30 days"
+msgstr "Codes sent, last 30 days"
+
+msgctxt "Languages::kwtsms.dash.codes.verified"
+msgid "Verified"
+msgstr "Verified"
+
+msgctxt "Languages::kwtsms.dash.codes.locked"
+msgid "Numbers locked now"
+msgstr "Numbers locked now"
+
+msgctxt "Languages::kwtsms.dash.codes.number"
+msgid "Number"
+msgstr "Number"
+
+msgctxt "Languages::kwtsms.dash.codes.until"
+msgid "Locked until"
+msgstr "Locked until"
+
+msgctxt "Languages::kwtsms.dash.codes.unlock"
+msgid "Unlock"
+msgstr "Unlock"
+
+msgctxt "Languages::kwtsms.dash.codes.none"
+msgid "No number is locked."
+msgstr "No number is locked."
+
+msgctxt "Languages::kwtsms.dash.codes.other"
+msgid "[n] more locked, too long to list."
+msgstr "[n] more locked, too long to list."
+
+msgctxt "Languages::kwtsms.dash.codes.unlocked"
+msgid "The number is unlocked. It can try codes again."
+msgstr "The number is unlocked. It can try codes again."
+
+msgctxt "Languages::kwtsms.dash.codes.unlock_none"
+msgid "That number is not locked now. Nothing was changed."
+msgstr "That number is not locked now. Nothing was changed."
