@@ -45,6 +45,9 @@ class EventConditions
     /** @var array<string,array{min_total:string,payment_ids:int[],shipping_ids:int[],staff_quiet:bool}> */
     private $cache = [];
 
+    /** @var array{payments:array<int,string>,shippings:array<int,string>}|null 2026-11-17 00:50 +03: P4, task 596 */
+    private $active = null;
+
     /**
      * @param array<string,mixed> $order The order of the event (an empty array for an event without an order)
      *
@@ -62,6 +65,11 @@ class EventConditions
         $none['staff_quiet'] = $cond['staff_quiet'] && $receiver !== 'C' && self::supportsQuiet($event_id);
         // Order conditions apply to an event that has an order; any other event ignores them.
         if ((int) ($order['order_id'] ?? 0) > 0) {
+            // 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored ids of a payment or shipping method
+            // that is inactive or deleted now are dropped on read: a list of only such methods is no limit, instead of
+            // refusing every SMS. The editor shows how many ids are unavailable (unavailable()).
+            $cond['payment_ids'] = $this->onlyActive($cond['payment_ids'], 'payments');
+            $cond['shipping_ids'] = $this->onlyActive($cond['shipping_ids'], 'shippings');
             if ($cond['min_total'] !== '') {
                 $total = self::totalOf($order);
                 if ($total === null) {
@@ -179,6 +187,40 @@ class EventConditions
     public function forget(): void
     {
         $this->cache = [];
+        $this->active = null;
+    }
+
+    /**
+     * 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. The ids of $ids that are active methods now; the
+     * active lists are read once per request, and only when a list is not empty.
+     *
+     * @param int[] $ids
+     *
+     * @return int[]
+     */
+    private function onlyActive(array $ids, string $kind): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        if ($this->active === null) {
+            $this->active = ['payments' => $this->activePayments(), 'shippings' => $this->activeShippings()];
+        }
+
+        return array_values(array_filter($ids, function (int $id) use ($kind): bool {
+            return isset($this->active[$kind][$id]);
+        }));
+    }
+
+    /**
+     * 2026-11-17 00:50 +03: task M3.22 P4, task 596. How many of the stored ids are not an active method any more
+     * (for the "N unavailable" line of the Conditions dialog).
+     *
+     * @param int[] $ids
+     */
+    public function unavailable(array $ids, string $kind): int
+    {
+        return count($ids) - count($this->onlyActive($ids, $kind === 'shippings' ? 'shippings' : 'payments'));
     }
 
     /**

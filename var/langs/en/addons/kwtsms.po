@@ -8243,3 +8243,8 @@ msgstr "This storefront uses the conditions of All storefronts. Saving here make
 msgctxt "Languages::kwtsms.conditions.quiet_exempt"
 msgid "Quiet hours never hold a new order alert, so there is no quiet hours option here."
 msgstr "Quiet hours never hold a new order alert, so there is no quiet hours option here."
+
+# 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored methods that are not active any more.
+msgctxt "Languages::kwtsms.conditions.unavailable"
+msgid "[n] saved method(s) are inactive or deleted and are ignored. Saving this form removes them."
+msgstr "[n] saved method(s) are inactive or deleted and are ignored. Saving this form removes them."
