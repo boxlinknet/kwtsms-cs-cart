@@ -8824,3 +8824,9 @@ msgstr "لا مفتاح هنا. فعّل رسائل البائع من الإدا
 msgctxt "Languages::kwtsms.logs.reason.conditions_unreadable"
 msgid "The Conditions of this row could not be read, so no SMS was sent. Save the Conditions again."
 msgstr "تعذرت قراءة شروط هذا الصف فلم تُرسل الرسالة. احفظ الشروط من جديد."
+
+# 2026-11-17 15:25 +03: FIX-A (branch review 1.4.0 security M1), task 596. A Resend refuses a row of an event whose owning
+# add-on is off or of a vendor that is not active.
+msgctxt "Languages::kwtsms.logs.resend.event_inactive"
+msgid "This SMS belongs to an add-on that is off or to a vendor that is not active, so it isn't resent."
+msgstr "تتبع هذه الرسالة إضافة متوقفة أو بائعا غير مفعّل، لذلك لا يعاد إرسالها."

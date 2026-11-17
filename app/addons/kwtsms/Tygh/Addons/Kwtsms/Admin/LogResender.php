@@ -191,6 +191,15 @@ class LogResender
                 $candidates[$id] = $attempt;
             }
         }
+        // 2026-11-17 15:25 +03: FIX-A (branch review 1.4.0 security M1), task 596. The owner gate and the vendor state
+        // apply to a Resend too: a row of an event whose owning add-on is off, or of a vendor that is not active,
+        // is not resent.
+        foreach ($candidates as $id => $attempt) {
+            if ($this->ownerInactive($attempt)) {
+                $out[$id] = self::no('event_inactive');
+                unset($candidates[$id]);
+            }
+        }
         $resent = $candidates === [] ? [] : $this->resentAs($candidates);
         foreach ($candidates as $id => $attempt) {
             if (isset($resent[$id])) {
@@ -202,6 +211,52 @@ class LogResender
         }
 
         return $out;
+    }
+
+    /**
+     * 2026-11-17 15:25 +03: FIX-A (security M1), task 596. True when the attempt's event is declared by an add-on that
+     * is not active now, or when it is a V attempt of a vendor that is not active (Multi-Vendor).
+     *
+     * @param array<string,mixed> $attempt
+     */
+    private function ownerInactive(array $attempt): bool
+    {
+        $event = (string) ($attempt['event_id'] ?? '');
+        if ($event !== '' && $this->eventOwnerInactive($event)) {
+            return true;
+        }
+
+        return (string) ($attempt['receiver'] ?? '') === 'V' && (int) ($attempt['company_id'] ?? 0) > 0
+            && $this->isMultiVendor() && $this->vendorInactive((int) $attempt['company_id']);
+    }
+
+    /**
+     * 2026-11-17 15:25 +03: FIX-A (security M1), task 596. Declared (kwtsms.declared_events_all) but not in the active
+     * schema (kwtsms.declared_events): the owning add-on is off. Unreadable = not gated. Test seam.
+     */
+    protected function eventOwnerInactive(string $event_id): bool
+    {
+        try {
+            $app = \Tygh::$app;
+            if (!isset($app['kwtsms.declared_events_all'], $app['kwtsms.declared_events'])) {
+                return false;
+            }
+
+            return array_key_exists($event_id, (array) $app['kwtsms.declared_events_all'])
+                && !array_key_exists($event_id, (array) $app['kwtsms.declared_events']);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /** 2026-11-17 15:25 +03: FIX-A (security M1), task 596. companies.status other than A. Test seam. */
+    protected function vendorInactive(int $company_id): bool
+    {
+        try {
+            return \Tygh::$app['kwtsms.vendor_quota']->companyStatus($company_id) !== 'A';
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /** @return array{ok:bool,reason:string,resent_as:int} */
