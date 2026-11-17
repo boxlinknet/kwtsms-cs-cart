@@ -27,7 +27,7 @@ use Tygh\Addons\Kwtsms\Storage\KeyValueStoreInterface;
 
 class CodeKpis
 {
-    /** 2026-11-17 15:16 +03: FIX-B M4, task 596. Status of a code row whose SMS never went out (not counted). */
+    /** 2026-11-17 15:19 +03: FIX-B M4, task 596. Status of a code row whose SMS never went out (not counted). */
     public const NEVER_SENT = 'X';
 
     /** Storage key: {"YYYY-MM-DD": {issued, verified, by_purpose: {purpose: {issued, verified}}}}. */
@@ -93,7 +93,7 @@ class CodeKpis
         $key = gmdate('Y-m-d', $day_start);
         $new = ['issued' => 0, 'verified' => 0, 'by_purpose' => []];
         foreach ($this->counts($day_start, $day_start + self::DAY) as $row) {
-            // 2026-11-17 15:16 +03: FIX-B M4, task 596. A row that never went out (status X) is not a code sent.
+            // 2026-11-17 15:19 +03: FIX-B M4, task 596. A row that never went out (status X) is not a code sent.
             if ((string) $row['status'] === self::NEVER_SENT) {
                 continue;
             }
@@ -318,7 +318,7 @@ class CodeKpis
         $out = [];
         foreach (is_array($rows) ? $rows : [] as $row) {
             if ((string) $row['status'] === self::NEVER_SENT) {
-                continue; // 2026-11-17 15:16 +03: FIX-B M4, task 596: never sent, not counted.
+                continue; // 2026-11-17 15:19 +03: FIX-B M4, task 596: never sent, not counted.
             }
             $key = gmdate('Y-m-d', (int) $row['d'] * self::DAY);
             if (!isset($out[$key])) {
