@@ -76,18 +76,6 @@ if ($kwtsms_method !== RequestGate::GET && $kwtsms_method !== RequestGate::POST)
     return [CONTROLLER_STATUS_DENIED];
 }
 
-// 2026-11-17 00:35 +03: Task M3.10 fix round 1 (M2), task 596. A body above post_max_size reaches PHP as an empty POST
-// and would fail the security hash with a generic notice: say "too large" instead (no data is read; the real gate
-// runs for every other request). Core may refuse such a request earlier still.
-if (
-    $kwtsms_method === RequestGate::POST && (string) $mode === 'import_templates'
-    && isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > 0 && $_POST === [] && $_FILES === []
-) {
-    fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.templates.import_reason_too_large')));
-
-    return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.templates#kwtsms_import'];
-}
-
 // 2. Mode map, mode method, root context, privilege, security hash.
 $kwtsms_session = Tygh::$app['session'];
 $kwtsms_denied = RequestGate::deny(
@@ -102,6 +90,18 @@ $kwtsms_denied = RequestGate::deny(
     isset($_POST['security_hash']) ? $_POST['security_hash'] : null
 );
 if ($kwtsms_denied !== null) {
+    // 2026-11-17 15:28 +03: FIX-A (branch review 1.4.0 security M2), task 596. The "too large" notice of an import is
+    // chosen INSIDE the gate's 'token' refusal (it comes after the mode, method, privilege and scope checks): a body
+    // above post_max_size reaches PHP as an empty POST and would fail the security hash with a generic notice; say
+    // "too large" instead. No data is read. It was before the gate (M3.10 fix round 1 M2, 2026-11-17 00:35 +03).
+    if (
+        $kwtsms_denied === 'token' && $kwtsms_method === RequestGate::POST && (string) $mode === 'import_templates'
+        && isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > 0 && $_POST === [] && $_FILES === []
+    ) {
+        fn_set_notification('E', __('error'), fn_html_escape((string) __('kwtsms.templates.import_reason_too_large')));
+
+        return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.templates#kwtsms_import'];
+    }
     if ($kwtsms_denied === 'token') {
         // Only reachable with core anti_csrf off (core refuses a missing hash first): worth a warning row.
         Tygh::$app['kwtsms.logs.debug']->log('warning', 'admin.denied', 'token', ['mode' => (string) $mode]);
