@@ -8378,8 +8378,9 @@ msgctxt "Languages::kwtsms.templates.import_status_refused"
 msgid "Refused"
 msgstr "مرفوض"
 
+# 2026-11-17 03:36 +03: tester fix, task 596. The msgid must equal the English text (LifecycleTest::testLanguageFileIsCompleteAndClean); it carried a stale draft wording from M3.10.
 msgctxt "Languages::kwtsms.templates.import_keep_unknown"
-msgid "Keep unknown placeholders (import those texts as they are)"
+msgid "Import this text with its unknown placeholders"
 msgstr "استيراد هذا النص مع عناصره النائبة غير المعروفة"
 
 msgctxt "Languages::kwtsms.templates.import_confirm"
