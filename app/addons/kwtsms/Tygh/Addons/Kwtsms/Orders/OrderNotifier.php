@@ -442,6 +442,29 @@ class OrderNotifier
             }
         }
 
+        // 2026-11-17 15:40 +03: FIX-B M3, task 596. The same self-triggered rule for every other declared V event (RMA
+        // status, plan change, ...): the vendor's own administrator (own company = the event's company, the declared
+        // company path else the order's) is not texted about its own action. Root and other vendors still text it.
+        if (
+            $receiver === 'V' && isset($this->declared[$event_id])
+            && strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) !== 0 && $event_id !== Defaults::EVENT_UPDATED
+            && $this->rules->isMultiVendor()
+        ) {
+            $company_path = $this->declared[$event_id]->path('company_id');
+            $company_raw = $company_path === '' ? null : EventDeclaration::value($payload, $company_path);
+            $event_company = is_scalar($company_raw) && !is_bool($company_raw) && (int) $company_raw > 0
+                ? (int) $company_raw : (int) ($order['company_id'] ?? 0);
+            $actor = $this->orders->actor();
+            if (
+                $event_company > 0 && ($actor['area'] ?? '') === 'A'
+                && (int) ($actor['auth_company_id'] ?? 0) === $event_company
+            ) {
+                $this->skip(Diagnostics::SWITCHED_OFF, self::SELF_TRIGGERED, $order, $event_id, $receiver, []);
+
+                return false;
+            }
+        }
+
         // 2026-11-17 15:25 +03: FIX-B M1 (I1), task 596. The event conditions, after every supersede and self-trigger
         // return above, still before any key claim. kwtsms.order_placed runs them in placedSms() (checkout unit) and
         // an order.status_changed.* SMS in statusSms() (the checkout scope reads the parent order).
