@@ -258,18 +258,55 @@ class CodeKpis
     }
 
     /**
+     * 2026-11-17 07:03 +03: M3.10b item 4, task 596. [from, to) split at UTC midnights into ranges of at most one day.
+     *
+     * @return array<int,array{0:int,1:int}>
+     */
+    public static function liveWindows(int $from, int $to): array
+    {
+        $out = [];
+        while ($from < $to) {
+            $end = min($to, $from - ($from % self::DAY) + self::DAY);
+            $out[] = [$from, $end];
+            $from = $end;
+        }
+
+        return $out;
+    }
+
+    /**
+     * 2026-11-17 07:03 +03: M3.10b item 4, task 596. The live-by-day statement for one range: created_at is bare (no function, no OR)
+     * and the index is named, the pattern of Admin\DashboardStats.
+     *
+     * @return array{0:string,1:int,2:int}
+     */
+    public static function liveQuery(int $from, int $to): array
+    {
+        return [
+            'SELECT FLOOR(created_at / 86400) AS d, status, COUNT(*) AS n FROM ?:kwtsms_otp_codes'
+            . ' FORCE INDEX (idx_created_at) WHERE created_at >= ?i AND created_at < ?i GROUP BY d, status',
+            $from,
+            $to,
+        ];
+    }
+
+    /**
      * Code rows from $from on, as stored-day shaped arrays by UTC day key (a test seam).
      *
      * @return array<string,array{issued:int, verified:int}>
      */
     protected function liveByDay(int $from, int $to): array
     {
-        $rows = db_get_array(
-            'SELECT FLOOR(created_at / 86400) AS d, status, COUNT(*) AS n FROM ?:kwtsms_otp_codes'
-            . ' WHERE created_at >= ?i AND created_at < ?i GROUP BY d, status',
-            $from,
-            $to
-        );
+        // 2026-11-17 07:03 +03: M3.10b item 4, task 596. One bare range per UTC day, each on idx_created_at: the optimizer
+        // read the whole 2-day window as most of the table and scanned all 1M rows (817 ms); a one-day range used
+        // the index (101 ms).
+        $rows = [];
+        foreach (self::liveWindows($from, $to) as [$start, $end]) {
+            $part = db_get_array(...self::liveQuery($start, $end));
+            foreach (is_array($part) ? $part : [] as $r) {
+                $rows[] = $r;
+            }
+        }
         $out = [];
         foreach (is_array($rows) ? $rows : [] as $row) {
             $key = gmdate('Y-m-d', (int) $row['d'] * self::DAY);
