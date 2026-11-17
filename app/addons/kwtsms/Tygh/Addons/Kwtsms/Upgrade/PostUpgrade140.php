@@ -41,6 +41,18 @@ class PostUpgrade140
     /** Name of the database lock that serializes 1.4.0 post-upgrade runs (post.php and the self-heal). */
     private const LOCK = 'kwtsms_post_upgrade_140';
 
+    /**
+     * 2026-11-17 15:22 +03: exception code of "the 1.4.0 tables are missing" (review M3, task 596): the notice then names the
+     * Upgrade Center, because the DDL runs only from the migration and an admin page cannot create the tables.
+     */
+    public const CODE_TABLES_MISSING = 1401;
+
+    /**
+     * 2026-11-17 15:32 +03: language keys shipped in 1.3.0 and gone in 1.4.0 (review M4, task 596). INSERT IGNORE never
+     * removes a key, so step (5) deletes them (no code reads them; a fresh 1.4.0 install does not have them).
+     */
+    public const REMOVED_LANGVARS = ['kwtsms.integrations.later.installed'];
+
     /** The two tables the 1.4.0 migration creates (checked, never created here: DDL belongs to the migration). */
     private const TABLES = ['kwtsms_event_conditions', 'kwtsms_vendor_senders'];
 
@@ -133,7 +145,8 @@ class PostUpgrade140
         $absent = self::missingTables();
         if ($absent !== []) {
             throw new \RuntimeException(
-                'the 1.4.0 tables are missing (' . implode(', ', $absent) . '): run the migration'
+                'the 1.4.0 tables are missing (' . implode(', ', $absent) . '): run the migration',
+                self::CODE_TABLES_MISSING
             );
         }
 
@@ -166,6 +179,13 @@ class PostUpgrade140
         foreach (array_chunk((array) $scheme->getLanguageValues(true), 500) as $chunk) {
             db_query('REPLACE INTO ?:original_values ?m', $chunk);
         }
+        // 2026-11-17 15:32 +03: review M4, task 596: drop the keys 1.4.0 no longer ships (language_values and the
+        // original text, whose context is 'Languages::<name>').
+        db_query('DELETE FROM ?:language_values WHERE name IN (?a)', self::REMOVED_LANGVARS);
+        db_query(
+            'DELETE FROM ?:original_values WHERE msgctxt IN (?a)',
+            array_map(static fn (string $name): string => 'Languages::' . $name, self::REMOVED_LANGVARS)
+        );
 
         // The version is set only when the templates exist (a stale class can have left them out).
         $missing = self::missingTemplates();
@@ -222,9 +242,16 @@ class PostUpgrade140
                     'E',
                     __('error'),
                     fn_html_escape(
-                        'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e) . '). Open any '
-                        . 'kwtSMS admin page to finish the upgrade: the step runs again by itself and is safe to '
-                        . 'repeat. Details are in the kwtSMS debug log and the PHP error log.'
+                        $e->getCode() === self::CODE_TABLES_MISSING
+                            // 2026-11-17 15:22 +03: review M3, task 596: this fault is not healed by an admin page.
+                            ? 'kwtsms ' . self::VERSION . ': the add-on files are new but the database tables are not. '
+                                . 'Run the 1.4.0 upgrade package again from the Upgrade Center (Administration, Upgrade center); '
+                                . 'order SMS stay off until it has finished. Details are in the kwtSMS debug '
+                                . 'log and the PHP error log.'
+                            : 'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e)
+                                . '). Open any kwtSMS admin page to finish the upgrade: the step runs again by '
+                                . 'itself and is safe to repeat. Details are in the kwtSMS debug log and the PHP '
+                                . 'error log.'
                     )
                 );
             }

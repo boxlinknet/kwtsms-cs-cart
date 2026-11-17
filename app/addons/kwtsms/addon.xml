@@ -33,7 +33,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
     <!-- 2026-10-22 13:13 +03: 1.1.0 (Phase 2: schema of Milestone A, setting vendor_monthly_quota, four tables), Task A1, task 596 -->
     <!-- 2026-10-23 15:11 +03: 1.2.0 (Phase 3 Milestone 1: phone and SMS-code set, three tables, 23 settings), Task M1.1a, task 596 -->
     <!-- 2026-11-04 18:18 +03: 1.3.0 (Milestone 2: schema of sign-in and security, two tables, 11 settings), Task M2.0, task 596 -->
-    <!-- 2026-11-12 02:02 +03: 1.4.0 (Milestone 3: schema of the add-on events, two tables, 5 settings), task 596 M3.0 -->
+    <!-- 2026-11-12 02:02 +03: 1.4.0 (Milestone 3: schema of the add-on events, two tables, 4 settings; 5 were planned, phone_kw_mobile_only was dropped in M3.20), task 596 M3.0 -->
+    <!-- 2026-11-17 15:10 +03: the line above said 5 settings; the release adds 4 (the header comment lists them), review M1, task 596 -->
     <version>1.4.0</version>
     <priority>4000</priority>
     <status>active</status>
