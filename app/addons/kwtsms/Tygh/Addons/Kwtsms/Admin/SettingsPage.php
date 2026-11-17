@@ -84,6 +84,8 @@ class SettingsPage
         'vendor_sender_ids',
         // 2026-11-16 18:55 +03: Task M3.8 (B8, P3-69), task 596. One customer SMS per order per request.
         'coalesce_customer_sms',
+        // 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. Ask a customer without a phone to add one.
+        'missing_phone_prompt',
     ];
 
     /** Keys posted as a list (multi-select, checkboxes); every other key must be one string. */
@@ -2062,6 +2064,9 @@ class SettingsPage
             // 2026-11-16 18:55 +03: Task M3.8 (B8, P3-69), task 596.
             case 'coalesce_customer_sms':
                 return $this->config->coalesceCustomerSms() ? 'Y' : 'N';
+            // 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596.
+            case 'missing_phone_prompt':
+                return $this->config->missingPhonePrompt() ? 'Y' : 'N';
         }
 
         return '';

@@ -450,6 +450,19 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             </div>
         </section>
 
+        {* 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. Ask a signed-in customer without a phone to add one (once per session, with a Later button). Needs the phone change code switch. Default off. *}
+        <section class="kwtsms-section" id="kwtsms_phone_prompt" aria-labelledby="kwtsms_phone_prompt_title">
+            <h4 class="subheader" id="kwtsms_phone_prompt_title">{__("kwtsms.settings.phone_prompt_title")}</h4>
+            <div class="control-group">
+                <span class="control-label">{__("kwtsms.settings.field.missing_phone_prompt")}:</span>
+                <div class="controls">
+                    <input type="hidden" name="kwtsms_settings[missing_phone_prompt]" value="N">
+                    <label class="checkbox"><input type="checkbox" id="kwtsms_missing_phone_prompt" name="kwtsms_settings[missing_phone_prompt]" value="Y"{if $s.missing_phone_prompt == "Y"} checked="checked"{/if} aria-describedby="kwtsms_missing_phone_prompt_help"> {__("kwtsms.settings.missing_phone_prompt_label")}</label>
+                    <p class="muted description" id="kwtsms_missing_phone_prompt_help">{__("kwtsms.settings.missing_phone_prompt_help")}</p>
+                </div>
+            </div>
+        </section>
+
         <section class="kwtsms-section" id="kwtsms_quiet" aria-labelledby="kwtsms_quiet_title">
             <h4 class="subheader" id="kwtsms_quiet_title">{__("kwtsms.settings.quiet_hours")}</h4>
             <div class="control-group">

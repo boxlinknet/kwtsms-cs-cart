@@ -88,6 +88,9 @@ use Tygh\Addons\Kwtsms\Profiles\CustomerPrefs; // 2026-10-23 00:54 +03: Task A10
 use Tygh\Addons\Kwtsms\Profiles\CodeChecks; // 2026-10-28 11:06 +03: Task M1.10a, task 596 (replaces NoCodeCheck)
 use Tygh\Addons\Kwtsms\Profiles\RegistrationCode; // 2026-10-28 11:06 +03: Task M1.10a, task 596
 use Tygh\Addons\Kwtsms\Profiles\PhoneChange; // 2026-10-28 20:26 +03: Task M1.10b, task 596
+use Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt; // 2026-11-16 23:58 +03: Task M3.21 (G9, P3-79), task 596
+use Tygh\Addons\Kwtsms\Phones\AccountPhone; // 2026-11-16 23:58 +03: Task M3.21, task 596
+use Tygh\Addons\Kwtsms\Phones\CountrySelector; // 2026-11-16 23:58 +03: Task M3.21, task 596
 use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, task 596
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
@@ -497,6 +500,71 @@ class ServiceProvider implements ServiceProviderInterface
         // the phone rule of AREA C (C3 texts), the "only when suspicious" CAPTCHA gate and the endpoint itself.
         $app['kwtsms.phone_rules'] = function (Container $app): PhoneRules {
             return new PhoneRules($app['kwtsms.config']);
+        };
+        // 2026-11-16 23:58 +03: Task M3.21 (G9, P3-79), task 596. The prompt that asks a signed-in customer without a
+        // phone to add one. Every seam reads core only through function_exists() guards; the code check, the phone
+        // rule (C3), the uniqueness rule (C4) and the core write are the ones of the profile page phone change.
+        $app['kwtsms.missing_phone_prompt'] = function (Container $app): MissingPhonePrompt {
+            return new MissingPhonePrompt(
+                $app['kwtsms.config'],
+                $app['kwtsms.otp'],
+                static function (string $raw) use ($app): array {
+                    $stored_iso = '';
+                    $uid = (int) ($app['session']['auth']['user_id'] ?? 0);
+                    if ($uid > 1 && function_exists('fn_get_user_info')) {
+                        $user = fn_get_user_info($uid, false);
+                        $stored_iso = is_array($user) && isset($user['b_country']) ? (string) $user['b_country'] : '';
+                    }
+                    $hint = CodeRequest::countryHint(
+                        $_REQUEST,
+                        $stored_iso,
+                        $app['kwtsms.config']->defaultCountryCode(),
+                        (new CountrySelector($app['kwtsms.config']))->hintAllowed()
+                    );
+
+                    return $app['kwtsms.phone_rules']->check($raw, $hint);
+                },
+                static function (string $phone, int $user_id) use ($app): int {
+                    $index = $app['kwtsms.phone_index'];
+
+                    return $index->enforcing() ? $index->ownerOf($phone, $user_id) : 0;
+                },
+                static function (int $user_id): ?array {
+                    // 2026-11-17 00:30 +03: Task M3.21 fix round 1 (I2), task 596. Two primary-key / user_id
+                    // lookups instead of a full fn_get_user_info() (profile fields, usergroups, hooks of other add-ons) per page view.
+                    if (!function_exists('db_get_row')) {
+                        return null;
+                    }
+                    $user = db_get_row('SELECT user_type, status, phone FROM ?:users WHERE user_id = ?i', $user_id);
+                    if (!is_array($user) || $user === []) {
+                        return null;
+                    }
+                    if (trim((string) ($user['phone'] ?? '')) === '') {
+                        $user['b_phone'] = (string) db_get_field(
+                            "SELECT b_phone FROM ?:user_profiles WHERE user_id = ?i AND profile_type = 'P' LIMIT 1",
+                            $user_id
+                        );
+                    }
+
+                    return [
+                        'user_type' => (string) ($user['user_type'] ?? ''),
+                        'status' => (string) ($user['status'] ?? ''),
+                        'phone' => AccountPhone::field($user),
+                    ];
+                },
+                static function () use ($app): array {
+                    $marks = $app['session'][MissingPhonePrompt::SESSION_KEY] ?? [];
+
+                    return is_array($marks) ? $marks : [];
+                },
+                static function (array $marks) use ($app): void {
+                    $app['session'][MissingPhonePrompt::SESSION_KEY] = $marks;
+                },
+                static function (int $user_id, string $phone): bool {
+                    return function_exists('fn_kwtsms_missing_phone_write')
+                        && fn_kwtsms_missing_phone_write($user_id, $phone);
+                }
+            );
         };
         $app['kwtsms.suspicion_gate'] = function (Container $app): SuspicionGate {
             return new SuspicionGate($app['kwtsms.rate_limiter'], $app['kwtsms.config']);

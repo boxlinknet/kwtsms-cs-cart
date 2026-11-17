@@ -1218,6 +1218,13 @@ function fn_kwtsms_before_dispatch()
     // continues on the code page: the next page view of that area is redirected there. Session only, no query; a
     // request without a pending state (every request while the 2FA switches are off) returns at the first line.
     fn_kwtsms_twofa_pending_redirect();
+    // 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. AFTER the 2FA redirect (a pending second step wins) and
+    // BEFORE the admin-only return below: the storefront branch is the missing phone prompt; the admin path stays.
+    if (defined('AREA') && AREA === 'C') {
+        fn_kwtsms_missing_phone_redirect();
+
+        return;
+    }
     if (!defined('AREA') || AREA !== 'A') {
         return;
     }
@@ -1225,6 +1232,106 @@ function fn_kwtsms_before_dispatch()
         \Tygh\Addons\Kwtsms\Upgrade\PostUpgrade::selfHeal();
     } catch (\Throwable $e) {
         fn_kwtsms_log_hook_error('before_dispatch', $e);
+    }
+}
+
+/**
+ * 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. Redirects ONE page view per session of a signed-in customer
+ * without a phone to the add page (kwtsms_phone.add), with the page they asked for as a safe return_url. Cheapest check
+ * first: no switch, no work. Never in CONSOLE or an API request, never while a second step is pending, never for an
+ * AJAX call, a non-GET verb, a request that does not accept HTML or a page of MissingPhonePrompt::EXEMPT_CONTROLLERS;
+ * the "shown" mark is set BEFORE the redirect, so the add page can never loop. Never throws.
+ */
+function fn_kwtsms_missing_phone_redirect()
+{
+    try {
+        if (defined('CONSOLE') || defined('API') || !isset(Tygh::$app['kwtsms.config'])) {
+            return;
+        }
+        if (!Tygh::$app['kwtsms.config']->missingPhonePrompt()) {
+            return;
+        }
+        $session = Tygh::$app['session'];
+        if (!empty($session[\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
+            return;
+        }
+        // 2026-11-17 00:25 +03: Task M3.21 fix round 1 (I3), task 596. Only a real top-level page navigation (Accept names
+        // text/html, Sec-Fetch-Mode navigate and Sec-Fetch-Dest document when sent, no prefetch) is redirected.
+        if (!\Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt::isPageNavigation($_SERVER)) {
+            return;
+        }
+        $auth = isset($session['auth']) && is_array($session['auth']) ? $session['auth'] : [];
+        $prompt = Tygh::$app['kwtsms.missing_phone_prompt'];
+        if (
+            !$prompt->shouldPrompt(
+                $auth,
+                (string) Registry::get('runtime.controller'),
+                (string) Registry::get('runtime.mode'),
+                defined('AJAX_REQUEST'),
+                (string) ($_SERVER['REQUEST_METHOD'] ?? '')
+            )
+        ) {
+            return;
+        }
+        $prompt->markShown((int) $auth['user_id']);
+        // 2026-11-17 00:20 +03: Task M3.21 fix round 2 (M2), task 596. The way core builds its own redirects: the current
+        // dispatch and its query as "index.php?dispatch=..." (config.current_url, made by the router from the resolved
+        // dispatch, so the same with SEO URLs on or off and under a sub-directory), not the raw REQUEST_URI path that
+        // fn_url()/fn_redirect() would prefix a second time.
+        $back = \Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt::returnTarget(
+            (string) Registry::get('config.current_url'),
+            (string) Registry::get('config.current_host'),
+            defined('HTTPS')
+        );
+        fn_redirect(fn_url('kwtsms_phone.add' . ($back !== '' ? '?return_url=' . rawurlencode($back) : '')));
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('missing_phone_redirect', $e);
+    }
+}
+
+/**
+ * 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. The core write of the add page: the account's profile as
+ * core holds it, with ONLY the phone changed, saved through fn_update_user() so the update_user_pre / update_profile
+ * hooks run as for the profile page (C3 rewrite, C4 check, the code check that consumes the verified code, the phone
+ * index writer with the verified flag, the notice rule). The caller is the session of the customer: a user id that
+ * is not the signed-in one is refused here too. Password and system columns are never sent; the shipping address is
+ * kept as it is ($ship_to_another from fn_check_shipping_billing(), as the profile page computes it), no mail.
+ */
+function fn_kwtsms_missing_phone_write($user_id, $phone)
+{
+    try {
+        $user_id = (int) $user_id;
+        $phone = (string) $phone;
+        $auth = Tygh::$app['session']['auth'];
+        if (
+            $user_id <= 1 || $phone === '' || !is_array($auth) || (int) ($auth['user_id'] ?? 0) !== $user_id
+            || !empty($auth['act_as_user']) // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I1), task 596: never while impersonating
+            || !function_exists('fn_update_user') || !function_exists('fn_get_user_info')
+        ) {
+            return false;
+        }
+        $profile_id = null;
+        $user = fn_get_user_info($user_id, true, $profile_id);
+        if (!is_array($user) || $user === [] || (string) ($user['user_type'] ?? '') !== 'C') {
+            return false;
+        }
+        foreach (
+            [
+                'password', 'salt', 'password1', 'password2', 'current_password', 'usergroups', 'timestamp',
+                'last_login', 'password_change_timestamp', 'status', 'company_id', 'is_root', 'helpdesk_user_id',
+                'user_type',
+            ] as $key
+        ) {
+            unset($user[$key]);
+        }
+        $user['phone'] = $phone;
+        $ship = fn_check_shipping_billing($user, fn_get_profile_fields('C'));
+
+        return !empty(fn_update_user($user_id, $user, $auth, (bool) $ship, false));
+    } catch (\Throwable $e) {
+        fn_kwtsms_log_hook_error('missing_phone_write', $e);
+
+        return false;
     }
 }
 

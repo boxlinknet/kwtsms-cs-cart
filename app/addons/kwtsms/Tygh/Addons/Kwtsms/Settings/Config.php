@@ -173,6 +173,8 @@ class Config implements ConfigInterface
             // 2026-11-17 00:05 +03: Task M3.8 fix round 1 (controller note), task 596. The same-order customer SMS
             // switch: without this key save_settings dropped it and the Settings form never stored it.
             'coalesce_customer_sms',
+            // 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596. Ask a customer without a phone to add one.
+            'missing_phone_prompt',
             'enabled',
         ],
         'login' => ['api_username', 'api_password'],

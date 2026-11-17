@@ -8551,3 +8551,43 @@ msgstr "That number is not locked now. Nothing was changed."
 msgctxt "Languages::kwtsms.dash.codes.unlock_key"
 msgid "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
 msgstr "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
+# 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596: the missing phone prompt (setting and the add page).
+msgctxt "Languages::kwtsms.settings.phone_prompt_title"
+msgid "Ask for a missing phone number"
+msgstr "Ask for a missing phone number"
+
+msgctxt "Languages::kwtsms.settings.field.missing_phone_prompt"
+msgid "Ask for a missing phone"
+msgstr "Ask for a missing phone"
+
+msgctxt "Languages::kwtsms.settings.missing_phone_prompt_label"
+msgid "Ask signed-in customers without a mobile number to add one"
+msgstr "Ask signed-in customers without a mobile number to add one"
+
+msgctxt "Languages::kwtsms.settings.missing_phone_prompt_help"
+msgid "When on, a signed-in customer whose account has no phone number is sent once per session to a page where they add one, confirmed with an SMS code. They can choose Later, which stops the prompt for 7 days. It never interrupts checkout, orders, sign-in or the profile page, and never applies to guests or administrators. It needs the switch SMS code at phone change: the code proves the number is theirs, and the same limits, country rule and one-account-per-number rule apply."
+msgstr "When on, a signed-in customer whose account has no phone number is sent once per session to a page where they add one, confirmed with an SMS code. They can choose Later, which stops the prompt for 7 days. It never interrupts checkout, orders, sign-in or the profile page, and never applies to guests or administrators. It needs the switch SMS code at phone change: the code proves the number is theirs, and the same limits, country rule and one-account-per-number rule apply."
+
+msgctxt "Languages::kwtsms.phone_prompt.title"
+msgid "Add your mobile number"
+msgstr "Add your mobile number"
+
+msgctxt "Languages::kwtsms.phone_prompt.intro"
+msgid "Add your mobile number to get SMS about your orders. Enter it, ask for a code, then type the code below."
+msgstr "Add your mobile number to get SMS about your orders. Enter it, ask for a code, then type the code below."
+
+msgctxt "Languages::kwtsms.phone_prompt.submit"
+msgid "Save number"
+msgstr "Save number"
+
+msgctxt "Languages::kwtsms.phone_prompt.later"
+msgid "Later"
+msgstr "Later"
+
+msgctxt "Languages::kwtsms.phone_prompt.saved"
+msgid "Your mobile number was saved."
+msgstr "Your mobile number was saved."
+
+msgctxt "Languages::kwtsms.phone_prompt.failed"
+msgid "Your mobile number could not be saved. Try again in a few minutes."
+msgstr "Your mobile number could not be saved. Try again in a few minutes."
