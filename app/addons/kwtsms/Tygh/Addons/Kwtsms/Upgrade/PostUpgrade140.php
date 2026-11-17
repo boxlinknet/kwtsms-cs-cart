@@ -137,6 +137,9 @@ class PostUpgrade140
             );
         }
 
+        // (2b) 2026-11-17 18:10 +03: FIX-D, task 596. The code KPI index; a failure is reported once, never fatal.
+        self::ensureCodeIndexReported();
+
         // (3) Settings: only the missing ones, defaults, every stored value kept.
         self::addMissingSettings($scheme);
 
@@ -175,6 +178,61 @@ class PostUpgrade140
 
         // (6) Last.
         self::writeVersion(self::VERSION);
+    }
+
+    /**
+     * 2026-11-17 18:10 +03: FIX-D, task 596. Adds idx_created_status (created_at, status) to kwtsms_otp_codes and
+     * drops the redundant idx_created_at in the same ALTER, once: nothing is done when the new index exists. Seams:
+     * $indexes(table) returns the index names, $alter(table, dropOld) runs the ALTER.
+     *
+     * @return string 'added' or 'present'
+     *
+     * @throws \Throwable When the ALTER fails
+     */
+    public static function ensureCodeStatusIndex(
+        string $prefix = '',
+        ?callable $indexes = null,
+        ?callable $alter = null
+    ): string {
+        $table = $prefix . 'kwtsms_otp_codes';
+        $names = $indexes !== null ? $indexes($table) : array_map('strval', (array) db_get_fields(
+            'SELECT DISTINCT index_name FROM information_schema.STATISTICS WHERE table_schema = DATABASE()'
+            . ' AND table_name = ?s',
+            $table
+        ));
+        if (in_array('idx_created_status', $names, true)) {
+            return 'present';
+        }
+        $drop = in_array('idx_created_at', $names, true);
+        if ($alter !== null) {
+            $alter($table, $drop);
+        } else {
+            db_query(
+                'ALTER TABLE ?p ADD KEY `idx_created_status` (`created_at`, `status`)'
+                . ($drop ? ', DROP KEY `idx_created_at`' : ''),
+                '`' . $table . '`'
+            );
+        }
+
+        return 'added';
+    }
+
+    /** ensureCodeStatusIndex() for the store, failure reported (PHP error log, debug log), never thrown. */
+    private static function ensureCodeIndexReported(): void
+    {
+        try {
+            self::ensureCodeStatusIndex((string) \Tygh\Registry::get('config.table_prefix'));
+        } catch (\Throwable $e) {
+            $message = get_class($e) . ': ' . $e->getMessage();
+            error_log('kwtsms: upgrade.code_index_failed: ' . $message);
+            try {
+                if (isset(\Tygh::$app['kwtsms.logs.debug'])) {
+                    \Tygh::$app['kwtsms.logs.debug']->log('error', 'upgrade.code_index_failed', $message);
+                }
+            } catch (\Throwable $ignored) {
+                // the PHP error log has it
+            }
+        }
     }
 
     /**

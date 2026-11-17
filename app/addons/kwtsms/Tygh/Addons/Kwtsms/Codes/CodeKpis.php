@@ -15,7 +15,7 @@
  *            $s = $kpis->summary(time());             // ['issued', 'verified_pct', 'locked', 'locked_other']
  *            $n = $kpis->unlock($subject, $admin_id); // rows deleted; 0 = that subject is not locked now
  * DEPENDS:   Storage\KeyValueStoreInterface, Codes\OtpService (lockedSubjects, unlockSubject),
- *            Auth\TwoFactorFlow::mask, Log\DebugLog (optional), tables kwtsms_otp_codes (idx_created_at) and
+ *            Auth\TwoFactorFlow::mask, Log\DebugLog (optional), tables kwtsms_otp_codes (idx_created_status) and
  *            kwtsms_rate_limits (PK bucket).
  */
 
@@ -284,7 +284,8 @@ class CodeKpis
     {
         return [
             'SELECT FLOOR(created_at / 86400) AS d, status, COUNT(*) AS n FROM ?:kwtsms_otp_codes'
-            . ' FORCE INDEX (idx_created_at) WHERE created_at >= ?i AND created_at < ?i GROUP BY d, status',
+            // 2026-11-17 18:10 +03: FIX-D, task 596. The index covers created_at and status.
+            . ' FORCE INDEX (idx_created_status) WHERE created_at >= ?i AND created_at < ?i GROUP BY d, status',
             $from,
             $to,
         ];
@@ -298,7 +299,7 @@ class CodeKpis
     protected function liveByDay(int $from, int $to): array
     {
         // 2026-11-17 07:03 +03: M3.10b item 4, task 596. One bare range per UTC day, each on
-        // idx_created_at: the optimizer
+        // idx_created_status (2026-11-17 18:10 +03: FIX-D, task 596; split kept): the optimizer
         // read the whole 2-day window as most of the table and scanned all 1M rows (817 ms); a one-day range used
         // the index (101 ms).
         $rows = [];
