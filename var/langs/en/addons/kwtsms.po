@@ -8561,6 +8561,7 @@ msgstr "That number is not locked now. Nothing was changed."
 msgctxt "Languages::kwtsms.dash.codes.unlock_key"
 msgid "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
 msgstr "Unlock is off: this store has no encryption key (crypt_key in config.php). Nothing was changed."
+
 # 2026-11-16 23:59 +03: Task M3.21 (G9, P3-79), task 596: the missing phone prompt (setting and the add page).
 msgctxt "Languages::kwtsms.settings.phone_prompt_title"
 msgid "Ask for a missing phone number"
@@ -8601,6 +8602,7 @@ msgstr "Your mobile number was saved."
 msgctxt "Languages::kwtsms.phone_prompt.failed"
 msgid "Your mobile number could not be saved. Try again in a few minutes."
 msgstr "Your mobile number could not be saved. Try again in a few minutes."
+
 # 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored methods that are not active any more.
 msgctxt "Languages::kwtsms.conditions.unavailable"
 msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
