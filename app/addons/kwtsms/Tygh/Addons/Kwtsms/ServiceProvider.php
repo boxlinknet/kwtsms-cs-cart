@@ -92,6 +92,7 @@ use Tygh\Addons\Kwtsms\Profiles\ProfileHooks; // 2026-10-22 19:09 +03: Task A6, 
 use Tygh\Addons\Kwtsms\Orders\LowStockCollector; // 2026-10-22 21:27 +03: Task A7, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
 use Tygh\Addons\Kwtsms\Security\RateLimiter; // 2026-10-23 19:55 +03: Task M1.2, task 596
+use Tygh\Addons\Kwtsms\Codes\CodeKpis; // 2026-11-16 23:47 +03: Task M3.19, task 596
 use Tygh\Addons\Kwtsms\Settings\Config;
 use Tygh\Addons\Kwtsms\Settings\CsCartSettingsBackend;
 use Tygh\Addons\Kwtsms\Sms\ApiClient;
@@ -344,7 +345,24 @@ class ServiceProvider implements ServiceProviderInterface
                 // 2026-11-06 22:09 +03: Task M2.11 (P3-41, P3-57), task 596. FailSpike::check() (health job, every run)
                 // and FailSpike::dispatchPending() (drain_outbox, next to the low-balance SMS).
                 [$app['kwtsms.fail_spike'], 'check'],
-                [$app['kwtsms.fail_spike'], 'dispatchPending']
+                [$app['kwtsms.fail_spike'], 'dispatchPending'],
+                // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. prune_logs folds the finished days into
+                // kwtsms_code_days before it prunes the code rows.
+                static function (int $day_start) use ($app): void {
+                    $app['kwtsms.code_kpis']->fold($day_start);
+                }
+            );
+        };
+        // 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. The Dashboard code figures, the daily fold and Unlock.
+        $app['kwtsms.code_kpis'] = function (Container $app): CodeKpis {
+            return new CodeKpis(
+                $app['kwtsms.storage'],
+                static function () use ($app): OtpService {
+                    return $app['kwtsms.otp'];
+                },
+                $app['kwtsms.logs.debug'],
+                null,
+                (string) \Tygh\Registry::get('config.crypt_key')
             );
         };
         // 2026-10-24 17:18 +03: Task M1.6 (P3-27, P3-31, P3-33), task 596. The phone index, its backfill and the code

@@ -104,6 +104,11 @@ final class RequestGate
         // marketplace's SMS go out, so it needs the gateway privilege like the storefront Sender IDs; root
         // administrators on All storefronts only (a vendor administrator is refused by the 'scope' check).
         'update_vendor_senders'     => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:47 +03: Task M3.19 (G3, P3-76), task 596. "Unlock" of a number locked by wrong codes
+        // (Dashboard).
+        // It lets a customer try codes again, so it needs the gateway privilege like the code settings; POST only,
+        // own security hash, root administrators on All storefronts only (a vendor administrator is refused).
+        'unlock_number'             => [self::POST, 'manage_kwtsms_gateway'],
         // 2026-10-23 02:08 +03: Task A11, task 596. The manual SMS of the admin order page. It spends credits, so it
         // needs the gateway privilege like the test SMS; the controller also asks core's view_orders for that order.
         // Root administrators on All storefronts only, like every mode here (a vendor administrator is refused).

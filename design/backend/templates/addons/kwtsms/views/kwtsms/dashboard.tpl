@@ -258,6 +258,57 @@ DEPENDS:   components/navigation.tpl, dashboard.less, kwtsms.dash.* and kwtsms.o
         <p class="muted kwtsms-section__note">{__("kwtsms.dash.counters.note")}</p>
     </section>
 
+    {* 2026-11-16 23:47 +03: Task M3.19 (G3, P3-76), task 596. SMS codes while a code feature is on: sent in 30 days, percent verified, numbers locked now (masked; the Unlock button posts an opaque token, never the number). *}
+    {if $kwtsms.code_kpis}
+        {$k = $kwtsms.code_kpis}
+        <section class="kwtsms-section" id="kwtsms_codes_section" aria-labelledby="kwtsms_codes_title">
+            <h4 class="subheader" id="kwtsms_codes_title">{__("kwtsms.dash.codes.title")}</h4>
+            <dl class="kwtsms-ledger" id="kwtsms_codes_facts" aria-label="{__("kwtsms.dash.codes.title")}">
+                <div class="kwtsms-ledger__item"><dt>{__("kwtsms.dash.codes.issued")}</dt><dd id="kwtsms_codes_issued">{$k.issued}</dd></div>
+                <div class="kwtsms-ledger__item"><dt>{__("kwtsms.dash.codes.verified")}</dt><dd id="kwtsms_codes_verified">{if $k.verified_pct === null}-{else}{$k.verified_pct}%{/if}</dd></div>
+                <div class="kwtsms-ledger__item"><dt>{__("kwtsms.dash.codes.locked")}</dt><dd id="kwtsms_codes_locked_count">{$k.locked|count}</dd></div>
+            </dl>
+            {if $k.locked}
+                <div class="kwtsms-table-wrap">
+                    <table class="table table-middle kwtsms-table" id="kwtsms_codes_locked">
+                        <thead>
+                            <tr>
+                                <th scope="col">{__("kwtsms.dash.codes.number")}</th>
+                                <th scope="col">{__("kwtsms.dash.codes.until")}</th>
+                                {* 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. No Unlock without the token key. *}
+                                {if $kwtsms.can.gateway && $k.unlock_enabled}<th scope="col"><span class="hidden">{__("kwtsms.dash.codes.unlock")}</span></th>{/if}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $k.locked as $lock}
+                                <tr data-kwtsms-locked="{$lock@iteration}">
+                                    <td><bdi dir="ltr">{$lock.masked}</bdi></td>
+                                    <td>{$lock.until|date_format:$date_time}</td>
+                                    {if $kwtsms.can.gateway && $k.unlock_enabled}
+                                        <td>
+                                            <form action="{""|fn_url}" method="post" name="kwtsms_unlock_form_{$lock@iteration}" class="kwtsms-inline-form">
+                                                <input type="hidden" name="kwtsms_unlock" value="{$lock.token}">
+                                                <input type="submit" class="btn btn-mini" name="dispatch[kwtsms.unlock_number]" value="{__("kwtsms.dash.codes.unlock")}">
+                                            </form>
+                                        </td>
+                                    {/if}
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            {else}
+                <p class="muted" id="kwtsms_codes_none">{__("kwtsms.dash.codes.none")}</p>
+            {/if}
+            {if $k.locked && $kwtsms.can.gateway && !$k.unlock_enabled}
+                <p class="muted" id="kwtsms_codes_nokey">{__("kwtsms.dash.codes.unlock_key")}</p>
+            {/if}
+            {if $k.locked_other}
+                <p class="muted" id="kwtsms_codes_other">{__("kwtsms.dash.codes.other", ["[n]" => $k.locked_other|fn_html_escape])}</p>
+            {/if}
+        </section>
+    {/if}
+
     {* ---- problems --------------------------------------------------------------------------------------------------- *}
     {$p = $kwtsms.problems}
     <section class="kwtsms-section" id="kwtsms_problems" aria-labelledby="kwtsms_problems_title">

@@ -172,7 +172,12 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                         <input type="text" id="kwtsms_test_phone" name="kwtsms_tpl[phone]" value="" class="input-medium" dir="ltr"
                                inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432" required="required">
                         {* 2026-10-21 06:00 +03: an own flex line instead of the core .checkbox float, which left the box outside the panel in Arabic *}
+                        {* 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The number again and the permission tick; the server checks both. *}
+                        <label class="control-label" for="kwtsms_test_phone_confirm">{__("kwtsms.test_sms.phone_confirm")}</label>
+                        <input type="text" id="kwtsms_test_phone_confirm" name="kwtsms_tpl[phone_confirm]" value="" class="input-medium" dir="ltr"
+                               inputmode="tel" autocomplete="off" maxlength="32" required="required">
                         <label class="kwtsms-checkline"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_tpl[intl]" value="Y"> <span>{__("kwtsms.test_sms.intl")}</span></label>
+                        <label class="kwtsms-checkline"><input type="checkbox" id="kwtsms_test_consent" name="kwtsms_tpl[consent]" value="Y" required="required"> <span>{__("kwtsms.test_sms.consent")}</span></label>
                         <p class="muted kwtsms-test__country">{__("kwtsms.test_sms.intl_help", ["[country]" => $t.test_country|fn_html_escape])}</p>
                         <div class="kwtsms-actions">
                             <input type="submit" class="btn" id="kwtsms_test_send" name="dispatch[kwtsms.test_template]" value="{__("kwtsms.templates.test_send")}">

@@ -464,6 +464,41 @@ try {
                     'kwtsms.vendors' . ($kwtsms_vendor_page > 1 ? '?page=' . $kwtsms_vendor_page : ''),
                 ];
 
+            // 2026-11-16 23:47 +03: Task M3.19 (G3, P3-76), task 596. Unlock of one number locked by wrong codes.
+            // The gate has asked for POST, a root administrator on All storefronts, manage_kwtsms_gateway and the
+            // security hash. CodeKpis::unlockByToken() accepts only the token of a number locked right now (the
+            // page holds no number). Always back to the Dashboard.
+            case 'unlock_number':
+                // 2026-11-17 00:30 +03: Task M3.19 ruling (M6), task 596. No key, no unlock: refused with a notice.
+                if (!Tygh::$app['kwtsms.code_kpis']->canUnlock()) {
+                    fn_set_notification(
+                        'W',
+                        __('warning'),
+                        fn_html_escape((string) __('kwtsms.dash.codes.unlock_key'))
+                    );
+
+                    return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.dashboard'];
+                }
+                $kwtsms_unlocked = Tygh::$app['kwtsms.code_kpis']->unlockByToken(
+                    isset($_POST['kwtsms_unlock']) && is_string($_POST['kwtsms_unlock']) ? $_POST['kwtsms_unlock'] : '',
+                    isset($auth['user_id']) ? (int) $auth['user_id'] : 0
+                );
+                if ($kwtsms_unlocked > 0) {
+                    fn_set_notification(
+                        'N',
+                        __('notice'),
+                        fn_html_escape((string) __('kwtsms.dash.codes.unlocked'))
+                    );
+                } else {
+                    fn_set_notification(
+                        'W',
+                        __('warning'),
+                        fn_html_escape((string) __('kwtsms.dash.codes.unlock_none'))
+                    );
+                }
+
+                return [CONTROLLER_STATUS_REDIRECT, 'kwtsms.dashboard'];
+
             // 2026-10-21 04:24 +03: the Integrations page, Multi-Vendor settings (Task 1.13, task 596).
             case 'update_integrations':
                 IntegrationsPage::fromContainer(Tygh::$app)->update(
@@ -1227,6 +1262,10 @@ try {
     // 2026-11-16 23:30 +03: bulk_resend too, Task M3.11, task 596.
     if (in_array((string) $mode, ['clear_logs', 'resend', 'bulk_resend'], true)) {
         $kwtsms_failed_url = 'kwtsms.logs';
+    }
+    // 2026-11-16 23:47 +03: Task M3.19 (G3, P3-76), task 596. A failed Unlock goes back to the Dashboard.
+    if ((string) $mode === 'unlock_number') {
+        $kwtsms_failed_url = 'kwtsms.dashboard';
     }
 
     return $kwtsms_method === RequestGate::POST

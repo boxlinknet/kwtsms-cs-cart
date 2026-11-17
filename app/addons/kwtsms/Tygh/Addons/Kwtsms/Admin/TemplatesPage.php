@@ -952,7 +952,10 @@ class TemplatesPage
             $admin_id,
             $ip,
             $input['lang'],
-            max(0, $input['storefront_id'])
+            max(0, $input['storefront_id']),
+            // 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The same two safeguards as the Settings test SMS.
+            isset($post['phone_confirm']) && is_string($post['phone_confirm']) ? trim($post['phone_confirm']) : '',
+            isset($post['consent']) && $post['consent'] === 'Y'
         );
         if ($panel === null) {
             // The Settings page has said why (no number, the cap, the count failed).

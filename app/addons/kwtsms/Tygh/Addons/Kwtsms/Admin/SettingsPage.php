@@ -211,6 +211,9 @@ class SettingsPage
             'configured_reason' => $configured ? '' : $this->reasonText((string) $reason),
             'suspended' => $suspended !== null,
             'suspended_text' => $suspended === null ? '' : ApiErrors::describe($suspended),
+            // 2026-11-16 23:47 +03: Task M3.19 (G6), task 596. ERR024 (the account limits API access to listed IP
+            // addresses) shows the IP lockdown guidance under the suspended notice.
+            'suspended_ip' => $suspended === 'ERR024',
             'balance' => $balance === null ? null : [
                 'available' => self::number($balance['available']),
                 'purchased' => $balance['purchased'] === null ? '' : self::number($balance['purchased']),
@@ -1569,6 +1572,11 @@ class SettingsPage
         $phone = isset($input['phone']) && is_string($input['phone']) ? trim($input['phone']) : '';
         $intl = isset($input['intl']) && $input['intl'] === 'Y';
         $suffix = isset($input['suffix']) && is_string($input['suffix']) ? trim($input['suffix']) : '';
+        // 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The number a second time and the permission tick; both
+        // are checked in sendTestText(), the one send path.
+        $phone_confirm = isset($input['phone_confirm']) && is_string($input['phone_confirm'])
+            ? trim($input['phone_confirm']) : '';
+        $consent = isset($input['consent']) && $input['consent'] === 'Y';
 
         if ($phone === '') {
             $this->say('E', 'kwtsms.test_sms.phone_required');
@@ -1581,7 +1589,17 @@ class SettingsPage
             return null;
         }
 
-        return $this->sendTestText($phone, $intl, $this->testSmsText($suffix, $lang_code), $admin_id, $ip, $lang_code);
+        return $this->sendTestText(
+            $phone,
+            $intl,
+            $this->testSmsText($suffix, $lang_code),
+            $admin_id,
+            $ip,
+            $lang_code,
+            0,
+            $phone_confirm,
+            $consent
+        );
     }
 
     /**
@@ -1602,7 +1620,11 @@ class SettingsPage
         int $admin_id,
         string $ip,
         string $lang_code,
-        int $storefront_id = 0
+        int $storefront_id = 0,
+        // 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The defaults refuse: a caller that passes neither gets
+        // "the numbers do not match".
+        string $phone_confirm = '',
+        bool $consent = false
     ): ?array {
         // 2026-10-23 08:28 +0300: cleanup CA2-2 (A3 M1), task 596. $storefront_id is the storefront the tested text
         // belongs to (0 = All
@@ -1610,6 +1632,20 @@ class SettingsPage
         $phone = trim($phone);
         if ($phone === '') {
             $this->say('E', 'kwtsms.test_sms.phone_required');
+
+            return null;
+        }
+        // 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. Enforced here, server side, before anything is counted or
+        // sent; the form only mirrors it.
+        $refusal = TestSmsSafeguards::refusal(
+            $phone,
+            $phone_confirm,
+            $intl,
+            $this->config->defaultCountryCode(),
+            $consent
+        );
+        if ($refusal !== null) {
+            $this->say('E', 'kwtsms.test_sms.' . $refusal);
 
             return null;
         }

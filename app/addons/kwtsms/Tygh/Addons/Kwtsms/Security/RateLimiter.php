@@ -292,6 +292,39 @@ class RateLimiter
     // minor 7), task 596.
 
     /**
+     * 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. Escapes a text for a LIKE pattern: a backslash, % and _ all
+     * match themselves (the same escape prune() uses).
+     */
+    public static function likeEscape(string $s): string
+    {
+        return addcslashes($s, '%_\\');
+    }
+
+    /**
+     * 2026-11-16 23:47 +03: Task M3.19 (P3-76), task 596. Deletes the buckets whose name matches a LIKE pattern the
+     * CALLER built (literal parts through likeEscape(), wildcards written as %), and not $except when given (a second
+     * pattern, same rules: it removes the names of a longer subject that happen to match the first). A pattern that
+     * is empty or starts with a wildcard is refused (0 rows): it would reach every bucket. Never reads the table.
+     * ?s, not ?l: ?l doubles a backslash and the escape would turn into a literal backslash (as in prune()).
+     *
+     * @return int Rows deleted
+     */
+    public function deleteLike(string $pattern, string $except = ''): int
+    {
+        if ($pattern === '' || $pattern[0] === '%' || $pattern[0] === '_') {
+            return 0;
+        }
+        $sql = 'DELETE FROM ?:kwtsms_rate_limits WHERE bucket LIKE ?s';
+        $args = [$pattern];
+        if ($except !== '') {
+            $sql .= ' AND bucket NOT LIKE ?s';
+            $args[] = $except;
+        }
+
+        return $this->run($sql, $args);
+    }
+
+    /**
      * The compare-and-set of claimStep(): writes the new step only when the row is still as it was read (or still
      * absent). True = this caller won.
      *
