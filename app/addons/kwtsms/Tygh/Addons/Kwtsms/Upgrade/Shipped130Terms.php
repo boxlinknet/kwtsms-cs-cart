@@ -218,6 +218,13 @@ return [
             . "\u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{641}\u{64a} \u{62d}\u{633}"
             . "\u{627}\u{628}\u{643} \u{639}\u{644}\u{649} kwtsms.com.",
     ],
+    'kwtsms.dash.test.none' => [
+        'en' => "No test message holds credits in your kwtSMS queue.",
+        'ar' => "\u{644}\u{627} \u{62a}\u{648}\u{62c}\u{62f} \u{631}\u{633}\u{627}\u{644}\u{629} \u{627}"
+            . "\u{62e}\u{62a}\u{628}\u{627}\u{631} \u{62a}\u{62d}\u{62c}\u{632} \u{646}\u{642}\u{627}"
+            . "\u{637}\u{627} \u{641}\u{64a} \u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}\u{627}"
+            . "\u{646}\u{62a}\u{638}\u{627}\u{631} \u{644}\u{62f}\u{649} kwtSMS.",
+    ],
     'kwtsms.dash.warn.sync_failing' => [
         'en' => "The last kwtSMS sync failed. SMS keep going out with the saved balance and Sender IDs, a"
             . "nd the add-on tries again by itself.",
@@ -236,6 +243,37 @@ return [
             . "\u{631}\u{633}\u{644} \u{647}\u{630}\u{627}. \u{627}\u{62e}\u{62a}\u{631} \u{645}\u{639}"
             . "\u{631}\u{641} \u{645}\u{631}\u{633}\u{644} \u{622}\u{62e}\u{631} \u{645}\u{646} \u{627}"
             . "\u{644}\u{625}\u{639}\u{62f}\u{627}\u{62f}\u{627}\u{62a}.",
+    ],
+    'kwtsms.err.LOCAL_BAD_JSON' => [
+        'en' => "kwtSMS sent a reply this add-on can't read. Check the kwtSMS archive and queue before yo"
+            . "u resend.",
+        'ar' => "\u{623}\u{631}\u{633}\u{644}\u{62a} kwtSMS \u{631}\u{62f}\u{627} \u{644}\u{627} \u{62a}"
+            . "\u{633}\u{62a}\u{637}\u{64a}\u{639} \u{627}\u{644}\u{625}\u{636}\u{627}\u{641}\u{629} "
+            . "\u{642}\u{631}\u{627}\u{621}\u{62a}\u{647}. \u{631}\u{627}\u{62c}\u{639} \u{623}\u{631}"
+            . "\u{634}\u{64a}\u{641} kwtSMS \u{648}\u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}"
+            . "\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{642}\u{628}\u{644} \u{625}\u{639}\u{627}"
+            . "\u{62f}\u{629} \u{627}\u{644}\u{625}\u{631}\u{633}\u{627}\u{644}.",
+    ],
+    'kwtsms.err.LOCAL_HTTP' => [
+        'en' => "kwtSMS answered with an unexpected HTTP status and no usable reply. Check the kwtSMS arc"
+            . "hive and queue before you resend.",
+        'ar' => "\u{631}\u{62f}\u{651}\u{62a} kwtSMS \u{628}\u{631}\u{645}\u{632} HTTP \u{63a}\u{64a}"
+            . "\u{631} \u{645}\u{62a}\u{648}\u{642}\u{639} \u{648}\u{62f}\u{648}\u{646} \u{631}\u{62f} "
+            . "\u{645}\u{641}\u{647}\u{648}\u{645}. \u{631}\u{627}\u{62c}\u{639} \u{623}\u{631}\u{634}"
+            . "\u{64a}\u{641} kwtSMS \u{648}\u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}\u{627}"
+            . "\u{646}\u{62a}\u{638}\u{627}\u{631} \u{642}\u{628}\u{644} \u{625}\u{639}\u{627}\u{62f}"
+            . "\u{629} \u{627}\u{644}\u{625}\u{631}\u{633}\u{627}\u{644}.",
+    ],
+    'kwtsms.err.LOCAL_TIMEOUT' => [
+        'en' => "kwtSMS didn't answer in time. The request may have been received. Check the kwtSMS archi"
+            . "ve and queue before you resend.",
+        'ar' => "\u{644}\u{645} \u{62a}\u{631}\u{62f}\u{651} kwtSMS \u{641}\u{64a} \u{627}\u{644}\u{648}"
+            . "\u{642}\u{62a} \u{627}\u{644}\u{645}\u{62d}\u{62f}\u{62f}. \u{642}\u{62f} \u{64a}\u{643}"
+            . "\u{648}\u{646} \u{627}\u{644}\u{637}\u{644}\u{628} \u{648}\u{635}\u{644}. \u{631}\u{627}"
+            . "\u{62c}\u{639} \u{623}\u{631}\u{634}\u{64a}\u{641} kwtSMS \u{648}\u{642}\u{627}\u{626}"
+            . "\u{645}\u{629} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{642}\u{628}"
+            . "\u{644} \u{625}\u{639}\u{627}\u{62f}\u{629} \u{627}\u{644}\u{625}\u{631}\u{633}\u{627}"
+            . "\u{644}.",
     ],
     'kwtsms.help.account.sender_p1' => [
         'en' => "The Sender ID is the name customers see as the sender. kwtSMS gives every account KWT-SM"
@@ -330,6 +368,24 @@ return [
         'ar' => "\u{645}\u{633}\u{627}\u{639}\u{62f}\u{629} \u{645}\u{639}\u{631}\u{641} \u{627}\u{644}"
             . "\u{645}\u{631}\u{633}\u{644}",
     ],
+    'kwtsms.help.missing.s1' => [
+        'en' => "Check the queue at kwtsms.com > Account > Queue. A message here was accepted but not sen"
+            . "t on. Delete it to get its credits back. Bad language, spam filters, and wrong formats a"
+            . "re common causes.",
+        'ar' => "\u{631}\u{627}\u{62c}\u{639} \u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}\u{627}"
+            . "\u{646}\u{62a}\u{638}\u{627}\u{631} \u{641}\u{64a} kwtsms.com > \u{627}\u{644}\u{62d}"
+            . "\u{633}\u{627}\u{628} > \u{642}\u{627}\u{626}\u{645}\u{629} \u{627}\u{644}\u{627}\u{646}"
+            . "\u{62a}\u{638}\u{627}\u{631}. \u{627}\u{644}\u{631}\u{633}\u{627}\u{644}\u{629} \u{627}"
+            . "\u{644}\u{645}\u{648}\u{62c}\u{648}\u{62f}\u{629} \u{647}\u{646}\u{627}\u{643} \u{642}"
+            . "\u{64f}\u{628}\u{644}\u{62a} \u{648}\u{644}\u{645} \u{62a}\u{64f}\u{631}\u{633}\u{644}. "
+            . "\u{627}\u{62d}\u{630}\u{641}\u{647}\u{627} \u{644}\u{627}\u{633}\u{62a}\u{631}\u{62f}"
+            . "\u{627}\u{62f} \u{646}\u{642}\u{627}\u{637}\u{647}\u{627}. \u{645}\u{646} \u{627}\u{644}"
+            . "\u{623}\u{633}\u{628}\u{627}\u{628} \u{627}\u{644}\u{634}\u{627}\u{626}\u{639}\u{629} "
+            . "\u{627}\u{644}\u{623}\u{644}\u{641}\u{627}\u{638} \u{627}\u{644}\u{633}\u{64a}\u{626}"
+            . "\u{629} \u{648}\u{645}\u{631}\u{634}\u{62d}\u{627}\u{62a} \u{627}\u{644}\u{631}\u{633}"
+            . "\u{627}\u{626}\u{644} \u{627}\u{644}\u{645}\u{632}\u{639}\u{62c}\u{629} \u{648}\u{627}"
+            . "\u{644}\u{635}\u{64a}\u{63a} \u{627}\u{644}\u{62e}\u{627}\u{637}\u{626}\u{629}.",
+    ],
     'kwtsms.help.missing.s5' => [
         'en' => "Check Do Not Disturb. Some customers ask their network to block promotional messages. A "
             . "promotional Sender ID, and KWT-SMS, can't reach them. A transactional Sender ID can.",
@@ -357,6 +413,33 @@ return [
             . "\u{636}\u{64a}\u{627}\u{639}\u{647}\u{627}\u{60c} \u{648}\u{627}\u{633}\u{62a}\u{62e}"
             . "\u{62f}\u{645} \u{645}\u{639}\u{631}\u{641} \u{645}\u{631}\u{633}\u{644} \u{62e}\u{627}"
             . "\u{635}\u{627} \u{628}\u{643}.",
+    ],
+    'kwtsms.help.phones.p6' => [
+        'en' => "With one account per phone on, the sign-up code form tells a visitor that a number is al"
+            . "ready used when another account has it. That reveals that the number has an account. It "
+            . "is a known and accepted path: a customer must learn to sign in instead of creating a sec"
+            . "ond account. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-"
+            . "network limits.",
+        'ar' => "\u{639}\u{646}\u{62f} \u{62a}\u{641}\u{639}\u{64a}\u{644} \u{62d}\u{633}\u{627}\u{628} "
+            . "\u{648}\u{627}\u{62d}\u{62f} \u{644}\u{643}\u{644} \u{631}\u{642}\u{645}\u{60c} \u{64a}"
+            . "\u{62e}\u{628}\u{631} \u{646}\u{645}\u{648}\u{630}\u{62c} \u{631}\u{645}\u{632} \u{625}"
+            . "\u{646}\u{634}\u{627}\u{621} \u{627}\u{644}\u{62d}\u{633}\u{627}\u{628} \u{627}\u{644}"
+            . "\u{632}\u{627}\u{626}\u{631} \u{628}\u{623}\u{646} \u{627}\u{644}\u{631}\u{642}\u{645} "
+            . "\u{645}\u{633}\u{62a}\u{62e}\u{62f}\u{645} \u{625}\u{630}\u{627} \u{643}\u{627}\u{646} "
+            . "\u{644}\u{62d}\u{633}\u{627}\u{628} \u{622}\u{62e}\u{631}. \u{648}\u{647}\u{630}\u{627} "
+            . "\u{64a}\u{643}\u{634}\u{641} \u{623}\u{646} \u{644}\u{644}\u{631}\u{642}\u{645} \u{62d}"
+            . "\u{633}\u{627}\u{628}\u{627}. \u{648}\u{647}\u{648} \u{645}\u{633}\u{627}\u{631} \u{645}"
+            . "\u{639}\u{631}\u{648}\u{641} \u{648}\u{645}\u{642}\u{628}\u{648}\u{644} \u{644}\u{623}"
+            . "\u{646} \u{627}\u{644}\u{639}\u{645}\u{64a}\u{644} \u{64a}\u{62d}\u{62a}\u{627}\u{62c} "
+            . "\u{623}\u{646} \u{64a}\u{639}\u{631}\u{641} \u{623}\u{646} \u{639}\u{644}\u{64a}\u{647} "
+            . "\u{62a}\u{633}\u{62c}\u{64a}\u{644} \u{627}\u{644}\u{62f}\u{62e}\u{648}\u{644} \u{628}"
+            . "\u{62f}\u{644}\u{627} \u{645}\u{646} \u{625}\u{646}\u{634}\u{627}\u{621} \u{62d}\u{633}"
+            . "\u{627}\u{628} \u{62b}\u{627}\u{646}. \u{644}\u{625}\u{628}\u{637}\u{627}\u{621} \u{623}"
+            . "\u{64a} \u{628}\u{631}\u{646}\u{627}\u{645}\u{62c} \u{64a}\u{62c}\u{631}\u{628} \u{627}"
+            . "\u{644}\u{623}\u{631}\u{642}\u{627}\u{645}\u{60c} \u{641}\u{639}\u{651}\u{644} \u{645}"
+            . "\u{632}\u{648}\u{62f} CAPTCHA \u{648}\u{623}\u{628}\u{642} \u{62d}\u{62f}\u{648}\u{62f} "
+            . "\u{627}\u{644}\u{637}\u{644}\u{628}\u{627}\u{62a} \u{644}\u{643}\u{644} \u{634}\u{628}"
+            . "\u{643}\u{629}.",
     ],
     'kwtsms.help.setup.s2' => [
         'en' => "Choose a Sender ID from the list. Don't keep KWT-SMS on a live store.",
@@ -494,6 +577,16 @@ return [
             . "\u{645}\u{629} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{641}\u{64a} k"
             . "wtSMS \u{644}\u{627}\u{633}\u{62a}\u{631}\u{62f}\u{627}\u{62f} \u{627}\u{644}\u{631}"
             . "\u{635}\u{64a}\u{62f}.",
+    ],
+    'kwtsms.outcome.unknown' => [
+        'en' => "No reply after the request was sent. Check your kwtSMS archive and queue before you rese"
+            . "nd.",
+        'ar' => "\u{644}\u{645} \u{64a}\u{635}\u{644} \u{631}\u{62f} \u{628}\u{639}\u{62f} \u{625}\u{631}"
+            . "\u{633}\u{627}\u{644} \u{627}\u{644}\u{637}\u{644}\u{628}. \u{631}\u{627}\u{62c}\u{639} "
+            . "\u{627}\u{644}\u{623}\u{631}\u{634}\u{64a}\u{641} \u{648}\u{642}\u{627}\u{626}\u{645}"
+            . "\u{629} \u{627}\u{644}\u{627}\u{646}\u{62a}\u{638}\u{627}\u{631} \u{641}\u{64a} kwtSMS "
+            . "\u{642}\u{628}\u{644} \u{625}\u{639}\u{627}\u{62f}\u{629} \u{627}\u{644}\u{625}\u{631}"
+            . "\u{633}\u{627}\u{644}.",
     ],
     'kwtsms.reason.no_sender_ids' => [
         'en' => "Your kwtSMS account has no Sender ID yet.",

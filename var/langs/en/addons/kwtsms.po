@@ -6552,8 +6552,8 @@ msgstr "When two requests save the same number at the same moment, the store mak
 
 # 2026-11-04 21:20 +03: review fix M5 of Task M2.1, task 596. Help: the register code answers "in use" for an indexed phone (accepted enumeration path).
 msgctxt "Languages::kwtsms.help.phones.p6"
-msgid "With one account per phone on, the sign-up code form tells a visitor that a number is already used when another account has it. That reveals that the number has an account. It is a known and accepted path: a customer must learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
-msgstr "With one account per phone on, the sign-up code form tells a visitor that a number is already used when another account has it. That reveals that the number has an account. It is a known and accepted path: a customer must learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
+msgid "With one account per phone on, the sign-up code form never says that a number is already used. When another account holds the number, the form answers like a sent code and sends nothing, so a visitor can't learn which numbers have an account. The text that a number is in use shows only when a signed-in customer saves a profile, and repeated attempts there are rate-limited. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
+msgstr "With one account per phone on, the sign-up code form never says that a number is already used. When another account holds the number, the form answers like a sent code and sends nothing, so a visitor can't learn which numbers have an account. The text that a number is in use shows only when a signed-in customer saves a profile, and repeated attempts there are rate-limited. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.title"

@@ -88,7 +88,7 @@ including order status changes and Multi-Vendor vendor events.
 <!-- 2026-10-29 05:14 +03: Task M1.12 fix round 1 (I2), task 596. 1.2.0 ships the country check, registration and phone change codes and Turnstile; they leave this list. -->
 <!-- 2026-11-07 02:46 +03: Task M2.7, task 596. 1.3.0 ships sign-in by code, two-step sign-in, recovery by code, the code at checkout and the country selector; they leave this list. -->
 <!-- 2026-11-17 07:29 +03: Task M3.13, task 596. 1.4.0 ships returns, call requests, back in stock, gift certificates, reviews, discussion and vendor messages; they leave this list. -->
-Planned for later releases: abandoned cart reminders and scheduled SMS.
+Planned for later releases: abandoned cart reminders, bulk SMS (sending to groups) and scheduled SMS. Bulk resend of failed log rows is already shipped.
 
 ## Requirements
 

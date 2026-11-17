@@ -265,11 +265,19 @@ class IntegrationsPage
         $later = [];
         $may_templates = call_user_func($has_privilege, 'manage_kwtsms') === true;
         $switch_map = $this->storedSwitches();
-        $today = $this->smsTodayByEvent((int) strtotime('today', $this->now()));
+        // 2026-11-17 07:45 +03: Task M3.13 review round 1 (M1), task 596. The states are read once; the SMS-today query
+        // (one grouped read of kwtsms_messages) runs once per page view and only when an owning add-on is active.
+        $active = [];
+        $any_active = false;
+        foreach (self::LATER_ADDONS as $id) {
+            $active[$id] = $this->addonActive($id);
+            $any_active = $any_active || $active[$id];
+        }
+        $today = $any_active ? $this->smsTodayByEvent((int) strtotime('today', $this->now())) : [];
         foreach (self::LATER_ADDONS as $id) {
             $later[] = self::addonRow(
                 $id,
-                $this->addonActive($id),
+                $active[$id],
                 $this->addonInstalled($id),
                 $switch_map,
                 $today,
