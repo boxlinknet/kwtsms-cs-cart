@@ -32,6 +32,7 @@
 
 namespace Tygh\Addons\Kwtsms\Orders;
 
+use Tygh\Addons\Kwtsms\Events\CommunitySmsData;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
@@ -273,12 +274,16 @@ class BackInStockNotifier
     {
         $fallback = isset($payload['product']['name']) && is_scalar($payload['product']['name'])
             ? (string) $payload['product']['name'] : '';
+        // 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I2), task 596. A vendor controls the product name:
+        // tags and control characters out, cut to 40 characters, as the call request and community texts do
+        // (CommunitySmsData::name), for the catalog name and the payload name alike.
         if ($this->product_name === null) {
-            return $fallback;
+            return CommunitySmsData::name($fallback);
         }
         $name = call_user_func($this->product_name, $product_id, $lang, $fallback);
+        $name = CommunitySmsData::name($name);
 
-        return is_scalar($name) && (string) $name !== '' ? (string) $name : $fallback;
+        return $name !== '' ? $name : CommunitySmsData::name($fallback);
     }
 
     /**
