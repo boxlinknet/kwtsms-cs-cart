@@ -180,3 +180,48 @@ Verdicts (test = test defect, product = product defect):
 - RUNNER LEDGER DEFECT (test tooling, not product): run-live.sh writes ledgers to docs/evidence/1.0.0 because KWTSMS_LEDGER_DIR does not reach the php container; m314-run.sh tallies docs/evidence/1.4.0/M3.14/ledgers (empty). Every step reported "sends=0 credits=0" although the sends were real (msg-ids in the 1.0.0 ledgers, BALANCE-PROOF spent=expected on every step). The budget stop was blind. I tallied by hand (/tmp/t5-tally.sh): the runner was stopped at 00:58 in step e2e:alerts at 101 sends / 117 credits (cap 100 / 120): one send over. Balance 1559 after the last proof.
 - Not run: e2e (alerts killed mid-step), browser-pass, perf-analyze, log-sweep, step5. No further sends possible within budget.
 - Live failures (nothing re-sent): BackInStockLiveTest (mve) and GiftCertificateSmsLiveTest (mve): message English, expected Arabic (liveLang = ar on MV). The sends happened (2 credits each, accepted). Likely test setup (the restock / status change runs in a CLI process in the default language), to confirm. M314FamiliesLiveTest mve: 3 ABORTED, NOTHING SENT by the switch guard: stray ON switches discussion.testimonials.new_post/A and vendor_communication.vendor_to_admin_message_received/A left by an earlier test (a leak between tests). CodeFlowsLiveTest 3 failures (guard payload null; phone-change recipient; sign-in number mismatch 96555100013 vs ...005). CoalescingSmsLiveTest exit 72 (balance proof incomplete). Verdict test vs product: open, needs re-sends (budget) or reading only.
+
+## Tester 5 phase 2, zero-send triage and rerun plan (2026-11-18 02:55 +03)
+
+Live ledger stays at 101 sends / 117 credits (budget 100 / 120). Nothing was sent after the stop; every e2e script sets the dev guard to cancel_all itself and the ledger delta was checked after each.
+
+### Runner (tests commit 6b4a9c2, 07e5364)
+- Tally defect: the runner read a ledger folder the php container never writes to (host KWTSMS_LEDGER_DIR does not reach the container), so it reported sends=0 for 101 real sends. It now sums msg-id rows from docs/evidence/1.0.0/ledger-<RUN_ID>.jsonl at or after the stamp in M314_SINCE.txt, and a pre-step check (plan_for) stops with exit 3 BEFORE a step whose planned sends or credits would pass the cap. Proved with a stub dry run.
+- balance_probe retries 3 times (a transient probe failure had given exit 72 on Coalescing).
+
+### Live failures, verdict per class (all test defects; no product change)
+| Class | Cause | Fix |
+|---|---|---|
+| BackInStockLiveTest | subscriber created with lang en; the product follows users.lang_code and mve runs ar | customer created with the live language |
+| GiftCertificateSmsLiveTest | storefront request forced the default language; the text follows the order lang_code | useLanguage(live language) |
+| M314FamiliesLiveTest | only() left other order_placed and discussion/plan switches ON, so extra rows appeared and a switch leaked | every other switch OFF before the one under test; assertOnlySwitchOn |
+| CodeFlowsLiveTest | devguard capture read the previous request's payload (race) | clear kwtsms_devguard_last_sms before, waitFor after |
+| Coalescing | balance probe transient (exit 72) | retry in balance_probe |
+Leftover switches from the killed e2e:alerts step: checked on both stores, clean.
+
+### e2e failures
+- checkout (mve accept-terms): harness only. check({force:true}) clicked the box before the scroll settled on the Multi-Vendor page; a real scroll and click ticks it and a shopper can complete checkout (mve 49/49). Nothing in the product changed since the 1.3.0 seal run touches that markup.
+- checkout (cscart, one run, 6 fails): cart was empty ("subtotal must exceed $0.00") so the phone field never rendered. Product 188 is $10.00 and in stock; a run on cscart alone passed with 0 fails. Treated as a flake of the add-to-cart step; watch on the rerun.
+- checkout_code (3 cod viewport cases): timing, the box was read before the payment pick finished; waitBox added. Both stores 0 fails.
+- code_request (bypass): the premise was wrong after P5. A cancelled send no longer bypasses its own request because register and phone change now send after the response. The helper now forces the balance-0 gate (and restores 5000 for the non-bypass modes). Both stores 378/378.
+- tests commit 2a494ef holds the three e2e fixes.
+
+### P5 side-effect ruling (coordinator, accepted)
+A send-time failure of a register or phone-change code does not bypass its own request. It revokes the code, raises the admin alert and cancels the deferred row. Help already says Continue applies when SMS sending is off-line and a problem with one number never continues. No wording change.
+
+### Gate-state check (coordinator question, zero sends): NO product defect
+A failed after-response send does update the cached state CodeAvailability reads, in SmsService (not in CodeRequest): ERR001/004/005/024/034 call suspend(); ERR010 sets the cached balance to 0; ERR003 suspends after the probe; transport failures count in the breaker, which opens on the third consecutive one. Proven by tests/Unit/CodeGateStateAfterFailedSendTest.php (tests commit 5c9f4de, 5 tests, 38 assertions, FakeTransport, zero HTTP): after each failure the next gate() returns bypass with otp_unreachable=continue and refuse with pause, and the gate check itself makes no call. Note: one or two transport failures do not yet bypass; the third does (breaker design, unchanged).
+
+### Rerun plan (needs a NEW live budget from Boss; sends are test=1, account 3628)
+| Step | Sends | Credits |
+|---|---|---|
+| BackInStockLiveTest | 2 | 2 |
+| GiftCertificateSmsLiveTest | 2 | 2 |
+| M314FamiliesLiveTest (both stores) | 7 | 9 |
+| CodeFlowsLiveTest, only the 3 fixed tests (--filter) | 8 | 8 |
+| e2e:alerts | 5 | 9 |
+| e2e:settings | 6 | 6 |
+| e2e:marketplace_shots | 6 | 6 |
+| e2e-phpunit (real-mode OrderTimingTest part) | 6 | 6 |
+| Total | 42 | 48 |
+The last three rows are the runner's placeholder plan (M314_PLAN_E2E 6 6); the true count is to be confirmed from the scripts before the run. Request: 45 sends / 55 credits on top of the 101 / 117 spent. Not rerun: Coalescing, SendPathProcedureTest, ChecklistLiveTest, Rma, CallRequest, ReviewAlert, VendorStatus, BulkResend, FailSpike (passed).
