@@ -401,9 +401,9 @@ class OrderNotifier
         // 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1): kwtsms.order_placed is checked in placedSms(), which
         // knows the unit (a checkout reads the
         // .multi rows against the parent order).
-        if ($event_id !== Defaults::EVENT_PLACED && !$this->conditionsPass($event_id, $receiver, $order)) {
-            return false;
-        }
+        // 2026-11-17 15:11 +03: FIX-B M1 (I1), task 596: the check moved below the supersede and vendor checks (an
+        // attempt row says what really stopped the SMS) and a status event runs it inside statusSms() (the checkout
+        // scope needs the parent order); see the block before the dispatch.
 
         // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
         // for its Notify boxes) in this request is superseded: it already gets kwtsms.order_placed. Core dispatches
@@ -440,6 +440,39 @@ class OrderNotifier
 
                 return false;
             }
+        }
+
+        // 2026-11-17 15:13 +03: FIX-B M3, task 596. The same self-triggered rule for every other declared V event (RMA
+        // status, plan change, ...): the vendor's own administrator (own company = the event's company, the declared
+        // company path else the order's) is not texted about its own action. Root and other vendors still text it.
+        if (
+            $receiver === 'V' && isset($this->declared[$event_id])
+            && strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) !== 0 && $event_id !== Defaults::EVENT_UPDATED
+            && $this->rules->isMultiVendor()
+        ) {
+            $company_path = $this->declared[$event_id]->path('company_id');
+            $company_raw = $company_path === '' ? null : EventDeclaration::value($payload, $company_path);
+            $event_company = is_scalar($company_raw) && !is_bool($company_raw) && (int) $company_raw > 0
+                ? (int) $company_raw : (int) ($order['company_id'] ?? 0);
+            $actor = $this->orders->actor();
+            if (
+                $event_company > 0 && ($actor['area'] ?? '') === 'A'
+                && (int) ($actor['auth_company_id'] ?? 0) === $event_company
+            ) {
+                $this->skip(Diagnostics::SWITCHED_OFF, self::SELF_TRIGGERED, $order, $event_id, $receiver, []);
+
+                return false;
+            }
+        }
+
+        // 2026-11-17 15:11 +03: FIX-B M1 (I1), task 596. The event conditions, after every supersede and self-trigger
+        // return above, still before any key claim. kwtsms.order_placed runs them in placedSms() (checkout unit) and
+        // an order.status_changed.* SMS in statusSms() (the checkout scope reads the parent order).
+        if (
+            $event_id !== Defaults::EVENT_PLACED && strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) !== 0
+            && !$this->conditionsPass($event_id, $receiver, $order)
+        ) {
+            return false;
         }
 
         if (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0) {
@@ -666,6 +699,13 @@ class OrderNotifier
                     'vendor_name' => '',
                 ];
             }
+        }
+
+        // 2026-11-17 15:11 +03: FIX-B I1 (M1), task 596. The conditions of a status SMS, judged on the unit it reports:
+        // the checkout (parent order: total, payment, shipping) for a per-checkout customer SMS, like the placed SMS,
+        // else the order itself. After the supersede and waiting returns above, before any key claim.
+        if (!$this->conditionsPass($event_id, $receiver, $context_order)) {
+            return false;
         }
 
         $key = DispatchKeys::status($scope_id, $status, $receiver);

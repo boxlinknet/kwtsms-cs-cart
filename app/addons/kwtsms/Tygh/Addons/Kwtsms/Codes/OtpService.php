@@ -178,12 +178,30 @@ class OtpService
         if ($issued->status !== OtpResult::ISSUED) {
             return;
         }
+        // 2026-11-17 15:19 +03: FIX-B M4, task 596. X (never sent), not C (cancelled after it was sent): the Dashboard
+        // code KPI counts only codes that really went out. verify() treats X like C (only an A row can be verified).
         $this->run(
-            "UPDATE ?:kwtsms_otp_codes SET status = 'C' WHERE code_id = ?i AND status = 'A'",
+            "UPDATE ?:kwtsms_otp_codes SET status = 'X' WHERE code_id = ?i AND status = 'A'",
             [$issued->code_id]
         );
         $this->giveBack($issued->step);
         $this->debug('otp.revoke', ['code_id' => $issued->code_id]);
+    }
+
+    /**
+     * 2026-11-17 15:19 +03: FIX-B M4, task 596. The code row of a number another account holds (the silent answer):
+     * nothing is sent, so the row is marked X (never sent) and is not counted by the Dashboard code KPI. The resend
+     * step stays taken (the answer is identical to a sent code).
+     */
+    public function markUnsent(OtpResult $issued): void
+    {
+        if ($issued->status !== OtpResult::ISSUED) {
+            return;
+        }
+        $this->run(
+            "UPDATE ?:kwtsms_otp_codes SET status = 'X' WHERE code_id = ?i AND status = 'A'",
+            [$issued->code_id]
+        );
     }
 
     /**

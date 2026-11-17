@@ -290,6 +290,10 @@ class CodeRequest
         }
         $issued = $p['issued'];
         try {
+            if ($p['silent']) {
+                // 2026-11-17 15:19 +03: FIX-B M4, task 596. Never sent: not counted by the code KPI.
+                $this->otp->markUnsent($issued);
+            }
             $sent = $p['silent'] ? $this->sender->heldOutcome() : $this->sender->sendCode(
                 $p['phone'],
                 $issued->code(),
@@ -723,6 +727,10 @@ class CodeRequest
             // (the code is never shown to anyone and expires). 2026-11-17 01:10 +03: fix round 1 (I2): what the store
             // caps would say stands in for the send, so a cap that refuses a free number refuses this one the same way
             // and the answer below is the real path's.
+            if ($silent) {
+                // 2026-11-17 15:19 +03: FIX-B M4, task 596. Never sent: not counted by the code KPI.
+                $this->otp->markUnsent($issued);
+            }
             $sent = $silent ? $this->sender->heldOutcome() : $this->sender->sendCode(
                 $phone,
                 $issued->code(),
