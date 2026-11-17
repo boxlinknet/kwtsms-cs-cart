@@ -733,3 +733,14 @@ DEPENDS:   Nothing at build time.
         }
     }
 }
+
+/* 2026-11-17 12:05 +03: tester 4 fix, task 596. The import preview table scrolls sideways inside its own box
+   (EN 375 px clipped the last column); direction-neutral, works in RTL too. */
+.kwtsms-page.kwtsms-templates .kwtsms-import__preview .table-responsive-wrapper {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+.kwtsms-page.kwtsms-templates .kwtsms-import__preview .kwtsms-import__table {
+    min-width: 480px;
+}
