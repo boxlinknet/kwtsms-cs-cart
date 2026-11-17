@@ -744,3 +744,10 @@ DEPENDS:   Nothing at build time.
 .kwtsms-page.kwtsms-templates .kwtsms-import__preview .kwtsms-import__table {
     min-width: 480px;
 }
+/* 2026-11-17 17:37 +03: tester 4, task 596. The confirm form is .kwtsms-inline-form (inline-block, shrink-to-fit), so it grew
+   to the table's min-width and the box never had to scroll (the page itself overflowed at 375). A block form takes the
+   width of its container and the table scrolls inside the box. */
+.kwtsms-page.kwtsms-templates .kwtsms-import__preview .kwtsms-inline-form {
+    display: block;
+    max-width: 100%;
+}
