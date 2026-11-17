@@ -282,7 +282,14 @@ final class MissingPhonePrompt
                 return ['status' => 'locked', 'retry_after' => (int) $result->retry_after];
             default:
                 // wrong, malformed, expired, none: one answer, with the tries left when the engine counted them.
-                return ['status' => 'wrong', 'attempts_left' => (int) $result->attempts_left];
+                // 2026-11-17 12:06 +03: tester 4 fix, task 596. NONE (no code requested) and EXPIRED add a
+                // 'reason' so the page says "request a code first" or "expired", not "0 tries left" (none used).
+                $answer = ['status' => 'wrong', 'attempts_left' => (int) $result->attempts_left];
+                if ($result->status === OtpResult::NONE || $result->status === OtpResult::EXPIRED) {
+                    $answer['reason'] = $result->status;
+                }
+
+                return $answer;
         }
         if ((int) call_user_func($this->owner, $phone, $user_id) > 0) {
             return ['status' => 'in_use'];

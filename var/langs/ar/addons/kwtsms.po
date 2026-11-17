@@ -8608,6 +8608,11 @@ msgctxt "Languages::kwtsms.phone_prompt.failed"
 msgid "Your mobile number could not be saved. Try again in a few minutes."
 msgstr "تعذر حفظ رقم جوالك. حاول مرة أخرى بعد دقائق."
 
+# 2026-11-17 12:06 +03: tester 4 fix, task 596. A code typed before any code was requested: say so instead of "0 tries left".
+msgctxt "Languages::kwtsms.phone_prompt.no_code"
+msgid "Request a code first: type your number and press Send code."
+msgstr "اطلب رمزاً أولاً: اكتب رقمك ثم اضغط إرسال الرمز."
+
 # 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored methods that are not active any more.
 msgctxt "Languages::kwtsms.conditions.unavailable"
 msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."

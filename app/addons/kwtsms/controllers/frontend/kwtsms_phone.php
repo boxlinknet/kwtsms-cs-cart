@@ -132,9 +132,18 @@ if ($kwtsms_method === 'POST') {
             fn_set_notification('E', __('error'), __('kwtsms.phone_change.invalid'));
             break;
         case 'wrong':
-            fn_set_notification('E', __('error'), __('kwtsms.code.wrong', [
-                '[n]' => fn_html_escape((string) (int) ($kwtsms_result['attempts_left'] ?? 0)),
-            ]));
+            // 2026-11-17 12:06 +03: tester 4 fix, task 596. "0 tries left" only when tries are really used up; no code
+            // requested = say so, expired = say so.
+            $kwtsms_reason = (string) ($kwtsms_result['reason'] ?? '');
+            if ($kwtsms_reason === 'none') {
+                fn_set_notification('E', __('error'), __('kwtsms.phone_prompt.no_code'));
+            } elseif ($kwtsms_reason === 'expired') {
+                fn_set_notification('E', __('error'), __('kwtsms.code.expired'));
+            } else {
+                fn_set_notification('E', __('error'), __('kwtsms.code.wrong', [
+                    '[n]' => fn_html_escape((string) (int) ($kwtsms_result['attempts_left'] ?? 0)),
+                ]));
+            }
             break;
         case 'locked':
             fn_set_notification('E', __('error'), __('kwtsms.code.locked', [
