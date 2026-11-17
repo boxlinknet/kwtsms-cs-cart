@@ -639,8 +639,8 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY (`code_id`),
             KEY `purpose_subject` (`purpose`, `subject`, `status`),
-            KEY `idx_created_status` (`created_at`, `status`),
-            KEY `idx_user_id` (`user_id`)
+            KEY `idx_user_id` (`user_id`),
+            KEY `idx_created_status` (`created_at`, `status`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
         <!-- 2026-11-17 18:10 +03: idx_created_status (created_at, status) replaces idx_created_at on kwtsms_otp_codes, FIX-D: the code KPI
