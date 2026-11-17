@@ -40,3 +40,12 @@ New 1.4.0 families 23 sends (18 + 1 + 3 + 1), 23-29 credits; plus carry-over B1+
 3. Mid-request suspension is unit-tested only.
 4. Unit suite on the host shows 186 errors / 123 failures outside the files touched here (host without the store bootstrap); not investigated, not from this task.
 5. The store tests assume product 188, payment 2, bis_max_recipients and the call/rev dispatch-key names as in the existing tests; a first run may need small adjustments.
+
+## Round 2 (2026-11-17 18:50 +03)
+
+- Gap 5: `KWTSMS_CORE_ROOT=$HOME/kwtsms-cscart/www/cscart php vendor/bin/phpunit -c tests/phpunit.xml --testsuite unit` shows only the 5 LicenceGuardTest failures. vendor/ was complete; round 1's 186 errors were the missing KWTSMS_CORE_ROOT.
+- Gap 1: OrderStore::useLiveLanguage() (EN on cscart, AR on mve) and assertLiveLanguage() added; RMA, CallRequest, BackInStock, GiftCertificate, ReviewAlert now run in that language with assertOnlySwitchOn before the trigger; VendorStatusSmsLiveTest sends EN then AR (VendorFixture::setVendorLanguage, whitelisted in cscart_cli.php).
+- Gap 2: new tests/StoreLive/M314FamiliesLiveTest.php: discussion alert (A, both stores), vendor message (A, mve, EN+AR), plan change (V, mve, EN+AR), vendor Sender ID send (mve; NOT RUN when the account has no Sender ID besides KWT-SMS). Added to tools/m314-run.sh.
+- Checks: php -l only, private-token and forbidden-character scans clean. Nothing run against a store, no SMS sent.
+- Estimate (docs repo f2c6ca6): section A = 27 sends; A+B1+B2+B3 = 56 messages / 57-75 credits; planned 56 to 100 / 57 to 120; hard stop 100 / 120 unchanged.
+- Commits (tests): 6601be6, 07e8212.
