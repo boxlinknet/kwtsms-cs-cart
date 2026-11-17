@@ -102,7 +102,9 @@ gate "nofilter in a Smarty tag (any spacing, any line break)" nofilter_check "$T
 gate "Tygh\\Http (use or call)" scan "$A" '' -nE 'use[[:space:]]+Tygh\\Http\b|Tygh\\Http::|[^A-Za-z\\]Http::(get|post|put|request)'
 # 2026-10-24 19:42 +03: Task M1.7a, task 596. The outbound host list: the only hosts a PHP file of the add-on names in a
 # URL are the kwtSMS API and Cloudflare Turnstile (siteverify), plus documentation example domains.
-gate "outbound hosts: only www.kwtsms.com and challenges.cloudflare.com" scan "$A" ':\d+:https?://(www\.kwtsms\.com|challenges\.cloudflare\.com|([a-z0-9-]+\.)?example\.(com|org|test))$' -noE --include=*.php 'https?://[A-Za-z0-9.-]+'
+# 2026-11-17 14:57 +03: M3.15 (task 596): SampleData::backInStock() holds two fictional sample URLs (a reserved .example
+# TLD host and www.example-store.com); they are text for the template preview, never requested. Allowed by name.
+gate "outbound hosts: only www.kwtsms.com and challenges.cloudflare.com" scan "$A" ':\d+:https?://(www\.kwtsms\.com|challenges\.cloudflare\.com|([a-z0-9-]+\.)?example\.(com|org|test)|[a-z0-9-]+\.example|www\.example-store\.com)$' -noE --include=*.php 'https?://[A-Za-z0-9.-]+'
 # 2026-10-24 21:28 +03: Task M1.7b (review minor M4), task 596. The same host list for the storefront and admin templates
 # and the scripts (the Turnstile api.js URL lives in a .tpl): a literal http(s):// host, or a protocol-relative //host, must
 # be Cloudflare's challenge host (or an example domain). Concatenated hosts stay out of reach of any text gate.
@@ -257,6 +259,8 @@ sensitive_check() { py "$1" <<'PY'
 import os, re, sys
 # Parameter names that hold pass, secret or key but are not secrets (setting, storage, dispatch and template keys,
 # counters of cleaning passes). 2026-10-21 17:33 +03, final fix item 7, task 596.
+# 2026-11-17 14:57 +03: M3.15 (task 596): CodeKpis::__construct($secret) is the unlock-token HMAC key and IS a secret: it gets
+# the attribute in the source (below), not an allowance here.
 ALLOW = {'key', 'keys', 'edit_key', 'prune_keys', 'maxPasses', 'max_passes'}
 n = 0; bad = []
 for d, _, fs in os.walk(sys.argv[1]):
@@ -326,7 +330,9 @@ gate "var_dump / print_r( / dd(" scan "$A $T $J" ':\d+:\s*(\*|//|/\*|\{\*)' -nE 
 kwt_sms_check() {
   local res rc files
   files="$(find "$A" "$T" "$J" -type f | wc -l)" || return 3
-  res="$( (grep -rn 'KWT-SMS' "$A" "$T"; grep -rnE "['\"]KWT-SMS['\"]" "$J") )"; rc=$?
+  # 2026-11-17 14:57 +03: M3.15 (task 596): Upgrade/Shipped130Terms.php holds the shipped 1.3.0 help and language
+  # texts verbatim (to tell an unedited text from an edited one at upgrade), and they name the KWT-SMS test sender.
+  res="$( (grep -rn 'KWT-SMS' "$A" "$T" --exclude=Shipped130Terms.php; grep -rnE "['\"]KWT-SMS['\"]" "$J") )"; rc=$?
   [ "$rc" -le 1 ] || return "$rc"
   res="$(printf '%s\n' "$res" | grep -vP ':\d+:\s*(\*|//|/\*|\{\*|#)' | grep -v "TEST_SENDER = 'KWT-SMS'")"
   [ -z "$res" ] || printf '%s\n' "$res"
@@ -470,7 +476,9 @@ import os, re, sys
 # parameters, a __() call whose parameters go through fn_html_escape, a notify() helper that escapes unless told the
 # text is already escaped, or a notice built by LogsPage::clearNotices() / resendNotice() (text() escapes every
 # parameter). 2026-10-21 17:33 +03, final fix item 8, task 596.
-ALLOW = {'$kwtsms_notice[1]': 'LogsPage::clearNotices() / resendNotice(): built by text(), which escapes every parameter'}
+ALLOW = {'$kwtsms_notice[1]': 'LogsPage::clearNotices() / resendNotice(): built by text(), which escapes every parameter',
+         # 2026-11-17 14:57 +03: M3.15 (task 596): the bulk-resend notes are (string) __() texts whose only placeholder is an integer constant
+         '$kwtsms_note[1]': 'backend logs bulk resend: language text with the integer LogResender::BULK_MAX or a count'}
 def third(call):
     depth, q, parts, cur = 0, None, [], ''
     for c in call:
@@ -651,6 +659,11 @@ for d, _, fs in os.walk(os.path.join(root, 'app/addons/kwtsms')):
             nonlang |= set(re.findall(r"\['(kwtsms\.[\w.]+)'\]", t))
 ev = os.path.join(root, 'app/addons/kwtsms/schemas/kwtsms/events.php')
 nonlang |= set(re.findall(r"^\s*'(kwtsms\.[\w.]+)'\s*=>", open(ev, encoding='utf-8').read(), re.M))
+# 2026-11-17 14:57 +03: M3.15 (task 596): a template names a dispatch target as {"kwtsms.mode"|fn_url}, not a language variable.
+for d, _, fs in os.walk(os.path.join(root, 'design')):
+    for f in fs:
+        if f.endswith('.tpl'):
+            nonlang |= set(re.findall(r'''["'](kwtsms\.[\w.]+)["']\s*\|\s*fn_url''', open(os.path.join(d, f), encoding='utf-8').read()))
 nonlang |= set(re.findall(r"\$schema\['(kwtsms\.[\w.]+)'\]", open(os.path.join(root, 'app/addons/kwtsms/schemas/notifications/events.post.php'), encoding='utf-8').read()))
 n = 0
 for base in ('app/addons/kwtsms', 'design/backend/templates/addons/kwtsms', 'design/themes/responsive/templates/addons/kwtsms', 'var/themes_repository/responsive/templates/addons/kwtsms', 'js/addons/kwtsms'):

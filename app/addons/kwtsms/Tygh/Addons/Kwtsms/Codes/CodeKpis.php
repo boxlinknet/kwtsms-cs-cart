@@ -69,6 +69,8 @@ class CodeKpis
         callable $otp_factory,
         ?DebugLog $log = null,
         ?callable $clock = null,
+        // 2026-11-17 14:58 +03: Task M3.15, task 596. The unlock-token key is a secret: kept out of stack traces (PHP 8.2+; a comment on 7.4).
+        #[\SensitiveParameter]
         string $secret = ''
     ) {
         $this->secret = $secret;
