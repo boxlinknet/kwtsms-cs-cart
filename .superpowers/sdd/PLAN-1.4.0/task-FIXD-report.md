@@ -1,0 +1,9 @@
+# FIX-D report (task 596): idx_created_status on kwtsms_otp_codes
+
+- Add-on commit: addon.xml fresh install gets KEY idx_created_status (created_at, status) in place of idx_created_at; CodeKpis::liveQuery FORCE INDEX names it; PostUpgrade140::ensureCodeStatusIndex() + non-fatal run() step (2b).
+- Tests commit (tests/ repo): unit PostUpgrade140CodeIndexTest (new), CodeKpisTest and PostUpgrade140Test updated; Store test testCodeStatusIndexOnFreshInstallAndAfterTheUpgradeStep and ensure calls in the existing schema-equality tests (written, NOT run; php -l ok).
+- Unit: 7473 tests, only the 5 LicenceGuardTest failures (+ its 1 pre-existing host error). phpcs: no new warnings on changed lines.
+- Redundancy decision: idx_created_at is the leftmost prefix and is dropped. Only CodeKpis named it on this table (FORCE INDEX, now changed); IntegrationsPage, SuspicionGate and OtpService purge use bare created_at ranges, served by the new key; DbLogStore's FORCE INDEX is on the log tables only. Fresh install: only idx_created_status. Upgrade: one ALTER ADD KEY idx_created_status, DROP KEY idx_created_at (just ADD when the old key is already gone).
+- Upgrade path: PostUpgrade140::run() step 2b (after the tables check, before settings and the version). Idempotent via information_schema.STATISTICS; failure is caught, error_log + debug log "upgrade.code_index_failed", the upgrade continues (version still written, so it is reported once, not retried). The migration Kwtsms140 is unchanged (DDL for new tables only); the banned-words test was relaxed to allow exactly that one ALTER and DROP.
+- Window split in liveByDay: kept (the 2-day scan was an optimizer choice; removal not proven safe). FORCE INDEX kept.
+- Live needs: none beyond the tester's Docker gate running the new store test. Table count unchanged (20).

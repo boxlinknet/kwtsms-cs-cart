@@ -639,10 +639,14 @@ DEPENDS:   func.php (fn_kwtsms_install, fn_kwtsms_uninstall, fn_kwtsms_settings_
             `storefront_id` int(11) unsigned NOT NULL DEFAULT 0,
             PRIMARY KEY (`code_id`),
             KEY `purpose_subject` (`purpose`, `subject`, `status`),
-            KEY `idx_created_at` (`created_at`),
+            KEY `idx_created_status` (`created_at`, `status`),
             KEY `idx_user_id` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET UTF8;
         </item>
+        <!-- 2026-11-17 18:10 +03: idx_created_status (created_at, status) replaces idx_created_at on kwtsms_otp_codes, FIX-D: the code KPI
+             query (CodeKpis::liveByDay) needs status per row, so with created_at alone every row was a table lookup (300-660 ms
+             per one-day window on 1M rows; 13-18 ms covered). The old key is its leftmost prefix and no query names it. Upgrades get
+             it from PostUpgrade140::ensureCodeStatusIndex(), task 596. -->
         <!-- 2026-10-23 17:15 +03: idx_user_id on kwtsms_otp_codes for the GDPR collect and anonymize queries (they filter
              on user_id; without it the DELETE scans and locks the whole table). Fix round 1, finding M3, ruling P3-R2: a
              deliberate departure from the plan's Data model; Task M1.1b builds the same definition, task 596. -->
