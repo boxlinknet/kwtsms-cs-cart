@@ -283,6 +283,86 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.spike.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
             </section>
 
+            {* 2026-11-17 07:29 +03: Task M3.13, task 596. The 1.4.0 sections. *}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_events" aria-labelledby="kwtsms_help_events_title">
+                <h4 class="subheader" id="kwtsms_help_events_title">{__("kwtsms.help.events.title")}</h4>
+                <p>{__("kwtsms.help.events.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="integrations" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.events.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.events.p3")}</p>
+                <p>{__("kwtsms.help.events.p4")}</p>
+                <p>{__("kwtsms.help.events.p5")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_forms" aria-labelledby="kwtsms_help_forms_title">
+                <h4 class="subheader" id="kwtsms_help_forms_title">{__("kwtsms.help.forms.title")}</h4>
+                <p>{__("kwtsms.help.forms.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="logs" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.forms.p2")}</p>
+                <p>{__("kwtsms.help.forms.p3")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_bis" aria-labelledby="kwtsms_help_bis_title">
+                <h4 class="subheader" id="kwtsms_help_bis_title">{__("kwtsms.help.bis.title")}</h4>
+                <p>{__("kwtsms.help.bis.p1")}</p>
+                <p>{__("kwtsms.help.bis.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.bis.p3")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_gift" aria-labelledby="kwtsms_help_gift_title">
+                <h4 class="subheader" id="kwtsms_help_gift_title">{__("kwtsms.help.gift.title")}</h4>
+                <p>{__("kwtsms.help.gift.p1")}</p>
+                <p>{__("kwtsms.help.gift.p2")}</p>
+                <p>{__("kwtsms.help.gift.p3")}</p>
+            </section>
+
+            {if $h.is_multivendor}
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_vendors14" aria-labelledby="kwtsms_help_vendors14_title">
+                <h4 class="subheader" id="kwtsms_help_vendors14_title">{__("kwtsms.help.vendors14.title")}</h4>
+                <p>{__("kwtsms.help.vendors14.p1")}</p>
+                <p>{__("kwtsms.help.vendors14.p2")}</p>
+                <p>{__("kwtsms.help.vendors14.p3")}</p>
+                <p>{__("kwtsms.help.vendors14.p4")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="vendors" pages=$h.pages}</p>
+            </section>
+            {/if}
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_rules" aria-labelledby="kwtsms_help_rules_title">
+                <h4 class="subheader" id="kwtsms_help_rules_title">{__("kwtsms.help.rules.title")}</h4>
+                <p>{__("kwtsms.help.rules.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.rules.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.rules.p3")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_transfer" aria-labelledby="kwtsms_help_transfer_title">
+                <h4 class="subheader" id="kwtsms_help_transfer_title">{__("kwtsms.help.transfer.title")}</h4>
+                <p>{__("kwtsms.help.transfer.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.transfer.p2")}</p>
+                <p>{__("kwtsms.help.transfer.p3")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_bulk" aria-labelledby="kwtsms_help_bulk_title">
+                <h4 class="subheader" id="kwtsms_help_bulk_title">{__("kwtsms.help.bulk.title")}</h4>
+                <p>{__("kwtsms.help.bulk.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="logs" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.bulk.p2")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_kpis" aria-labelledby="kwtsms_help_kpis_title">
+                <h4 class="subheader" id="kwtsms_help_kpis_title">{__("kwtsms.help.kpis.title")}</h4>
+                <p>{__("kwtsms.help.kpis.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="dashboard" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.kpis.p2")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_safeguards" aria-labelledby="kwtsms_help_safeguards_title">
+                <h4 class="subheader" id="kwtsms_help_safeguards_title">{__("kwtsms.help.safeguards.title")}</h4>
+                <p>{__("kwtsms.help.safeguards.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.safeguards.p2")}</p>
+            </section>
+
+            <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_phones14" aria-labelledby="kwtsms_help_phones14_title">
+                <h4 class="subheader" id="kwtsms_help_phones14_title">{__("kwtsms.help.phones14.title")}</h4>
+                <p>{__("kwtsms.help.phones14.p1")}</p>
+                <p>{__("kwtsms.help.phones14.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="settings" pages=$h.pages}</p>
+                <p>{__("kwtsms.help.phones14.p3")}</p>
+            </section>
+
             {* ---- customer opt-out *}
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_optout" aria-labelledby="kwtsms_help_optout_title">
                 <h4 class="subheader" id="kwtsms_help_optout_title">{__("kwtsms.help.optout.title")}</h4>

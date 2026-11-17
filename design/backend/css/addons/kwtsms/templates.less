@@ -705,6 +705,13 @@ DEPENDS:   Nothing at build time.
         .kwtsms-switch-note {
             max-width: none;
         }
+        /* 2026-11-17 07:20 +03: Task M3.13 (parked from M3.1), task 596. The core floating SIDEBAR tab overlays the
+           inline-end edge at this width and clipped the "No switch here" note: keep the note clear of the tab and let
+           it break anywhere. The tester opens the 375 px screenshots (EN and AR) to confirm. */
+        .kwtsms-switch-note {
+            padding-inline-end: 36px;
+            overflow-wrap: anywhere;
+        }
         .kwtsms-matrix tr.kwtsms-row.is-editing {
             background: @kwt-brand-tint;
         }

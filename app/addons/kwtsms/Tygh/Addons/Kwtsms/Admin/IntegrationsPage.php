@@ -32,6 +32,8 @@
  *            2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Coming in 1.3" list became the live "Sign-in and
  *            security" rows (securityRows(): sign-in by code, two-step, recovery by code, checkout code, country
  *            selector, vendor phone self-verification in Multi-Vendor).
+ *            2026-11-17 07:29 +03: Task M3.13 (1.4.0), task 596. The LATER_ADDONS rows are live (addonRow(): state of the
+ *            owning add-on, switches ON per event, SMS accepted today); ADDON_EVENTS maps each add-on to its events.
  */
 
 namespace Tygh\Addons\Kwtsms\Admin;
@@ -39,6 +41,7 @@ namespace Tygh\Addons\Kwtsms\Admin;
 use Tygh\Addons\Kwtsms\Antibot\CaptchaDetector; // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
 use Tygh\Addons\Kwtsms\Auth\TwoFactorStats; // 2026-11-07 02:46 +03: Task M2.7, task 596
 use Tygh\Addons\Kwtsms\Log\DebugLog;
+use Tygh\Addons\Kwtsms\Notifications\NotificationSettingsExtender; // 2026-11-17 07:15 +03: Task M3.13, task 596
 use Tygh\Addons\Kwtsms\Orders\NewOrderDetector;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndex;
 use Tygh\Addons\Kwtsms\Phones\PhoneIndexBackfill;
@@ -76,6 +79,23 @@ class IntegrationsPage
     public const LATER_ADDONS = [
         'rma', 'call_requests', 'back_in_stock', 'gift_certificates', 'product_reviews', 'discussion',
         'vendor_communication',
+    ];
+
+    /**
+     * 2026-11-17 07:15 +03: Task M3.13, task 596. The event ids of each add-on of LATER_ADDONS: a prefix ending in a
+     * dot matches the whole family, any other entry is one exact event id. The Integrations rows count the switches
+     * ON and the SMS sent today over these.
+     *
+     * @var array<string,string[]>
+     */
+    public const ADDON_EVENTS = [
+        'rma' => ['rma.status_changed.'],
+        'call_requests' => ['call_requests.'],
+        'back_in_stock' => ['product.back_in_stock'],
+        'gift_certificates' => ['gift_certificates.'],
+        'product_reviews' => ['product_reviews.'],
+        'discussion' => ['discussion.'],
+        'vendor_communication' => ['vendor_communication.'],
     ];
 
     /**
@@ -239,9 +259,30 @@ class IntegrationsPage
 
         $driver = $this->captchaDriver(); // 2026-11-04 12:40 +03: Task RC2 item 3, task 596
         $is_mve = $this->isMultiVendor();
+        // 2026-11-17 07:15 +03: Task M3.13, task 596. The add-on rows are live: the state of the owning add-on, the
+        // kwtsms switches ON over its events and the SMS accepted today (one read of the stored switches, one grouped
+        // read of today's messages).
         $later = [];
+        $may_templates = call_user_func($has_privilege, 'manage_kwtsms') === true;
+        $switch_map = $this->storedSwitches();
+        // 2026-11-17 07:45 +03: Task M3.13 review round 1 (M1), task 596. The states are read once; the SMS-today query
+        // (one grouped read of kwtsms_messages) runs once per page view and only when an owning add-on is active.
+        $active = [];
+        $any_active = false;
         foreach (self::LATER_ADDONS as $id) {
-            $later[] = ['id' => $id, 'active' => $this->addonActive($id)];
+            $active[$id] = $this->addonActive($id);
+            $any_active = $any_active || $active[$id];
+        }
+        $today = $any_active ? $this->smsTodayByEvent((int) strtotime('today', $this->now())) : [];
+        foreach (self::LATER_ADDONS as $id) {
+            $later[] = self::addonRow(
+                $id,
+                $active[$id],
+                $this->addonInstalled($id),
+                $switch_map,
+                $today,
+                $may_templates
+            );
         }
 
         return [
@@ -289,6 +330,60 @@ class IntegrationsPage
                 'link' => $may_settings ? 'settings.manage?section_id=Image_verification' : '',
             ],
             'later' => $later,
+        ];
+    }
+
+    /**
+     * 2026-11-17 07:15 +03: Task M3.13, task 596. One row of the add-on list: state ('active', 'disabled' = installed but
+     * off, 'missing'), the number of (event, receiver) switches ON over the add-on's events (0 while the add-on is not
+     * active: leftover rows do nothing), the SMS accepted today over the same events and the Templates link (only for
+     * an active add-on and an administrator who manages templates).
+     *
+     * @param array<string,array<string,bool>> $switch_map event id => receiver => switch
+     * @param array<string,int>                $today      event id => SMS accepted today
+     *
+     * @return array{id:string,active:bool,state:string,switches:int,sms_today:int,link:string}
+     */
+    public static function addonRow(
+        string $id,
+        bool $active,
+        bool $installed,
+        array $switch_map,
+        array $today,
+        bool $may_templates
+    ): array {
+        $prefixes = self::ADDON_EVENTS[$id] ?? [];
+        $owns = static function (string $event) use ($prefixes): bool {
+            foreach ($prefixes as $prefix) {
+                if ($event === $prefix || (substr($prefix, -1) === '.' && strpos($event, $prefix) === 0)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+        $switches = 0;
+        if ($active) {
+            foreach ($switch_map as $event => $receivers) {
+                if ($owns((string) $event)) {
+                    $switches += count(array_filter((array) $receivers));
+                }
+            }
+        }
+        $sms = 0;
+        foreach ($today as $event => $count) {
+            if ($owns((string) $event)) {
+                $sms += (int) $count;
+            }
+        }
+
+        return [
+            'id' => $id,
+            'active' => $active,
+            'state' => $active ? 'active' : ($installed ? 'disabled' : 'missing'),
+            'switches' => $switches,
+            'sms_today' => $sms,
+            'link' => $active && $may_templates ? 'kwtsms.templates' : '',
         ];
     }
 
@@ -827,6 +922,44 @@ class IntegrationsPage
     protected function addonActive(string $id): bool
     {
         return (string) \Tygh\Registry::get('addons.' . $id . '.status') === 'A';
+    }
+
+    /** Installed (active or disabled). 2026-11-17 07:15 +03: Task M3.13, task 596. Test seam. */
+    protected function addonInstalled(string $id): bool
+    {
+        return (string) \Tygh\Registry::get('addons.' . $id . '.status') !== '';
+    }
+
+    /**
+     * The stored kwtsms switches (event id => receiver => on). 2026-11-17 07:15 +03: Task M3.13, task 596. Test seam.
+     *
+     * @return array<string,array<string,bool>>
+     */
+    protected function storedSwitches(): array
+    {
+        return NotificationSettingsExtender::storedRows();
+    }
+
+    /**
+     * SMS accepted since $since by event id (live and test sends, the accepted outcomes). One grouped read on
+     * idx_created_at. 2026-11-17 07:15 +03: Task M3.13, task 596. Test seam.
+     *
+     * @return array<string,int>
+     */
+    protected function smsTodayByEvent(int $since): array
+    {
+        $rows = (array) db_get_array(
+            'SELECT event_id, COUNT(*) AS n FROM ?:kwtsms_messages FORCE INDEX (idx_created_at)'
+            . ' WHERE created_at >= ?i AND status IN (?a) GROUP BY event_id',
+            $since,
+            OutcomeGroups::ACCEPTED
+        );
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(string) $row['event_id']] = (int) $row['n'];
+        }
+
+        return $out;
     }
 
     /** Whether the core "checkout" CAPTCHA scenario is on (the recaptcha add-on shares it). */

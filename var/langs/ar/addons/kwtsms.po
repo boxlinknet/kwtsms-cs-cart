@@ -79,15 +79,15 @@ msgstr "كلمة مرور API"
 
 msgctxt "SettingsOptions::kwtsms::sender_id"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "SettingsOptions::kwtsms::sender_type"
 msgid "Sender ID type"
-msgstr "نوع معرف المرسل"
+msgstr "نوع اسم المرسل"
 
 msgctxt "SettingsOptions::kwtsms::sender_id_promotional"
 msgid "Promotional Sender ID"
-msgstr "معرف المرسل الترويجي"
+msgstr "اسم مرسل (إعلاني)"
 
 msgctxt "SettingsOptions::kwtsms::cap_recipient_hour"
 msgid "Messages per recipient per hour"
@@ -337,7 +337,7 @@ msgstr "يحتوي الطلب على أكثر من 200 رقم. هذا خطأ ف�
 
 msgctxt "Languages::kwtsms.err.ERR008"
 msgid "kwtSMS banned this Sender ID. Select another Sender ID in the settings."
-msgstr "حظرت kwtSMS معرف المرسل هذا. اختر معرف مرسل آخر من الإعدادات."
+msgstr "حظرت kwtSMS اسم المرسل هذا. اختر اسم مرسل آخر من الإعدادات."
 
 msgctxt "Languages::kwtsms.err.ERR009"
 msgid "The message is empty. Add text to the template."
@@ -401,7 +401,7 @@ msgstr "رفضت kwtSMS الرسالة لأنها تحتوي رمزا تعبير
 
 msgctxt "Languages::kwtsms.err.LOCAL_TIMEOUT"
 msgid "kwtSMS didn't answer in time. The request may have been received. Check the kwtSMS archive and queue before you resend."
-msgstr "لم تردّ kwtSMS في الوقت المحدد. قد يكون الطلب وصل. راجع أرشيف kwtSMS وقائمة الانتظار قبل إعادة الإرسال."
+msgstr "لم تردّ kwtSMS في الوقت المحدد. قد يكون الطلب وصل. راجع أرشيف kwtSMS وطابور الارسال قبل إعادة الإرسال."
 
 msgctxt "Languages::kwtsms.err.LOCAL_CONNECT"
 msgid "Could not reach kwtSMS. Nothing was sent. Check that this server can open https://www.kwtsms.com."
@@ -417,11 +417,11 @@ msgstr "تعذر العثور على خادم kwtSMS (فشل بحث DNS). لم �
 
 msgctxt "Languages::kwtsms.err.LOCAL_BAD_JSON"
 msgid "kwtSMS sent a reply this add-on can't read. Check the kwtSMS archive and queue before you resend."
-msgstr "أرسلت kwtSMS ردا لا تستطيع الإضافة قراءته. راجع أرشيف kwtSMS وقائمة الانتظار قبل إعادة الإرسال."
+msgstr "أرسلت kwtSMS ردا لا تستطيع الإضافة قراءته. راجع أرشيف kwtSMS وطابور الارسال قبل إعادة الإرسال."
 
 msgctxt "Languages::kwtsms.err.LOCAL_HTTP"
 msgid "kwtSMS answered with an unexpected HTTP status and no usable reply. Check the kwtSMS archive and queue before you resend."
-msgstr "ردّت kwtSMS برمز HTTP غير متوقع ودون رد مفهوم. راجع أرشيف kwtSMS وقائمة الانتظار قبل إعادة الإرسال."
+msgstr "ردّت kwtSMS برمز HTTP غير متوقع ودون رد مفهوم. راجع أرشيف kwtSMS وطابور الارسال قبل إعادة الإرسال."
 
 msgctxt "Languages::kwtsms.err.LOCAL_CANCELLED"
 msgid "The request was cancelled before it was sent."
@@ -641,7 +641,7 @@ msgstr "قبلتها kwtSMS للإرسال."
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.outcome.test_queued"
 msgid "Accepted in test mode, not delivered. It holds credits until you delete it from your kwtSMS queue or it's purged automatically once a month."
-msgstr "مقبولة في وضع الاختبار ولم تصل. تحتجز النقاط إلى أن تحذفها من قائمة الانتظار في kwtSMS أو تُحذف تلقائيا مرة في الشهر."
+msgstr "مقبولة في وضع الاختبار ولم تصل. تحتجز النقاط إلى أن تحذفها من طابور الارسال في kwtSMS أو تُحذف تلقائيا مرة في الشهر."
 
 msgctxt "Languages::kwtsms.outcome.partial_accept"
 msgid "kwtSMS accepted fewer numbers than were sent. Check the message log of this send."
@@ -653,7 +653,7 @@ msgstr "رفضت kwtSMS هذا الإرسال. السبب موجود في الس
 
 msgctxt "Languages::kwtsms.outcome.unknown"
 msgid "No reply after the request was sent. Check your kwtSMS archive and queue before you resend."
-msgstr "لم يصل رد بعد إرسال الطلب. راجع الأرشيف وقائمة الانتظار في kwtSMS قبل إعادة الإرسال."
+msgstr "لم يصل رد بعد إرسال الطلب. راجع الأرشيف وطابور الارسال في kwtSMS قبل إعادة الإرسال."
 
 msgctxt "Languages::kwtsms.outcome.rejected"
 msgid "kwtSMS rejected this message. Review the template wording."
@@ -841,19 +841,19 @@ msgstr "فشل تشغيل مهمة kwtSMS المجدولة: [details]"
 
 msgctxt "Languages::kwtsms.alert.sender_removed.title"
 msgid "Sender ID removed from your kwtSMS account"
-msgstr "تمت إزالة معرف المرسل من حساب kwtSMS"
+msgstr "تمت إزالة اسم المرسل من حساب kwtSMS"
 
 msgctxt "Languages::kwtsms.alert.sender_removed.text"
 msgid "The Sender ID [sender] is no longer on your kwtSMS account, so SMS are paused. Select another Sender ID in the kwtSMS settings."
-msgstr "معرف المرسل [sender] لم يعد موجودا في حساب kwtSMS، لذلك توقف إرسال الرسائل. اختر معرف مرسل آخر من إعدادات kwtSMS."
+msgstr "اسم المرسل [sender] لم يعد موجودا في حساب kwtSMS، لذلك توقف إرسال الرسائل. اختر اسم مرسل آخر من إعدادات kwtSMS."
 
 msgctxt "Languages::kwtsms.alert.sender_banned.title"
 msgid "kwtSMS banned your Sender ID"
-msgstr "حظرت kwtSMS معرف المرسل"
+msgstr "حظرت kwtSMS اسم المرسل"
 
 msgctxt "Languages::kwtsms.alert.sender_banned.text"
 msgid "kwtSMS banned the Sender ID [sender], so SMS are paused. Select another Sender ID in the kwtSMS settings."
-msgstr "حظرت kwtSMS معرف المرسل [sender]، لذلك توقف إرسال الرسائل. اختر معرف مرسل آخر من إعدادات kwtSMS."
+msgstr "حظرت kwtSMS اسم المرسل [sender]، لذلك توقف إرسال الرسائل. اختر اسم مرسل آخر من إعدادات kwtSMS."
 
 msgctxt "Languages::kwtsms.alert.test_mode.title"
 msgid "SMS test mode is on"
@@ -864,7 +864,7 @@ msgstr "وضع اختبار الرسائل مفعل"
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.alert.test_mode.text"
 msgid "Customers are not receiving SMS because test mode is on. [count] test message may still hold about [credits] in your kwtSMS queue. Delete it at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings.|Customers are not receiving SMS because test mode is on. [count] test messages may still hold about [credits] in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue, then turn test mode off in the kwtSMS settings."
-msgstr "لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز رسالة اختبار واحدة نحو [credits] في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز رسالتا اختبار نحو [credits] في قائمة الانتظار في kwtSMS. احذفهما من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسائل اختبار نحو [credits] في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في قائمة الانتظار في kwtSMS. احذفها من kwtsms.com > الحساب > قائمة الانتظار، ثم أوقف وضع الاختبار من إعدادات kwtSMS."
+msgstr "لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في طابور الارسال في kwtSMS. احذفها من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز رسالة اختبار واحدة نحو [credits] في طابور الارسال في kwtSMS. احذفها من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز رسالتا اختبار نحو [credits] في طابور الارسال في kwtSMS. احذفهما من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسائل اختبار نحو [credits] في طابور الارسال في kwtSMS. احذفها من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في طابور الارسال في kwtSMS. احذفها من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS.|لا يستقبل العملاء الرسائل لأن وضع الاختبار مفعل. قد تحتجز [count] رسالة اختبار نحو [credits] في طابور الارسال في kwtSMS. احذفها من kwtsms.com > الحساب > طابور الارسال، ثم أوقف وضع الاختبار من إعدادات kwtSMS."
 
 # 2026-10-21 05:16 +03: Task 1.11 fix round 1, task 596. text_none is the test-mode notice when no test message holds credits.
 msgctxt "Languages::kwtsms.alert.test_mode.text_none"
@@ -1194,7 +1194,7 @@ msgstr "رمز بجانب عنصر متغير قد يتحول إلى حرف آخ
 
 msgctxt "Languages::kwtsms.templates.warn_promotional"
 msgid "Promotional wording: [found]. Keep order texts about the order. Promotions don't reach numbers on the do-not-disturb (DND) list."
-msgstr "عبارات ترويجية: [found]. أبقِ نصوص الطلبات عن الطلب. الرسائل الترويجية لا تصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)."
+msgstr "عبارات إعلانية: [found]. أبقِ نصوص الطلبات عن الطلب. الرسائل الإعلانية لا تصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)."
 
 msgctxt "Languages::kwtsms.templates.warn_unknown"
 msgid "Unknown placeholders: [found]. An SMS that holds one isn't sent."
@@ -1565,23 +1565,23 @@ msgstr "تسجيل الدخول"
 
 msgctxt "Languages::kwtsms.settings.sender"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "Languages::kwtsms.settings.sender_none"
 msgid "Log in to load the Sender IDs of your kwtSMS account."
-msgstr "سجل الدخول لتحميل معرفات المرسل في حساب kwtSMS."
+msgstr "سجل الدخول لتحميل أسماء المرسل في حساب kwtSMS."
 
 msgctxt "Languages::kwtsms.settings.sender_empty_list"
 msgid "Your kwtSMS account has no Sender ID yet. Request one at kwtsms.com, then sync."
-msgstr "لا يوجد معرف مرسل في حساب kwtSMS بعد. اطلب واحدا من kwtsms.com ثم نفذ المزامنة."
+msgstr "لا يوجد اسم مرسل في حساب kwtSMS بعد. اطلب واحدا من kwtsms.com ثم نفذ المزامنة."
 
 msgctxt "Languages::kwtsms.settings.sender_choose"
 msgid "Choose a Sender ID"
-msgstr "اختر معرف المرسل"
+msgstr "اختر اسم المرسل"
 
 msgctxt "Languages::kwtsms.settings.sender_test_warning"
 msgid "KWT-SMS is the kwtSMS test sender. Delivery is delayed and it does not reach Virgin or DND-listed numbers. Register a private transactional Sender ID."
-msgstr "KWT-SMS هو مرسل الاختبار في kwtSMS. يتأخر التسليم ولا يصل إلى أرقام Virgin أو الأرقام المسجلة في قائمة عدم الإزعاج. سجل معرف مرسل خاصا للرسائل التشغيلية."
+msgstr "KWT-SMS هو مرسل الاختبار في kwtSMS. يتأخر التسليم ولا يصل إلى أرقام Virgin أو الأرقام المسجلة في قائمة عدم الإزعاج. سجل اسم مرسل (إشعارات) خاصا بك."
 
 msgctxt "Languages::kwtsms.settings.sender_type_transactional"
 msgid "Transactional"
@@ -1589,15 +1589,15 @@ msgstr "تشغيلي"
 
 msgctxt "Languages::kwtsms.settings.sender_type_promotional"
 msgid "Promotional"
-msgstr "ترويجي"
+msgstr "إعلاني"
 
 msgctxt "Languages::kwtsms.settings.sender_type_help"
 msgid "Order messages need a transactional Sender ID."
-msgstr "رسائل الطلبات تحتاج إلى معرف مرسل تشغيلي."
+msgstr "رسائل الطلبات تحتاج إلى اسم مرسل تشغيلي."
 
 msgctxt "Languages::kwtsms.settings.promotional_warning"
 msgid "A promotional Sender ID doesn't reach numbers on the do-not-disturb (DND) list, so some customers won't get their order SMS."
-msgstr "معرف المرسل الترويجي لا يصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)، لذلك لن يستلم بعض العملاء رسائل طلباتهم."
+msgstr "اسم مرسل (إعلاني) لا يصل إلى الأرقام المسجلة في قائمة عدم الإزعاج (DND)، لذلك لن يستلم بعض العملاء رسائل طلباتهم."
 
 msgctxt "Languages::kwtsms.settings.general"
 msgid "Sending"
@@ -1622,7 +1622,7 @@ msgstr "الإرسال كرسائل اختبار"
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.settings.test_mode_help"
 msgid "kwtSMS accepts test messages but doesn't deliver them. Each one holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month."
-msgstr "تقبل kwtSMS رسائل الاختبار لكنها لا تسلمها. تحتجز كل رسالة نقاطا في قائمة الانتظار في kwtSMS إلى أن تحذفها أو تُحذف تلقائيا مرة في الشهر."
+msgstr "تقبل kwtSMS رسائل الاختبار لكنها لا تسلمها. تحتجز كل رسالة نقاطا في طابور الارسال في kwtSMS إلى أن تحذفها أو تُحذف تلقائيا مرة في الشهر."
 
 msgctxt "Languages::kwtsms.settings.ack_test_sender"
 msgid "I understand that KWT-SMS delays delivery and doesn't reach Virgin or DND-listed numbers."
@@ -1766,11 +1766,11 @@ msgstr "أطول رسالة طلب"
 
 msgctxt "Languages::kwtsms.settings.field.sender_id"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "Languages::kwtsms.settings.field.sender_type"
 msgid "Sender ID type"
-msgstr "نوع معرف المرسل"
+msgstr "نوع اسم المرسل"
 
 msgctxt "Languages::kwtsms.settings.field.cap_recipient_hour"
 msgid "SMS per customer number per hour"
@@ -1834,7 +1834,7 @@ msgstr "لم يحفظ: [field]. [reason]"
 
 msgctxt "Languages::kwtsms.settings.ack_required"
 msgid "Test mode is still on. To turn it off while KWT-SMS is the Sender ID, tick the confirmation under Test mode."
-msgstr "ما زال وضع الاختبار مفعلا. لإيقافه بينما KWT-SMS هو معرف المرسل، حدد خانة التأكيد أسفل وضع الاختبار."
+msgstr "ما زال وضع الاختبار مفعلا. لإيقافه بينما KWT-SMS هو اسم المرسل، حدد خانة التأكيد أسفل وضع الاختبار."
 
 msgctxt "Languages::kwtsms.settings.enable_refused"
 msgid "SMS are still off. [reason]"
@@ -1906,15 +1906,15 @@ msgstr "سجل الدخول إلى kwtSMS أولا."
 
 msgctxt "Languages::kwtsms.reason.no_sender_ids"
 msgid "Your kwtSMS account has no Sender ID yet."
-msgstr "لا يوجد معرف مرسل في حساب kwtSMS بعد."
+msgstr "لا يوجد اسم مرسل في حساب kwtSMS بعد."
 
 msgctxt "Languages::kwtsms.reason.sender_not_in_list"
 msgid "Choose a Sender ID."
-msgstr "اختر معرف المرسل."
+msgstr "اختر اسم المرسل."
 
 msgctxt "Languages::kwtsms.reason.sender_banned"
 msgid "kwtSMS banned this Sender ID. Choose another one."
-msgstr "حظرت kwtSMS معرف المرسل هذا. اختر معرفا آخر."
+msgstr "حظرت kwtSMS اسم المرسل هذا. اختر اسما آخر."
 
 msgctxt "Languages::kwtsms.reason.unknown_country"
 msgid "Choose a country from the list."
@@ -1922,7 +1922,7 @@ msgstr "اختر دولة من القائمة."
 
 msgctxt "Languages::kwtsms.reason.sender_unknown"
 msgid "Choose a Sender ID from the list."
-msgstr "اختر معرف مرسل من القائمة."
+msgstr "اختر اسم مرسل من القائمة."
 
 msgctxt "Languages::kwtsms.reason.invalid"
 msgid "The value isn't valid."
@@ -2011,7 +2011,7 @@ msgstr "الرصيد بعد الإرسال"
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.test_sms.test_note"
 msgid "Accepted but not delivered. It holds credits until you delete it from your kwtSMS queue or it's purged automatically once a month."
-msgstr "قبلت الرسالة لكنها لم تسلم. تحتجز النقاط إلى أن تحذفها من قائمة الانتظار في kwtSMS أو تُحذف تلقائيا مرة في الشهر."
+msgstr "قبلت الرسالة لكنها لم تسلم. تحتجز النقاط إلى أن تحذفها من طابور الارسال في kwtSMS أو تُحذف تلقائيا مرة في الشهر."
 
 # 2026-10-21 02:17 +03: Task 1.10, task 596. Placeholder of the empty, read-only password field of the connected view.
 msgctxt "Languages::kwtsms.settings.password_saved"
@@ -2034,7 +2034,7 @@ msgstr "تم حفظ باقي الإعدادات."
 
 msgctxt "Languages::kwtsms.settings.ack_required_sender"
 msgid "The Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under Test mode first."
-msgstr "لم يتغير معرف المرسل إلى KWT-SMS. بما أن وضع الاختبار متوقف، حدد خانة التأكيد أسفل وضع الاختبار أولا."
+msgstr "لم يتغير اسم المرسل إلى KWT-SMS. بما أن وضع الاختبار متوقف، حدد خانة التأكيد أسفل وضع الاختبار أولا."
 
 msgctxt "Languages::kwtsms.settings.on_not_ready"
 msgid "SMS are switched on, but none go out until this is fixed. [reason]"
@@ -2076,7 +2076,7 @@ msgstr "الوضع التجريبي"
 
 msgctxt "Languages::kwtsms.dash.card.sender"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "Languages::kwtsms.dash.card.balance"
 msgid "Balance"
@@ -2112,7 +2112,7 @@ msgstr "للمعاملات"
 
 msgctxt "Languages::kwtsms.dash.sender_type.promotional"
 msgid "Promotional"
-msgstr "ترويجي"
+msgstr "إعلاني"
 
 # 2026-10-21 14:08 +03: six forms split by "|"; the number is shown in its own element before the text. Cleanup 2 item 4, task 596.
 msgctxt "Languages::kwtsms.dash.balance.available"
@@ -2223,7 +2223,7 @@ msgstr "تسجيل الدخول"
 
 msgctxt "Languages::kwtsms.dash.setup.sender"
 msgid "Choose a Sender ID"
-msgstr "اختر معرف المرسل"
+msgstr "اختر اسم المرسل"
 
 msgctxt "Languages::kwtsms.dash.setup.sender.link"
 msgid "Choose"
@@ -2287,7 +2287,7 @@ msgstr "تحقق من هذه البنود قبل أن يتلقى العملاء 
 
 msgctxt "Languages::kwtsms.dash.golive.sender_ordered"
 msgid "Order a transactional Sender ID (about 5 working days)"
-msgstr "اطلب معرف مرسل للمعاملات (نحو 5 أيام عمل)"
+msgstr "اطلب اسم مرسل للمعاملات (نحو 5 أيام عمل)"
 
 msgctxt "Languages::kwtsms.dash.golive.sender_ordered.link"
 msgid "How to order"
@@ -2345,7 +2345,7 @@ msgstr "الرسائل متوقفة، لذلك لا يُرسل شيء بعد. ع
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.dash.test.held"
 msgid "[n] test message since [date] may still hold about [credits] in your kwtSMS queue. Delete it at kwtsms.com > Account > Queue to get the credits back now. kwtSMS also purges test messages automatically once a month.|[n] test messages since [date] may still hold about [credits] in your kwtSMS queue. Delete them at kwtsms.com > Account > Queue to get the credits back now. kwtSMS also purges test messages automatically once a month."
-msgstr "لا توجد رسائل اختبار تحجز نقاطا في قائمة الانتظار لدى kwtSMS.|قد تحجز رسالة اختبار واحدة منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز رسالتا اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفهما من صفحة قائمة الانتظار في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسائل اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسالة اختبار منذ [date] نحو [credits] في قائمة الانتظار لدى kwtSMS. احذفها من صفحة قائمة الانتظار في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر."
+msgstr "لا توجد رسائل اختبار تحجز نقاطا في طابور الارسال لدى kwtSMS.|قد تحجز رسالة اختبار واحدة منذ [date] نحو [credits] في طابور الارسال لدى kwtSMS. احذفها من صفحة طابور الارسال في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز رسالتا اختبار منذ [date] نحو [credits] في طابور الارسال لدى kwtSMS. احذفهما من صفحة طابور الارسال في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسائل اختبار منذ [date] نحو [credits] في طابور الارسال لدى kwtSMS. احذفها من صفحة طابور الارسال في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسالة اختبار منذ [date] نحو [credits] في طابور الارسال لدى kwtSMS. احذفها من صفحة طابور الارسال في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر.|قد تحجز [n] رسالة اختبار منذ [date] نحو [credits] في طابور الارسال لدى kwtSMS. احذفها من صفحة طابور الارسال في حسابك على kwtsms.com لاسترداد النقاط الآن. وتحذف kwtSMS رسائل الاختبار تلقائيا مرة في الشهر."
 
 # 2026-10-21 14:08 +03: a number of credits as text (six Arabic forms, core's plural langvar); used inside kwtsms.dash.test.held. Cleanup 2 item 4, task 596.
 # 2026-10-21 17:28 +03: plural forms (core plural langvar: two English forms, six Arabic forms 0|1|2|3-10|11-99|other; the first parameter is the number), final review M5 and cleanup 2 minors 4 and 5, task 596.
@@ -2355,7 +2355,7 @@ msgstr "[n] نقطة|نقطة واحدة|نقطتان|[n] نقاط|[n] نقطة|
 
 msgctxt "Languages::kwtsms.dash.test.none"
 msgid "No test message holds credits in your kwtSMS queue."
-msgstr "لا توجد رسالة اختبار تحجز نقاطا في قائمة الانتظار لدى kwtSMS."
+msgstr "لا توجد رسالة اختبار تحجز نقاطا في طابور الارسال لدى kwtSMS."
 
 msgctxt "Languages::kwtsms.dash.test.turn_off"
 msgid "Turn off test mode"
@@ -2621,7 +2621,7 @@ msgstr "لا توجد رسائل انتظرت في قائمة الإرسال أ�
 
 msgctxt "Languages::kwtsms.dash.warn.sync_failing"
 msgid "The last kwtSMS sync failed. SMS keep going out with the saved balance and Sender IDs, and the add-on tries again by itself."
-msgstr "فشلت آخر مزامنة مع kwtSMS. تستمر الرسائل بالخروج بالرصيد ومعرفات المرسل المحفوظة، وتعيد الإضافة المحاولة تلقائيا."
+msgstr "فشلت آخر مزامنة مع kwtSMS. تستمر الرسائل بالخروج بالرصيد وأسماء المرسل المحفوظة، وتعيد الإضافة المحاولة تلقائيا."
 
 msgctxt "Languages::kwtsms.dash.warn.weak_crypt_key"
 msgid "The store's encryption key is short or still the default, so the saved API password is weakly protected. Set a long random crypt_key in config.local.php. Changing crypt_key makes every encrypted value unreadable, including the saved API password, so log in to kwtSMS again afterwards."
@@ -3207,13 +3207,11 @@ msgid "Other add-ons"
 msgstr "إضافات أخرى"
 
 # 2026-10-29 04:13 +03: Task M1.12, task 596. 1.2 ships phone rules and SMS codes; these add-ons come in 1.4.
+# 2026-11-17 07:29 +03: Task M3.13, task 596. 1.4.0 ships these add-ons: the rows are live; the badge text
+# kwtsms.integrations.later.installed is replaced by kwtsms.integrations.later.state.*.
 msgctxt "Languages::kwtsms.integrations.later.help"
-msgid "Coming in 1.4."
-msgstr "قريبا في الإصدار 1.4."
-
-msgctxt "Languages::kwtsms.integrations.later.installed"
-msgid "Installed in this store"
-msgstr "مثبتة في هذا المتجر"
+msgid "Add-ons with their own SMS events. Every switch starts OFF. Turn on the ones you want on the Templates page."
+msgstr "إضافات لها أحداث SMS خاصة بها. يبدأ كل مفتاح مطفأ. فعّل ما تريد من صفحة القوالب."
 
 msgctxt "Languages::kwtsms.integrations.later.rma"
 msgid "Returns (RMA)"
@@ -3301,11 +3299,11 @@ msgstr "بعد ذلك فعّل الوصول عبر API في حسابك في kwtS
 
 msgctxt "Languages::kwtsms.help.account.sender_title"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "Languages::kwtsms.help.account.sender_p1"
 msgid "The Sender ID is the name customers see as the sender. kwtSMS gives every account KWT-SMS for testing only. It can delay messages and doesn't reach Virgin Kuwait numbers. Register your own Sender ID before you go live."
-msgstr "معرف المرسل هو الاسم الذي يراه العميل كمرسل. يمنح kwtSMS كل حساب المعرف KWT-SMS للاختبار فقط. قد يؤخر الرسائل ولا يصل إلى أرقام Virgin الكويت. سجّل معرف مرسل خاصا بك قبل أن تبدأ العمل الفعلي."
+msgstr "اسم المرسل هو الاسم الذي يراه العميل كمرسل. يمنح kwtSMS كل حساب اسم المرسل KWT-SMS للاختبار فقط. قد يؤخر الرسائل ولا يصل إلى أرقام Virgin الكويت. سجّل اسم مرسل خاصا بك قبل أن تبدأ العمل الفعلي."
 
 msgctxt "Languages::kwtsms.help.account.sender_transactional"
 msgid "Transactional: for order confirmations and status updates sent to one customer. It reaches numbers on the Do Not Disturb (DND) list. One-time fee: 15 KD."
@@ -3313,11 +3311,11 @@ msgstr "تشغيلي: لتأكيدات الطلبات وتحديثات الحا�
 
 msgctxt "Languages::kwtsms.help.account.sender_promotional"
 msgid "Promotional: for offers sent to many people. Messages to DND numbers are blocked, and the credits are still spent. One-time fee: 10 KD."
-msgstr "ترويجي: للعروض التي تُرسل إلى عدد كبير من الناس. تُحجب الرسائل الموجهة إلى أرقام DND وتُخصم النقاط مع ذلك. رسم لمرة واحدة: 10 دنانير."
+msgstr "إعلاني: للعروض التي تُرسل إلى عدد كبير من الناس. تُحجب الرسائل الموجهة إلى أرقام DND وتُخصم النقاط مع ذلك. رسم لمرة واحدة: 10 دنانير."
 
 msgctxt "Languages::kwtsms.help.account.sender_p2"
 msgid "Use a transactional Sender ID for order SMS. kwtSMS registers a Sender ID in about 5 working days. The fees above were right when this page was written. The Sender ID help page has the current ones."
-msgstr "استخدم معرف مرسل تشغيليا لرسائل الطلبات. يستغرق تسجيل معرف المرسل في kwtSMS نحو 5 أيام عمل. الرسوم أعلاه صحيحة وقت كتابة هذه الصفحة، وتجد الرسوم الحالية في صفحة مساعدة معرف المرسل."
+msgstr "استخدم اسم مرسل تشغيليا لرسائل الطلبات. يستغرق تسجيل اسم المرسل في kwtSMS نحو 5 أيام عمل. الرسوم أعلاه صحيحة وقت كتابة هذه الصفحة، وتجد الرسوم الحالية في صفحة مساعدة اسم المرسل."
 
 msgctxt "Languages::kwtsms.help.account.intl_title"
 msgid "Sending outside Kuwait"
@@ -3349,7 +3347,7 @@ msgstr "سجّل الدخول. في صفحة الإعدادات، أدخل اس�
 
 msgctxt "Languages::kwtsms.help.setup.s2"
 msgid "Choose a Sender ID from the list. Don't keep KWT-SMS on a live store."
-msgstr "اختر معرف مرسل من القائمة. لا تُبقِ KWT-SMS في متجر يعمل فعليا."
+msgstr "اختر اسم مرسل من القائمة. لا تُبقِ KWT-SMS في متجر يعمل فعليا."
 
 msgctxt "Languages::kwtsms.help.setup.s3"
 msgid "Check the default country. A number typed without a country code is read as a number from that country."
@@ -3385,7 +3383,7 @@ msgstr "راجع ما يلي قبل أن يتلقى العملاء رسائل ف
 
 msgctxt "Languages::kwtsms.help.golive.g1"
 msgid "A transactional Sender ID is registered. It takes about 5 working days."
-msgstr "معرف المرسل التشغيلي مسجّل. يستغرق ذلك نحو 5 أيام عمل."
+msgstr "اسم مرسل (إشعارات) مسجّل. يستغرق ذلك نحو 5 أيام عمل."
 
 msgctxt "Languages::kwtsms.help.golive.g2"
 msgid "The English and Arabic templates are reviewed."
@@ -3402,7 +3400,7 @@ msgstr "نجحت تجربة بأرقامك أنت. يرسل الوضع التج�
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.help.golive.g5"
 msgid "Test mode is off. The test messages that held credits are deleted from your kwtSMS queue, or purged automatically once a month."
-msgstr "وضع الاختبار متوقف. رسائل الاختبار التي حجزت نقاطا محذوفة من قائمة الانتظار في kwtSMS، أو تُحذف تلقائيا مرة في الشهر."
+msgstr "وضع الاختبار متوقف. رسائل الاختبار التي حجزت نقاطا محذوفة من طابور الارسال في kwtSMS، أو تُحذف تلقائيا مرة في الشهر."
 
 msgctxt "Languages::kwtsms.help.golive.g6"
 msgid "CAPTCHA is on at checkout, so bots can't place fake orders that send SMS."
@@ -3607,11 +3605,11 @@ msgstr "وضع الاختبار مفعّل بعد التثبيت. عندها ت�
 # 2026-11-12 06:58 +03: M3.17 (P3-74), task 596. Wording only: credits stay held until the merchant deletes the test message or kwtSMS purges it automatically once a month; no day or age named (owner ruling 2026-11-11).
 msgctxt "Languages::kwtsms.help.test.p2"
 msgid "Each test message still holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. Delete them at kwtsms.com > Account > Queue to get the credits back now. The Dashboard shows how many credits are held."
-msgstr "تحتجز كل رسالة اختبار نقاطا في قائمة الانتظار في kwtSMS إلى أن تحذفها أو تُحذف تلقائيا مرة في الشهر. احذفها من kwtsms.com > الحساب > قائمة الانتظار لاسترداد النقاط الآن. تعرض لوحة المعلومات عدد النقاط المحجوزة."
+msgstr "تحتجز كل رسالة اختبار نقاطا في طابور الارسال في kwtSMS إلى أن تحذفها أو تُحذف تلقائيا مرة في الشهر. احذفها من kwtsms.com > الحساب > طابور الارسال لاسترداد النقاط الآن. تعرض لوحة المعلومات عدد النقاط المحجوزة."
 
 msgctxt "Languages::kwtsms.help.test.p3"
 msgid "Turn test mode off on Settings when you are ready for real messages. If the Sender ID is still KWT-SMS, you must confirm first."
-msgstr "أوقف وضع الاختبار من صفحة الإعدادات عندما تكون جاهزا للرسائل الفعلية. إذا كان معرف المرسل لا يزال KWT-SMS فعليك التأكيد أولا."
+msgstr "أوقف وضع الاختبار من صفحة الإعدادات عندما تكون جاهزا للرسائل الفعلية. إذا كان اسم المرسل لا يزال KWT-SMS فعليك التأكيد أولا."
 
 msgctxt "Languages::kwtsms.help.ip.title"
 msgid "IP restrictions and proxies"
@@ -3639,7 +3637,7 @@ msgstr "اتبع هذه الخطوات بالترتيب قبل أن تتواصل
 
 msgctxt "Languages::kwtsms.help.missing.s1"
 msgid "Check the queue at kwtsms.com > Account > Queue. A message here was accepted but not sent on. Delete it to get its credits back. Bad language, spam filters, and wrong formats are common causes."
-msgstr "راجع قائمة الانتظار في kwtsms.com > الحساب > قائمة الانتظار. الرسالة الموجودة هناك قُبلت ولم تُرسل. احذفها لاسترداد نقاطها. من الأسباب الشائعة الألفاظ السيئة ومرشحات الرسائل المزعجة والصيغ الخاطئة."
+msgstr "راجع طابور الارسال في kwtsms.com > الحساب > طابور الارسال. الرسالة الموجودة هناك قُبلت ولم تُرسل. احذفها لاسترداد نقاطها. من الأسباب الشائعة الألفاظ السيئة ومرشحات الرسائل المزعجة والصيغ الخاطئة."
 
 msgctxt "Languages::kwtsms.help.missing.s2"
 msgid "Check that test mode is off. Test messages are never delivered. In the add-on log they carry a TEST badge."
@@ -3655,11 +3653,11 @@ msgstr "تحقق من الرقم. افتح الرسالة في الأرشيف. �
 
 msgctxt "Languages::kwtsms.help.missing.s5"
 msgid "Check Do Not Disturb. Some customers ask their network to block promotional messages. A promotional Sender ID, and KWT-SMS, can't reach them. A transactional Sender ID can."
-msgstr "تحقق من قائمة عدم الإزعاج. بعض العملاء يطلبون من شبكتهم حجب الرسائل الترويجية. لا يصل إليهم معرف المرسل الترويجي ولا KWT-SMS، بينما يصل إليهم معرف المرسل التشغيلي."
+msgstr "تحقق من قائمة عدم الإزعاج. بعض العملاء يطلبون من شبكتهم حجب الرسائل الإعلانية. لا يصل إليهم اسم مرسل (إعلاني) ولا KWT-SMS، بينما يصل إليهم اسم مرسل (إشعارات)."
 
 msgctxt "Languages::kwtsms.help.missing.s6"
 msgid "Wait a few minutes. KWT-SMS is slow, especially on busy days. Give a message 3 to 5 minutes before you decide it is lost, and use your own Sender ID."
-msgstr "انتظر بضع دقائق. KWT-SMS بطيء، خاصة في الأيام المزدحمة. أمهل الرسالة من 3 إلى 5 دقائق قبل أن تحكم بضياعها، واستخدم معرف مرسل خاصا بك."
+msgstr "انتظر بضع دقائق. KWT-SMS بطيء، خاصة في الأيام المزدحمة. أمهل الرسالة من 3 إلى 5 دقائق قبل أن تحكم بضياعها، واستخدم اسم مرسل خاصا بك."
 
 msgctxt "Languages::kwtsms.help.missing.s7"
 msgid "Still missing? Contact kwtSMS support as described below."
@@ -3675,7 +3673,7 @@ msgstr "إذا لم تنفع الخطوات أعلاه فتواصل مع دعم 
 
 msgctxt "Languages::kwtsms.help.support.p2"
 msgid "It holds what support asks for: your API username, the message ID, the Kuwait date and time, the Sender ID, the numbers, the text, the test flag, and the error code. It never holds your password."
-msgstr "يحتوي على ما يطلبه الدعم: اسم مستخدم API ومعرف الرسالة وتاريخ ووقت الكويت ومعرف المرسل والأرقام والنص وعلامة الاختبار ورمز الخطأ. ولا يحتوي أبدا على كلمة مرورك."
+msgstr "يحتوي على ما يطلبه الدعم: اسم مستخدم API ومعرف الرسالة وتاريخ ووقت الكويت واسم المرسل والأرقام والنص وعلامة الاختبار ورمز الخطأ. ولا يحتوي أبدا على كلمة مرورك."
 
 msgctxt "Languages::kwtsms.help.links.title"
 msgid "Links"
@@ -3695,7 +3693,7 @@ msgstr "الدعم"
 
 msgctxt "Languages::kwtsms.help.links.sender_id"
 msgid "Sender ID help"
-msgstr "مساعدة معرف المرسل"
+msgstr "مساعدة اسم المرسل"
 
 msgctxt "Languages::kwtsms.help.links.faq"
 msgid "Questions and answers"
@@ -4648,11 +4646,11 @@ msgstr "معرف السبب للدعم"
 # 2026-10-22 14:53 +03: Task A2, task 596. kwtsms.alert.storefront_sender_invalid.*, the admin notice when a storefront Sender ID is not usable.
 msgctxt "Languages::kwtsms.alert.storefront_sender_invalid.title"
 msgid "A storefront Sender ID is not usable"
-msgstr "معرف المرسل الخاص بواجهة متجر غير صالح"
+msgstr "اسم المرسل الخاص بواجهة متجر غير صالح"
 
 msgctxt "Languages::kwtsms.alert.storefront_sender_invalid.text"
 msgid "The Sender ID [sender] of storefront [storefront] is no longer on your kwtSMS account or was banned, so that storefront sends under the main Sender ID. Pick another Sender ID for it in the kwtSMS settings."
-msgstr "معرف المرسل [sender] الخاص بواجهة المتجر [storefront] لم يعد في حساب kwtSMS أو تم حظره، لذلك ترسل هذه الواجهة باستخدام معرف المرسل الرئيسي. اختر معرف مرسل آخر لها من إعدادات kwtSMS."
+msgstr "اسم المرسل [sender] الخاص بواجهة المتجر [storefront] لم يعد في حساب kwtSMS أو تم حظره، لذلك ترسل هذه الواجهة باستخدام اسم المرسل الرئيسي. اختر اسم مرسل آخر لها من إعدادات kwtSMS."
 
 # 2026-10-22 14:53 +03: Task A2, task 596. kwtsms.logs.reason.storefront_switch, the plain-language attempt reason (Admin\LogsPage::LABELLED_REASONS).
 msgctxt "Languages::kwtsms.logs.reason.storefront_switch"
@@ -4735,47 +4733,47 @@ msgstr "لم يتغير شيء. هذه الواجهة ليست ضمن هذا ا�
 
 msgctxt "Languages::kwtsms.settings.sf_senders_title"
 msgid "Sender ID per storefront"
-msgstr "معرف المرسل لكل واجهة متجر"
+msgstr "اسم المرسل لكل واجهة متجر"
 
 msgctxt "Languages::kwtsms.settings.sf_senders_help"
 msgid "Each storefront can send under its own Sender ID. Leave a storefront on the main Sender ID to use the one above. If a storefront's Sender ID is removed or blocked, its SMS go out under the main Sender ID."
-msgstr "يمكن لكل واجهة متجر الإرسال بمعرف مرسل خاص بها. اترك الواجهة على معرف المرسل الرئيسي لتستخدم المعرف أعلاه. إذا حُذف معرف مرسل الواجهة أو حُظر تُرسل رسائلها بمعرف المرسل الرئيسي."
+msgstr "يمكن لكل واجهة متجر الإرسال باسم مرسل خاص بها. اترك الواجهة على اسم المرسل الرئيسي لتستخدم الاسم أعلاه. إذا حُذف اسم مرسل الواجهة أو حُظر تُرسل رسائلها باسم المرسل الرئيسي."
 
 msgctxt "Languages::kwtsms.settings.sf_sender_same"
 msgid "Same as the main Sender ID"
-msgstr "مثل معرف المرسل الرئيسي"
+msgstr "مثل اسم المرسل الرئيسي"
 
 msgctxt "Languages::kwtsms.settings.sf_sender_main"
 msgid "Main Sender ID: [sender]"
-msgstr "معرف المرسل الرئيسي: [sender]"
+msgstr "اسم المرسل الرئيسي: [sender]"
 
 msgctxt "Languages::kwtsms.settings.sf_sender_stale"
 msgid "[sender] (no longer in your Sender ID list)"
-msgstr "[sender] (لم يعد في قائمة معرفات المرسل)"
+msgstr "[sender] (لم يعد في قائمة أسماء المرسل)"
 
 msgctxt "Languages::kwtsms.settings.sf_sender_aria"
 msgid "Sender ID for [storefront]"
-msgstr "معرف المرسل لواجهة [storefront]"
+msgstr "اسم المرسل لواجهة [storefront]"
 
 msgctxt "Languages::kwtsms.settings.sf_senders_save"
 msgid "Save storefront Sender IDs"
-msgstr "حفظ معرفات المرسل للواجهات"
+msgstr "حفظ أسماء المرسل للواجهات"
 
 msgctxt "Languages::kwtsms.settings.sf_senders_saved"
 msgid "Storefront Sender IDs saved: [count] changed."
-msgstr "تم حفظ معرفات المرسل للواجهات: تغيّر [count]."
+msgstr "تم حفظ أسماء المرسل للواجهات: تغيّر [count]."
 
 msgctxt "Languages::kwtsms.settings.sf_senders_unchanged"
 msgid "No storefront Sender ID changed."
-msgstr "لم يتغير أي معرف مرسل للواجهات."
+msgstr "لم يتغير أي اسم مرسل للواجهات."
 
 msgctxt "Languages::kwtsms.settings.sf_sender_not_in_list"
 msgid "[storefront]: that Sender ID is not in your synced list. Sync, then choose again."
-msgstr "[storefront]: معرف المرسل هذا ليس في قائمتك المزامنة. زامن ثم اختر مجددا."
+msgstr "[storefront]: اسم المرسل هذا ليس في قائمتك المزامنة. زامن ثم اختر مجددا."
 
 msgctxt "Languages::kwtsms.settings.sf_ack_required"
 msgid "[storefront]: the Sender ID wasn't changed to KWT-SMS. With test mode off, tick the confirmation under the storefront Sender IDs first."
-msgstr "[storefront]: لم يتغير معرف المرسل إلى KWT-SMS. مع إيقاف وضع الاختبار فعّل التأكيد أسفل معرفات المرسل للواجهات أولا."
+msgstr "[storefront]: لم يتغير اسم المرسل إلى KWT-SMS. مع إيقاف وضع الاختبار فعّل التأكيد أسفل أسماء المرسل للواجهات أولا."
 
 msgctxt "Languages::kwtsms.settings.sf_sender_bad_storefront"
 msgid "A storefront that is not in this store was ignored."
@@ -4831,9 +4829,10 @@ msgid "A reset link SMS was already sent to this account in the last 10 minutes.
 msgstr "تم إرسال رسالة رابط إعادة التعيين إلى هذا الحساب خلال آخر 10 دقائق."
 
 # 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12, P2-R13), task 596.
+# 2026-11-17 07:29 +03: Task M3.13, task 596. Call requests and discussion posts use this reason too, not only registration.
 msgctxt "Languages::kwtsms.logs.reason.antibot_required"
-msgid "Skipped: CAPTCHA for registration is off."
-msgstr "تم التخطي: الكابتشا للتسجيل غير مفعلة."
+msgid "Skipped: the CAPTCHA for this form is off."
+msgstr "تم التخطي: الكابتشا لهذا النموذج غير مفعلة."
 
 msgctxt "Languages::kwtsms.templates.notice_captcha"
 msgid "Turn on CAPTCHA for registration to send this SMS."
@@ -5164,7 +5163,7 @@ msgstr "إرسال رسالة SMS إلى العميل"
 
 msgctxt "Languages::kwtsms.order_sms.intro"
 msgid "Sends one SMS now, from the Sender ID of this order's storefront."
-msgstr "ترسل رسالة SMS واحدة الآن باستخدام معرّف المرسل الخاص بواجهة المتجر لهذا الطلب."
+msgstr "ترسل رسالة SMS واحدة الآن باستخدام اسم المرسل الخاص بواجهة المتجر لهذا الطلب."
 
 msgctxt "Languages::kwtsms.order_sms.phone"
 msgid "Phone number"
@@ -5275,7 +5274,7 @@ msgstr "واجهات المتجر"
 
 msgctxt "Languages::kwtsms.integrations.area.storefronts.text"
 msgid "Storefronts: [count]. With their own Sender ID: [own]. Switches, Sender ID, and texts can differ per storefront."
-msgstr "واجهات المتجر: [count]. التي لها معرف مرسل خاص: [own]. يمكن أن تختلف المفاتيح ومعرف المرسل والنصوص من واجهة إلى أخرى."
+msgstr "واجهات المتجر: [count]. التي لها اسم مرسل خاص: [own]. يمكن أن تختلف المفاتيح واسم المرسل والنصوص من واجهة إلى أخرى."
 
 msgctxt "Languages::kwtsms.integrations.area.profiles.title"
 msgid "Customer profile events"
@@ -5343,7 +5342,7 @@ msgstr "رسالة يدوية من الطلب"
 
 msgctxt "Languages::kwtsms.help.storefronts.p1"
 msgid "Each storefront can have its own Sender ID and its own texts. On Settings, pick a Sender ID for the storefront. \"Same as the main Sender ID\" follows the main one. On Templates, pick the storefront, then edit its text."
-msgstr "يمكن لكل واجهة متجر أن يكون لها معرف مرسل ونصوص خاصة بها. اختر معرف المرسل للواجهة من صفحة الإعدادات، وخيار \"مثل معرف المرسل الرئيسي\" يتبع المعرف الرئيسي. وفي صفحة القوالب اختر الواجهة ثم عدّل نصها."
+msgstr "يمكن لكل واجهة متجر أن يكون لها اسم مرسل ونصوص خاصة بها. اختر اسم المرسل للواجهة من صفحة الإعدادات، وخيار \"مثل اسم المرسل الرئيسي\" يتبع اسم المرسل الرئيسي. وفي صفحة القوالب اختر الواجهة ثم عدّل نصها."
 
 msgctxt "Languages::kwtsms.help.storefronts.p2"
 msgid "A storefront text always beats the All storefronts text in the same language. Reset a storefront text to use the All storefronts text again."
@@ -5355,7 +5354,7 @@ msgstr "تبقى المفاتيح في الإدارة > الإشعارات هي 
 
 msgctxt "Languages::kwtsms.help.storefronts.p4"
 msgid "If a storefront Sender ID leaves your synced list or is banned, that storefront uses the main Sender ID and you get an alert."
-msgstr "إذا خرج معرف مرسل الواجهة من قائمتك المتزامنة أو حُظر، تستخدم الواجهة المعرف الرئيسي وتصلك رسالة تنبيه."
+msgstr "إذا خرج اسم مرسل الواجهة من قائمتك المتزامنة أو حُظر، تستخدم الواجهة اسم المرسل الرئيسي وتصلك رسالة تنبيه."
 
 msgctxt "Languages::kwtsms.help.vendors.p1"
 msgid "In Multi-Vendor, a vendor gets SMS (new orders and low stock) only at a number you approved on the Vendor SMS page. The page starts from the phone in the vendor's own profile."
@@ -5429,7 +5428,7 @@ msgstr "الإرسال متوقف لكل الواجهات، لذا لن ترسل
 
 msgctxt "Languages::kwtsms.settings.sf_senders_connect"
 msgid "Connect your kwtSMS account and sync to pick a Sender ID for each storefront."
-msgstr "اربط حساب kwtSMS وزامنه لاختيار معرف مرسل لكل واجهة."
+msgstr "اربط حساب kwtSMS وزامنه لاختيار اسم مرسل لكل واجهة."
 
 msgctxt "Languages::kwtsms.vendors.number_changed"
 msgid "Last approved number. The new profile number is not used until you approve it."
@@ -5661,7 +5660,7 @@ msgstr "الوضع التجريبي مفعل"
 
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sender"
 msgid "the Sender ID is KWT-SMS and test mode is off"
-msgstr "معرف المرسل هو KWT-SMS ووضع الاختبار معطل"
+msgstr "اسم المرسل هو KWT-SMS ووضع الاختبار معطل"
 
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.daily_cap"
 msgid "the daily SMS limit was reached"
@@ -5690,7 +5689,7 @@ msgstr "متابعة: الحفظ دون رقم جوال موثق"
 
 msgctxt "Languages::kwtsms.settings.otp_unreachable_help"
 msgid "Applies when SMS sending is off-line: kwtSMS unreachable or suspended, balance under 1 credit, pilot mode, or the KWT-SMS Sender ID with test mode off. Pause tells the customer that SMS codes are unavailable and to try again in a few minutes. Continue lets the form go through with the phone unverified. Both raise an alert. A problem with one number never continues."
-msgstr "تُطبق عند تعذر إرسال الرسائل: تعذر الوصول إلى kwtSMS أو إيقافه، أو رصيد أقل من رصيد واحد، أو الوضع التجريبي، أو معرف المرسل KWT-SMS مع تعطيل وضع الاختبار. الإيقاف يخبر العميل أن رموز التحقق غير متاحة ويطلب منه المحاولة بعد دقائق. المتابعة تسمح بإتمام النموذج بلا توثيق الجوال. كلاهما ينشئ تنبيها. ولا تتم المتابعة أبدا بسبب مشكلة في رقم واحد."
+msgstr "تُطبق عند تعذر إرسال الرسائل: تعذر الوصول إلى kwtSMS أو إيقافه، أو رصيد أقل من رصيد واحد، أو الوضع التجريبي، أو اسم المرسل KWT-SMS مع تعطيل وضع الاختبار. الإيقاف يخبر العميل أن رموز التحقق غير متاحة ويطلب منه المحاولة بعد دقائق. المتابعة تسمح بإتمام النموذج بلا توثيق الجوال. كلاهما ينشئ تنبيها. ولا تتم المتابعة أبدا بسبب مشكلة في رقم واحد."
 
 # 2026-10-24 14:36 +03: Task M1.4 fix round 1 (I2, P3-R5), task 596. Reason of the otp_unavailable alert: sending OFF while a code feature is ON.
 msgctxt "Languages::kwtsms.alert.otp_unavailable.reason.sending_off"
@@ -6146,7 +6145,7 @@ msgstr "وضع الاختبار: لا يتلقى العملاء أي رموز."
 # 2026-10-29 02:16 +03: Task M1.11 (P3-14), task 596. Warning: a storefront uses KWT-SMS with a code feature on. [names] = storefront names.
 msgctxt "Languages::kwtsms.settings.warn_kwt_sender"
 msgid "Sender ID KWT-SMS is used by: [names]. Codes are refused there outside test mode. Choose a private transactional Sender ID."
-msgstr "معرّف المرسل KWT-SMS مستخدم في: [names]. تُرفض الرموز هناك خارج وضع الاختبار. اختر معرّف مرسل خاصًا بالرسائل التعاملية."
+msgstr "اسم المرسل KWT-SMS مستخدم في: [names]. تُرفض الرموز هناك خارج وضع الاختبار. اختر اسم مرسل خاصًا بالرسائل التعاملية."
 
 # 2026-10-29 02:16 +03: Task M1.11, task 596. Name used for the whole store when it has no storefront list.
 msgctxt "Languages::kwtsms.settings.warn_main_sender"
@@ -6192,7 +6191,7 @@ msgstr "حد CAPTCHA حسب طلبات IP ([after]) ليس أقل من الحد 
 # 2026-10-29 02:16 +03: Task M1.11 (P3-38), task 596. Always-visible notice on the section.
 msgctxt "Languages::kwtsms.settings.notice_transactional"
 msgid "Codes need a private transactional Sender ID. Promotional Sender IDs are filtered for numbers on DND and are still charged. KWT-SMS is refused outside test mode."
-msgstr "تحتاج الرموز إلى معرّف مرسل خاص بالرسائل التعاملية. تُصفّى المعرّفات الدعائية للأرقام المسجلة في خدمة عدم الإزعاج (DND) وتُحتسب رسومها مع ذلك. يُرفض KWT-SMS خارج وضع الاختبار."
+msgstr "تحتاج الرموز إلى اسم مرسل خاص بالرسائل التعاملية. تُصفّى أسماء المرسل الإعلانية للأرقام المسجلة في خدمة عدم الإزعاج (DND) وتُحتسب رسومها مع ذلك. يُرفض KWT-SMS خارج وضع الاختبار."
 
 # 2026-10-29 02:16 +03: Task M1.11, task 596. Link text.
 msgctxt "Languages::kwtsms.settings.link_appearance"
@@ -6488,7 +6487,7 @@ msgstr "افتراضيا ينتظر العميل 60 ثانية للرمز الث
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p4"
 msgid "Codes need a private transactional Sender ID. kwtSMS filters promotional Sender IDs for numbers on the Do Not Disturb (DND) list, and still charges for those messages. The shared KWT-SMS Sender ID is refused for codes unless test mode is on."
-msgstr "تحتاج الرموز إلى معرف مرسل تشغيلي خاص. تقوم kwtSMS بتصفية معرفات المرسل الدعائية للأرقام المسجلة في قائمة عدم الإزعاج (DND)، وتحاسب على تلك الرسائل مع ذلك. يُرفض معرف المرسل المشترك KWT-SMS للرموز ما لم يكن وضع الاختبار مفعلا."
+msgstr "تحتاج الرموز إلى اسم مرسل تشغيلي خاص. تقوم kwtSMS بتصفية أسماء المرسل الإعلانية للأرقام المسجلة في قائمة عدم الإزعاج (DND)، وتحاسب على تلك الرسائل مع ذلك. يُرفض اسم المرسل المشترك KWT-SMS للرموز ما لم يكن وضع الاختبار مفعلا."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.codes.p5"
@@ -6559,8 +6558,8 @@ msgstr "عندما يحفظ طلبان الرقم نفسه في اللحظة ن�
 
 # 2026-11-04 21:20 +03: review fix M5 of Task M2.1, task 596. Help: the register code answers "in use" for an indexed phone (accepted enumeration path).
 msgctxt "Languages::kwtsms.help.phones.p6"
-msgid "With one account per phone on, the sign-up code form tells a visitor that a number is already used when another account has it. That reveals that the number has an account. It is a known and accepted path: a customer must learn to sign in instead of creating a second account. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
-msgstr "عند تفعيل حساب واحد لكل رقم، يخبر نموذج رمز إنشاء الحساب الزائر بأن الرقم مستخدم إذا كان لحساب آخر. وهذا يكشف أن للرقم حسابا. وهو مسار معروف ومقبول لأن العميل يحتاج أن يعرف أن عليه تسجيل الدخول بدلا من إنشاء حساب ثان. لإبطاء أي برنامج يجرب الأرقام، فعّل مزود CAPTCHA وأبق حدود الطلبات لكل شبكة."
+msgid "With one account per phone on, the sign-up code form never says that a number is already used. When another account holds the number, the form answers like a sent code and sends nothing, so a visitor can't learn which numbers have an account. The text that a number is in use shows only when a signed-in customer saves a profile, and repeated attempts there are rate-limited. To slow a bot that probes numbers, set a CAPTCHA provider and keep the per-network limits."
+msgstr "عند تفعيل حساب واحد لكل رقم، لا يقول نموذج رمز إنشاء الحساب أبدا إن الرقم مستخدم. وإذا كان الرقم لحساب آخر يجيب النموذج كما لو أن الرمز أُرسل ولا يُرسل شيء، فلا يعرف الزائر أي الأرقام لها حساب. ويظهر نص أن الرقم مستخدم عند حفظ الملف الشخصي فقط، وتُحدّ المحاولات المتكررة هناك. لإبطاء أي برنامج يجرب الأرقام، فعّل مزود CAPTCHA وأبق حدود الطلبات لكل شبكة."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.limits.title"
@@ -6654,7 +6653,7 @@ msgstr "عندما يتعذر على المتجر إرسال الرسائل"
 # 2026-10-29 05:13 +03: Task M1.12 fix round 1, task 596. Reworded after review (accuracy of the text).
 msgctxt "Languages::kwtsms.help.unreachable.p1"
 msgid "A code can't leave when sending is off, kwtSMS is unreachable or suspended, the balance is under 1 credit, pilot mode is on, the store daily cap is reached, or the Sender ID is KWT-SMS and test mode is off. The setting When codes cannot be sent decides what customers see."
-msgstr "لا يمكن إرسال الرمز عندما يكون الإرسال متوقفا، أو يتعذر الوصول إلى kwtSMS أو يكون موقوفا، أو يقل الرصيد عن رصيد واحد، أو يكون الوضع التجريبي مفعلا، أو بلغ السقف اليومي للمتجر، أو يكون معرف المرسل KWT-SMS ووضع الاختبار معطلا. يحدد خيار «عند تعذر إرسال الرموز» ما يراه العملاء."
+msgstr "لا يمكن إرسال الرمز عندما يكون الإرسال متوقفا، أو يتعذر الوصول إلى kwtSMS أو يكون موقوفا، أو يقل الرصيد عن رصيد واحد، أو يكون الوضع التجريبي مفعلا، أو بلغ السقف اليومي للمتجر، أو يكون اسم المرسل KWT-SMS ووضع الاختبار معطلا. يحدد خيار «عند تعذر إرسال الرموز» ما يراه العملاء."
 
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.unreachable.p2"
@@ -7718,7 +7717,7 @@ msgstr "دمج رسائل العميل للطلب نفسه"
 
 msgctxt "SettingsOptions::kwtsms::vendor_sender_ids"
 msgid "Sender ID per vendor"
-msgstr "معرف مرسل لكل مورد"
+msgstr "اسم مرسل لكل مورد"
 
 msgctxt "SettingsOptions::kwtsms::missing_phone_prompt"
 msgid "Ask customers without a phone to add one"
@@ -8041,11 +8040,11 @@ msgstr "رقم البائع"
 # 2026-11-15 21:02 +03: Task M3.18 (G2, P3-75), task 596. Per-vendor Sender ID: the Vendor SMS page column, the Settings switch and the admin alert vendor_sender_invalid.
 msgctxt "Languages::kwtsms.vendors.col.sender"
 msgid "Sender ID"
-msgstr "معرف المرسل"
+msgstr "اسم المرسل"
 
 msgctxt "Languages::kwtsms.vendors.sender.storefront"
 msgid "Storefront Sender ID"
-msgstr "معرف مرسل المتجر"
+msgstr "اسم مرسل المتجر"
 
 msgctxt "Languages::kwtsms.vendors.sender.save"
 msgid "Save"
@@ -8053,7 +8052,7 @@ msgstr "حفظ"
 
 msgctxt "Languages::kwtsms.vendors.sender.aria"
 msgid "Sender ID of [vendor]"
-msgstr "معرف المرسل الخاص بالبائع [vendor]"
+msgstr "اسم المرسل الخاص بالبائع [vendor]"
 
 msgctxt "Languages::kwtsms.vendors.sender.unusable"
 msgid "not usable"
@@ -8061,39 +8060,39 @@ msgstr "غير صالح"
 
 msgctxt "Languages::kwtsms.vendors.sender.on"
 msgid "Vendor Sender IDs are on. The new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the vendor's Sender ID. A vendor without one, and every SMS to the store administrator, use the storefront Sender ID."
-msgstr "معرفات مرسل البائعين مفعلة. رسالة الطلب الجديد إلى البائع، والرسالة إلى العميل عن طلب هذا البائع نفسه، تخرج بمعرف مرسل البائع. أما البائع الذي ليس له معرف، وكل رسائل مدير المتجر، فتستخدم معرف مرسل المتجر."
+msgstr "أسماء مرسل البائعين مفعلة. رسالة الطلب الجديد إلى البائع، والرسالة إلى العميل عن طلب هذا البائع نفسه، تخرج باسم مرسل البائع. أما البائع الذي ليس له اسم مرسل، وكل رسائل مدير المتجر، فتستخدم اسم مرسل المتجر."
 
 msgctxt "Languages::kwtsms.vendors.sender.off"
 msgid "Vendor Sender IDs are off. A Sender ID you pick here is saved but not used until you turn them on in Settings."
-msgstr "معرفات مرسل البائعين معطلة. معرف المرسل الذي تختاره هنا يُحفظ لكنه لا يُستخدم حتى تفعّله من الإعدادات."
+msgstr "أسماء مرسل البائعين معطلة. اسم المرسل الذي تختاره هنا يُحفظ لكنه لا يُستخدم حتى تفعّله من الإعدادات."
 
 msgctxt "Languages::kwtsms.vendors.sender.saved"
 msgid "[vendor] now sends under the Sender ID [sender]."
-msgstr "أصبح البائع [vendor] يرسل بمعرف المرسل [sender]."
+msgstr "أصبح البائع [vendor] يرسل باسم المرسل [sender]."
 
 msgctxt "Languages::kwtsms.vendors.sender.cleared"
 msgid "[vendor] now sends under the storefront Sender ID."
-msgstr "أصبح البائع [vendor] يرسل بمعرف مرسل المتجر."
+msgstr "أصبح البائع [vendor] يرسل باسم مرسل المتجر."
 
 msgctxt "Languages::kwtsms.vendors.sender.not_saved"
 msgid "The Sender ID of [vendor] was not saved: [reason]"
-msgstr "لم يتم حفظ معرف المرسل للبائع [vendor]: [reason]"
+msgstr "لم يتم حفظ اسم المرسل للبائع [vendor]: [reason]"
 
 msgctxt "Languages::kwtsms.vendors.sender.reason.not_in_list"
 msgid "it is not on your kwtSMS account. Sync the Sender IDs on the Settings page and pick one from the list."
-msgstr "ليس ضمن حسابك في kwtSMS. زامن معرفات المرسل من صفحة الإعدادات ثم اختر واحدا من القائمة."
+msgstr "ليس ضمن حسابك في kwtSMS. زامن أسماء المرسل من صفحة الإعدادات ثم اختر واحدا من القائمة."
 
 msgctxt "Languages::kwtsms.vendors.sender.reason.banned"
 msgid "kwtSMS banned this Sender ID. Pick another one from the list."
-msgstr "حظرت kwtSMS معرف المرسل هذا. اختر معرفا آخر من القائمة."
+msgstr "حظرت kwtSMS اسم المرسل هذا. اختر اسما آخر من القائمة."
 
 msgctxt "Languages::kwtsms.vendors.sender.pick"
 msgid "Pick a Sender ID from the list, or the storefront Sender ID, before you save."
-msgstr "اختر معرف مرسل من القائمة، أو معرف مرسل المتجر، قبل الحفظ."
+msgstr "اختر اسم مرسل من القائمة، أو اسم مرسل المتجر، قبل الحفظ."
 
 msgctxt "Languages::kwtsms.vendors.sender.reason.kwtsms_test_sender"
 msgid "KWT-SMS is the kwtSMS test Sender ID and cannot be given to a vendor."
-msgstr "KWT-SMS هو معرف المرسل التجريبي من kwtSMS ولا يمكن إعطاؤه لبائع."
+msgstr "KWT-SMS هو اسم المرسل التجريبي من kwtSMS ولا يمكن إعطاؤه لبائع."
 
 msgctxt "Languages::kwtsms.vendors.sender.reason.not_vendor"
 msgid "that vendor was not found."
@@ -8101,23 +8100,23 @@ msgstr "لم يتم العثور على هذا البائع."
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_title"
 msgid "Vendor Sender IDs"
-msgstr "معرفات مرسل البائعين"
+msgstr "أسماء مرسل البائعين"
 
 msgctxt "Languages::kwtsms.settings.field.vendor_sender_ids"
 msgid "Vendor Sender IDs"
-msgstr "معرفات مرسل البائعين"
+msgstr "أسماء مرسل البائعين"
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_label"
 msgid "Send a vendor's SMS under the vendor's own Sender ID"
-msgstr "إرسال رسائل البائع بمعرف المرسل الخاص به"
+msgstr "إرسال رسائل البائع باسم المرسل الخاص به"
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_help"
 msgid "When on, the new order SMS to a vendor and the SMS to a customer about that vendor's own order use the Sender ID picked for the vendor on the Vendor SMS page. SMS to the store administrator, and the SMS of an order that spans several vendors, always use the storefront Sender ID. A Sender ID that leaves your kwtSMS account falls back to the storefront Sender ID and raises an alert."
-msgstr "عند التفعيل، تستخدم رسالة الطلب الجديد إلى البائع والرسالة إلى العميل عن طلب هذا البائع نفسه معرف المرسل المختار للبائع في صفحة رسائل البائعين. أما رسائل مدير المتجر ورسائل الطلب الذي يضم عدة بائعين فتستخدم دائما معرف مرسل المتجر. وإذا خرج معرف مرسل من حساب kwtSMS فسيُستخدم معرف مرسل المتجر ويظهر تنبيه."
+msgstr "عند التفعيل، تستخدم رسالة الطلب الجديد إلى البائع والرسالة إلى العميل عن طلب هذا البائع نفسه اسم المرسل المختار للبائع في صفحة رسائل البائعين. أما رسائل مدير المتجر ورسائل الطلب الذي يضم عدة بائعين فتستخدم دائما اسم مرسل المتجر. وإذا خرج اسم مرسل من حساب kwtSMS فسيُستخدم اسم مرسل المتجر ويظهر تنبيه."
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_mve_only"
 msgid "Vendor accounts exist in Multi-Vendor only. Vendor Sender IDs were not turned on."
-msgstr "حسابات البائعين موجودة في نسخة تعدد البائعين فقط، لذلك لم يتم تفعيل معرفات مرسل البائعين."
+msgstr "حسابات البائعين موجودة في نسخة تعدد البائعين فقط، لذلك لم يتم تفعيل أسماء مرسل البائعين."
 
 msgctxt "Languages::kwtsms.settings.coalesce_title"
 msgid "Same-order customer SMS"
@@ -8137,11 +8136,11 @@ msgstr "عند التفعيل، إذا تم حفظ شحنة مع تغيير حا
 
 msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.title"
 msgid "A vendor Sender ID is not usable"
-msgstr "معرف مرسل بائع غير صالح"
+msgstr "اسم مرسل بائع غير صالح"
 
 msgctxt "Languages::kwtsms.alert.vendor_sender_invalid.text"
 msgid "The Sender ID [sender] of vendor [vendor] is no longer on your kwtSMS account or was banned, so that vendor's SMS go out under the storefront Sender ID. Pick another Sender ID for it on the Vendor SMS page."
-msgstr "معرف المرسل [sender] الخاص بالبائع رقم [vendor] لم يعد في حساب kwtSMS أو تم حظره، لذلك تخرج رسائل هذا البائع بمعرف مرسل المتجر. اختر له معرف مرسل آخر من صفحة رسائل البائعين."
+msgstr "اسم المرسل [sender] الخاص بالبائع رقم [vendor] لم يعد في حساب kwtSMS أو تم حظره، لذلك تخرج رسائل هذا البائع باسم مرسل المتجر. اختر له اسم مرسل آخر من صفحة رسائل البائعين."
 
 # 2026-11-16 14:00 +03: Task M3.7 (B7, P3-68), task 596. SMS conditions per event: the Conditions dialog of a Templates row and its Logs reasons.
 msgctxt "Languages::kwtsms.conditions.button"
@@ -8330,7 +8329,7 @@ msgstr "تصدير النصوص واستيرادها"
 
 msgctxt "Languages::kwtsms.templates.transfer_help"
 msgid "Export every stored template text to a JSON file, or import such a file. Import shows a preview first and writes nothing until you confirm. Switches, conditions, sender IDs and brand names are not part of the file."
-msgstr "صدّر كل نصوص القوالب المحفوظة إلى ملف JSON، أو استورد ملفًا كهذا. يعرض الاستيراد معاينة أولًا ولا يكتب شيئًا حتى تؤكد. المفاتيح والشروط ومعرفات المرسل وأسماء العلامة ليست ضمن الملف."
+msgstr "صدّر كل نصوص القوالب المحفوظة إلى ملف JSON، أو استورد ملفًا كهذا. يعرض الاستيراد معاينة أولًا ولا يكتب شيئًا حتى تؤكد. المفاتيح والشروط وأسماء المرسل وأسماء العلامة ليست ضمن الملف."
 
 msgctxt "Languages::kwtsms.templates.export_button"
 msgid "Export texts (JSON)"
@@ -8613,3 +8612,210 @@ msgstr "تعذر حفظ رقم جوالك. حاول مرة أخرى بعد دق�
 msgctxt "Languages::kwtsms.conditions.unavailable"
 msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
 msgstr "[n] من الطرق المحفوظة غير مفعلة أو محذوفة. ما زالت محسوبة في هذا الشرط إلى أن تحفظ هذا النموذج."
+
+# 2026-11-17 07:29 +03: Task M3.13, task 596. Help sections of 1.4.0 (events, forms, back in stock, gift certificates,
+# vendor alerts, conditions and coalescing, template transfer, bulk resend, code KPIs, test SMS safeguards, phones),
+# the live add-on rows of the Integrations page, the vendor family note and the conditions_unreadable Logs label.
+msgctxt "Languages::kwtsms.help.events.title"
+msgid "New events in 1.4.0"
+msgstr "أحداث جديدة في الإصدار 1.4.0"
+
+msgctxt "Languages::kwtsms.help.events.p1"
+msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+msgstr "يضيف الإصدار 1.4.0 رسائل SMS للمرتجعات وطلبات الاتصال وعودة المنتج للمخزون وشهادات الهدايا وتقييمات المنتجات ومشاركات النقاش ورسائل البائعين. لا يظهر الصف في صفحة القوالب إلا والإضافة المعنية مفعّلة، ويبدأ كل مفتاح جديد مطفأ. وتعرض صفحة التكاملات كل إضافة مع مفاتيحها المفعّلة والرسائل المرسلة اليوم."
+
+msgctxt "Languages::kwtsms.help.events.p2"
+msgid "Returns (RMA): the customer gets an SMS when a return changes status, and the administrator gets one when a customer opens a return. Every status, custom ones included, has its own row and shares the family text. The same status within 24 hours sends once. A customer who opted out of order SMS gets none."
+msgstr "المرتجعات (RMA): تصل العميل رسالة عند تغيّر حالة المرتجع، وتصل المدير رسالة عندما يفتح عميل مرتجعا. لكل حالة صف خاص بها، ومنها الحالات المخصصة، وتشترك في نص العائلة. وتُرسل الحالة نفسها مرة واحدة خلال 24 ساعة. ولا يصل شيء إلى عميل أوقف رسائل الطلبات."
+
+msgctxt "Languages::kwtsms.help.events.p3"
+msgid "Call requests: the administrator, and the vendor in Multi-Vendor, get at most one SMS for each event, receiver and company in 15 minutes. It makes no difference how many requests arrive or which numbers they use. The name of the person who asked never goes into an SMS."
+msgstr "طلبات الاتصال: تصل المدير، وتصل البائع في Multi-Vendor، رسالة واحدة على الأكثر لكل حدث ومستلم وشركة كل 15 دقيقة. لا فرق في عدد الطلبات ولا في الأرقام المستعملة. ولا يدخل اسم صاحب الطلب في أي رسالة."
+
+msgctxt "Languages::kwtsms.help.events.p4"
+msgid "Product reviews and discussion posts: the administrator gets at most one SMS for each event, receiver and company in each clock hour, whatever product, page or thread the posts are on. Each vendor has a limit of its own. The text names the product or object only, never the post, the person who wrote it or the rating."
+msgstr "تقييمات المنتجات ومشاركات النقاش: تصل المدير رسالة واحدة على الأكثر لكل حدث ومستلم وشركة في كل ساعة، أيا كان المنتج أو الصفحة أو النقاش الذي كُتبت عليه المشاركات. ولكل بائع حده الخاص. يذكر النص المنتج أو العنصر فقط، ولا يذكر المشاركة ولا كاتبها ولا التقييم."
+
+msgctxt "Languages::kwtsms.help.events.p5"
+msgid "Vendor messages: when a vendor replies in a thread with a customer, the customer gets an SMS if the account has a phone. Messages between a vendor and the administrator text the other side. A thread between staff only never texts a customer. These are service messages, so the order SMS opt-out doesn't apply to them."
+msgstr "رسائل البائعين: عندما يرد بائع في نقاش مع عميل تصل العميل رسالة إن كان لحسابه هاتف. والرسائل بين البائع والمدير تصل الطرف الآخر. أما النقاش بين الموظفين فقط فلا يرسل إلى عميل. هذه رسائل خدمة، فلا ينطبق عليها إيقاف رسائل الطلبات."
+
+msgctxt "Languages::kwtsms.help.forms.title"
+msgid "Public forms and CAPTCHA"
+msgstr "النماذج العامة والكابتشا"
+
+msgctxt "Languages::kwtsms.help.forms.p1"
+msgid "Call requests and discussion posts come from the storefront, where a bot can fill them in. These SMS go out only while the matching CAPTCHA scenario is ticked in Settings > Image verification: Call request, or Discussion. With the scenario off, nothing is sent and the Logs say the CAPTCHA for the form is off."
+msgstr "تأتي طلبات الاتصال ومشاركات النقاش من واجهة المتجر، حيث يستطيع برنامج آلي تعبئتها. لا تُرسل هذه الرسائل إلا والسيناريو المناسب مفعّل في الإعدادات > التحقق بالصورة: طلب اتصال، أو النقاش. وإذا كان السيناريو مطفأ لا يُرسل شيء وتذكر السجلات أن الكابتشا للنموذج مطفأة."
+
+msgctxt "Languages::kwtsms.help.forms.p2"
+msgid "The check proves the scenario is on, not that this visitor solved a CAPTCHA. When CS-Cart hides the CAPTCHA from a signed-in visitor, the SMS still goes out. What bounds the cost is the throttle for each company, which applies to every poster, signed in or not. A vendor gets at most 10 SMS a day from one public form, which is about 40 a day across the families, and none once it has used half of its monthly quota."
+msgstr "يثبت الفحص أن السيناريو مفعّل، لا أن هذا الزائر حلّ كابتشا. وحين يخفي CS-Cart الكابتشا عن زائر مسجّل الدخول تُرسل الرسالة مع ذلك. والذي يحد من الكلفة هو الحد الخاص بكل شركة، وهو ينطبق على كل من يكتب، سواء سجّل الدخول أم لا. ويصل البائع 10 رسائل في اليوم على الأكثر من نموذج عام واحد، أي نحو 40 في اليوم عبر العائلات، ولا شيء بعد أن يستهلك نصف حصته الشهرية."
+
+msgctxt "Languages::kwtsms.help.forms.p3"
+msgid "Product reviews have no CAPTCHA scenario in CS-Cart, so the hourly throttle is their only gate. Set reviews to need approval, or allow them only after a purchase, in the Product reviews settings."
+msgstr "لا يوجد في CS-Cart سيناريو كابتشا لتقييمات المنتجات، فالحد في الساعة هو بوابتها الوحيدة. اجعل التقييمات تحتاج إلى موافقة، أو اسمح بها بعد الشراء فقط، من إعدادات تقييمات المنتجات."
+
+msgctxt "Languages::kwtsms.help.bis.title"
+msgid "Back in stock"
+msgstr "عودة المنتج للمخزون"
+
+msgctxt "Languages::kwtsms.help.bis.p1"
+msgid "When a product is back in stock, each customer who subscribed, has an account and has a phone on it gets one SMS. Guest e-mail addresses are skipped, and no e-mail address is written to the Logs. A customer gets at most one SMS for a product in a day, however often it's restocked. Customers who opted out of order SMS still get it, because they asked for it."
+msgstr "عندما يعود منتج إلى المخزون تصل رسالة واحدة كل عميل اشترك ولديه حساب وفي حسابه هاتف. تُتجاوز عناوين بريد الزوار، ولا يُكتب أي عنوان بريد في السجلات. وتصل العميل رسالة واحدة على الأكثر عن المنتج في اليوم، مهما تكررت إعادة التخزين. ومن أوقف رسائل الطلبات يصله هذا الإشعار مع ذلك لأنه طلبه."
+
+msgctxt "Languages::kwtsms.help.bis.p2"
+msgid "One restock texts at most the number in Subscribers per restock in Settings (500 by default and at most), which keeps a restock under the kwtSMS queue limit. The rest are skipped and counted in the debug log."
+msgstr "تصل إعادة تخزين واحدة إلى العدد المحدد في المشتركون لكل عودة للمخزون في الإعدادات على الأكثر (500 افتراضيا وكحد أقصى)، وبذلك تبقى تحت حد طابور الارسال في kwtSMS. ويُتجاوز الباقون ويُحصون في سجل التصحيح."
+
+msgctxt "Languages::kwtsms.help.bis.p3"
+msgid "A stored phone without a country code is read with the default country. The one-day key is claimed before the send, so a send that fails isn't tried again for the same customer and product that day."
+msgstr "يُقرأ الهاتف المحفوظ بلا رمز دولة مع الدولة الافتراضية. ويُحجز مفتاح اليوم قبل الإرسال، فلا يُعاد إرسال رسالة فشلت لنفس العميل والمنتج في اليوم نفسه."
+
+msgctxt "Languages::kwtsms.help.gift.title"
+msgid "Gift certificates"
+msgstr "شهادات الهدايا"
+
+msgctxt "Languages::kwtsms.help.gift.p1"
+msgid "The purchaser gets an SMS when the status of a gift certificate changes or the certificate is updated, in the language of the purchase order. A certificate with no order has no phone, so nothing is sent. If a text uses the certificate code, the Logs store it masked."
+msgstr "تصل المشتري رسالة عند تغيّر حالة شهادة الهدية أو تحديثها، بلغة طلب الشراء. والشهادة التي لا طلب لها بلا هاتف، فلا يُرسل شيء. وإذا استعمل النص رمز الشهادة تحفظه السجلات مخفيا."
+
+msgctxt "Languages::kwtsms.help.gift.p2"
+msgid "The purchaser's phone comes from the first order of the certificate. If the purchase order was deleted, the first order left may be the one that redeemed the certificate, and then the SMS reaches the person who redeemed it. The purchaser also learns that the certificate was redeemed, because redeeming changes its status."
+msgstr "يؤخذ هاتف المشتري من أول طلب للشهادة. وإذا حُذف طلب الشراء فقد يكون أول طلب متبقٍّ هو الذي استُخدمت فيه الشهادة، فتصل الرسالة إلى من استخدمها. ويعرف المشتري أيضا أن الشهادة استُخدمت، لأن الاستخدام يغيّر حالتها."
+
+msgctxt "Languages::kwtsms.help.gift.p3"
+msgid "A customer gets at most 5 SMS of this kind a day, and the same limit applies to vendor reply SMS. The status names come from CS-Cart. For a language where CS-Cart has no gift certificate status names, such as Arabic, they show in English until you rename them in Administration > Statuses."
+msgstr "تصل العميل 5 رسائل من هذا النوع في اليوم على الأكثر، والحد نفسه ينطبق على رسائل ردود البائعين. وأسماء الحالات تأتي من CS-Cart. وفي لغة لا يملك CS-Cart لها أسماء حالات شهادات الهدايا، مثل العربية، تظهر بالإنجليزية إلى أن تعيد تسميتها من الإدارة > الحالات."
+
+msgctxt "Languages::kwtsms.help.vendors14.title"
+msgid "Vendor alerts in 1.4.0"
+msgstr "تنبيهات البائعين في الإصدار 1.4.0"
+
+msgctxt "Languages::kwtsms.help.vendors14.p1"
+msgid "A vendor gets SMS only for events on a fixed list: order status changes and updates, returns, call requests, discussion and review posts, vendor messages and plan changes. Events a third-party add-on declares don't reach vendors. Every vendor SMS needs an approved phone, an active vendor and quota left."
+msgstr "يصل البائع رسائل عن أحداث من قائمة ثابتة فقط: تغيّر حالات الطلبات وتحديثها، والمرتجعات، وطلبات الاتصال، ومشاركات النقاش والتقييمات، ورسائل البائعين، وتغيّر الخطة. ولا تصل البائعين الأحداث التي تعلنها إضافة من طرف ثالث. وتحتاج كل رسالة إلى بائع هاتفه معتمد وبائع نشط وحصة متبقية."
+
+msgctxt "Languages::kwtsms.help.vendors14.p2"
+msgid "A vendor who changes its own order gets no SMS about it, and the Logs say the vendor triggered the change. The SMS that a public form can cause are bounded for each vendor, as described under Public forms and CAPTCHA, and the half of the monthly quota that is kept back stays for order SMS."
+msgstr "لا يصل البائع الذي يغيّر طلبه بنفسه رسالة عن ذلك، وتذكر السجلات أن البائع هو من أحدث التغيير. والرسائل التي قد يسببها نموذج عام محدودة لكل بائع كما في قسم النماذج العامة والكابتشا، ونصف الحصة الشهرية المحجوز يبقى لرسائل الطلبات."
+
+msgctxt "Languages::kwtsms.help.vendors14.p3"
+msgid "When a vendor's plan changes, the vendor and the administrator get one SMS with the new plan name. Saving the same plan twice in 24 hours sends once."
+msgstr "عندما تتغير خطة البائع تصل البائع والمدير رسالة واحدة باسم الخطة الجديدة. وحفظ الخطة نفسها مرتين خلال 24 ساعة يرسل مرة واحدة."
+
+msgctxt "Languages::kwtsms.help.vendors14.p4"
+msgid "With Vendor Sender IDs on in Settings, the new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the Sender ID you picked for the vendor on the Vendor SMS page. SMS to the administrator, and the one SMS for a whole checkout, keep the store's Sender ID. A Sender ID that leaves your synced list falls back to the store's and raises an alert. KWT-SMS can't be chosen."
+msgstr "عند تفعيل أسماء مرسل البائعين في الإعدادات، تخرج رسالة الطلب الجديد إلى البائع، ورسالة العميل عن طلب ذلك البائع، باسم المرسل الذي اخترته للبائع في صفحة SMS البائعين. أما رسائل المدير والرسالة الواحدة لعملية الدفع كلها فتبقى باسم مرسل المتجر. وإذا خرج اسم المرسل من قائمتك المتزامنة عاد إلى اسم مرسل المتجر ورُفع تنبيه. ولا يمكن اختيار KWT-SMS. واسم المرسل الذي رفضه kwtSMS (ERR008) يُخفى من القائمة، ولا يعود إلا بعد تغيير اسم مرسل المتجر نفسه."
+
+msgctxt "Languages::kwtsms.help.rules.title"
+msgid "Conditions and coalescing"
+msgstr "الشروط ودمج الرسائل"
+
+msgctxt "Languages::kwtsms.help.rules.p1"
+msgid "Conditions: an order row on the Templates page has a Conditions dialog with a minimum order total, payment methods and shipping methods and, for administrator and vendor SMS, quiet hours. A row sends only when the order matches. Methods deleted or turned off since you saved are ignored when you save again, and the dialog counts them. If the conditions of a row can't be read, nothing is sent and the Logs say so."
+msgstr "الشروط: لصف الطلب في صفحة القوالب نافذة الشروط، وفيها حد أدنى لإجمالي الطلب وطرق الدفع وطرق الشحن، وفي رسائل المدير والبائع ساعات الهدوء. لا يرسل الصف إلا إذا طابق الطلب. وعند الحفظ من جديد تُهمل الطرق التي حُذفت أو أُوقفت منذ حفظك الأخير، وتعدّها النافذة. وإذا تعذرت قراءة شروط صف لا يُرسل شيء وتذكر السجلات ذلك."
+
+msgctxt "Languages::kwtsms.help.rules.p2"
+msgid "Coalescing: with Same-order customer SMS on in Settings, a customer who would get two SMS for one order in one request, such as a shipment with a status change, gets the last one only. The other shows in the Logs as combined with the later SMS. A bulk status change of many orders still sends one SMS per order. Two shipments of one order are never combined, so each tracking number reaches the customer. Code and recovery SMS are never held."
+msgstr "دمج الرسائل: عند تفعيل رسائل العميل لنفس الطلب في الإعدادات، يصل العميل الذي كانت ستصله رسالتان عن طلب واحد في طلب واحد، مثل شحنة مع تغيّر حالة، الأخيرة فقط. وتظهر الأخرى في السجلات بأنها دُمجت مع الرسالة الأحدث. وتغيير حالة طلبات كثيرة دفعة واحدة يرسل مع ذلك رسالة لكل طلب. ولا تُدمج شحنتان لطلب واحد، فيصل كل رقم تتبع إلى العميل. ولا تُحجز رسائل الرموز واستعادة كلمة المرور أبدا."
+
+msgctxt "Languages::kwtsms.help.rules.p3"
+msgid "A combined SMS waits until the request ends. If the PHP process is killed before that, the held SMS is lost. A fatal error doesn't lose it, because the add-on still sends at shutdown."
+msgstr "تنتظر الرسالة المدمجة حتى ينتهي الطلب. وإذا أُنهيت عملية PHP قبل ذلك ضاعت الرسالة المحجوزة. أما الخطأ القاتل فلا يضيعها، لأن الإضافة ما زالت ترسل عند الإغلاق."
+
+msgctxt "Languages::kwtsms.help.transfer.title"
+msgid "Template export and import"
+msgstr "تصدير القوالب واستيرادها"
+
+msgctxt "Languages::kwtsms.help.transfer.p1"
+msgid "On the Templates page, Export texts (JSON) downloads every text the page lists as one file. Preview import reads a file and shows what is new, changed or refused. Nothing changes until you confirm. Switches, conditions, Sender IDs and brand names are never part of the file."
+msgstr "في صفحة القوالب ينزّل تصدير النصوص (JSON) كل نص تعرضه الصفحة في ملف واحد. ويقرأ معاينة الاستيراد الملف ويعرض الجديد والمتغيّر والمرفوض. ولا يتغير شيء حتى تؤكد. ولا تدخل المفاتيح والشروط وأسماء المرسل وأسماء العلامة في الملف أبدا."
+
+msgctxt "Languages::kwtsms.help.transfer.p2"
+msgid "The form refuses a file over the server upload limit in the browser, before anything is sent, and the server refuses a file over 1 MB. A file with more than 300 changed rows is refused whole. A text with unknown placeholders imports only when you tick its box."
+msgstr "ترفض الصفحة في المتصفح ملفا أكبر من حد الرفع في الخادم قبل إرسال أي شيء، ويرفض الخادم ملفا فوق 1 ميغابايت. ويُرفض كاملا ملف فيه أكثر من 300 صف متغيّر. والنص الذي فيه متغيرات غير معروفة لا يُستورد إلا إذا علّمت مربعه."
+
+msgctxt "Languages::kwtsms.help.transfer.p3"
+msgid "An export holds every row the Templates page lists, so a file you export imports back with nothing refused. A stored text with a bad body, for example a code text without {code}, shows as Refused on import with its reason. A file from another store is checked row by row: unknown storefronts and languages are refused."
+msgstr "يضم التصدير كل صف تعرضه صفحة القوالب، فالملف الذي تصدّره يُستورد من جديد دون رفض أي صف. والنص المحفوظ بمحتوى غير صالح، مثل نص رمز بلا ⁦{code}⁩، يظهر عند الاستيراد مرفوضا مع سببه. ويُفحص ملف من متجر آخر صفا صفا، وتُرفض المتاجر واللغات غير المعروفة."
+
+msgctxt "Languages::kwtsms.help.bulk.title"
+msgid "Bulk resend"
+msgstr "إعادة الإرسال المجمّعة"
+
+msgctxt "Languages::kwtsms.help.bulk.p1"
+msgid "On the attempts tab of the Logs, select up to 15 rows that can be resent and choose Resend selected. A confirmation shows the number of messages and the credits first, and nothing is sent until you confirm. The confirmation expires after 15 minutes."
+msgstr "في تبويب المحاولات من السجلات حدّد حتى 15 صفا يمكن إعادة إرساله واختر إعادة إرسال المحدد. تعرض شاشة التأكيد أولا عدد الرسائل والنقاط، ولا يُرسل شيء قبل أن تؤكد. وتنتهي صلاحية التأكيد بعد 15 دقيقة."
+
+msgctxt "Languages::kwtsms.help.bulk.p2"
+msgid "Each row is resent on its own. A row that was already resent, a code message, or a row the safety checks refuse is listed with its reason. The run stops at the first daily or hourly limit, an empty balance or a paused account, and the rest are listed as not tried. A row that goes to the queue, for example in quiet hours, is reported as queued."
+msgstr "يُعاد إرسال كل صف على حدة. والصف الذي أُعيد إرساله من قبل، ورسالة الرمز، والصف الذي ترفضه فحوص الأمان، تُذكر مع سببها. ويتوقف التنفيذ عند أول حد يومي أو ساعي أو عند نفاد الرصيد أو إيقاف الحساب، ويُذكر الباقي بأنه لم يُجرَّب. والصف الذي يذهب إلى قائمة الانتظار، مثلا في ساعات الهدوء، يُذكر بأنه في الانتظار."
+
+msgctxt "Languages::kwtsms.help.kpis.title"
+msgid "Code statistics and unlock"
+msgstr "إحصاءات الرموز وفتح الأرقام"
+
+msgctxt "Languages::kwtsms.help.kpis.p1"
+msgid "While any SMS code feature is on, the Dashboard shows the codes sent in the last 30 days, the share that were verified, and the numbers locked right now with masked digits. Days are counted in UTC, so a day starts at 03:00 Kuwait time."
+msgstr "طالما كانت أي ميزة رموز SMS مفعّلة تعرض لوحة المعلومات الرموز المرسلة في آخر 30 يوما، ونسبة ما جرى التحقق منه، والأرقام المقفلة الآن بأرقام مخفية. وتُحسب الأيام بتوقيت UTC، فيبدأ اليوم الساعة 03:00 بتوقيت الكويت."
+
+msgctxt "Languages::kwtsms.help.kpis.p2"
+msgid "Unlock clears the failed-attempt counters of one number, for every purpose and address, so the customer can try again at once. It doesn't change the send limits. Unlock needs the gateway privilege, and the button is hidden when the store's crypt key is empty."
+msgstr "يمسح فتح الرقم عدادات المحاولات الفاشلة لرقم واحد، لكل غرض وعنوان، فيستطيع العميل المحاولة فورا. ولا يغيّر حدود الإرسال. ويحتاج الفتح إلى صلاحية البوابة، ويُخفى الزر حين يكون مفتاح التشفير للمتجر فارغا."
+
+msgctxt "Languages::kwtsms.help.safeguards.title"
+msgid "Test SMS safeguards"
+msgstr "ضوابط رسالة الاختبار"
+
+msgctxt "Languages::kwtsms.help.safeguards.p1"
+msgid "A test SMS from Settings or from the Templates page needs the number typed twice and a tick that says you have permission to text it. If the two numbers differ, or the box isn't ticked, nothing is sent. This stops a mistyped number from texting a stranger."
+msgstr "تحتاج رسالة الاختبار من الإعدادات أو من صفحة القوالب إلى كتابة الرقم مرتين وتعليم مربع يؤكد أن لديك إذنا بمراسلته. وإذا اختلف الرقمان أو لم يُعلَّم المربع لا يُرسل شيء. وهذا يمنع رقما خاطئا من إرسال رسالة إلى شخص غريب."
+
+msgctxt "Languages::kwtsms.help.safeguards.p2"
+msgid "IP lockdown: if your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024. The same sentence shows under the kwtSMS login and on the alert for a suspended account."
+msgstr "نظام الحماية بالأي بي (IP lockdown): إذا كان حساب kwtSMS يقصر الوصول إلى الواجهة على عناوين IP محددة، أضف عنوان IP الصادر لهذا الخادم في kwtsms.com وإلا ردّ kwtSMS بالخطأ ERR024. وتظهر الجملة نفسها تحت تسجيل دخول kwtSMS وفي تنبيه الحساب الموقوف."
+
+msgctxt "Languages::kwtsms.help.phones14.title"
+msgid "Kuwait numbers and missing phones"
+msgstr "أرقام الكويت والهواتف الناقصة"
+
+msgctxt "Languages::kwtsms.help.phones14.p1"
+msgid "Kuwait numbers: the add-on always refuses a 965 number that isn't a mobile number, because landlines and service numbers can't receive SMS. There is no switch for it. Registration shows the refusal, and a send to such a number is skipped before the gateway with the reason Not a mobile number, so it costs no credit."
+msgstr "أرقام الكويت: ترفض الإضافة دائما رقم 965 الذي ليس رقم جوال، لأن الأرقام الأرضية وأرقام الخدمة لا تستقبل الرسائل. ولا يوجد مفتاح لذلك. يعرض التسجيل الرفض، ويُتجاوز الإرسال إلى مثل هذا الرقم قبل البوابة بسبب ليس رقم جوال، فلا يكلّف رصيدا."
+
+msgctxt "Languages::kwtsms.help.phones14.p2"
+msgid "Missing phone: with Ask for a missing phone on in Settings, a signed-in customer without a phone sees a page asking for a mobile number, once in each sign-in session. The number is confirmed with an SMS code before it is saved. Later hides the page for 7 days within that session. It never shows on checkout, sign-in or profile pages, never to staff who use login as customer, and not while a two-step sign-in is pending."
+msgstr "الهاتف الناقص: عند تفعيل طلب رقم الجوال الناقص في الإعدادات، يرى العميل المسجّل دخوله بلا هاتف صفحة تطلب رقم جوال، مرة واحدة في كل جلسة دخول. ويُؤكَّد الرقم برمز SMS قبل حفظه. ويخفي لاحقا الصفحة 7 أيام ضمن تلك الجلسة. ولا تظهر في صفحات الدفع والدخول والملف الشخصي، ولا للموظفين الذين يستخدمون الدخول كعميل، ولا أثناء انتظار الدخول بخطوتين."
+
+msgctxt "Languages::kwtsms.help.phones14.p3"
+msgid "Code requests: when a code is requested for a number that belongs to another account, the page answers as if a code was sent, and nothing is sent. A customer who gets no code may be using a number that is already on another account. Repeated number-in-use answers when saving a profile are rate-limited."
+msgstr "طلبات الرموز: عند طلب رمز لرقم يخص حسابا آخر تجيب الصفحة كأن الرمز أُرسل، ولا يُرسل شيء. وقد يكون العميل الذي لا يصله رمز يستخدم رقما موجودا في حساب آخر. ويُحدّ تكرار إجابة أن الرقم مستخدم عند حفظ الملف الشخصي."
+
+msgctxt "Languages::kwtsms.integrations.later.state.active"
+msgid "Active"
+msgstr "مفعّلة"
+
+msgctxt "Languages::kwtsms.integrations.later.state.disabled"
+msgid "Installed, not active"
+msgstr "مثبّتة وغير مفعّلة"
+
+msgctxt "Languages::kwtsms.integrations.later.state.missing"
+msgid "Not installed"
+msgstr "غير مثبّتة"
+
+msgctxt "Languages::kwtsms.integrations.later.switches"
+msgid "Switches on: [n]"
+msgstr "المفاتيح المفعّلة: [n]"
+
+msgctxt "Languages::kwtsms.integrations.later.today"
+msgid "SMS today: [n]"
+msgstr "الرسائل اليوم: [n]"
+
+msgctxt "Languages::kwtsms.templates.switch_generic_vendor"
+msgid "No switch here. Turn vendor SMS on in Administration > Notifications."
+msgstr "لا مفتاح هنا. فعّل رسائل البائع من الإدارة > الإشعارات."
+
+msgctxt "Languages::kwtsms.logs.reason.conditions_unreadable"
+msgid "The Conditions of this row could not be read, so no SMS was sent. Save the Conditions again."
+msgstr "تعذرت قراءة شروط هذا الصف فلم تُرسل الرسالة. احفظ الشروط من جديد."

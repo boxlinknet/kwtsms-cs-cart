@@ -86,7 +86,23 @@ class PostUpgrade140
      *
      * @var array<string,array<string,string>>
      */
-    private const SHIPPED_1_3_0 = [];
+    // 2026-11-17 07:25 +03: Task M3.13, task 596. Two 1.3.0 texts rewritten in 1.4.0: the add-on rows of the
+    // Integrations page are live (no more "Coming in 1.4."), and the Logs label of antibot_required no longer says
+    // "registration" (call requests and discussion posts use it too). Texts byte-exact from tag v1.3.0.
+    private const SHIPPED_1_3_0 = [
+        'kwtsms.integrations.later.help' => [
+            'en' => 'Coming in 1.4.',
+            'ar' => "\u{642}\u{631}\u{64a}\u{628}\u{627} \u{641}\u{64a} "
+                . "\u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} 1.4.",
+        ],
+        'kwtsms.logs.reason.antibot_required' => [
+            'en' => 'Skipped: CAPTCHA for registration is off.',
+            'ar' => "\u{62a}\u{645} \u{627}\u{644}\u{62a}\u{62e}\u{637}\u{64a}: "
+                . "\u{627}\u{644}\u{643}\u{627}\u{628}\u{62a}\u{634}\u{627} "
+                . "\u{644}\u{644}\u{62a}\u{633}\u{62c}\u{64a}\u{644} "
+                . "\u{63a}\u{64a}\u{631} \u{645}\u{641}\u{639}\u{644}\u{629}.",
+        ],
+    ];
 
     /**
      * @param string        $from_version The add-on version before the upgrade ('1.0.0' .. '1.3.0'; '1.4.0' repairs
@@ -142,7 +158,8 @@ class PostUpgrade140
         }
 
         // (5) Language variables: INSERT IGNORE keeps an edited value; an unedited old text is refreshed.
-        PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::SHIPPED_1_3_0);
+        // 2026-11-17 07:50 +03: Task M3.13 round 3, task 596. SHIPPED_1_3_0 plus the Arabic texts renamed to the glossary terms.
+        PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::shipped130());
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
         }
@@ -158,6 +175,17 @@ class PostUpgrade140
 
         // (6) Last.
         self::writeVersion(self::VERSION);
+    }
+
+    /**
+     * The 1.3.0 texts that 1.4.0 rewrote: SHIPPED_1_3_0 and Shipped130Terms.php (the Arabic rename to the kwtSMS terms).
+     * 2026-11-17 07:50 +03: Task M3.13 round 3, task 596.
+     *
+     * @return array<string,array<string,string>> name => lang => text
+     */
+    public static function shipped130(): array
+    {
+        return self::SHIPPED_1_3_0 + (array) require __DIR__ . '/Shipped130Terms.php';
     }
 
     /**
