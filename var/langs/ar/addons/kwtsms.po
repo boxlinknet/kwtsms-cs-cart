@@ -8100,11 +8100,11 @@ msgstr "لم يتم العثور على هذا البائع."
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_title"
 msgid "Vendor Sender IDs"
-msgstr "معرفات مرسل البائعين"
+msgstr "أسماء مرسل البائعين"
 
 msgctxt "Languages::kwtsms.settings.field.vendor_sender_ids"
 msgid "Vendor Sender IDs"
-msgstr "معرفات مرسل البائعين"
+msgstr "أسماء مرسل البائعين"
 
 msgctxt "Languages::kwtsms.settings.vendor_sender_ids_label"
 msgid "Send a vendor's SMS under the vendor's own Sender ID"
@@ -8664,7 +8664,7 @@ msgstr "عندما يعود منتج إلى المخزون يصل رسالة و�
 
 msgctxt "Languages::kwtsms.help.bis.p2"
 msgid "One restock texts at most the number in Subscribers per restock in Settings (500 by default and at most), which keeps a restock under the kwtSMS queue limit. The rest are skipped and counted in the debug log."
-msgstr "تصل إعادة تخزين واحدة إلى العدد المحدد في المشتركون لكل عودة للمخزون في الإعدادات على الأكثر (500 افتراضيا وكحد أقصى)، وبذلك تبقى تحت حد قائمة الانتظار في kwtSMS. ويُتجاوز الباقون ويُحصون في سجل التصحيح."
+msgstr "تصل إعادة تخزين واحدة إلى العدد المحدد في المشتركون لكل عودة للمخزون في الإعدادات على الأكثر (500 افتراضيا وكحد أقصى)، وبذلك تبقى تحت حد طابور الارسال في kwtSMS. ويُتجاوز الباقون ويُحصون في سجل التصحيح."
 
 msgctxt "Languages::kwtsms.help.bis.p3"
 msgid "A stored phone without a country code is read with the default country. The one-day key is claimed before the send, so a send that fails isn't tried again for the same customer and product that day."
@@ -8704,7 +8704,7 @@ msgstr "عندما تتغير خطة البائع يصل البائع والمد
 
 msgctxt "Languages::kwtsms.help.vendors14.p4"
 msgid "With Vendor Sender IDs on in Settings, the new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the Sender ID you picked for the vendor on the Vendor SMS page. SMS to the administrator, and the one SMS for a whole checkout, keep the store's Sender ID. A Sender ID that leaves your synced list falls back to the store's and raises an alert. KWT-SMS can't be chosen."
-msgstr "عند تفعيل معرفات مرسل البائعين في الإعدادات، تخرج رسالة الطلب الجديد إلى البائع، ورسالة العميل عن طلب ذلك البائع، بمعرّف المرسل الذي اخترته للبائع في صفحة SMS البائعين. أما رسائل المدير والرسالة الواحدة لعملية الدفع كلها فتبقى بمعرّف مرسل المتجر. وإذا خرج معرّف المرسل من قائمتك المتزامنة عاد إلى معرّف المتجر ورُفع تنبيه. ولا يمكن اختيار KWT-SMS. ومعرّف المرسل الذي رفضه kwtSMS (ERR008) يُخفى من القائمة، ولا يعود إلا بعد تغيير معرّف مرسل المتجر نفسه."
+msgstr "عند تفعيل أسماء مرسل البائعين في الإعدادات، تخرج رسالة الطلب الجديد إلى البائع، ورسالة العميل عن طلب ذلك البائع، باسم المرسل الذي اخترته للبائع في صفحة SMS البائعين. أما رسائل المدير والرسالة الواحدة لعملية الدفع كلها فتبقى باسم مرسل المتجر. وإذا خرج اسم المرسل من قائمتك المتزامنة عاد إلى اسم مرسل المتجر ورُفع تنبيه. ولا يمكن اختيار KWT-SMS. واسم المرسل الذي رفضه kwtSMS (ERR008) يُخفى من القائمة، ولا يعود إلا بعد تغيير اسم مرسل المتجر نفسه."
 
 msgctxt "Languages::kwtsms.help.rules.title"
 msgid "Conditions and coalescing"
@@ -8744,7 +8744,7 @@ msgstr "إعادة الإرسال المجمّعة"
 
 msgctxt "Languages::kwtsms.help.bulk.p1"
 msgid "On the attempts tab of the Logs, select up to 15 rows that can be resent and choose Resend selected. A confirmation shows the number of messages and the credits first, and nothing is sent until you confirm. The confirmation expires after 15 minutes."
-msgstr "في تبويب المحاولات من السجلات حدّد حتى 15 صفا يمكن إعادة إرساله واختر إعادة إرسال المحدد. تعرض شاشة التأكيد أولا عدد الرسائل والرصيد، ولا يُرسل شيء قبل أن تؤكد. وتنتهي صلاحية التأكيد بعد 15 دقيقة."
+msgstr "في تبويب المحاولات من السجلات حدّد حتى 15 صفا يمكن إعادة إرساله واختر إعادة إرسال المحدد. تعرض شاشة التأكيد أولا عدد الرسائل والنقاط، ولا يُرسل شيء قبل أن تؤكد. وتنتهي صلاحية التأكيد بعد 15 دقيقة."
 
 msgctxt "Languages::kwtsms.help.bulk.p2"
 msgid "Each row is resent on its own. A row that was already resent, a code message, or a row the safety checks refuse is listed with its reason. The run stops at the first daily or hourly limit, an empty balance or a paused account, and the rest are listed as not tried. A row that goes to the queue, for example in quiet hours, is reported as queued."
@@ -8772,7 +8772,7 @@ msgstr "تحتاج رسالة الاختبار من الإعدادات أو من
 
 msgctxt "Languages::kwtsms.help.safeguards.p2"
 msgid "IP lockdown: if your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024. The same sentence shows under the kwtSMS login and on the alert for a suspended account."
-msgstr "قفل العناوين: إذا كان حساب kwtSMS يقصر الوصول إلى الواجهة على عناوين IP محددة، أضف عنوان IP الصادر لهذا الخادم في kwtsms.com وإلا ردّ kwtSMS بالخطأ ERR024. وتظهر الجملة نفسها تحت تسجيل دخول kwtSMS وفي تنبيه الحساب الموقوف."
+msgstr "نظام الحماية بالأي بي (IP lockdown): إذا كان حساب kwtSMS يقصر الوصول إلى الواجهة على عناوين IP محددة، أضف عنوان IP الصادر لهذا الخادم في kwtsms.com وإلا ردّ kwtSMS بالخطأ ERR024. وتظهر الجملة نفسها تحت تسجيل دخول kwtSMS وفي تنبيه الحساب الموقوف."
 
 msgctxt "Languages::kwtsms.help.phones14.title"
 msgid "Kuwait numbers and missing phones"
