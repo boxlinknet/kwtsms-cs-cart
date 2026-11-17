@@ -122,3 +122,27 @@ Note: a template change needs a reinstall or copy into the stores' design dirs (
 6. The key kwtsms_m321_e2e_snapshot was found in storage_data twice after e2e runs (it fails LifecycleTest at line 879). Removed through phone_prompt_helper.php restore; the final LifecycleTest passes on both. Cause not found: restore runs in finish() but a killed or timed-out run skips it.
 7. A third full store pass was not run after the last fixes.
 8. Docker: my four kwtsms-cscart containers are stopped (docker compose down was not used because php-fresh and nginx-fresh belong to another session and were left running).
+
+## Tester 4 (2026-11-17 18:01 +03)
+
+Merges: M3.10b and M3.13 merged into feat/1.4.0 (add-on; M3.13 is ac997d7) and into the tests repo. No conflicts either time. M3.13 brings Upgrade/Shipped130Terms.php and tests/fixtures/po130; tester-3 fixes kept. .po counts 2113 (en) / 2114 (ar) entries parity-checked by the LifecycleTest and PostUpgrade140LangRefreshTest.
+
+Unit: 7466 tests, 1 skip, phpcs clean for the changes (only the old line-length warnings remain). PostUpgrade140 tests ran in unit and in the store suites.
+
+Store suite (tests/run-live.sh store), per store: cscart 1156 tests, 0 failures, 1 skip (mve-only); mve 1156 tests, 0 failures. Known flakes (M28bEnumerationStoreTest, RateLimiterStoreTest::testClaimStepRace) did not fail. The phpunit store exit stays 66 by design (the skip).
+
+E2e, EN and AR, 1280 and 375 (help also 768), both stores, final run PASSED: help.sh 440 checks per store; templates_transfer.sh 55 per store; templates.sh 230 (cscart) / 236 (mve); phone_prompt.sh 127 per store (the first mve run failed once at the first page view, "Execution context was destroyed"; the rerun on mve alone passed 127/0).
+
+Upload-limit browser check (templates_transfer.sh, both stores): a 1.1 MB file gives {"notice":"The file is larger than 1 MB.","visible":true,"posts":0,"same_url":true,"preview":0}: notice shown, no request sent, page unchanged.
+
+Screenshots opened and described: import preview EN 375 (cscart, mve): table now sits in a box that scrolls sideways (programmatic check: box 343 px, table 480 px, page scrollWidth 375, scrollLeft moves), the Language and Result columns are reached by scroll; AR 375 preview (RTL, columns fit by right-to-left scroll, buttons right-aligned); EN 1280 preview: all 5 columns and buttons fine. Phone prompt: page, wrong-code, sent, saved, EN and AR, 1280 and 375, both stores: wrong shots show the toast "Request a code first: type your number and press Send code." (AR "اطلب رمزاً أولاً: ..."), no "0 tries left"; sent shots show the resend countdown and the "valid for 5 minutes" line (a Cloudflare test widget shows in the cscart AR 375 shot, from the dev store CAPTCHA); saved shot shows the profile-saved notices and the home page. Help topics (events, safeguards, gift, kpis and the others): readable, topic list complete with the 1.4.0 topics, AR RTL correct, no clipping at 375.
+Not every one of the ~236 shots was opened individually; all phone prompt (24) and import (12) shots were generated and the ones above were opened (all states, both languages, both widths, both stores represented); the rest of the help and templates shots carry the same programmatic checks (no missing language variable, console clean, no dialog, dir rtl, no horizontal overflow).
+
+EXPLAIN / ANALYZE on kwtsms_perf (100k messages, 1M otp_codes, dropped afterwards):
+- M3.13 Integrations SMS today: range on idx_created_at, 14 ms. Fine.
+- M3.10b liveByDay, one-day window each: idx_created_at range, 300 to 660 ms (about 71k rows per day at this seed). OVER 300 ms. Cause: the index holds created_at only, so each row costs a table lookup for status, plus a temporary table and filesort. The 2-day window the dashboard reads is two such queries, about 1 s. Experiment only (index added in the throwaway DB): INDEX (created_at, status) gives 13 to 18 ms per window, same plan type. Not fixed here: it is a schema change (addon.xml and an upgrade step), left for the builder. The seed is 71k codes per day, a heavy store.
+
+Fixes by me: add-on 2a2f35b (wrong-code with no code asked says "Request a code first", new key kwtsms.phone_prompt.no_code en/ar), bffbfae (import preview scroll rules) and a follow-up (preview confirm form block-level, so the table scrolls inside its box instead of widening the page at 375), the AR msgid of kwtsms.help.vendors14.p4 set to the full EN text. Tests: 4fd3a65 (reason tests, phone_prompt trap), 147afe5 (stale M3.13 assertions, OrderStore::refreshContainerConfig: TestSmsSwitch left is_test=N rows 960 and 999 because the container Config cached values; rows cleared through LogClearer), be525d6 (help ids, upload refusal check, 375 scroll check EN and AR, no-code toast check).
+
+Live budget 0: no send, no msg-ids. Stores after the gate: is_test='N' rows 0 on both, baseline OK.
+Left: the liveByDay index above; the old phpcs line-length warnings; the dev stores keep the tester rows that LogClearer could not remove (none found).
