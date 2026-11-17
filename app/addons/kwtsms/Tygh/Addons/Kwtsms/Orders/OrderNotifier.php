@@ -679,7 +679,7 @@ class OrderNotifier
         }
 
         // 2026-11-17 15:25 +03: FIX-B I1 (M1), task 596. The conditions of a status SMS, judged on the unit it reports:
-        // the checkout (parent order: total, payment, shipping) for a per-checkout customer SMS, as the placed SMS does,
+        // the checkout (parent order: total, payment, shipping) for a per-checkout customer SMS, like the placed SMS,
         // else the order itself. After the supersede and waiting returns above, before any key claim.
         if (!$this->conditionsPass($event_id, $receiver, $context_order)) {
             return false;
