@@ -113,12 +113,6 @@ class OrderNotifier
     public const VENDOR_QUOTA_RESERVED = 'vendor_quota_reserved';
     public const VENDOR_DAY_CEILING = 'vendor_day_ceiling';
     /**
-     * 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. Back-in-stock fan-outs of one vendor's
-     * products that may claim a recipient per day (bucket vday:bis:<company>), as VENDOR_DAILY_CEILING does for the
-     * public forms.
-     */
-    public const VENDOR_BIS_DAILY_CEILING = 10;
-    /**
      * 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. A customer (C) text of an event the customer does
      * not trigger (a vendor reply in a thread, a gift certificate status) is refused after this many per customer and
      * day, like the vendor ceiling above; refused before the dedupe key is claimed (a refusal burns no key).
@@ -517,48 +511,22 @@ class OrderNotifier
         }
         // 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. A product of a vendor (Multi-Vendor,
         // company_id > 0) is restocked by that vendor's own administrator: the fan-out goes through the vendor guards
-        // of the normal vendor send path (active vendor, monthly quota, the quota reserve, a daily ceiling), never
-        // the merchant's credits unchecked. A marketplace product (company 0) and a single-store shop are not guarded.
+        // (vendorCustomerGuard), never the merchant's credits unchecked. A marketplace product (company 0) and a
+        // single-store shop are not guarded.
+        // 2026-11-17 15:30 +03: FIX-A round 2, task 596. The guard is shared with the vendor_communication C text.
         $company_id = max(0, (int) ($payload['company_id'] ?? 0));
-        $max = null;
-        $day_bucket = '';
-        if ($company_id > 0 && $this->vendor_quota !== null && $this->rules->isMultiVendor()) {
-            $order = ['company_id' => $company_id, 'storefront_id' => $this->storefront];
-            $status = $this->vendor_quota->companyStatus($company_id);
-            if ($status === '' || $status !== 'A') {
-                $this->skip(
-                    $status === '' ? 'invalid' : self::NO_PHONE,
-                    $status === '' ? 'platform_missing' : self::VENDOR_INACTIVE,
-                    $order,
-                    Defaults::EVENT_BIS,
-                    'C'
-                );
-
-                return false;
-            }
-            $remaining = $this->vendor_quota->remaining($company_id);
-            if ($remaining < 1) {
-                $this->skip(self::RATE_LIMITED, 'vendor_quota', $order, Defaults::EVENT_BIS, 'C');
-
-                return false;
-            }
-            if ($this->vendor_quota->reserveReached($company_id, self::VENDOR_RESERVE_PERCENT)) {
-                $this->skip(self::RATE_LIMITED, self::VENDOR_QUOTA_RESERVED, $order, Defaults::EVENT_BIS, 'C');
-
-                return false;
-            }
-            if ($this->limiter !== null) {
-                $day_bucket = 'vday:bis:' . $company_id;
-                $seen = $this->limiter->peek($day_bucket);
-                $live = $seen['window_start'] > $this->limiter->now() - 86400;
-                if ($seen['hits'] >= self::VENDOR_BIS_DAILY_CEILING && $live) {
-                    $this->skip(self::RATE_LIMITED, self::VENDOR_DAY_CEILING, $order, Defaults::EVENT_BIS, 'C');
-
-                    return false;
-                }
-            }
-            $max = $remaining;
+        $guard = $this->vendorCustomerGuard(
+            $company_id,
+            'bis',
+            Defaults::EVENT_BIS,
+            ['company_id' => $company_id, 'storefront_id' => $this->storefront],
+            1
+        );
+        if ($guard === false) {
+            return false;
         }
+        $max = $guard === null ? null : $guard['max'];
+        $day_bucket = $guard === null ? '' : $guard['bucket'];
         $actor = $this->orders->actor();
         $send = function (array $phones, string $text, array $context) use ($actor): bool {
             $context['actor_user_id'] = (int) ($actor['user_id'] ?? 0);
@@ -596,6 +564,58 @@ class OrderNotifier
         }
 
         return $sent > 0;
+    }
+
+    /**
+     * 2026-11-17 15:30 +03: FIX-A round 2, task 596. The ONE guard of the vendor-owned customer texts (the
+     * back-in-stock fan-out and the vendor_communication C text): in Multi-Vendor, for a vendor company, the vendor
+     * must be active, the monthly quota must have room for at least $need recipients (the same counter the V send path
+     * reads: VendorQuota counts these C rows too, so every SMS sent here consumes the quota and feeds the reserve that
+     * the public-form V texts read), and the vendor's daily ceiling (VENDOR_DAILY_CEILING sends of the family per 24 h,
+     * bucket vday:<family>:<company>) must not be reached. Writes the refusal attempt row itself.
+     * Not guarded (null): no vendor company, no Multi-Vendor, no quota service.
+     *
+     * @param array<string,mixed> $order company_id, storefront_id (and ids) for the attempt row
+     *
+     * @return array{max:int,bucket:string}|false|null false = refused (row written); null = not guarded; else the
+     *                                                 recipients still allowed and the day bucket to hit after a send
+     */
+    private function vendorCustomerGuard(int $company_id, string $family, string $event_id, array $order, int $need)
+    {
+        if ($company_id <= 0 || $this->vendor_quota === null || !$this->rules->isMultiVendor()) {
+            return null;
+        }
+        $status = $this->vendor_quota->companyStatus($company_id);
+        if ($status !== 'A') {
+            $this->skip(
+                $status === '' ? 'invalid' : self::NO_PHONE,
+                $status === '' ? 'platform_missing' : self::VENDOR_INACTIVE,
+                $order,
+                $event_id,
+                'C'
+            );
+
+            return false;
+        }
+        $remaining = $this->vendor_quota->remaining($company_id);
+        if ($remaining < max(1, $need)) {
+            $this->skip(self::RATE_LIMITED, 'vendor_quota', $order, $event_id, 'C');
+
+            return false;
+        }
+        $bucket = '';
+        if ($this->limiter !== null) {
+            $bucket = 'vday:' . $family . ':' . $company_id;
+            $seen = $this->limiter->peek($bucket);
+            $live = $seen['window_start'] > $this->limiter->now() - 86400;
+            if ($seen['hits'] >= self::VENDOR_DAILY_CEILING && $live) {
+                $this->skip(self::RATE_LIMITED, self::VENDOR_DAY_CEILING, $order, $event_id, 'C');
+
+                return false;
+            }
+        }
+
+        return ['max' => $remaining, 'bucket' => $bucket];
     }
 
     /**
@@ -1171,6 +1191,22 @@ class OrderNotifier
             }
         }
 
+        // 2026-11-17 15:30 +03: FIX-A round 2, task 596. The C text of a vendor thread (customer_cap declared, a
+        // vendor company) goes through the same vendor guard as the back-in-stock fan-out; its day bucket is hit with
+        // the other day counters once the key is claimed.
+        if ($receiver === 'C' && $customer_cap !== '' && $day_bucket === '') {
+            $guard = $this->vendorCustomerGuard(
+                (int) ($order['company_id'] ?? 0),
+                'c' . $customer_cap,
+                $event_id,
+                $log_order,
+                count($phones)
+            );
+            if ($guard === false) {
+                return false;
+            }
+            $day_bucket = $guard === null ? '' : $guard['bucket'];
+        }
         // 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. The per-customer daily ceiling of a declared
         // C text (customer_cap): read-only here, the day counter is hit only after the key is claimed, so a refusal or
         // a duplicate burns neither. A guest (no user id) has no per-customer bucket; the per-number caps still apply.
