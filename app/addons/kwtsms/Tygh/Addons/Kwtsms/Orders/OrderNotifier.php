@@ -401,7 +401,7 @@ class OrderNotifier
         // 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1): kwtsms.order_placed is checked in placedSms(), which
         // knows the unit (a checkout reads the
         // .multi rows against the parent order).
-        // 2026-11-17 15:25 +03: FIX-B M1 (I1), task 596: the check moved below the supersede and vendor checks (an
+        // 2026-11-17 15:11 +03: FIX-B M1 (I1), task 596: the check moved below the supersede and vendor checks (an
         // attempt row says what really stopped the SMS) and a status event runs it inside statusSms() (the checkout
         // scope needs the parent order); see the block before the dispatch.
 
@@ -442,7 +442,7 @@ class OrderNotifier
             }
         }
 
-        // 2026-11-17 15:40 +03: FIX-B M3, task 596. The same self-triggered rule for every other declared V event (RMA
+        // 2026-11-17 15:13 +03: FIX-B M3, task 596. The same self-triggered rule for every other declared V event (RMA
         // status, plan change, ...): the vendor's own administrator (own company = the event's company, the declared
         // company path else the order's) is not texted about its own action. Root and other vendors still text it.
         if (
@@ -465,7 +465,7 @@ class OrderNotifier
             }
         }
 
-        // 2026-11-17 15:25 +03: FIX-B M1 (I1), task 596. The event conditions, after every supersede and self-trigger
+        // 2026-11-17 15:11 +03: FIX-B M1 (I1), task 596. The event conditions, after every supersede and self-trigger
         // return above, still before any key claim. kwtsms.order_placed runs them in placedSms() (checkout unit) and
         // an order.status_changed.* SMS in statusSms() (the checkout scope reads the parent order).
         if (
@@ -701,7 +701,7 @@ class OrderNotifier
             }
         }
 
-        // 2026-11-17 15:25 +03: FIX-B I1 (M1), task 596. The conditions of a status SMS, judged on the unit it reports:
+        // 2026-11-17 15:11 +03: FIX-B I1 (M1), task 596. The conditions of a status SMS, judged on the unit it reports:
         // the checkout (parent order: total, payment, shipping) for a per-checkout customer SMS, like the placed SMS,
         // else the order itself. After the supersede and waiting returns above, before any key claim.
         if (!$this->conditionsPass($event_id, $receiver, $context_order)) {
