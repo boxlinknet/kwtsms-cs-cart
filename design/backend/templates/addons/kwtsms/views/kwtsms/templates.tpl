@@ -205,6 +205,9 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                         <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_follows")}</span>
                     {elseif $row.switch_note == "generic"}
                         <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_generic")}</span>
+                    {elseif $row.switch_note == "generic_vendor"}
+                        {* 2026-11-17 07:28 +03: Task M3.13 (parked from M3.6), task 596. *}
+                        <span class="muted kwtsms-switch-note">{__("kwtsms.templates.switch_generic_vendor")}</span>
                     {elseif $row.switch_note == "code"}
                         {* 2026-10-24 12:35 +03: Task M1.4 (SafatMall G2, H2), task 596. No switch here: the code features in Settings decide; the state is shown read-only. *}
                         <span class="kwtsms-switch__text kwtsms-code-state" data-kwtsms-code-state="{if $row.code_switch.on}on{else}off{/if}">{if $row.code_switch.on}{__("kwtsms.status.on")}{else}{__("kwtsms.status.off")}{/if}</span>

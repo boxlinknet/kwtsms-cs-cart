@@ -3204,13 +3204,11 @@ msgid "Other add-ons"
 msgstr "Other add-ons"
 
 # 2026-10-29 04:13 +03: Task M1.12, task 596. 1.2 ships phone rules and SMS codes; these add-ons come in 1.4.
+# 2026-11-17 07:36 +03: Task M3.13, task 596. 1.4.0 ships them: the rows are live (state, switches ON, SMS today), and
+# the old badge text kwtsms.integrations.later.installed is replaced by kwtsms.integrations.later.state.*.
 msgctxt "Languages::kwtsms.integrations.later.help"
-msgid "Coming in 1.4."
-msgstr "Coming in 1.4."
-
-msgctxt "Languages::kwtsms.integrations.later.installed"
-msgid "Installed in this store"
-msgstr "Installed in this store"
+msgid "Add-ons with their own SMS events. Every switch starts OFF. Turn on the ones you want on the Templates page."
+msgstr "Add-ons with their own SMS events. Every switch starts OFF. Turn on the ones you want on the Templates page."
 
 msgctxt "Languages::kwtsms.integrations.later.rma"
 msgid "Returns (RMA)"
@@ -4828,9 +4826,10 @@ msgid "A reset link SMS was already sent to this account in the last 10 minutes.
 msgstr "A reset link SMS was already sent to this account in the last 10 minutes."
 
 # 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12, P2-R13), task 596.
+# 2026-11-17 07:36 +03: Task M3.13, task 596. Call requests and discussion posts use this reason too, not only registration.
 msgctxt "Languages::kwtsms.logs.reason.antibot_required"
-msgid "Skipped: CAPTCHA for registration is off."
-msgstr "Skipped: CAPTCHA for registration is off."
+msgid "Skipped: the CAPTCHA for this form is off."
+msgstr "Skipped: the CAPTCHA for this form is off."
 
 msgctxt "Languages::kwtsms.templates.notice_captcha"
 msgid "Turn on CAPTCHA for registration to send this SMS."
@@ -8605,3 +8604,210 @@ msgstr "Your mobile number could not be saved. Try again in a few minutes."
 msgctxt "Languages::kwtsms.conditions.unavailable"
 msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
 msgstr "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
+
+# 2026-11-17 07:35 +03: Task M3.13, task 596. Help sections of 1.4.0 (events, forms, back in stock, gift certificates,
+# vendor alerts, conditions and coalescing, template transfer, bulk resend, code KPIs, test SMS safeguards, phones),
+# the live add-on rows of the Integrations page, the vendor family note and the conditions_unreadable Logs label.
+msgctxt "Languages::kwtsms.help.events.title"
+msgid "New events in 1.4.0"
+msgstr "New events in 1.4.0"
+
+msgctxt "Languages::kwtsms.help.events.p1"
+msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+msgstr "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+
+msgctxt "Languages::kwtsms.help.events.p2"
+msgid "Returns (RMA): the customer gets an SMS when a return changes status, and the administrator gets one when a customer opens a return. Every status, custom ones included, has its own row and shares the family text. The same status within 24 hours sends once. A customer who opted out of order SMS gets none."
+msgstr "Returns (RMA): the customer gets an SMS when a return changes status, and the administrator gets one when a customer opens a return. Every status, custom ones included, has its own row and shares the family text. The same status within 24 hours sends once. A customer who opted out of order SMS gets none."
+
+msgctxt "Languages::kwtsms.help.events.p3"
+msgid "Call requests: the administrator, and the vendor in Multi-Vendor, get at most one SMS for each event, receiver and company in 15 minutes. It makes no difference how many requests arrive or which numbers they use. The name of the person who asked never goes into an SMS."
+msgstr "Call requests: the administrator, and the vendor in Multi-Vendor, get at most one SMS for each event, receiver and company in 15 minutes. It makes no difference how many requests arrive or which numbers they use. The name of the person who asked never goes into an SMS."
+
+msgctxt "Languages::kwtsms.help.events.p4"
+msgid "Product reviews and discussion posts: the administrator gets at most one SMS for each event, receiver and company in each clock hour, whatever product, page or thread the posts are on. Each vendor has a limit of its own. The text names the product or object only, never the post, the person who wrote it or the rating."
+msgstr "Product reviews and discussion posts: the administrator gets at most one SMS for each event, receiver and company in each clock hour, whatever product, page or thread the posts are on. Each vendor has a limit of its own. The text names the product or object only, never the post, the person who wrote it or the rating."
+
+msgctxt "Languages::kwtsms.help.events.p5"
+msgid "Vendor messages: when a vendor replies in a thread with a customer, the customer gets an SMS if the account has a phone. Messages between a vendor and the administrator text the other side. A thread between staff only never texts a customer. These are service messages, so the order SMS opt-out doesn't apply to them."
+msgstr "Vendor messages: when a vendor replies in a thread with a customer, the customer gets an SMS if the account has a phone. Messages between a vendor and the administrator text the other side. A thread between staff only never texts a customer. These are service messages, so the order SMS opt-out doesn't apply to them."
+
+msgctxt "Languages::kwtsms.help.forms.title"
+msgid "Public forms and CAPTCHA"
+msgstr "Public forms and CAPTCHA"
+
+msgctxt "Languages::kwtsms.help.forms.p1"
+msgid "Call requests and discussion posts come from the storefront, where a bot can fill them in. These SMS go out only while the matching CAPTCHA scenario is ticked in Settings > Image verification: Call request, or Discussion. With the scenario off, nothing is sent and the Logs say the CAPTCHA for the form is off."
+msgstr "Call requests and discussion posts come from the storefront, where a bot can fill them in. These SMS go out only while the matching CAPTCHA scenario is ticked in Settings > Image verification: Call request, or Discussion. With the scenario off, nothing is sent and the Logs say the CAPTCHA for the form is off."
+
+msgctxt "Languages::kwtsms.help.forms.p2"
+msgid "The check proves the scenario is on, not that this visitor solved a CAPTCHA. When CS-Cart hides the CAPTCHA from a signed-in visitor, the SMS still goes out. What bounds the cost is the throttle for each company, which applies to every poster, signed in or not. A vendor gets at most 10 SMS a day from one public form, which is about 40 a day across the families, and none once it has used half of its monthly quota."
+msgstr "The check proves the scenario is on, not that this visitor solved a CAPTCHA. When CS-Cart hides the CAPTCHA from a signed-in visitor, the SMS still goes out. What bounds the cost is the throttle for each company, which applies to every poster, signed in or not. A vendor gets at most 10 SMS a day from one public form, which is about 40 a day across the families, and none once it has used half of its monthly quota."
+
+msgctxt "Languages::kwtsms.help.forms.p3"
+msgid "Product reviews have no CAPTCHA scenario in CS-Cart, so the hourly throttle is their only gate. Set reviews to need approval, or allow them only after a purchase, in the Product reviews settings."
+msgstr "Product reviews have no CAPTCHA scenario in CS-Cart, so the hourly throttle is their only gate. Set reviews to need approval, or allow them only after a purchase, in the Product reviews settings."
+
+msgctxt "Languages::kwtsms.help.bis.title"
+msgid "Back in stock"
+msgstr "Back in stock"
+
+msgctxt "Languages::kwtsms.help.bis.p1"
+msgid "When a product is back in stock, each customer who subscribed, has an account and has a phone on it gets one SMS. Guest e-mail addresses are skipped, and no e-mail address is written to the Logs. A customer gets at most one SMS for a product in a day, however often it's restocked. Customers who opted out of order SMS still get it, because they asked for it."
+msgstr "When a product is back in stock, each customer who subscribed, has an account and has a phone on it gets one SMS. Guest e-mail addresses are skipped, and no e-mail address is written to the Logs. A customer gets at most one SMS for a product in a day, however often it's restocked. Customers who opted out of order SMS still get it, because they asked for it."
+
+msgctxt "Languages::kwtsms.help.bis.p2"
+msgid "One restock texts at most the number in Subscribers per restock in Settings (500 by default and at most), which keeps a restock under the kwtSMS queue limit. The rest are skipped and counted in the debug log."
+msgstr "One restock texts at most the number in Subscribers per restock in Settings (500 by default and at most), which keeps a restock under the kwtSMS queue limit. The rest are skipped and counted in the debug log."
+
+msgctxt "Languages::kwtsms.help.bis.p3"
+msgid "A stored phone without a country code is read with the default country. The one-day key is claimed before the send, so a send that fails isn't tried again for the same customer and product that day."
+msgstr "A stored phone without a country code is read with the default country. The one-day key is claimed before the send, so a send that fails isn't tried again for the same customer and product that day."
+
+msgctxt "Languages::kwtsms.help.gift.title"
+msgid "Gift certificates"
+msgstr "Gift certificates"
+
+msgctxt "Languages::kwtsms.help.gift.p1"
+msgid "The purchaser gets an SMS when the status of a gift certificate changes or the certificate is updated, in the language of the purchase order. A certificate with no order has no phone, so nothing is sent. If a text uses the certificate code, the Logs store it masked."
+msgstr "The purchaser gets an SMS when the status of a gift certificate changes or the certificate is updated, in the language of the purchase order. A certificate with no order has no phone, so nothing is sent. If a text uses the certificate code, the Logs store it masked."
+
+msgctxt "Languages::kwtsms.help.gift.p2"
+msgid "The purchaser's phone comes from the first order of the certificate. If the purchase order was deleted, the first order left may be the one that redeemed the certificate, and then the SMS reaches the person who redeemed it. The purchaser also learns that the certificate was redeemed, because redeeming changes its status."
+msgstr "The purchaser's phone comes from the first order of the certificate. If the purchase order was deleted, the first order left may be the one that redeemed the certificate, and then the SMS reaches the person who redeemed it. The purchaser also learns that the certificate was redeemed, because redeeming changes its status."
+
+msgctxt "Languages::kwtsms.help.gift.p3"
+msgid "A customer gets at most 5 SMS of this kind a day, and the same limit applies to vendor reply SMS. The status names come from CS-Cart. For a language where CS-Cart has no gift certificate status names, such as Arabic, they show in English until you rename them in Administration > Statuses."
+msgstr "A customer gets at most 5 SMS of this kind a day, and the same limit applies to vendor reply SMS. The status names come from CS-Cart. For a language where CS-Cart has no gift certificate status names, such as Arabic, they show in English until you rename them in Administration > Statuses."
+
+msgctxt "Languages::kwtsms.help.vendors14.title"
+msgid "Vendor alerts in 1.4.0"
+msgstr "Vendor alerts in 1.4.0"
+
+msgctxt "Languages::kwtsms.help.vendors14.p1"
+msgid "A vendor gets SMS only for events on a fixed list: order status changes and updates, returns, call requests, discussion and review posts, vendor messages and plan changes. Events a third-party add-on declares don't reach vendors. Every vendor SMS needs an approved phone, an active vendor and quota left."
+msgstr "A vendor gets SMS only for events on a fixed list: order status changes and updates, returns, call requests, discussion and review posts, vendor messages and plan changes. Events a third-party add-on declares don't reach vendors. Every vendor SMS needs an approved phone, an active vendor and quota left."
+
+msgctxt "Languages::kwtsms.help.vendors14.p2"
+msgid "A vendor who changes its own order gets no SMS about it, and the Logs say the vendor triggered the change. The SMS that a public form can cause are bounded for each vendor, as described under Public forms and CAPTCHA, and the half of the monthly quota that is kept back stays for order SMS."
+msgstr "A vendor who changes its own order gets no SMS about it, and the Logs say the vendor triggered the change. The SMS that a public form can cause are bounded for each vendor, as described under Public forms and CAPTCHA, and the half of the monthly quota that is kept back stays for order SMS."
+
+msgctxt "Languages::kwtsms.help.vendors14.p3"
+msgid "When a vendor's plan changes, the vendor and the administrator get one SMS with the new plan name. Saving the same plan twice in 24 hours sends once."
+msgstr "When a vendor's plan changes, the vendor and the administrator get one SMS with the new plan name. Saving the same plan twice in 24 hours sends once."
+
+msgctxt "Languages::kwtsms.help.vendors14.p4"
+msgid "With Vendor Sender IDs on in Settings, the new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the Sender ID you picked for the vendor on the Vendor SMS page. SMS to the administrator, and the one SMS for a whole checkout, keep the store's Sender ID. A Sender ID that leaves your synced list falls back to the store's and raises an alert. KWT-SMS can't be chosen."
+msgstr "With Vendor Sender IDs on in Settings, the new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the Sender ID you picked for the vendor on the Vendor SMS page. SMS to the administrator, and the one SMS for a whole checkout, keep the store's Sender ID. A Sender ID that leaves your synced list falls back to the store's and raises an alert. KWT-SMS can't be chosen."
+
+msgctxt "Languages::kwtsms.help.rules.title"
+msgid "Conditions and coalescing"
+msgstr "Conditions and coalescing"
+
+msgctxt "Languages::kwtsms.help.rules.p1"
+msgid "Conditions: an order row on the Templates page has a Conditions dialog with a minimum order total, payment methods and shipping methods and, for administrator and vendor SMS, quiet hours. A row sends only when the order matches. Methods deleted or turned off since you saved are ignored when you save again, and the dialog counts them. If the conditions of a row can't be read, nothing is sent and the Logs say so."
+msgstr "Conditions: an order row on the Templates page has a Conditions dialog with a minimum order total, payment methods and shipping methods and, for administrator and vendor SMS, quiet hours. A row sends only when the order matches. Methods deleted or turned off since you saved are ignored when you save again, and the dialog counts them. If the conditions of a row can't be read, nothing is sent and the Logs say so."
+
+msgctxt "Languages::kwtsms.help.rules.p2"
+msgid "Coalescing: with Same-order customer SMS on in Settings, a customer who would get two SMS for one order in one request, such as a shipment with a status change, gets the last one only. The other shows in the Logs as combined with the later SMS. A bulk status change of many orders still sends one SMS per order. Two shipments of one order are never combined, so each tracking number reaches the customer. Code and recovery SMS are never held."
+msgstr "Coalescing: with Same-order customer SMS on in Settings, a customer who would get two SMS for one order in one request, such as a shipment with a status change, gets the last one only. The other shows in the Logs as combined with the later SMS. A bulk status change of many orders still sends one SMS per order. Two shipments of one order are never combined, so each tracking number reaches the customer. Code and recovery SMS are never held."
+
+msgctxt "Languages::kwtsms.help.rules.p3"
+msgid "A combined SMS waits until the request ends. If the PHP process is killed before that, the held SMS is lost. A fatal error doesn't lose it, because the add-on still sends at shutdown."
+msgstr "A combined SMS waits until the request ends. If the PHP process is killed before that, the held SMS is lost. A fatal error doesn't lose it, because the add-on still sends at shutdown."
+
+msgctxt "Languages::kwtsms.help.transfer.title"
+msgid "Template export and import"
+msgstr "Template export and import"
+
+msgctxt "Languages::kwtsms.help.transfer.p1"
+msgid "On the Templates page, Export texts (JSON) downloads every text the page lists as one file. Preview import reads a file and shows what is new, changed or refused. Nothing changes until you confirm. Switches, conditions, Sender IDs and brand names are never part of the file."
+msgstr "On the Templates page, Export texts (JSON) downloads every text the page lists as one file. Preview import reads a file and shows what is new, changed or refused. Nothing changes until you confirm. Switches, conditions, Sender IDs and brand names are never part of the file."
+
+msgctxt "Languages::kwtsms.help.transfer.p2"
+msgid "The form refuses a file over the server upload limit in the browser, before anything is sent, and the server refuses a file over 1 MB. A file with more than 300 changed rows is refused whole. A text with unknown placeholders imports only when you tick its box."
+msgstr "The form refuses a file over the server upload limit in the browser, before anything is sent, and the server refuses a file over 1 MB. A file with more than 300 changed rows is refused whole. A text with unknown placeholders imports only when you tick its box."
+
+msgctxt "Languages::kwtsms.help.transfer.p3"
+msgid "An export holds every row the Templates page lists, so a file you export imports back with nothing refused. A stored text with a bad body, for example a code text without {code}, shows as Refused on import with its reason. A file from another store is checked row by row: unknown storefronts and languages are refused."
+msgstr "An export holds every row the Templates page lists, so a file you export imports back with nothing refused. A stored text with a bad body, for example a code text without {code}, shows as Refused on import with its reason. A file from another store is checked row by row: unknown storefronts and languages are refused."
+
+msgctxt "Languages::kwtsms.help.bulk.title"
+msgid "Bulk resend"
+msgstr "Bulk resend"
+
+msgctxt "Languages::kwtsms.help.bulk.p1"
+msgid "On the attempts tab of the Logs, select up to 15 rows that can be resent and choose Resend selected. A confirmation shows the number of messages and the credits first, and nothing is sent until you confirm. The confirmation expires after 15 minutes."
+msgstr "On the attempts tab of the Logs, select up to 15 rows that can be resent and choose Resend selected. A confirmation shows the number of messages and the credits first, and nothing is sent until you confirm. The confirmation expires after 15 minutes."
+
+msgctxt "Languages::kwtsms.help.bulk.p2"
+msgid "Each row is resent on its own. A row that was already resent, a code message, or a row the safety checks refuse is listed with its reason. The run stops at the first daily or hourly limit, an empty balance or a paused account, and the rest are listed as not tried. A row that goes to the queue, for example in quiet hours, is reported as queued."
+msgstr "Each row is resent on its own. A row that was already resent, a code message, or a row the safety checks refuse is listed with its reason. The run stops at the first daily or hourly limit, an empty balance or a paused account, and the rest are listed as not tried. A row that goes to the queue, for example in quiet hours, is reported as queued."
+
+msgctxt "Languages::kwtsms.help.kpis.title"
+msgid "Code statistics and unlock"
+msgstr "Code statistics and unlock"
+
+msgctxt "Languages::kwtsms.help.kpis.p1"
+msgid "While any SMS code feature is on, the Dashboard shows the codes sent in the last 30 days, the share that were verified, and the numbers locked right now with masked digits. Days are counted in UTC, so a day starts at 03:00 Kuwait time."
+msgstr "While any SMS code feature is on, the Dashboard shows the codes sent in the last 30 days, the share that were verified, and the numbers locked right now with masked digits. Days are counted in UTC, so a day starts at 03:00 Kuwait time."
+
+msgctxt "Languages::kwtsms.help.kpis.p2"
+msgid "Unlock clears the failed-attempt counters of one number, for every purpose and address, so the customer can try again at once. It doesn't change the send limits. Unlock needs the gateway privilege, and the button is hidden when the store's crypt key is empty."
+msgstr "Unlock clears the failed-attempt counters of one number, for every purpose and address, so the customer can try again at once. It doesn't change the send limits. Unlock needs the gateway privilege, and the button is hidden when the store's crypt key is empty."
+
+msgctxt "Languages::kwtsms.help.safeguards.title"
+msgid "Test SMS safeguards"
+msgstr "Test SMS safeguards"
+
+msgctxt "Languages::kwtsms.help.safeguards.p1"
+msgid "A test SMS from Settings or from the Templates page needs the number typed twice and a tick that says you have permission to text it. If the two numbers differ, or the box isn't ticked, nothing is sent. This stops a mistyped number from texting a stranger."
+msgstr "A test SMS from Settings or from the Templates page needs the number typed twice and a tick that says you have permission to text it. If the two numbers differ, or the box isn't ticked, nothing is sent. This stops a mistyped number from texting a stranger."
+
+msgctxt "Languages::kwtsms.help.safeguards.p2"
+msgid "IP lockdown: if your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024. The same sentence shows under the kwtSMS login and on the alert for a suspended account."
+msgstr "IP lockdown: if your kwtSMS account limits API access to listed IP addresses, add this server's outgoing IP address at kwtsms.com, or kwtSMS answers ERR024. The same sentence shows under the kwtSMS login and on the alert for a suspended account."
+
+msgctxt "Languages::kwtsms.help.phones14.title"
+msgid "Kuwait numbers and missing phones"
+msgstr "Kuwait numbers and missing phones"
+
+msgctxt "Languages::kwtsms.help.phones14.p1"
+msgid "Kuwait numbers: the add-on always refuses a 965 number that isn't a mobile number, because landlines and service numbers can't receive SMS. There is no switch for it. Registration shows the refusal, and a send to such a number is skipped before the gateway with the reason Not a mobile number, so it costs no credit."
+msgstr "Kuwait numbers: the add-on always refuses a 965 number that isn't a mobile number, because landlines and service numbers can't receive SMS. There is no switch for it. Registration shows the refusal, and a send to such a number is skipped before the gateway with the reason Not a mobile number, so it costs no credit."
+
+msgctxt "Languages::kwtsms.help.phones14.p2"
+msgid "Missing phone: with Ask for a missing phone on in Settings, a signed-in customer without a phone sees a page asking for a mobile number, once in each sign-in session. The number is confirmed with an SMS code before it is saved. Later hides the page for 7 days within that session. It never shows on checkout, sign-in or profile pages, never to staff who use login as customer, and not while a two-step sign-in is pending."
+msgstr "Missing phone: with Ask for a missing phone on in Settings, a signed-in customer without a phone sees a page asking for a mobile number, once in each sign-in session. The number is confirmed with an SMS code before it is saved. Later hides the page for 7 days within that session. It never shows on checkout, sign-in or profile pages, never to staff who use login as customer, and not while a two-step sign-in is pending."
+
+msgctxt "Languages::kwtsms.help.phones14.p3"
+msgid "Code requests: when a code is requested for a number that belongs to another account, the page answers as if a code was sent, and nothing is sent. A customer who gets no code may be using a number that is already on another account. Repeated number-in-use answers when saving a profile are rate-limited."
+msgstr "Code requests: when a code is requested for a number that belongs to another account, the page answers as if a code was sent, and nothing is sent. A customer who gets no code may be using a number that is already on another account. Repeated number-in-use answers when saving a profile are rate-limited."
+
+msgctxt "Languages::kwtsms.integrations.later.state.active"
+msgid "Active"
+msgstr "Active"
+
+msgctxt "Languages::kwtsms.integrations.later.state.disabled"
+msgid "Installed, not active"
+msgstr "Installed, not active"
+
+msgctxt "Languages::kwtsms.integrations.later.state.missing"
+msgid "Not installed"
+msgstr "Not installed"
+
+msgctxt "Languages::kwtsms.integrations.later.switches"
+msgid "Switches on: [n]"
+msgstr "Switches on: [n]"
+
+msgctxt "Languages::kwtsms.integrations.later.today"
+msgid "SMS today: [n]"
+msgstr "SMS today: [n]"
+
+msgctxt "Languages::kwtsms.templates.switch_generic_vendor"
+msgid "No switch here. Turn vendor SMS on in Administration > Notifications."
+msgstr "No switch here. Turn vendor SMS on in Administration > Notifications."
+
+msgctxt "Languages::kwtsms.logs.reason.conditions_unreadable"
+msgid "The Conditions of this row could not be read, so no SMS was sent. Save the Conditions again."
+msgstr "The Conditions of this row could not be read, so no SMS was sent. Save the Conditions again."

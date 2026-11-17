@@ -362,11 +362,24 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: the "Phone
     <section class="kwtsms-section" id="kwtsms_later" aria-labelledby="kwtsms_later_title">
         <h4 class="subheader" id="kwtsms_later_title">{__("kwtsms.integrations.later.title")}</h4>
         <p class="muted description">{__("kwtsms.integrations.later.help")}</p>
-        <ul class="kwtsms-later-list">
+        <ul class="kwtsms-later-list kwtsms-areas" id="kwtsms_later_list">
+            {* 2026-11-17 07:16 +03: Task M3.13, task 596. Live rows: the state of the owning add-on, the switches ON and
+               the SMS sent today. Numbers and language variables only. *}
             {foreach $i.later as $row}
-                <li data-kwtsms-addon="{$row.id}">
-                    {__("kwtsms.integrations.later.`$row.id`")}
-                    {if $row.active}<span class="kwtsms-badge">{__("kwtsms.integrations.later.installed")}</span>{/if}
+                <li data-kwtsms-addon="{$row.id}" data-kwtsms-addon-state="{$row.state}">
+                    <div class="kwtsms-area__head">
+                        <strong>{__("kwtsms.integrations.later.`$row.id`")}</strong>
+                        <span class="kwtsms-badge{if $row.active} kwtsms-badge--ok{/if}">{__("kwtsms.integrations.later.state.`$row.state`")}</span>
+                    </div>
+                    {if $row.active}
+                        <div class="kwtsms-area__text">
+                            <span class="kwtsms-addon-switches">{__("kwtsms.integrations.later.switches", ["[n]" => $row.switches|fn_html_escape])}</span>
+                            <span class="kwtsms-addon-today">{__("kwtsms.integrations.later.today", ["[n]" => $row.sms_today|fn_html_escape])}</span>
+                        </div>
+                        <div class="kwtsms-area__action">
+                        {if $row.link}<a class="btn kwtsms-area__link" id="kwtsms_addon_link_{$row.id}" href="{$row.link|fn_url}">{__("kwtsms.integrations.area.open")}</a>{/if}
+                        </div>
+                    {/if}
                 </li>
             {/foreach}
         </ul>
