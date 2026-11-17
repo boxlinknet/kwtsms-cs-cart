@@ -694,6 +694,43 @@ print('CHECKED', n + len(en))
 PY
 }
 gate "language parity (msgctxt sets equal, every used kwtsms.* key exists)" language_check
+# 2026-11-17 14:59 +03: Task M3.15, task 596. Tables and upgrade code of the release: every table addon.xml creates is dropped
+# on uninstall, and a table that a migration of upgrades/<v> creates must
+# be the one addon.xml creates (the migrations are not shipped in the add-on zip, so a drift is invisible to the other gates);
+# every upgrades/<v> has its migrations and post.php; the 1.4.0 upgrade classes (PostUpgrade140, Shipped130Terms) and the
+# 1.4.0 migration exist in the tree and the PostUpgrade/Shipped classes ship in the add-on.
+tables_check() { py "$src" <<'PY'
+import os, re, sys, glob
+root = sys.argv[1]
+xml = open(os.path.join(root, 'app/addons/kwtsms/addon.xml'), encoding='utf-8').read()
+xml_nc = re.sub(r'<!--.*?-->', '', xml, flags=re.S)
+created = set(re.findall(r'CREATE TABLE IF NOT EXISTS `\?:(\w+)`', xml_nc))
+dropped = set(re.findall(r'DROP TABLE IF EXISTS `\?:(\w+)`', xml_nc))
+n = len(created)
+for t in sorted(created - dropped): print('created but not dropped on uninstall: ' + t)
+for t in sorted(dropped - created): print('dropped on uninstall but never created: ' + t)
+mig_tables = set()
+for d in sorted(glob.glob(os.path.join(root, 'upgrades', '*'))):
+    v = os.path.basename(d)
+    migs = glob.glob(os.path.join(d, 'migrations', '*.php'))
+    n += 1
+    if not migs: print('upgrades/%s has no migration' % v)
+    if not os.path.isfile(os.path.join(d, 'scripts', 'post.php')): print('upgrades/%s/scripts/post.php is missing' % v)
+    for m in migs:
+        mig_tables |= set(re.findall(r"'(kwtsms_\w+)'\s*=>\s*'CREATE TABLE", open(m, encoding='utf-8').read()))
+for t in sorted(mig_tables - created): print('a migration creates %s, addon.xml does not' % t)
+n += len(mig_tables)
+ver = re.search(r'<version>([^<]+)</version>', xml_nc).group(1)
+want = ['upgrades/%s/migrations' % ver, 'upgrades/%s/scripts/post.php' % ver]
+if ver == '1.4.0':
+    want += ['app/addons/kwtsms/Tygh/Addons/Kwtsms/Upgrade/PostUpgrade140.php', 'app/addons/kwtsms/Tygh/Addons/Kwtsms/Upgrade/Shipped130Terms.php']
+for w in want:
+    n += 1
+    if not os.path.exists(os.path.join(root, w)): print('missing for %s: %s' % (ver, w))
+print('CHECKED', n)
+PY
+}
+gate "tables: created = dropped on uninstall, migrations create only addon.xml tables, upgrades/<v> complete, 1.4.0 upgrade classes" tables_check
 
 # ---------------------------------------------------------------------------------------------------------------
 echo "-- source tree gates (before the stage)"
