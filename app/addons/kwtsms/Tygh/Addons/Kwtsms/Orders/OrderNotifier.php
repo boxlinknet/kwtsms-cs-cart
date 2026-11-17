@@ -401,9 +401,9 @@ class OrderNotifier
         // 2026-11-16 17:00 +03: M3.7 fix round 1, task 596 (I1): kwtsms.order_placed is checked in placedSms(), which
         // knows the unit (a checkout reads the
         // .multi rows against the parent order).
-        if ($event_id !== Defaults::EVENT_PLACED && !$this->conditionsPass($event_id, $receiver, $order)) {
-            return false;
-        }
+        // 2026-11-17 15:25 +03: FIX-B M1 (I1), task 596: the check moved below the supersede and vendor checks (an
+        // attempt row says what really stopped the SMS) and a status event runs it inside statusSms() (the checkout
+        // scope needs the parent order); see the block before the dispatch.
 
         // 2026-10-22 17:59 +03: Task A5, task 596. order.updated of an order that is new (or admin-created and waiting
         // for its Notify boxes) in this request is superseded: it already gets kwtsms.order_placed. Core dispatches
@@ -440,6 +440,16 @@ class OrderNotifier
 
                 return false;
             }
+        }
+
+        // 2026-11-17 15:25 +03: FIX-B M1 (I1), task 596. The event conditions, after every supersede and self-trigger
+        // return above, still before any key claim. kwtsms.order_placed runs them in placedSms() (checkout unit) and
+        // an order.status_changed.* SMS in statusSms() (the checkout scope reads the parent order).
+        if (
+            $event_id !== Defaults::EVENT_PLACED && strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) !== 0
+            && !$this->conditionsPass($event_id, $receiver, $order)
+        ) {
+            return false;
         }
 
         if (strpos($event_id, EventsSchemaExtender::STATUS_PREFIX) === 0) {
@@ -666,6 +676,13 @@ class OrderNotifier
                     'vendor_name' => '',
                 ];
             }
+        }
+
+        // 2026-11-17 15:25 +03: FIX-B I1 (M1), task 596. The conditions of a status SMS, judged on the unit it reports:
+        // the checkout (parent order: total, payment, shipping) for a per-checkout customer SMS, as the placed SMS does,
+        // else the order itself. After the supersede and waiting returns above, before any key claim.
+        if (!$this->conditionsPass($event_id, $receiver, $context_order)) {
+            return false;
         }
 
         $key = DispatchKeys::status($scope_id, $status, $receiver);
