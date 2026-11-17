@@ -12,6 +12,10 @@ USAGE:     {include file="addons/kwtsms/views/kwtsms/components/template_import_
            status, reason, unknown), errors (file level reason codes) or empty. Every value is auto-escaped; no
            template text is ever printed here.
 DEPENDS:   the import and transfer language variables of the Templates page.
+
+           2026-11-17 07:01: M3.10b item 2, task 596. $import_limit (bytes, optional) = the effective upload limit; the form
+           carries it with the "too large" text in data attributes, and js/addons/kwtsms/templates.js refuses a larger file
+           before submit (no inline script).
 *}
 <section class="kwtsms-import" id="kwtsms_import" aria-labelledby="kwtsms_import_title">
     <h4 class="subheader" id="kwtsms_import_title">{__("kwtsms.templates.transfer_title")}</h4>
@@ -19,7 +23,7 @@ DEPENDS:   the import and transfer language variables of the Templates page.
     <p>
         <a class="btn" id="kwtsms_export_templates" href="{"kwtsms.export_templates"|fn_url}">{__("kwtsms.templates.export_button")}</a>
     </p>
-    <form action="{""|fn_url}" method="post" enctype="multipart/form-data" name="kwtsms_import_form" id="kwtsms_import_form" class="kwtsms-inline-form">
+    <form action="{""|fn_url}" method="post" enctype="multipart/form-data" name="kwtsms_import_form" id="kwtsms_import_form" class="kwtsms-inline-form" data-kwtsms-import-limit="{$import_limit|default:1048576|intval}" data-kwtsms-import-too-large="{__("kwtsms.templates.import_reason_too_large")}">
         <label for="kwtsms_import_file">{__("kwtsms.templates.import_file")}</label>
         <input type="file" id="kwtsms_import_file" name="kwtsms_import_file" accept=".json,application/json" required="required">
         <input type="submit" class="btn" id="kwtsms_import_preview_btn" name="dispatch[kwtsms.import_templates]" value="{__("kwtsms.templates.import_preview_button")}">

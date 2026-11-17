@@ -322,11 +322,49 @@ DEPENDS:   js/addons/kwtsms/counter.js (window.kwtsmsCounter), fetch, FormData.
         });
     }
 
+    // 2026-11-17 07:01 +03: M3.10b item 2, task 596. The import form refuses a file above the server's effective upload limit before
+    // it is sent (core answers an over-size POST before the add-on guard, and a large upload stalls). The limit and the
+    // "too large" text come from data attributes of the form; the server guard stays. The message is shown with
+    // textContent only.
+    function initImport(root) {
+        var form = root.querySelector('#kwtsms_import_form');
+        if (!form || form.getAttribute('data-kwtsms-import-ready') === '1') {
+            return;
+        }
+        form.setAttribute('data-kwtsms-import-ready', '1');
+        var limit = parseInt(form.getAttribute('data-kwtsms-import-limit'), 10) || 0;
+        var input = form.querySelector('input[type="file"]');
+        if (!limit || !input) {
+            return;
+        }
+        var note = document.createElement('p');
+        note.className = 'kwtsms-import__toolarge text-error';
+        note.setAttribute('role', 'alert');
+        note.hidden = true;
+        form.appendChild(note);
+        function tooBig() {
+            return !!(input.files && input.files[0] && input.files[0].size > limit);
+        }
+        function check() {
+            var big = tooBig();
+            note.hidden = !big;
+            note.textContent = big ? (form.getAttribute('data-kwtsms-import-too-large') || '') : '';
+            return !big;
+        }
+        input.addEventListener('change', check);
+        form.addEventListener('submit', function (event) {
+            if (!check()) {
+                event.preventDefault();
+            }
+        });
+    }
+
     function init(context) {
         var root = context && context.jquery ? context.get(0) : (context || document);
         if (!root || !root.querySelector) {
             return;
         }
+        initImport(root);
         var page = root.querySelector('.kwtsms-templates');
         if (!page) {
             return;
