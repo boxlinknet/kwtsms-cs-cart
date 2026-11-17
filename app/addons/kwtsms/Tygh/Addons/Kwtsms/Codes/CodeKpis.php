@@ -275,8 +275,8 @@ class CodeKpis
     }
 
     /**
-     * 2026-11-17 07:03 +03: M3.10b item 4, task 596. The live-by-day statement for one range: created_at is bare (no function, no OR)
-     * and the index is named, the pattern of Admin\DashboardStats.
+     * 2026-11-17 07:03 +03: M3.10b item 4, task 596. The live-by-day statement for one range: created_at is bare (no
+     * function, no OR) and the index is named, the pattern of Admin\DashboardStats.
      *
      * @return array{0:string,1:int,2:int}
      */
@@ -297,7 +297,8 @@ class CodeKpis
      */
     protected function liveByDay(int $from, int $to): array
     {
-        // 2026-11-17 07:03 +03: M3.10b item 4, task 596. One bare range per UTC day, each on idx_created_at: the optimizer
+        // 2026-11-17 07:03 +03: M3.10b item 4, task 596. One bare range per UTC day, each on
+        // idx_created_at: the optimizer
         // read the whole 2-day window as most of the table and scanned all 1M rows (817 ms); a one-day range used
         // the index (101 ms).
         $rows = [];
