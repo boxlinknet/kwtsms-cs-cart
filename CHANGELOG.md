@@ -15,8 +15,10 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), as the CS-Cart Marketplace requires.
 
-<!-- 2026-11-12 06:59 +03: M3.17 (P3-74), task 596. First [Unreleased] entry of 1.4.0 -->
+<!-- 2026-11-17 15:01 +03: M3.15, task 596. The [Unreleased] entries became the 1.4.0 section; the date stays <date> until the publish day -->
 ## [Unreleased]
+
+## [1.4.0] - <date>
 
 <!-- 2026-11-14 11:40 +03: M3.3 back-in-stock SMS, task 596 -->
 ### Added
@@ -45,6 +47,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   discussion posts use it too), and a row skipped because its Conditions could not be read has its own label. The
   vendor row of the Templates page says where to turn vendor SMS on. On a narrow screen the switch note no longer runs
   under the page's side tab.
+
+### Notes
+
+- Tested on CS-Cart 4.21.2. The new add-on events (returns, call requests, back in stock, gift certificates, reviews, discussion, vendor messages, vendor plans) are tested on CS-Cart 4.21.2; 4.20.1 support for them is not yet verified.
+- Upgrading from 1.0.0, 1.1.0, 1.2.0 or 1.3.0 goes through the Upgrade Center with the upgrade package for your version; the two new tables start empty, every new setting starts at its default and the new events start off.
 
 <!-- 2026-11-08 05:38 +03: the Unreleased entries became the 1.3.0 release (the date is the build date; the controller sets the publish date), Task M2.9, task 596 -->
 <!-- 2026-11-11 20:44 +03: release date set to 2026-11-11, the day 1.3.0 was rebuilt and sealed for publishing, task 596 -->
