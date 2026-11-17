@@ -398,6 +398,46 @@ class SmsService
     }
 
     /**
+     * 2026-11-17 01:10 +03: task M3.22 fix round 1 (I2, review M3.22), task 596. What the store-wide caps would say to
+     * one more code SMS right now, read only (no reservation, no row, no alert): the code daily cap, the store daily
+     * cap, the store hourly cap, in the order of checkCaps(). CodeRequest uses it for a number another account holds,
+     * so that number gets the answer a free number gets when a store cap is reached (busy or unavailable).
+     *
+     * @return array{outcome:string,reason:string} accepted/'' when nothing refuses
+     *
+     * @throws \Throwable When a count cannot be read
+     */
+    public function codeCapOutcome(): array
+    {
+        $now = $this->now();
+        $start = max((int) strtotime('today', $now), $this->state->dailyCapResumedAt());
+        $code_used = $this->attempts->countRecent(
+            '',
+            '',
+            max(1, $now - $start),
+            self::SENT_OUTCOMES,
+            ['source' => self::SOURCE_CODE]
+        );
+        if ($this->config->capCodeDay() - $code_used < 1) {
+            return ['outcome' => 'blocked_daily_cap', 'reason' => 'cap_code_day'];
+        }
+        $used = $this->attempts->countRecent('', '', $now - $start, self::SENT_OUTCOMES);
+        if ($this->config->capStoreDay() - $used < 1) {
+            return ['outcome' => 'blocked_daily_cap', 'reason' => 'cap_store_day'];
+        }
+        $hour_cap = $this->config->capStoreHour();
+        if ($hour_cap > 0) {
+            $since_hour = $now - (int) date('i', $now) * 60 - (int) date('s', $now);
+            $hour_used = $this->attempts->countRecent('', '', max(1, $now - $since_hour), self::SENT_OUTCOMES);
+            if ($hour_cap - $hour_used < 1) {
+                return ['outcome' => 'blocked_hourly_cap', 'reason' => 'cap_store_hour'];
+            }
+        }
+
+        return ['outcome' => 'accepted', 'reason' => ''];
+    }
+
+    /**
      * The Settings page's test SMS (PRD 6.9 puts "Send a test SMS" before "Turn on SMS"): send() with step 2, the
      * global switch, skipped. Every other gate still applies: configured, suspended, caps, numbers, countries,
      * coverage, cleaning, length, balance, pilot, quiet hours, request budget, and test mode decides test="1".

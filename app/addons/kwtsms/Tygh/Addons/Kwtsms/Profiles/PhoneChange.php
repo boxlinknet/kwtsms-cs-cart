@@ -307,7 +307,9 @@ final class PhoneChange implements CodeCheckInterface
         $cc = (string) call_user_func($this->default_cc);
         $field = trim($after['phone']) !== '' ? 'phone' : 'b_phone';
         $hint = AccountPhone::hint($field, $user_data, $stored, $cc);
-        if (!AccountPhone::changed($after_phone, $before, $hint)) {
+        // 2026-11-16 23:53 +03: M6, task 596: the stored phone is read with its own stored country.
+        $stored_hint = AccountPhone::storedHint($field, $stored, $cc);
+        if (!AccountPhone::changed($after_phone, $before, $hint, $stored_hint)) {
             return null;
         }
         // 2026-10-28 20:25 +03: Task M1.10b, task 596. The posted countries stay in the data the calling code is

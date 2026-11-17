@@ -493,7 +493,11 @@ class ServiceProvider implements ServiceProviderInterface
                 $app['kwtsms.logs.debug'],
                 null,
                 [$app['kwtsms.outbox'], 'markExpired'],
-                $app['kwtsms.logs.attempts'] // 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596
+                $app['kwtsms.logs.attempts'], // 2026-10-24 23:51 +03: Task M1.8a (M1.4 review minor 4), task 596
+                // 2026-11-17 01:10 +03: task M3.22 fix round 1 (I2), task 596. The store caps for a held number.
+                static function () use ($app): array {
+                    return $app['kwtsms.sms']->codeCapOutcome();
+                }
             );
         };
         // 2026-10-24 23:51 +03: Task M1.8a (SafatMall E1 to E3, I3), task 596. The SMS code request and what it needs:
@@ -1286,7 +1290,12 @@ class ServiceProvider implements ServiceProviderInterface
                 null, // $notify: core's fn_set_notification
                 null, // $checkout_profile: the backtrace test
                 // 2026-11-05 20:55 +03: Task M2.4 (B6, P3-54), task 596. The SMS code before an order is placed.
-                $app['kwtsms.checkout_code']
+                $app['kwtsms.checkout_code'],
+                // 2026-11-17 01:40 +03: task M3.22 fix round 1 (I1), task 596. The "number in use" counters.
+                $app['kwtsms.rate_limiter'],
+                static function (): string {
+                    return \Tygh\Addons\Kwtsms\Security\ClientIp::current();
+                }
             );
         };
     }

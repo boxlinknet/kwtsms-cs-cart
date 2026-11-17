@@ -84,6 +84,19 @@ try {
     // after one pass (hide_if_logged, hide_after_validation), which would send SMS with no CAPTCHA. The request counts
     // as checked only when a check really ran and passed; otherwise the suspicion gate still runs in handle(). The
     // driver sets no core notice, and no setting is read or changed.
+    // 2026-11-16 23:58 +03: M7 (branch review 1.2.0, task M3.22, task 596). The per-IP buckets (ip_h, ip_d) are hit
+    // BEFORE the scenario check: under "always" mode a flood without a token no longer makes one outbound siteverify
+    // call per request. The handler skips its own count for this request afterwards.
+    $kwtsms_is_blind = in_array($kwtsms_purpose, BlindCodeRequest::PURPOSES, true);
+    $kwtsms_handler = $kwtsms_is_blind ? $kwtsms_app['kwtsms.blind_code_request'] : $kwtsms_app['kwtsms.code_request'];
+    $kwtsms_ip_wait = $kwtsms_handler->countIp($kwtsms_purpose, ClientIp::current(), $kwtsms_lang);
+    if ($kwtsms_ip_wait !== null) {
+        if ($kwtsms_is_blind) {
+            $kwtsms_handler->finishInline($kwtsms_timing);
+        }
+        fn_kwtsms_code_json(200, $kwtsms_ip_wait);
+    }
+
     $kwtsms_checked = false;
     $kwtsms_scenario = isset($kwtsms_app['antibot'])
         ? SuspicionGate::checkScenario($kwtsms_app['antibot'], $_REQUEST) : null;
@@ -155,7 +168,12 @@ try {
         fn_kwtsms_code_json(200, $kwtsms_body);
     }
 
-    $kwtsms_body = $kwtsms_app['kwtsms.code_request']->handle(
+    // 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. As the blind purposes: on a host with a finish
+    // function the register and phone change send runs after the response; without one the answer is padded.
+    $kwtsms_cr = $kwtsms_app['kwtsms.code_request'];
+    $kwtsms_cr_mode = $kwtsms_app['kwtsms.blind_code_request']->mode();
+    $kwtsms_cr->deferSend(AfterResponse::afterResponse($kwtsms_cr_mode));
+    $kwtsms_body = $kwtsms_cr->handle(
         $kwtsms_purpose,
         $kwtsms_phone,
         $_REQUEST,
@@ -165,6 +183,16 @@ try {
         $kwtsms_storefront_id,
         $kwtsms_lang,
         $kwtsms_checked
+    );
+    $kwtsms_cr->finishRequest(
+        $kwtsms_timing,
+        $kwtsms_purpose,
+        static function (callable $work) use ($kwtsms_cr_mode): void {
+            register_shutdown_function(static function () use ($work, $kwtsms_cr_mode): void {
+                AfterResponse::finish($kwtsms_cr_mode);
+                $work();
+            });
+        }
     );
     fn_kwtsms_code_json(200, $kwtsms_body);
 } catch (\Throwable $e) {

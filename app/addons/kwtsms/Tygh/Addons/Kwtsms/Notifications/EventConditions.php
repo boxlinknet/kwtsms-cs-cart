@@ -45,6 +45,9 @@ class EventConditions
     /** @var array<string,array{min_total:string,payment_ids:int[],shipping_ids:int[],staff_quiet:bool}> */
     private $cache = [];
 
+    /** @var array{payments:array<int,string>,shippings:array<int,string>}|null 2026-11-17 00:50 +03: P4 (task 596) */
+    private $active = null;
+
     /**
      * @param array<string,mixed> $order The order of the event (an empty array for an event without an order)
      *
@@ -62,6 +65,9 @@ class EventConditions
         $none['staff_quiet'] = $cond['staff_quiet'] && $receiver !== 'C' && self::supportsQuiet($event_id);
         // Order conditions apply to an event that has an order; any other event ignores them.
         if ((int) ($order['order_id'] ?? 0) > 0) {
+            // 2026-11-17 01:30 +03: task M3.22 fix round 1 (I3, review M3.22), task 596. The stored ids are matched exactly
+            // as saved: a list of only inactive methods still refuses (never widens to "any"), a mixed list still
+            // matches an old order paid by a method since disabled. The dialog shows the unavailable count only.
             if ($cond['min_total'] !== '') {
                 $total = self::totalOf($order);
                 if ($total === null) {
@@ -179,6 +185,33 @@ class EventConditions
     public function forget(): void
     {
         $this->cache = [];
+        $this->active = null;
+    }
+
+    /**
+     * 2026-11-17 00:50 +03: task M3.22 P4, task 596. How many of the stored ids are not an active method any more
+     * (for the "N unavailable" line of the Conditions dialog).
+     *
+     * @param int[] $ids
+     */
+    public function unavailable(array $ids, string $kind): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+        if ($this->active === null) {
+            $this->active = ['payments' => $this->activePayments(), 'shippings' => $this->activeShippings()];
+        }
+        $list = $this->active[$kind === 'shippings' ? 'shippings' : 'payments'];
+        // 2026-11-17 01:30 +03: fix round 1 (I3), task 596. An empty active list (a failed read, or no method on) says
+        // nothing about the ids: none is counted unavailable.
+        if ($list === []) {
+            return 0;
+        }
+
+        return count(array_filter($ids, static function (int $id) use ($list): bool {
+            return !isset($list[$id]);
+        }));
     }
 
     /**

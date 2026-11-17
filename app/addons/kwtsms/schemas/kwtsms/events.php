@@ -326,6 +326,9 @@ try {
                     'required' => true,
                 ],
                 'opt_out' => true,
+                // 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. The purchaser gets at most 5 such
+                // SMS a day (OrderNotifier::CUSTOMER_DAILY_CEILING).
+                'customer_cap' => 'gift',
                 'group' => 'kwtsms.templates.group_gift_certificates',
                 'data_class' => \Tygh\Addons\Kwtsms\Events\GiftCertificateSmsData::class,
             ];
@@ -420,6 +423,9 @@ foreach (
         'dedupe' => $community_dedupe,
         // 2026-11-14 21:32 +03: task 596 M3.5 review I1. The V text keeps the 10/day ceiling and the quota reserve.
         'vendor_cap' => 'messages',
+        // 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. A customer gets at most 5 vendor reply SMS a
+        // day (OrderNotifier::CUSTOMER_DAILY_CEILING), over every vendor.
+        'customer_cap' => 'messages',
         'group' => 'kwtsms.templates.group_community',
         'data_class' => \Tygh\Addons\Kwtsms\Events\CommunitySmsData::class,
     ];

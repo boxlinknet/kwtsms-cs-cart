@@ -36,6 +36,10 @@ DEPENDS:   templates.less (.kwtsms-cond).
             {foreachelse}
                 <span class="muted">{__("kwtsms.conditions.none_available")}</span>
             {/foreach}
+            {* 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored methods that are inactive or deleted. *}
+            {if $c.unavailable_payments}
+                <span class="muted kwtsms-cond__hint" id="kwtsms_cond_unavail_pay_{$row.dom_id}">{__("kwtsms.conditions.unavailable", ["[n]" => $c.unavailable_payments|intval|fn_html_escape])}</span>
+            {/if}
             <span class="muted kwtsms-cond__hint">{__("kwtsms.conditions.any")}</span>
         </fieldset>
         <fieldset class="kwtsms-cond__field">
@@ -45,6 +49,9 @@ DEPENDS:   templates.less (.kwtsms-cond).
             {foreachelse}
                 <span class="muted">{__("kwtsms.conditions.none_available")}</span>
             {/foreach}
+            {if $c.unavailable_shippings}
+                <span class="muted kwtsms-cond__hint" id="kwtsms_cond_unavail_ship_{$row.dom_id}">{__("kwtsms.conditions.unavailable", ["[n]" => $c.unavailable_shippings|intval|fn_html_escape])}</span>
+            {/if}
             <span class="muted kwtsms-cond__hint">{__("kwtsms.conditions.any")}</span>
         </fieldset>
         {* 2026-11-16 16:45 +03: M3.7 fix round 1 (I2, I3), task 596. Storefront inheritance note; one-line reason for the missing quiet-hours box on the placed events. *}

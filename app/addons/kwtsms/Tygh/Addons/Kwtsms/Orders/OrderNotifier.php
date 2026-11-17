@@ -112,6 +112,13 @@ class OrderNotifier
     public const VENDOR_INACTIVE = 'vendor_inactive';
     public const VENDOR_QUOTA_RESERVED = 'vendor_quota_reserved';
     public const VENDOR_DAY_CEILING = 'vendor_day_ceiling';
+    /**
+     * 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. A customer (C) text of an event the customer does
+     * not trigger (a vendor reply in a thread, a gift certificate status) is refused after this many per customer and
+     * day, like the vendor ceiling above; refused before the dedupe key is claimed (a refusal burns no key).
+     */
+    public const CUSTOMER_DAILY_CEILING = 5;
+    public const CUSTOMER_DAY_CEILING = 'customer_day_ceiling';
     /** 2026-11-15 01:51 +03: task 596 M3.6. The vendor changed its own order: it gets no SMS about it. */
     public const SELF_TRIGGERED = 'self_triggered';
 
@@ -908,7 +915,7 @@ class OrderNotifier
         return $this->deliver($event_id, $receiver, $order, $extra, $this->orders->actor(), [
             'order_id' => (int) ($order['order_id'] ?? 0),
             'parent_order_id' => (int) ($order['parent_order_id'] ?? 0),
-        ], $dedupe, $decl->publicForm() !== '' ? $decl->publicForm() : $decl->vendorCap());
+        ], $dedupe, $decl->publicForm() !== '' ? $decl->publicForm() : $decl->vendorCap(), $decl->customerCap());
     }
 
     /**
@@ -1016,7 +1023,8 @@ class OrderNotifier
         array $actor,
         array $ids,
         ?array $dedupe = null,
-        string $public_form = ''
+        string $public_form = '',
+        string $customer_cap = ''
     ): bool {
         // 2026-11-14 07:40 +03: Task M3.2 review I2 (c), task 596. Every V send needs an ACTIVE vendor, checked
         // before its number is read; a company row that cannot be read is a platform_missing refusal.
@@ -1091,6 +1099,24 @@ class OrderNotifier
 
                     return false;
                 }
+            }
+        }
+
+        // 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. The per-customer daily ceiling of a declared
+        // C text (customer_cap): read-only here, the day counter is hit only after the key is claimed, so a refusal or
+        // a duplicate burns neither. A guest (no user id) has no per-customer bucket; the per-number caps still apply.
+        $customer_bucket = '';
+        if (
+            $receiver === 'C' && $customer_cap !== '' && $this->limiter !== null
+            && (int) ($order['user_id'] ?? 0) > 0
+        ) {
+            $customer_bucket = 'cday:' . $customer_cap . ':' . (int) $order['user_id'];
+            $seen = $this->limiter->peek($customer_bucket);
+            $live = $seen['window_start'] > $this->limiter->now() - 86400;
+            if ($seen['hits'] >= self::CUSTOMER_DAILY_CEILING && $live) {
+                $this->skip(self::RATE_LIMITED, self::CUSTOMER_DAY_CEILING, $log_order, $event_id, $receiver, $phones);
+
+                return false;
             }
         }
 
@@ -1174,6 +1200,10 @@ class OrderNotifier
         if ($day_bucket !== '') {
             // 2026-11-14 07:40 +03: Task M3.2 review I2, task 596. Counts a claimed SMS only.
             $this->limiter->hit($day_bucket, 86400);
+        }
+        if ($customer_bucket !== '') {
+            // 2026-11-17 00:20 +03: task M3.22 P2, task 596. Counts a claimed SMS only.
+            $this->limiter->hit($customer_bucket, 86400);
         }
         // 2026-11-16 18:45 +03: Task M3.8 (B8, P3-69), task 596. With coalesce_customer_sms ON a customer SMS of a
         // status change, an edit or a shipment waits for the end of the request: the key is claimed above, so a

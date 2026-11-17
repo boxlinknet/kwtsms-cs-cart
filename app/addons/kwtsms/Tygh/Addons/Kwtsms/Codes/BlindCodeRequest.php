@@ -98,6 +98,9 @@ class BlindCodeRequest
     /** @var array<string,mixed>|null The work after the response; set only by an answer that is the neutral body */
     private $pending;
 
+    /** @var string|null 2026-11-16 23:58 +03: M7 (task M3.22, task 596). The IP part countIp() has just counted. */
+    private $ip_counted = null;
+
     /** @var \Tygh\Addons\Kwtsms\Auth\TwoFactorPolicy|null 2026-11-04 22:40 +03: Task M2.2a (controller ruling 22:31), task 596. */
     private $twofa;
 
@@ -141,6 +144,34 @@ class BlindCodeRequest
     }
 
     /**
+     * 2026-11-16 23:58 +03: M7 (branch review 1.2.0, task M3.22, task 596). The per-IP hour and day buckets (P3-6,
+     * P3-35), hit once per request; called by the controller BEFORE the CAPTCHA scenario check (no siteverify call
+     * for a flood), after which handle() skips its own count for the same address. A counter that fails closed is
+     * over the limit.
+     *
+     * @return array<string,mixed>|null the "wait" answer body when over a limit, else null
+     */
+    public function countIp(string $purpose, string $ip, string $lang): ?array
+    {
+        $ip_part = ClientIp::bucketKey($ip);
+        $buckets = [
+            ['ip_h', CodeRequest::HOUR, $this->config->capIpHour()],
+            ['ip_d', CodeRequest::DAY, $this->config->capIpDay()],
+        ];
+        foreach ($buckets as $b) {
+            $bucket = $b[0] . ':' . $ip_part;
+            if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
+                $this->debug('otp.ip_limited', ['bucket' => $b[0], 'ip' => $ip_part, 'purpose' => $purpose]);
+
+                return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
+            }
+        }
+        $this->ip_counted = $ip_part;
+
+        return null;
+    }
+
+    /**
      * The answer, decided before any account lookup (P3-42). Order: per-IP buckets, phone format and country, the
      * CAPTCHA gate, store availability, then the neutral body. Remembers the work for afterResponse().
      *
@@ -165,18 +196,14 @@ class BlindCodeRequest
 
         // 1. Per-IP buckets (P3-6, P3-35), the same as CodeRequest: every request counts, a counter that fails closed
         // is over the limit.
-        $ip_part = ClientIp::bucketKey($ip);
-        $buckets = [
-            ['ip_h', CodeRequest::HOUR, $this->config->capIpHour()],
-            ['ip_d', CodeRequest::DAY, $this->config->capIpDay()],
-        ];
-        foreach ($buckets as $b) {
-            $bucket = $b[0] . ':' . $ip_part;
-            if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
-                $this->debug('otp.ip_limited', ['bucket' => $b[0], 'ip' => $ip_part, 'purpose' => $purpose]);
-
-                return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
-            }
+        // 2026-11-16 23:58 +03: M7 (task M3.22, task 596): the controller counts them first through countIp() (before
+        // the CAPTCHA siteverify call); the same request is then not counted a second time.
+        $counted = $this->ip_counted === ClientIp::bucketKey($ip);
+        $this->ip_counted = null;
+        $limited = $counted ? null : $this->countIp($purpose, $ip, $lang);
+        $this->ip_counted = null;
+        if ($limited !== null) {
+            return $limited;
         }
 
         // 2. The phone, judged after the gate (a bot learns nothing about a number it cannot pass).

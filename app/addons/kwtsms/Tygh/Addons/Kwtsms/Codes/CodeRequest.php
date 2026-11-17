@@ -155,6 +155,15 @@ class CodeRequest
     /** @var callable|null */
     private $clock;
 
+    /** @var bool 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. The host has a finish function. */
+    private $defer = false;
+
+    /** @var array<string,mixed>|null The deferred send of the last handle() (see afterResponse()). */
+    private $pending;
+
+    /** @var string|null 2026-11-16 23:58 +03: M7 (task M3.22, task 596). The IP part countIp() has just counted. */
+    private $ip_counted = null;
+
     /**
      * @param callable|null $session_writer Writes the session bypass key; null = the Tygh session
      * @param callable|null $current_phone Reads an account's canonical phone; null = the profile (fn_get_user_info)
@@ -217,6 +226,143 @@ class CodeRequest
     }
 
     /**
+     * 2026-11-17 01:10 +03: task M3.22 fix round 1 (C1, review M3.22), task 596. The answer to a register or a phone
+     * change code request lasts at least CodeTiming::FLOOR_MS from the request start, on EVERY path: a number another
+     * account holds (no gateway call) and a free one (a synchronous gateway call) answer at the same floor, so the
+     * response time says nothing about the number. The controller calls it just before it answers. A send that takes
+     * longer than the floor is the residual (CodeTiming::overran()).
+     */
+    public function finishPadded(CodeTiming $timing, string $purpose): void
+    {
+        if (self::paddedPurpose($purpose)) {
+            $timing->pad(CodeTiming::FLOOR_MS);
+        }
+    }
+
+    private static function paddedPurpose(string $purpose): bool
+    {
+        return $purpose === self::PURPOSE_REGISTER || $purpose === self::PURPOSE_PHONE_CHANGE;
+    }
+
+    /**
+     * 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. The host has a finish function (AfterResponse): call
+     * before handle(). The register and phone change send then runs in afterResponse(), after the answer.
+     */
+    public function deferSend(bool $host_has_finish): void
+    {
+        $this->defer = $host_has_finish;
+    }
+
+    /**
+     * 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. What the controller does after handle(): a deferred
+     * send is handed to $after (the controller registers it as a shutdown function after the finish call); on a host
+     * without a finish function the answer is padded to CodeTiming::FLOOR_MS (the blind purposes' rule). An answer that
+     * defers nothing on a finish host (a refusal that names no number) waits for nothing.
+     *
+     * @param callable $after (callable $work): void
+     */
+    public function finishRequest(CodeTiming $timing, string $purpose, callable $after): void
+    {
+        if ($this->pending !== null) {
+            call_user_func($after, function (): void {
+                $this->afterResponse();
+            });
+
+            return;
+        }
+        if (!$this->defer) {
+            $this->finishPadded($timing, $purpose);
+        }
+    }
+
+    /**
+     * 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. The send of a deferred answer, after the response.
+     * Fails where a failed send fails today: a code that could not go out is revoked, the alert and the cancelled
+     * deferred copy are the same, a thrown error is logged. It cannot change the answer (already sent) and sets no
+     * bypass. Never throws; runs once per handle().
+     */
+    public function afterResponse(): void
+    {
+        $p = $this->pending;
+        $this->pending = null;
+        if ($p === null) {
+            return;
+        }
+        $issued = $p['issued'];
+        try {
+            $sent = $p['silent'] ? $this->sender->heldOutcome() : $this->sender->sendCode(
+                $p['phone'],
+                $issued->code(),
+                $p['purpose'],
+                $p['lang'],
+                $p['storefront_id'],
+                $p['user_id'],
+                $p['ip'],
+                false
+            );
+            $outcome = (string) ($sent['outcome'] ?? 'failed');
+            $reason = (string) ($sent['reason'] ?? '');
+            $class = $this->availability->classify($outcome, $reason);
+            if ($class === CodeAvailability::SENT || $class === CodeAvailability::NUMBER) {
+                if (!$p['skip_phone_cap']) {
+                    $this->limiter->hit('phone_h:' . $p['phone'], self::HOUR);
+                }
+
+                return;
+            }
+            $this->otp->revoke($issued);
+            if ($class !== CodeAvailability::BUSY) {
+                if (!$p['silent']) {
+                    $this->availability->alert($this->availability->reasonFor($outcome, $reason));
+                }
+                if (isset($sent['outbox_id'])) {
+                    $this->sender->cancelDeferred((int) $sent['outbox_id']);
+                }
+            }
+        } catch (\Throwable $e) {
+            try {
+                $this->otp->revoke($issued);
+            } catch (\Throwable $ignored) {
+                // nothing more to do: the code expires
+            }
+            if ($this->log !== null) {
+                $this->log->log('error', 'otp.deferred_send', 'the send after the response failed', [
+                    'purpose' => $p['purpose'],
+                    'error' => get_class($e),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * 2026-11-16 23:58 +03: M7 (branch review 1.2.0, task M3.22, task 596). The per-IP hour and day buckets (P3-6),
+     * hit once per request. The controller calls this BEFORE the CAPTCHA scenario check, so a flood without a token is
+     * stopped by ip_h before any outbound siteverify call; handle() then skips its own count for the same address.
+     * A counter that fails closed is over the limit.
+     *
+     * @return array<string,mixed>|null the "wait" answer body when over a limit, else null
+     */
+    public function countIp(string $purpose, string $ip, string $lang): ?array
+    {
+        $ip_part = ClientIp::bucketKey($ip);
+        $buckets = [
+            ['ip_h', self::HOUR, $this->config->capIpHour()],
+            ['ip_d', self::DAY, $this->config->capIpDay()],
+        ];
+        foreach ($buckets as $b) {
+            $bucket = $b[0] . ':' . $ip_part;
+            if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
+                $this->debug('otp.ip_limited', ['bucket' => $b[0], 'ip' => $ip_part, 'purpose' => $purpose]);
+
+                return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
+            }
+        }
+        $this->ip_counted = $ip_part;
+
+        return null;
+    }
+
+    /**
      * @param array<string,mixed> $request The posted fields (the CAPTCHA token is read from it)
      *
      * @return array<string,mixed> The JSON body
@@ -232,19 +378,16 @@ class CodeRequest
         string $lang,
         bool $captcha_checked = false
     ): array {
+        $this->pending = null;
         // 1. Per-IP buckets (P3-6): every request counts, sent or not. A counter that fails closed is over the limit.
-        $ip_part = ClientIp::bucketKey($ip);
-        $buckets = [
-            ['ip_h', self::HOUR, $this->config->capIpHour()],
-            ['ip_d', self::DAY, $this->config->capIpDay()],
-        ];
-        foreach ($buckets as $b) {
-            $bucket = $b[0] . ':' . $ip_part;
-            if ($this->limiter->hit($bucket, $b[1]) > $b[2]) {
-                $this->debug('otp.ip_limited', ['bucket' => $b[0], 'ip' => $ip_part, 'purpose' => $purpose]);
-
-                return $this->wait($this->windowLeft($bucket, $b[1]), $lang);
-            }
+        // 2026-11-16 23:58 +03: M7 (task M3.22, task 596): the controller counts them first through countIp() (before
+        // the CAPTCHA siteverify call); the same request is then not counted a second time.
+        $counted = $this->ip_counted === ClientIp::bucketKey($ip);
+        $this->ip_counted = null;
+        $limited = $counted ? null : $this->countIp($purpose, $ip, $lang);
+        $this->ip_counted = null;
+        if ($limited !== null) {
+            return $limited;
         }
 
         // 2. The phone, read now and judged after the gate (a bot learns nothing about a number it cannot pass).
@@ -287,6 +430,25 @@ class CodeRequest
 
         // 5. Purpose rules (C4). Only a complete index may refuse (P3-31).
         $refused = $this->purposeRefusal($purpose, $phone, $user_id, $lang);
+        // 2026-11-17 00:30 +03: task M3.22 P5 (M3.21 security review M1), task 596. A number another account holds is
+        // answered exactly like a sent code (same message, same counters, same resend step) but nothing is sent: the
+        // answer no longer tells a signed-in customer which numbers are registered. The in_use text comes at the
+        // form's save (ProfileHooks, C4), where the number is submitted for real.
+        if ($refused !== null && (string) ($refused['error'] ?? '') === 'in_use') {
+            return $this->deliver(
+                $purpose,
+                $phone,
+                $user_id,
+                $session_hash,
+                $ip,
+                $storefront_id,
+                $lang,
+                false,
+                '',
+                false,
+                true
+            );
+        }
         if ($refused !== null) {
             return $refused;
         }
@@ -488,7 +650,9 @@ class CodeRequest
         bool $staff,
         string $subject = '',
         // 2026-11-06 23:51 +03: M2.6-fix I2, task 596. true = the shared per-phone cap is neither read nor counted.
-        bool $skip_phone_cap = false
+        bool $skip_phone_cap = false,
+        // 2026-11-17 00:30 +03: task M3.22 P5, task 596. true = everything as a real request except the SMS.
+        bool $silent = false
     ): array {
         // 2026-11-05 02:24 +03: Task M2.2a fix 1 (C1), task 596. $subject is the engine key of the code (the phone
         // unless
@@ -540,9 +704,26 @@ class CodeRequest
             return $this->wait($issued->retry_after, $lang);
         }
 
+        // 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1, coordinator), task 596. On a host with a finish function the
+        // register and phone change answer is "code sent" as soon as the code is issued; the send (or the no-op of a held
+        // number) runs after the response in afterResponse(), so both answer at the same speed with no wait.
+        if ($this->defer && !$staff && self::paddedPurpose($purpose)) {
+            $this->pending = [
+                'issued' => $issued, 'phone' => $phone, 'purpose' => $purpose, 'lang' => $lang,
+                'storefront_id' => $storefront_id, 'user_id' => $user_id, 'ip' => $ip,
+                'skip_phone_cap' => $skip_phone_cap, 'silent' => $silent,
+            ];
+
+            return $this->sentBody($issued, $lang);
+        }
+
         // 9. The SMS. Nothing may leave a live code behind when it fails.
         try {
-            $sent = $this->sender->sendCode(
+            // 2026-11-17 00:30 +03: task M3.22 P5, task 596. The number is held by another account: nothing is sent
+            // (the code is never shown to anyone and expires). 2026-11-17 01:10 +03: fix round 1 (I2): what the store
+            // caps would say stands in for the send, so a cap that refuses a free number refuses this one the same way
+            // and the answer below is the real path's.
+            $sent = $silent ? $this->sender->heldOutcome() : $this->sender->sendCode(
                 $phone,
                 $issued->code(),
                 $purpose,
@@ -584,7 +765,10 @@ class CodeRequest
         }
 
         // Not sendable (P3-13, P3-24): name the cause, cancel a deferred copy, then pause or continue.
-        $this->availability->alert($this->availability->reasonFor($outcome, $reason));
+        // 2026-11-17 01:10 +03: fix round 1 (I2), task 596. A held number raises no alert of its own.
+        if (!$silent) {
+            $this->availability->alert($this->availability->reasonFor($outcome, $reason));
+        }
         if (isset($sent['outbox_id'])) {
             $this->sender->cancelDeferred((int) $sent['outbox_id']);
         }

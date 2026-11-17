@@ -6589,6 +6589,11 @@ msgctxt "Languages::kwtsms.help.limits.p5"
 msgid "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
 msgstr "The SMS to the old number after a phone change counts against the same per-address limits, and an account gets at most 1 such SMS an hour. A further change inside the hour is saved without the SMS and is noted in the debug log."
 
+# 2026-11-17 00:30 +03: task M3.22 P2, task 596. Help line.
+msgctxt "Languages::kwtsms.help.limits.p6"
+msgid "A customer gets at most 5 SMS a day from the events the customer does not start: gift certificate updates and vendor replies in a message thread. More are refused and show in Logs as a customer limit. The limit counts each customer, over all vendors."
+msgstr "A customer gets at most 5 SMS a day from the events the customer does not start: gift certificate updates and vendor replies in a message thread. More are refused and show in Logs as a customer limit. The limit counts each customer, over all vendors."
+
 # 2026-10-29 04:12 +03: Task M1.12, task 596. Help page, 1.2.0 sections and carry-forward lines.
 msgctxt "Languages::kwtsms.help.captcha.title"
 msgid "CAPTCHA for codes"
@@ -7795,6 +7800,11 @@ msgctxt "Languages::kwtsms.logs.reason.vendor_quota_reserved"
 msgid "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
 msgstr "A vendor SMS from a public form was refused: the vendor already used half of its monthly SMS quota."
 
+# 2026-11-17 00:30 +03: task M3.22 P2, task 596. Logs reason of the per-customer daily ceiling.
+msgctxt "Languages::kwtsms.logs.reason.customer_day_ceiling"
+msgid "A customer SMS was refused: the customer already got 5 SMS of this kind today."
+msgstr "A customer SMS was refused: the customer already got 5 SMS of this kind today."
+
 msgctxt "Languages::kwtsms.logs.reason.vendor_inactive"
 msgid "The vendor is not active, so no vendor SMS was sent."
 msgstr "The vendor is not active, so no vendor SMS was sent."
@@ -8591,3 +8601,7 @@ msgstr "Your mobile number was saved."
 msgctxt "Languages::kwtsms.phone_prompt.failed"
 msgid "Your mobile number could not be saved. Try again in a few minutes."
 msgstr "Your mobile number could not be saved. Try again in a few minutes."
+# 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored methods that are not active any more.
+msgctxt "Languages::kwtsms.conditions.unavailable"
+msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
+msgstr "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."

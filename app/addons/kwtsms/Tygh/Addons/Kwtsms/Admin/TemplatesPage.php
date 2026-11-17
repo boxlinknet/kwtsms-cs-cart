@@ -1283,6 +1283,12 @@ class TemplatesPage
             $inherit = $cond === null ? 'uses' : 'overrides';
         }
         $cond = $cond ?? ['min_total' => '', 'payment_ids' => [], 'shipping_ids' => [], 'staff_quiet' => false];
+        // 2026-11-17 00:50 +03: task M3.22 P4 (M3.7 review M3), task 596. Stored ids of methods that are inactive or
+        // deleted now: the count for the "N unavailable" line (saving the form drops them).
+        $cond['unavailable_payments'] = $this->conditions === null
+            ? 0 : $this->conditions->unavailable($cond['payment_ids'], 'payments');
+        $cond['unavailable_shippings'] = $this->conditions === null
+            ? 0 : $this->conditions->unavailable($cond['shipping_ids'], 'shippings');
 
         return $cond + [
             'has' => $cond['min_total'] !== '' || $cond['payment_ids'] !== [] || $cond['shipping_ids'] !== []

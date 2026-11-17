@@ -142,10 +142,17 @@ class Redactor
         });
         $pattern = '/' . implode('|', array_map(static function (string $k): string {
             return preg_quote($k, '/');
-        }, $keys)) . '/iu';
-        // One pass, longest form first, replaced text is never rescanned; a text that is not valid UTF-8 falls back to
-        // the exact strtr() pass.
-        $done = @preg_replace($pattern, str_replace(['\\', '$'], ['\\\\', '\\$'], $replacement), $text);
+        }, $keys)) . '/i';
+        // One pass, longest form first, replaced text is never rescanned; a text that is not valid UTF-8 first retries
+        // the same pass byte-wise (no /u: ASCII case-insensitive, safe on any byte), and only then falls back to the
+        // exact strtr() pass.
+        // 2026-11-17 00:08 +03: P1 (M3.4 review, task M3.22, task 596): the fallback used to go straight to the
+        // case-sensitive strtr(), so a lower-case gift certificate code in a text with one bad byte stayed visible.
+        $safe = str_replace(['\\', '$'], ['\\\\', '\\$'], $replacement);
+        $done = @preg_replace($pattern . 'u', $safe, $text);
+        if (!is_string($done)) {
+            $done = @preg_replace($pattern, $safe, $text);
+        }
 
         return is_string($done) ? $done : strtr($text, $map);
     }
