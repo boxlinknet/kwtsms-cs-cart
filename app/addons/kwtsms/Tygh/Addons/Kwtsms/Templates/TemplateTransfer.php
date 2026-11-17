@@ -81,7 +81,28 @@ class TemplateTransfer
     public function export(): string
     {
         $out = [];
+        // 2026-11-17 06:59 +03: M3.10b item 1, task 596. A stored row the import would refuse (an event or receiver the Templates page
+        // does not list on this store, an unknown language or storefront, a body the checks refuse) is not exported,
+        // so an untouched export re-imports as 100% unchanged. The same checkRow() decides both ways.
+        $languages = $this->languages();
+        $storefronts = $this->storefronts();
+        $ui = [];
+        $seen = [];
         foreach ($this->storedRows() as $r) {
+            $probe = [
+                'event_id' => (string) $r['event_id'], 'receiver' => (string) $r['receiver'],
+                'storefront_id' => (int) $r['storefront_id'], 'lang_code' => (string) $r['lang_code'],
+                'body' => (string) $r['body'],
+            ];
+            $row = [
+                'event_id' => $probe['event_id'], 'receiver' => $probe['receiver'],
+                'storefront_id' => $probe['storefront_id'], 'lang' => $probe['lang_code'],
+                'status' => self::STATUS_REFUSED, 'reason' => '', 'unknown' => [], 'stored' => '', 'key' => '', 'fp' => '',
+            ];
+            $this->checkRow($probe, $languages, $storefronts, $ui, $seen, $row);
+            if ($row['status'] === self::STATUS_REFUSED) {
+                continue;
+            }
             $out[] = [
                 'event_id' => (string) $r['event_id'],
                 'receiver' => (string) $r['receiver'],
