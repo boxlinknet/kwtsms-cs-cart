@@ -8824,3 +8824,9 @@ msgstr "لا مفتاح هنا. فعّل رسائل البائع من الإدا
 msgctxt "Languages::kwtsms.logs.reason.conditions_unreadable"
 msgid "The Conditions of this row could not be read, so no SMS was sent. Save the Conditions again."
 msgstr "تعذرت قراءة شروط هذا الصف فلم تُرسل الرسالة. احفظ الشروط من جديد."
+
+# 2026-11-17 15:23 +03: FIX-B M5, task 596. kwtsms.logs.resend.customer_cap the refusal of a resend of a customer SMS whose
+# customer already reached the per-customer daily ceiling of that event (the same ceiling as the first send).
+msgctxt "Languages::kwtsms.logs.resend.customer_cap"
+msgid "This customer already got the daily maximum of this kind of SMS. Try again tomorrow."
+msgstr "وصل هذا العميل إلى الحد اليومي الأقصى لهذا النوع من الرسائل. حاول مرة أخرى غدا."

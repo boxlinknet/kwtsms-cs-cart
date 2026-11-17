@@ -44,7 +44,9 @@ use Tygh\Addons\Kwtsms\Log\Redactor;
 use Tygh\Addons\Kwtsms\Log\Schema;
 // 2026-10-21 16:58 +03: the resend claim (final review M1), task 596.
 use Tygh\Addons\Kwtsms\Orders\DispatchKeys;
+use Tygh\Addons\Kwtsms\Orders\OrderNotifier; // 2026-11-17 15:23 +03: FIX-B M5, task 596
 use Tygh\Addons\Kwtsms\Queue\Outbox;
+use Tygh\Addons\Kwtsms\Security\RateLimiter; // 2026-11-17 15:23 +03: FIX-B M5, task 596
 use Tygh\Addons\Kwtsms\Sms\MessageCleaner;
 use Tygh\Addons\Kwtsms\Sms\SendResult;
 use Tygh\Addons\Kwtsms\Sms\SmsService;
@@ -105,6 +107,12 @@ class LogResender
     /** @var DispatchKeys (2026-10-21 16:58 +03: final review M1, task 596) */
     private $keys;
 
+    /** @var RateLimiter|null 2026-11-17 15:23 +03: FIX-B M5, task 596. The per-customer day buckets of the order notifier. */
+    private $limiter;
+
+    /** @var callable|null 2026-11-17 15:23 +03: FIX-B M5, task 596. (string $event_id): string, the customer_cap family or ''. */
+    private $customer_cap_of;
+
     /**
      * 2026-10-21 16:58 +03: $keys added (null = new DispatchKeys()), final review M1, task 596.
      */
@@ -113,8 +121,14 @@ class LogResender
         SmsService $sms,
         Outbox $outbox,
         DebugLog $log,
-        ?DispatchKeys $keys = null
+        ?DispatchKeys $keys = null,
+        ?RateLimiter $limiter = null,
+        ?callable $customer_cap_of = null
     ) {
+        // 2026-11-17 15:23 +03: FIX-B M5, task 596. $limiter and $customer_cap_of: a resend of a customer text of an
+        // event with a customer_cap answers to the same per-customer daily ceiling as the first send (null = none).
+        $this->limiter = $limiter;
+        $this->customer_cap_of = $customer_cap_of;
         $this->store = $store;
         $this->sms = $sms;
         $this->outbox = $outbox;
@@ -150,7 +164,16 @@ class LogResender
             $app['kwtsms.outbox'],
             $app['kwtsms.logs.debug'],
             // 2026-10-21 16:58 +03: the resend claim (final review M1), task 596.
-            $app['kwtsms.dispatch_keys']
+            $app['kwtsms.dispatch_keys'],
+            // 2026-11-17 15:23 +03: FIX-B M5, task 596 (M3.22 P2): the customer day buckets and the declared caps.
+            $app['kwtsms.rate_limiter'],
+            static function (string $event_id) use ($app): string {
+                $decls = $app['kwtsms.declared_events_all'];
+                $cap = is_array($decls) && isset($decls[$event_id]['customer_cap'])
+                    ? $decls[$event_id]['customer_cap'] : '';
+
+                return is_string($cap) && preg_match('/^[a-z_]{1,40}$/D', $cap) === 1 ? $cap : '';
+            }
         );
     }
 
@@ -340,6 +363,23 @@ class LogResender
     }
 
     /**
+     * 2026-11-17 15:23 +03: FIX-B M5, task 596. The per-customer day bucket of an attempt ('' = none): a customer (C)
+     * text of a signed-in user, of an event whose declaration has a customer_cap (the order notifier's bucket).
+     *
+     * @param array<string,mixed> $attempt
+     */
+    private function customerBucket(array $attempt): string
+    {
+        if ($this->limiter === null || $this->customer_cap_of === null || (string) $attempt['receiver'] !== 'C') {
+            return '';
+        }
+        $user_id = (int) $attempt['user_id'];
+        $cap = $user_id > 0 ? (string) call_user_func($this->customer_cap_of, (string) $attempt['event_id']) : '';
+
+        return $cap === '' ? '' : 'cday:' . $cap . ':' . $user_id;
+    }
+
+    /**
      * Resends one attempt through the full pipeline. Never throws.
      *
      * 2026-11-16 23:30 +03: new_reason (the reason of the new attempt row, e.g. request_overflow) added for the bulk
@@ -365,6 +405,20 @@ class LogResender
                 $out['reason'] = $verdict['reason'];
 
                 return $out;
+            }
+            // 2026-11-17 15:23 +03: FIX-B M5, task 596 (M3.22 P2). The per-customer daily ceiling of a customer text of
+            // an event with a customer_cap: read before the claim (a refusal burns nothing), hit after the send.
+            $customer_bucket = $this->customerBucket($attempt);
+            if ($customer_bucket !== '') {
+                $seen = $this->limiter->peek($customer_bucket);
+                if (
+                    $seen['hits'] >= OrderNotifier::CUSTOMER_DAILY_CEILING
+                    && $seen['window_start'] > $this->limiter->now() - 86400
+                ) {
+                    $out['reason'] = 'kwtsms.logs.resend.customer_cap';
+
+                    return $out;
+                }
             }
             // 2026-10-21 16:58 +03: one resend per attempt per 60 s, claimed before anything is sent (final review
             // M1), task 596.
@@ -412,6 +466,9 @@ class LogResender
             }
             // The stored number is normalized; the + keeps it international so no default-country prefix is added.
             $result = $this->sms->send(['+' . (string) $attempt['phone']], $text['text'], $context);
+            if ($customer_bucket !== '') {
+                $this->limiter->hit($customer_bucket, 86400);
+            }
             $first = $result->recipients()[0] ?? [];
             $out['ok'] = true;
             $out['outcome'] = (string) ($first['outcome'] ?? '');
