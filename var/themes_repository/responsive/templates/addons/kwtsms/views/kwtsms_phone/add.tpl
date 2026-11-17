@@ -31,7 +31,8 @@
     <form name="kwtsms_phone_later_form" id="kwtsms_phone_later_form" action="{""|fn_url}" method="post" class="kwtsms-login__other">
         <input type="hidden" name="return_url" value="{$kwtsms_return|fn_html_escape}" />
         <div class="buttons-container clearfix">
-            {include file="buttons/button.tpl" but_text=__("kwtsms.phone_prompt.later") but_name="dispatch[kwtsms_phone.later]" but_role="submit" but_meta="ty-btn__secondary"}
+            {* 2026-11-17 10:59 +03: tester fix, task 596 (M3.21 e2e AA contrast, 2.96:1 for the theme's secondary button): own colours, 7:1 on white. *}
+            {include file="buttons/button.tpl" but_text=__("kwtsms.phone_prompt.later") but_name="dispatch[kwtsms_phone.later]" but_role="submit" but_meta="ty-btn__secondary" but_extra='style="background-color: #595959; border-color: #595959; color: #ffffff;"'}
         </div>
     </form>
 </div>
