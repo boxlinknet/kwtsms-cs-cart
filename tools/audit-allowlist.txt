@@ -48,3 +48,12 @@ Tygh/Addons/Kwtsms/Queue/Outbox.php:updateRow:$from_statuses
 Tygh/Addons/Kwtsms/Phones/PhoneRules.php:message:implode(', ', $names)
 # 2026-10-25 06:36 +03, Task M1.9, task 596. ProfileHooks::warnAdmin(): the reason is PhoneRules::message() text (language variables and core country names); the finished notice is escaped once by ProfileHooks::tell() (fn_html_escape), so the placeholder value is not escaped twice
 Tygh/Addons/Kwtsms/Profiles/ProfileHooks.php:warnAdmin:$verdict['refusal']
+# 2026-11-17 14:58 +03, Task M3.15, task 596. Placeholder values added in 1.4.0 that are not request or customer data:
+# integers (counts, a class constant) and core status names (store-owner data from the status descriptions; the Templates page
+# prints the label through Smarty, which escapes), or an integer wait counter.
+controllers/backend/kwtsms.php:{main}:(string) (int) $kwtsms_applied['saved']
+controllers/backend/kwtsms.php:{main}:(string) count($kwtsms_applied['refused'])
+controllers/backend/kwtsms.php:{main}:LogResender::BULK_MAX
+Tygh/Addons/Kwtsms/Profiles/ProfileHooks.php:takenText:$this->c4_wait
+Tygh/Addons/Kwtsms/Templates/TemplateRepository.php:rowsForUi:$gift_names[$code] ?? $code
+Tygh/Addons/Kwtsms/Templates/TemplateRepository.php:rowsForUi:$return_names[$code] ?? $code

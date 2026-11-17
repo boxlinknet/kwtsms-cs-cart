@@ -28,3 +28,6 @@
 # the same zip sha256 7c7e047f..., so the 1.2.0 line below is the final release as it stands (nothing to replace).
 1.2.0 7c7e047fb77f6b6c1118a297f2ffed27c63c0411f34ebc52370fdae77fdc5db1 4182d8b716a073cc651a48f57e616a69b1d83449 331655a85f858ebc796907a09ac2aaf56cad6ce3f58f03c69cf719819c95cbaa
 1.2.0-rc.2 7c7e047fb77f6b6c1118a297f2ffed27c63c0411f34ebc52370fdae77fdc5db1 4182d8b716a073cc651a48f57e616a69b1d83449 331655a85f858ebc796907a09ac2aaf56cad6ce3f58f03c69cf719819c95cbaa
+# 2026-11-15 11:08 +03: task 596. Final v1.3.0 published, tag on 1a746a4 (the sealed f61d30d plus a CHANGELOG date commit; the
+# CHANGELOG is not in the package). CI and local rebuild give the sealed zip sha256 781bac72...; tree hash from the seal.
+1.3.0 781bac726c849d36fb1e4cd978c2601caebee37f3d96babb36c3a0148206a059 1a746a4d5be328ae96b2e49a183c7d03edf68cc1 9fccb6b8ae5e2fbb42b7cf26ba755e3e28164c8b007d93a3c404e4807c3efa38
