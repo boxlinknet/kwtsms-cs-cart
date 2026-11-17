@@ -119,6 +119,11 @@ final class RequestGate
         // security: the proof
         // of possession for "required for administrators". POST, gateway privilege, All storefronts, security hash.
         'twofa_proof_send'          => [self::POST, 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:35 +03: Task M3.10 (B10, P3-71), task 596. Templates export (a download, GET) and import
+        // (preview, then confirm; both POST with the security hash). The template privilege, All storefronts only.
+        'export_templates'          => [self::GET, 'manage_kwtsms'],
+        'import_templates'          => [self::POST, 'manage_kwtsms'],
+        'import_templates_confirm'  => [self::POST, 'manage_kwtsms'],
     ];
 
     /**

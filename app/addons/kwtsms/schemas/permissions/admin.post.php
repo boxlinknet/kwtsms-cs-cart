@@ -87,6 +87,10 @@ $schema['kwtsms'] = [
         'turnstile_check'           => ['permissions' => 'manage_kwtsms_gateway'],
         // 2026-11-05 07:29 +03: Task M2.2b, task 596 (same privilege as Admin\RequestGate::MODES).
         'twofa_proof_send'          => ['permissions' => 'manage_kwtsms_gateway'],
+        // 2026-11-16 23:35 +03: Task M3.10 (B10, P3-71), task 596 (same privileges as Admin\RequestGate::MODES).
+        'export_templates'          => ['permissions' => 'manage_kwtsms'],
+        'import_templates'          => ['permissions' => 'manage_kwtsms'],
+        'import_templates_confirm'  => ['permissions' => 'manage_kwtsms'],
     ],
 ];
 

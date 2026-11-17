@@ -94,6 +94,9 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
     </p>
     {/if}
 
+    {* 2026-11-16 23:50 +03: Task M3.10 (B10, P3-71), task 596. Export and import of the template texts. *}
+    {include file="addons/kwtsms/views/kwtsms/components/template_import_preview.tpl" import=$kwtsms_import}
+
     {* ---- SMS brand name: what the store_name placeholder is, one entry per storefront, for the language of the tab ------------ *}
     <section class="kwtsms-brand" id="kwtsms_brand" aria-labelledby="kwtsms_brand_title">
         <h4 class="subheader" id="kwtsms_brand_title">{__("kwtsms.templates.brand_title")}</h4>

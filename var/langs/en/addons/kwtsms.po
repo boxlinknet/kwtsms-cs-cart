@@ -8307,3 +8307,177 @@ msgstr "Too many attempts selected for one bulk resend."
 msgctxt "Languages::kwtsms.logs.resend.bulk_cap"
 msgid "A sending limit was reached, so the bulk resend stopped here."
 msgstr "A sending limit was reached, so the bulk resend stopped here."
+
+# 2026-11-16 23:55 +03: Task M3.10 (B10, P3-71), task 596. Templates export and import.
+msgctxt "Languages::kwtsms.templates.transfer_title"
+msgid "Export and import texts"
+msgstr "Export and import texts"
+
+msgctxt "Languages::kwtsms.templates.transfer_help"
+msgid "Export every stored template text to a JSON file, or import such a file. Import shows a preview first and writes nothing until you confirm. Switches, conditions, sender IDs and brand names are not part of the file."
+msgstr "Export every stored template text to a JSON file, or import such a file. Import shows a preview first and writes nothing until you confirm. Switches, conditions, sender IDs and brand names are not part of the file."
+
+msgctxt "Languages::kwtsms.templates.export_button"
+msgid "Export texts (JSON)"
+msgstr "Export texts (JSON)"
+
+msgctxt "Languages::kwtsms.templates.import_file"
+msgid "Import file (JSON, up to 1 MB)"
+msgstr "Import file (JSON, up to 1 MB)"
+
+msgctxt "Languages::kwtsms.templates.import_preview_button"
+msgid "Preview import"
+msgstr "Preview import"
+
+msgctxt "Languages::kwtsms.templates.import_preview_title"
+msgid "Import preview"
+msgstr "Import preview"
+
+msgctxt "Languages::kwtsms.templates.import_counts"
+msgid "New: [new]. Changed: [changed]. Unchanged: [unchanged]. Refused: [refused]."
+msgstr "New: [new]. Changed: [changed]. Unchanged: [unchanged]. Refused: [refused]."
+
+msgctxt "Languages::kwtsms.templates.import_col_event"
+msgid "Event"
+msgstr "Event"
+
+msgctxt "Languages::kwtsms.templates.import_col_receiver"
+msgid "Receiver"
+msgstr "Receiver"
+
+msgctxt "Languages::kwtsms.templates.import_col_storefront"
+msgid "Storefront"
+msgstr "Storefront"
+
+msgctxt "Languages::kwtsms.templates.import_col_language"
+msgid "Language"
+msgstr "Language"
+
+msgctxt "Languages::kwtsms.templates.import_col_status"
+msgid "Result"
+msgstr "Result"
+
+msgctxt "Languages::kwtsms.templates.import_status_new"
+msgid "New"
+msgstr "New"
+
+msgctxt "Languages::kwtsms.templates.import_status_changed"
+msgid "Changed"
+msgstr "Changed"
+
+msgctxt "Languages::kwtsms.templates.import_status_unchanged"
+msgid "Unchanged"
+msgstr "Unchanged"
+
+msgctxt "Languages::kwtsms.templates.import_status_refused"
+msgid "Refused"
+msgstr "Refused"
+
+msgctxt "Languages::kwtsms.templates.import_keep_unknown"
+msgid "Import this text with its unknown placeholders"
+msgstr "Import this text with its unknown placeholders"
+
+msgctxt "Languages::kwtsms.templates.import_confirm"
+msgid "Import the new and changed texts"
+msgstr "Import the new and changed texts"
+
+msgctxt "Languages::kwtsms.templates.import_discard"
+msgid "Discard"
+msgstr "Discard"
+
+msgctxt "Languages::kwtsms.templates.import_discarded"
+msgid "The import was discarded. Nothing was changed."
+msgstr "The import was discarded. Nothing was changed."
+
+msgctxt "Languages::kwtsms.templates.import_done"
+msgid "Import finished. Saved: [saved]. Refused: [refused]."
+msgstr "Import finished. Saved: [saved]. Refused: [refused]."
+
+msgctxt "Languages::kwtsms.templates.import_reason_no_file"
+msgid "No file was uploaded."
+msgstr "No file was uploaded."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_large"
+msgid "The file is larger than 1 MB."
+msgstr "The file is larger than 1 MB."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_json"
+msgid "The file is not valid JSON text."
+msgstr "The file is not valid JSON text."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_format"
+msgid "The file is not a kwtSMS templates export (format or version)."
+msgstr "The file is not a kwtSMS templates export (format or version)."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_many"
+msgid "The file has more than 5000 rows."
+msgstr "The file has more than 5000 rows."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_row"
+msgid "The row is incomplete or has unexpected fields."
+msgstr "The row is incomplete or has unexpected fields."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_row"
+msgid "This store has no text row for this event and receiver."
+msgstr "This store has no text row for this event and receiver."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_language"
+msgid "This language is not installed."
+msgstr "This language is not installed."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_storefront"
+msgid "This storefront does not exist."
+msgstr "This storefront does not exist."
+
+msgctxt "Languages::kwtsms.templates.import_reason_duplicate"
+msgid "The same text appears twice in the file."
+msgstr "The same text appears twice in the file."
+
+msgctxt "Languages::kwtsms.templates.import_reason_too_long"
+msgid "The text is too long."
+msgstr "The text is too long."
+
+msgctxt "Languages::kwtsms.templates.import_reason_empty"
+msgid "The text is empty."
+msgstr "The text is empty."
+
+msgctxt "Languages::kwtsms.templates.import_reason_code_template"
+msgid "A code text must contain {code}, no link and only its own placeholders."
+msgstr "A code text must contain {code}, no link and only its own placeholders."
+
+msgctxt "Languages::kwtsms.templates.import_reason_code_store_name"
+msgid "A code text must contain {store_name}."
+msgstr "A code text must contain {store_name}."
+
+msgctxt "Languages::kwtsms.templates.import_reason_store_name"
+msgid "A customer text must contain {store_name}."
+msgstr "A customer text must contain {store_name}."
+
+msgctxt "Languages::kwtsms.templates.import_reason_unknown_placeholders"
+msgid "Unknown placeholders"
+msgstr "Unknown placeholders"
+
+msgctxt "Languages::kwtsms.templates.import_reason_file_changed"
+msgid "The file changed after the preview or the preview expired. Upload it again."
+msgstr "The file changed after the preview or the preview expired. Upload it again."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_found"
+msgid "The text row could not be created."
+msgstr "The text row could not be created."
+
+msgctxt "Languages::kwtsms.templates.import_reason_bad_language"
+msgid "The language code is not valid."
+msgstr "The language code is not valid."
+
+# 2026-11-17 00:40 +03: Task M3.10 fix round 1, task 596. Refusal reasons of the write set.
+msgctxt "Languages::kwtsms.templates.import_reason_too_many_changes"
+msgid "More than 300 rows would change or be refused. Split the file so that every row can be checked in the preview."
+msgstr "More than 300 rows would change or be refused. Split the file so that every row can be checked in the preview."
+
+msgctxt "Languages::kwtsms.templates.import_reason_changed_since_preview"
+msgid "The stored text changed after the preview. Preview again."
+msgstr "The stored text changed after the preview. Preview again."
+
+msgctxt "Languages::kwtsms.templates.import_reason_not_previewed"
+msgid "This row was not part of the preview. Preview again."
+msgstr "This row was not part of the preview. Preview again."
