@@ -167,5 +167,8 @@ if (isset($kwtsms_session['kwtsms_phone_typed'])) {
 fn_add_breadcrumb(__('kwtsms.phone_prompt.title'));
 $kwtsms_app['view']->assign('kwtsms_phone', $kwtsms_typed);
 $kwtsms_app['view']->assign('kwtsms_return', $kwtsms_return);
+// 2026-11-17 08:22 +03: Task 596 tester fix. Core maps mode "add" to the template update.tpl (fn_dispatch_controller),
+// so views/kwtsms_phone/add.tpl was never found and the add page answered 404. Name the template explicitly.
+$kwtsms_app['view']->assign('content_tpl', 'addons/kwtsms/views/kwtsms_phone/add.tpl');
 
 return;
