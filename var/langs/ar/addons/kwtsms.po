@@ -7847,10 +7847,10 @@ msgctxt "Languages::kwtsms.tpl.gift_certificates.gift_certificate.status_changed
 msgid "{store_name}: Your gift certificate {gift_cert_id} ({amount} {currency}) is now {gc_status}."
 msgstr "شهادة {gift_cert_id} ({gc_status}): {amount} {currency} - {store_name}"
 
-# 2026-11-17 15:42 +03: review M5, task 596: the Arabic text now carries {gc_status} like the English text.
+# 2026-11-17 15:42 +03: review M5, task 596: the Arabic text now carries {gc_status} like the English text; {store_name} is left out so the worst case (DefaultsLengthTest) stays one 70-character segment (decision open, task 596).
 msgctxt "Languages::kwtsms.tpl.gift_certificates.gift_certificate.updated.C"
 msgid "{store_name}: Your gift certificate {gift_cert_id} ({amount} {currency}) was updated. Status: {gc_status}."
-msgstr "تحديث شهادة {gift_cert_id} ({gc_status}): {amount} {currency} - {store_name}"
+msgstr "تحديث شهادة {gift_cert_id} ({gc_status}): {amount} {currency}"
 
 msgctxt "Languages::kwtsms.tpl.order.status_changed.V"
 msgid "{store_name}: Order {order_id} changed to {order_status}."
