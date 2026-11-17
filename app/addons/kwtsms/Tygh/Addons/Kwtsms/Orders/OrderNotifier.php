@@ -113,6 +113,12 @@ class OrderNotifier
     public const VENDOR_QUOTA_RESERVED = 'vendor_quota_reserved';
     public const VENDOR_DAY_CEILING = 'vendor_day_ceiling';
     /**
+     * 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. Back-in-stock fan-outs of one vendor's
+     * products that may claim a recipient per day (bucket vday:bis:<company>), as VENDOR_DAILY_CEILING does for the
+     * public forms.
+     */
+    public const VENDOR_BIS_DAILY_CEILING = 10;
+    /**
      * 2026-11-17 00:20 +03: task M3.22 P2 (M3.5 review M3), task 596. A customer (C) text of an event the customer does
      * not trigger (a vendor reply in a thread, a gift certificate status) is refused after this many per customer and
      * day, like the vendor ceiling above; refused before the dedupe key is claimed (a refusal burns no key).
@@ -509,11 +515,58 @@ class OrderNotifier
         if ($this->back_in_stock === null) {
             return false;
         }
+        // 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. A product of a vendor (Multi-Vendor,
+        // company_id > 0) is restocked by that vendor's own administrator: the fan-out goes through the vendor guards
+        // of the normal vendor send path (active vendor, monthly quota, the quota reserve, a daily ceiling), never
+        // the merchant's credits unchecked. A marketplace product (company 0) and a single-store shop are not guarded.
+        $company_id = max(0, (int) ($payload['company_id'] ?? 0));
+        $max = null;
+        $day_bucket = '';
+        if ($company_id > 0 && $this->vendor_quota !== null && $this->rules->isMultiVendor()) {
+            $order = ['company_id' => $company_id, 'storefront_id' => $this->storefront];
+            $status = $this->vendor_quota->companyStatus($company_id);
+            if ($status === '' || $status !== 'A') {
+                $this->skip(
+                    $status === '' ? 'invalid' : self::NO_PHONE,
+                    $status === '' ? 'platform_missing' : self::VENDOR_INACTIVE,
+                    $order,
+                    Defaults::EVENT_BIS,
+                    'C'
+                );
+
+                return false;
+            }
+            $remaining = $this->vendor_quota->remaining($company_id);
+            if ($remaining < 1) {
+                $this->skip(self::RATE_LIMITED, 'vendor_quota', $order, Defaults::EVENT_BIS, 'C');
+
+                return false;
+            }
+            if ($this->vendor_quota->reserveReached($company_id, self::VENDOR_RESERVE_PERCENT)) {
+                $this->skip(self::RATE_LIMITED, self::VENDOR_QUOTA_RESERVED, $order, Defaults::EVENT_BIS, 'C');
+
+                return false;
+            }
+            if ($this->limiter !== null) {
+                $day_bucket = 'vday:bis:' . $company_id;
+                $seen = $this->limiter->peek($day_bucket);
+                $live = $seen['window_start'] > $this->limiter->now() - 86400;
+                if ($seen['hits'] >= self::VENDOR_BIS_DAILY_CEILING && $live) {
+                    $this->skip(self::RATE_LIMITED, self::VENDOR_DAY_CEILING, $order, Defaults::EVENT_BIS, 'C');
+
+                    return false;
+                }
+            }
+            $max = $remaining;
+        }
         $actor = $this->orders->actor();
         $send = function (array $phones, string $text, array $context) use ($actor): bool {
             $context['actor_user_id'] = (int) ($actor['user_id'] ?? 0);
             $context['actor_company_id'] = (int) ($actor['company_id'] ?? 0);
             $context['audience'] = ($actor['area'] ?? '') === 'C' ? 'storefront' : 'admin';
+            // 2026-11-17 15:12 +03: FIX-A (security I1), task 596. A fan-out stops at the fan-out share of
+            // cap_store_day, so a restock can never use up the room the sign-in codes need.
+            $context['fanout'] = '1';
             $log = [
                 'event_id' => Defaults::EVENT_BIS,
                 'receiver' => 'C',
@@ -526,7 +579,23 @@ class OrderNotifier
             return $this->dispatchSms($phones, $text, $context, $log, $actor);
         };
 
-        return $this->back_in_stock->notify($payload, $this->storefront, $decl, $send) > 0;
+        $sent = $this->back_in_stock->notify($payload, $this->storefront, $decl, $send, $max);
+        if ($sent > 0 && $day_bucket !== '') {
+            // Counts a fan-out that handed at least one number over, never a refusal or a duplicate-only dispatch.
+            $this->limiter->hit($day_bucket, 86400);
+        }
+        if ($max !== null && $this->back_in_stock->lastCapped() > 0 && $sent >= $max) {
+            // The vendor's remaining quota trimmed the recipients: the Logs say so (one row, no number).
+            $this->skip(
+                self::RATE_LIMITED,
+                'vendor_quota',
+                ['company_id' => $company_id, 'storefront_id' => $this->storefront],
+                Defaults::EVENT_BIS,
+                'C'
+            );
+        }
+
+        return $sent > 0;
     }
 
     /**

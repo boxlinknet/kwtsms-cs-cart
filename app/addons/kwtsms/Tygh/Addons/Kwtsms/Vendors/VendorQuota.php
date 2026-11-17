@@ -83,6 +83,20 @@ class VendorQuota
     }
 
     /**
+     * 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. Recipients still free in this month's
+     * limit (sent + waiting in the outbox counted); 0 for a limit of 0. The back-in-stock fan-out trims to it.
+     */
+    public function remaining(int $company_id): int
+    {
+        $limit = $this->limit($company_id);
+        if ($limit <= 0) {
+            return 0;
+        }
+
+        return max(0, $limit - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0));
+    }
+
+    /**
      * 2026-11-14 07:42 +03: Task M3.2 review I2 (b), task 596. True when the vendor has used (sent + waiting in the
      * outbox) at least $percent of its monthly limit, so a public-form V SMS leaves the rest to order and other V SMS.
      * A limit of 0 reads as reached.
