@@ -116,6 +116,22 @@ class VendorQuota
     }
 
     /**
+     * 2026-11-17 15:50 +03: FIX-A round 3, task 596. Recipients a customer fan-out may still use: only the
+     * non-reserved part of the monthly limit (limit * (100 - $reserve_percent) / 100, rounded down) minus what is used
+     * (sent + waiting). The reserve stays for the order and public-form V texts.
+     */
+    public function fanoutRoom(int $company_id, int $reserve_percent): int
+    {
+        $limit = $this->limit($company_id);
+        if ($limit <= 0) {
+            return 0;
+        }
+        $usable = intdiv($limit * (100 - max(0, min(100, $reserve_percent))), 100);
+
+        return max(0, $usable - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0));
+    }
+
+    /**
      * 2026-11-14 07:42 +03: Task M3.2 review I2 (b), task 596. True when the vendor has used (sent + waiting in the
      * outbox) at least $percent of its monthly limit, so a public-form V SMS leaves the rest to order and other V SMS.
      * A limit of 0 reads as reached.

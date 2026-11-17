@@ -597,9 +597,17 @@ class OrderNotifier
 
             return false;
         }
-        $remaining = $this->vendor_quota->remaining($company_id);
+        // 2026-11-17 15:50 +03: FIX-A round 3, task 596. A fan-out uses only the non-reserved part of the quota; the
+        // reserve (VENDOR_RESERVE_PERCENT) stays for the order and public-form V texts it protects.
+        $remaining = $this->vendor_quota->fanoutRoom($company_id, self::VENDOR_RESERVE_PERCENT);
         if ($remaining < max(1, $need)) {
-            $this->skip(self::RATE_LIMITED, 'vendor_quota', $order, $event_id, 'C');
+            $this->skip(
+                self::RATE_LIMITED,
+                $this->vendor_quota->remaining($company_id) > 0 ? self::VENDOR_QUOTA_RESERVED : 'vendor_quota',
+                $order,
+                $event_id,
+                'C'
+            );
 
             return false;
         }
