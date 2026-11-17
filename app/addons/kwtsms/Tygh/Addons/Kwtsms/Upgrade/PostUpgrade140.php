@@ -233,8 +233,8 @@ class PostUpgrade140
                             // 2026-11-17 15:22 +03: review M3, task 596: this fault is not healed by an admin page.
                             ? 'kwtsms ' . self::VERSION . ': the add-on files are new but the database tables are not. '
                                 . 'Run the 1.4.0 upgrade package again from the Upgrade Center (Administration, Upgrade center); '
-                                . 'order SMS stay off until it has finished. Details are in the kwtSMS debug log and the '
-                                . 'PHP error log.'
+                                . 'order SMS stay off until it has finished. Details are in the kwtSMS debug '
+                                . 'log and the PHP error log.'
                             : 'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e)
                                 . '). Open any kwtSMS admin page to finish the upgrade: the step runs again by '
                                 . 'itself and is safe to repeat. Details are in the kwtSMS debug log and the PHP '
