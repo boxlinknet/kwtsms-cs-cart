@@ -76,12 +76,40 @@ class TemplateTransfer
     }
 
     /**
+     * 2026-11-17 07:00 +03: M3.10b item 2, task 596. A php.ini size ("8M", "512K", "1G", plain bytes) in
+     * bytes; -1, 0, empty and
+     * unreadable values are "no limit" (PHP_INT_MAX).
+     */
+    public static function iniBytes(string $value): int
+    {
+        $value = strtolower(trim($value));
+        if ($value === '' || preg_match('/^(-?\d+)([kmg]?)$/', $value, $m) !== 1 || (int) $m[1] <= 0) {
+            return PHP_INT_MAX;
+        }
+        $factor = ['' => 1, 'k' => 1024, 'm' => 1048576, 'g' => 1073741824];
+
+        return (int) $m[1] * $factor[$m[2]];
+    }
+
+    /**
+     * 2026-11-17 07:00 +03: M3.10b item 2, task 596. The effective size limit of the import upload: the smaller of
+     * post_max_size and
+     * upload_max_filesize, never above MAX_BYTES. The import form's script refuses a larger file before it is sent
+     * (core answers an over-size POST before the add-on guard runs, and a large upload stalls).
+     */
+    public static function uploadLimit(string $post_max_size, string $upload_max_filesize): int
+    {
+        return min(self::iniBytes($post_max_size), self::iniBytes($upload_max_filesize), self::MAX_BYTES);
+    }
+
+    /**
      * Every stored body (edited and seeded) as the JSON file.
      */
     public function export(): string
     {
         $out = [];
-        // 2026-11-17 06:59 +03: M3.10b item 1, task 596. A stored row the import would refuse (an event or receiver the Templates page
+        // 2026-11-17 06:59 +03: M3.10b item 1, task 596. A stored row the import would refuse (an event or receiver the
+        // Templates page
         // does not list on this store, an unknown language or storefront, a body the checks refuse) is not exported,
         // so an untouched export re-imports as 100% unchanged. The same checkRow() decides both ways.
         $languages = $this->languages();
@@ -97,7 +125,8 @@ class TemplateTransfer
             $row = [
                 'event_id' => $probe['event_id'], 'receiver' => $probe['receiver'],
                 'storefront_id' => $probe['storefront_id'], 'lang' => $probe['lang_code'],
-                'status' => self::STATUS_REFUSED, 'reason' => '', 'unknown' => [], 'stored' => '', 'key' => '', 'fp' => '',
+                'status' => self::STATUS_REFUSED, 'reason' => '', 'unknown' => [],
+                'stored' => '', 'key' => '', 'fp' => '',
             ];
             $this->checkRow($probe, $languages, $storefronts, $ui, $seen, $row);
             if ($row['status'] === self::STATUS_REFUSED) {

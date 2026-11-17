@@ -1016,7 +1016,10 @@ try {
         $kwtsms_import_view = null;
         // 2026-11-17 00:35 +03: Task M3.10 fix round 1 (M1), task 596. A preview older than 30 minutes is dropped
         // (with its JSON) when the page is opened, not only when it is confirmed.
-        $kwtsms_import_at = isset($kwtsms_session['kwtsms_import']) ? (int) ($kwtsms_session['kwtsms_import']['at'] ?? 0) : 0;
+        // 2026-11-17 07:01 +03: M3.10b item 3, task 596. Line wrapped under 120 characters (phpcs); same expression.
+        $kwtsms_import_at = isset($kwtsms_session['kwtsms_import'])
+            ? (int) ($kwtsms_session['kwtsms_import']['at'] ?? 0)
+            : 0;
         if (isset($kwtsms_session['kwtsms_import']) && $kwtsms_import_at < time() - 1800) {
             unset($kwtsms_session['kwtsms_import']);
         }
@@ -1025,6 +1028,12 @@ try {
             unset($kwtsms_import_view['json'], $kwtsms_import_view['fingerprints']);
         }
         Tygh::$app['view']->assign('kwtsms_import', $kwtsms_import_view);
+        // 2026-11-17 07:01 +03: M3.10b item 2, task 596. The effective upload limit
+        // (bytes) for the import form's client-side check.
+        Tygh::$app['view']->assign(
+            'kwtsms_import_limit',
+            TemplateTransfer::uploadLimit((string) ini_get('post_max_size'), (string) ini_get('upload_max_filesize'))
+        );
         Tygh::$app['view']->assign('kwtsms_nav', $kwtsms_nav);
 
         return [CONTROLLER_STATUS_OK];
