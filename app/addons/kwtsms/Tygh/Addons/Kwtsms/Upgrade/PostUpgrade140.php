@@ -158,7 +158,8 @@ class PostUpgrade140
         }
 
         // (5) Language variables: INSERT IGNORE keeps an edited value; an unedited old text is refreshed.
-        PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::SHIPPED_1_3_0);
+        // 2026-11-17 07:50 +03: Task M3.13 round 3, task 596. SHIPPED_1_3_0 plus the Arabic texts renamed to the glossary terms.
+        PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::shipped130());
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
         }
@@ -174,6 +175,17 @@ class PostUpgrade140
 
         // (6) Last.
         self::writeVersion(self::VERSION);
+    }
+
+    /**
+     * The 1.3.0 texts that 1.4.0 rewrote: SHIPPED_1_3_0 and Shipped130Terms.php (the Arabic rename to the kwtSMS terms).
+     * 2026-11-17 07:50 +03: Task M3.13 round 3, task 596.
+     *
+     * @return array<string,array<string,string>> name => lang => text
+     */
+    public static function shipped130(): array
+    {
+        return self::SHIPPED_1_3_0 + (array) require __DIR__ . '/Shipped130Terms.php';
     }
 
     /**
