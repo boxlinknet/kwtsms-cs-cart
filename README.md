@@ -75,6 +75,11 @@ including order status changes and Multi-Vendor vendor events.
   (a config constant and a command line)
 - An optional SMS code before an order (all orders, guests only, or cash on delivery only), a country selector on phone
   fields, and Integrations rows and a Dashboard line for all of them (1.3.0, off by default)
+<!-- 2026-11-17 08:00 +03: Task M3.13 (1.4.0 features), task 596 -->
+- SMS for returns (RMA), call requests, back in stock, gift certificates, product reviews, discussion posts and vendor
+  messages (1.4.0, every switch off until you turn it on), with throttles on the public forms, order conditions, one
+  combined SMS per order, template export and import, bulk resend from the Logs, and an Integrations page that shows
+  each add-on with its switches and the SMS sent today
 - Admin pages: Dashboard, Settings, Templates, Integrations, Admin SMS alerts, Vendor SMS (Multi-Vendor), Logs, Help
 - A full send log, an attempt log and an optional debug log
 - A daily sync of balance, Sender IDs and coverage, run by a cron job
@@ -82,8 +87,8 @@ including order status changes and Multi-Vendor vendor events.
 <!-- 2026-10-23 05:33 +03: Task A13 fix round 1: only what is still planned after 1.1.0, task 596 -->
 <!-- 2026-10-29 05:14 +03: Task M1.12 fix round 1 (I2), task 596. 1.2.0 ships the country check, registration and phone change codes and Turnstile; they leave this list. -->
 <!-- 2026-11-07 02:46 +03: Task M2.7, task 596. 1.3.0 ships sign-in by code, two-step sign-in, recovery by code, the code at checkout and the country selector; they leave this list. -->
-Planned for later releases: SMS for returns (RMA), call requests, back in stock, gift certificates, reviews and
-vendor communication, and later abandoned cart reminders, bulk and scheduled SMS. None of these is in 1.3.0.
+<!-- 2026-11-17 08:00 +03: Task M3.13, task 596. 1.4.0 ships returns, call requests, back in stock, gift certificates, reviews, discussion and vendor messages; they leave this list. -->
+Planned for later releases: abandoned cart reminders and scheduled SMS.
 
 ## Requirements
 

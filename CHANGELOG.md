@@ -25,11 +25,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   (template "Back in stock", English and Arabic); other subscribers still get the e-mail. One SMS per customer and
   product per day. Settings > Back in stock SMS sets the most subscribers messaged per restock (default 500).
 
+<!-- 2026-11-17 07:58 +03: Task M3.13 (Help, Integrations, languages), task 596 -->
+- Help covers every new 1.4.0 feature in English and Arabic: the new events and their throttles, the public forms and
+  their CAPTCHA scenarios, back in stock, gift certificates, vendor alerts (Multi-Vendor), conditions and combined
+  SMS, template export and import, bulk resend, code statistics and unlock, the test SMS safeguards, IP lockdown,
+  Kuwait mobile numbers and the missing phone prompt.
+- The Integrations page lists each add-on with its own SMS events (returns, call requests, back in stock, gift
+  certificates, product reviews, discussion, vendor messages): whether the add-on is active, how many switches are on,
+  and the SMS accepted today.
+
 ### Changed
 
 - Texts about test messages (Settings, Dashboard, test-mode alert, Help and the test SMS note, English and Arabic) say a
   test message holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. The
   Dashboard line and the alert now say a message "may still hold" credits. No day or age is named.
+
+<!-- 2026-11-17 07:58 +03: Task M3.13, task 596 -->
+- The Logs label "Skipped: CAPTCHA for registration is off." now says "the CAPTCHA for this form" (call requests and
+  discussion posts use it too), and a row skipped because its Conditions could not be read has its own label. The
+  vendor row of the Templates page says where to turn vendor SMS on. On a narrow screen the switch note no longer runs
+  under the page's side tab.
 
 <!-- 2026-11-08 05:38 +03: the Unreleased entries became the 1.3.0 release (the date is the build date; the controller sets the publish date), Task M2.9, task 596 -->
 <!-- 2026-11-11 20:44 +03: release date set to 2026-11-11, the day 1.3.0 was rebuilt and sealed for publishing, task 596 -->
