@@ -8626,8 +8626,8 @@ msgid "New events in 1.4.0"
 msgstr "أحداث جديدة في الإصدار 1.4.0"
 
 msgctxt "Languages::kwtsms.help.events.p1"
-msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
-msgstr "يضيف الإصدار 1.4.0 رسائل SMS للمرتجعات وطلبات الاتصال وعودة المنتج للمخزون وشهادات الهدايا وتقييمات المنتجات ومشاركات النقاش ورسائل البائعين. لا يظهر الصف في صفحة القوالب إلا والإضافة المعنية مفعّلة، ويبدأ كل مفتاح جديد مطفأ. وتعرض صفحة التكاملات كل إضافة مع مفاتيحها المفعّلة والرسائل المرسلة اليوم."
+msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active (back in stock is a core event, so its row always shows), and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+msgstr "يضيف الإصدار 1.4.0 رسائل SMS للمرتجعات وطلبات الاتصال وعودة المنتج للمخزون وشهادات الهدايا وتقييمات المنتجات ومشاركات النقاش ورسائل البائعين. لا يظهر الصف في صفحة القوالب إلا والإضافة المعنية مفعّلة (عودة المنتج للمخزون حدث أساسي في المتجر، فيظهر صفه دائما)، ويبدأ كل مفتاح جديد مطفأ. وتعرض صفحة التكاملات كل إضافة مع مفاتيحها المفعّلة والرسائل المرسلة اليوم."
 
 msgctxt "Languages::kwtsms.help.events.p2"
 msgid "Returns (RMA): the customer gets an SMS when a return changes status, and the administrator gets one when a customer opens a return. Every status, custom ones included, has its own row and shares the family text. The same status within 24 hours sends once. A customer who opted out of order SMS gets none."

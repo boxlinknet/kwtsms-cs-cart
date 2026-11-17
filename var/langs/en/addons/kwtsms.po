@@ -8620,8 +8620,8 @@ msgid "New events in 1.4.0"
 msgstr "New events in 1.4.0"
 
 msgctxt "Languages::kwtsms.help.events.p1"
-msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
-msgstr "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active, and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+msgid "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active (back in stock is a core event, so its row always shows), and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
+msgstr "Version 1.4.0 adds SMS for returns, call requests, back in stock, gift certificates, product reviews, discussion posts and vendor messages. A row shows on the Templates page only while its add-on is active (back in stock is a core event, so its row always shows), and every new switch starts OFF. The Integrations page lists each add-on with the switches that are ON and the SMS sent today."
 
 msgctxt "Languages::kwtsms.help.events.p2"
 msgid "Returns (RMA): the customer gets an SMS when a return changes status, and the administrator gets one when a customer opens a return. Every status, custom ones included, has its own row and shares the family text. The same status within 24 hours sends once. A customer who opted out of order SMS gets none."
