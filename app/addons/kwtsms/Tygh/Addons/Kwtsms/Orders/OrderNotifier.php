@@ -1242,7 +1242,11 @@ class OrderNotifier
         // 2026-11-17 15:30 +03: FIX-A round 2, task 596. The C text of a vendor thread (customer_cap declared, a
         // vendor company) goes through the same vendor guard as the back-in-stock fan-out; its day bucket is hit with
         // the other day counters once the key is claimed.
-        if ($receiver === 'C' && $customer_cap !== '' && $day_bucket === '') {
+        // 2026-11-17 21:52 +03: tester 5, task 596. Only the vendor_communication family ('messages'): the guard was
+        // meant for the vendor reply texts (the quota counts them, VendorQuota::COUNTED_CUSTOMER_EVENTS), but any
+        // customer_cap matched, so the gift certificate purchaser text ('gift') also hit the vendor 10/day ceiling and
+        // was refused vendor_day_ceiling without ever consuming the quota (GiftCertificateSmsStoreTest on Multi-Vendor).
+        if ($receiver === 'C' && $customer_cap === 'messages' && $day_bucket === '') {
             $guard = $this->vendorCustomerGuard(
                 (int) ($order['company_id'] ?? 0),
                 'c' . $customer_cap,
