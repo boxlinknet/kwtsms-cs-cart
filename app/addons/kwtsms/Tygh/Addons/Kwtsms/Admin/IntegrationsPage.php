@@ -82,6 +82,12 @@ class IntegrationsPage
     ];
 
     /**
+     * 2026-11-17 15:22 +03: FIX-A (branch review 1.4.0 interplay I2), task 596. Families of LATER_ADDONS that are core
+     * events, not add-ons (product.back_in_stock is dispatched by core itself): always active, never "not installed".
+     */
+    public const CORE_FAMILIES = ['back_in_stock'];
+
+    /**
      * 2026-11-17 07:15 +03: Task M3.13, task 596. The event ids of each add-on of LATER_ADDONS: a prefix ending in a
      * dot matches the whole family, any other entry is one exact event id. The Integrations rows count the switches
      * ON and the SMS sent today over these.
@@ -270,7 +276,8 @@ class IntegrationsPage
         $active = [];
         $any_active = false;
         foreach (self::LATER_ADDONS as $id) {
-            $active[$id] = $this->addonActive($id);
+            // 2026-11-17 15:22 +03: FIX-A (interplay I2), task 596. A core family has no owning add-on to look up.
+            $active[$id] = in_array($id, self::CORE_FAMILIES, true) || $this->addonActive($id);
             $any_active = $any_active || $active[$id];
         }
         $today = $any_active ? $this->smsTodayByEvent((int) strtotime('today', $this->now())) : [];
@@ -278,7 +285,7 @@ class IntegrationsPage
             $later[] = self::addonRow(
                 $id,
                 $active[$id],
-                $this->addonInstalled($id),
+                $active[$id] || $this->addonInstalled($id),
                 $switch_map,
                 $today,
                 $may_templates

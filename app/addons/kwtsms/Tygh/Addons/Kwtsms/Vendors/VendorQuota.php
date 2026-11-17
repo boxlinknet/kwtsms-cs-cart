@@ -82,6 +82,55 @@ class VendorQuota
         return $this->used($company_id, $this->monthStart()) + $queued + max(0, $recipients) <= $limit;
     }
 
+    /** 2026-11-17 15:30 +03: FIX-A round 2, task 596. Customer events whose sends count against the vendor quota. */
+    public const COUNTED_CUSTOMER_EVENTS = [
+        'product.back_in_stock', 'vendor_communication.message_received', 'vendor_communication.order_message_received',
+    ];
+
+    /**
+     * 2026-11-17 15:30 +03: FIX-A round 2, task 596. The LIKE terms (already quoted) that match the outbox context of
+     * COUNTED_CUSTOMER_EVENTS.
+     */
+    protected function countedEventLike(): string
+    {
+        $terms = [];
+        foreach (self::COUNTED_CUSTOMER_EVENTS as $event) {
+            $terms[] = 'context LIKE ' . db_quote('?s', '%"event_id":"' . $event . '"%');
+        }
+
+        return implode(' OR ', $terms);
+    }
+
+    /**
+     * 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. Recipients still free in this month's
+     * limit (sent + waiting in the outbox counted); 0 for a limit of 0. The back-in-stock fan-out trims to it.
+     */
+    public function remaining(int $company_id): int
+    {
+        $limit = $this->limit($company_id);
+        if ($limit <= 0) {
+            return 0;
+        }
+
+        return max(0, $limit - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0));
+    }
+
+    /**
+     * 2026-11-17 15:50 +03: FIX-A round 3, task 596. Recipients a customer fan-out may still use: only the
+     * non-reserved part of the monthly limit (limit * (100 - $reserve_percent) / 100, rounded down) minus what is used
+     * (sent + waiting). The reserve stays for the order and public-form V texts.
+     */
+    public function fanoutRoom(int $company_id, int $reserve_percent): int
+    {
+        $limit = $this->limit($company_id);
+        if ($limit <= 0) {
+            return 0;
+        }
+        $usable = intdiv($limit * (100 - max(0, min(100, $reserve_percent))), 100);
+
+        return max(0, $usable - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0));
+    }
+
     /**
      * 2026-11-14 07:42 +03: Task M3.2 review I2 (b), task 596. True when the vendor has used (sent + waiting in the
      * outbox) at least $percent of its monthly limit, so a public-form V SMS leaves the rest to order and other V SMS.
@@ -188,13 +237,18 @@ class VendorQuota
      */
     protected function sumRecipients(int $company_id, int $since, array $statuses): int
     {
+        // 2026-11-17 15:30 +03: FIX-A round 2, task 596. The vendor-owned customer texts (COUNTED_CUSTOMER_EVENTS)
+        // use the same counter as the V rows.
         return (int) db_get_field(
             'SELECT COALESCE(SUM(recipient_count), 0) FROM ?:kwtsms_messages'
-            . ' WHERE company_id = ?i AND created_at >= ?i AND receiver = ?s AND status IN (?a)',
+            . ' WHERE company_id = ?i AND created_at >= ?i AND status IN (?a)'
+            . ' AND (receiver = ?s OR (receiver = ?s AND event_id IN (?a)))',
             $company_id,
             $since,
+            $statuses,
             'V',
-            $statuses
+            'C',
+            self::COUNTED_CUSTOMER_EVENTS
         );
     }
 
@@ -208,11 +262,15 @@ class VendorQuota
     {
         $rows = (array) db_get_fields(
             'SELECT phones FROM ?:kwtsms_outbox WHERE status IN (?a) AND (?i = 0 OR outbox_id < ?i)'
-            . ' AND context LIKE ?s AND (context LIKE ?s OR context LIKE ?s)',
+            . ' AND (context LIKE ?s OR (context LIKE ?s AND (?p)))'
+            . ' AND (context LIKE ?s OR context LIKE ?s)',
             ['pending', 'sending', 'held'],
             $before_outbox_id,
             $before_outbox_id,
             '%"receiver":"V"%',
+            '%"receiver":"C"%',
+            // 2026-11-17 15:30 +03: FIX-A round 2, task 596. The waiting vendor-owned customer texts count too.
+            $this->countedEventLike(),
             '%"company_id":' . $company_id . ',%',
             '%"company_id":' . $company_id . '}%'
         );

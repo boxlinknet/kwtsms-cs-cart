@@ -197,6 +197,9 @@ class SmsService
         'LOCAL_CONNECT', 'LOCAL_DNS', 'LOCAL_TLS', 'LOCAL_BREAKER', 'LOCAL_DEFERRED', 'LOCAL_BUSY',
     ];
 
+    /** 2026-11-17 15:12 +03: FIX-A (security I1), task 596. Percent of cap_store_day a fan-out may use. */
+    public const FANOUT_STORE_SHARE = 80;
+
     private const CONTEXT_DEFAULTS = [
         'source' => 'manual', 'event_id' => '', 'receiver' => '', 'order_id' => 0, 'parent_order_id' => 0,
         'company_id' => 0, 'storefront_id' => 0, 'user_id' => 0, 'actor_user_id' => 0, 'actor_company_id' => 0,
@@ -212,6 +215,9 @@ class SmsService
         // cap_code_day, never
         // refused by it.
         'staff_code' => '',
+        // 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I1), task 596. '1' = one send of a fan-out (the
+        // back-in-stock text): refused at FANOUT_STORE_SHARE percent of cap_store_day, so the rest stays for codes.
+        'fanout' => '',
         // 2026-11-15 20:33 +03: Task M3.18 (G2, P3-75), task 596. '1' = this SMS goes out under the vendor's own
         // Sender ID
         // (set by the order notifier for a V SMS and for the C SMS of a single vendor's order; never for A).
@@ -1773,7 +1779,11 @@ class SmsService
             }
         }
         $used = $this->attempts->countRecent('', '', $now - $start, self::SENT_OUTCOMES);
-        $left = $this->config->capStoreDay() - $used;
+        $store_cap = $this->config->capStoreDay();
+        if (($context['fanout'] ?? '') === '1') {
+            $store_cap = intdiv($store_cap * self::FANOUT_STORE_SHARE, 100);
+        }
+        $left = $store_cap - $used;
         $passed = [];
         $blocked = 0;
         foreach ($this->open($rcpt) as $i) {

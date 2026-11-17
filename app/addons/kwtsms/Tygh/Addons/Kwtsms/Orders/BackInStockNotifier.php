@@ -32,6 +32,7 @@
 
 namespace Tygh\Addons\Kwtsms\Orders;
 
+use Tygh\Addons\Kwtsms\Events\CommunitySmsData;
 use Tygh\Addons\Kwtsms\Log\DebugLog;
 use Tygh\Addons\Kwtsms\Notifications\EventDeclaration;
 use Tygh\Addons\Kwtsms\Notifications\OrderSmsData;
@@ -70,6 +71,9 @@ class BackInStockNotifier
     /** @var callable|null (int $product_id, string $lang, string $fallback): string, the catalog name in a language */
     private $product_name;
 
+    /** @var int 2026-11-17 15:12 +03: FIX-A (security I1), task 596. Accounts left unsent by the cap in the last notify() */
+    private $last_capped = 0;
+
     /**
      * @param callable|null $product_name (int $product_id, string $lang, string $fallback): string; null = the name of
      *                                    the payload (the dispatch's language) for every recipient
@@ -100,11 +104,19 @@ class BackInStockNotifier
      * @param array<string,mixed> $payload      The event data of core (kwtsms_ctx already removed by the caller)
      * @param int                 $storefront_id The storefront of this dispatch (OrderNotifier's single resolution)
      * @param callable|null       $send         (array $phones, string $text, array $context): bool
+     * @param int|null            $max          2026-11-17 15:12 +03: FIX-A (security I1), task 596. A lower cap
+     *                                          for this dispatch (the vendor's remaining quota); null = none
      *
      * @return int Numbers handed to the send pipeline (after the cap, the duplicate keys and the text)
      */
-    public function notify(array $payload, int $storefront_id, EventDeclaration $decl, ?callable $send = null): int
-    {
+    public function notify(
+        array $payload,
+        int $storefront_id,
+        EventDeclaration $decl,
+        ?callable $send = null,
+        ?int $max = null
+    ): int {
+        $this->last_capped = 0;
         $event = Defaults::EVENT_BIS;
         $company_id = max(0, (int) ($payload['company_id'] ?? 0));
         $order = ['company_id' => $company_id, 'storefront_id' => max(0, $storefront_id)];
@@ -144,6 +156,9 @@ class BackInStockNotifier
         // the walk below claims each key in order, skips the deduped and unresolved ones, and stops claiming when
         // `claimed` reaches the cap, so an account that already got today's SMS never uses up a slot.
         $cap = $this->config->bisMaxRecipients();
+        if ($max !== null) {
+            $cap = max(0, min($cap, $max));
+        }
         $claimed = 0;
         $stats['capped'] = 0;
 
@@ -250,6 +265,7 @@ class BackInStockNotifier
                 'event_id' => $event, 'token' => $decl->dedupeKeyError(), 'count' => $stats['unresolved'],
             ]);
         }
+        $this->last_capped = (int) $stats['capped'];
         $this->debug('bis.fanout', 'back in stock fan-out', $stats);
         if ($stats['sent'] > 0 && $this->log !== null) {
             $this->log->log('info', 'bis.sent', 'back in stock SMS handed to the send pipeline', [
@@ -265,6 +281,15 @@ class BackInStockNotifier
     }
 
     /**
+     * 2026-11-17 15:12 +03: FIX-A (security I1), task 596. Eligible accounts the cap left without an SMS in the last
+     * notify() (the cap of the dispatch, the vendor's remaining quota included).
+     */
+    public function lastCapped(): int
+    {
+        return $this->last_capped;
+    }
+
+    /**
      * The name of the product in the language of the text: the catalog's, else the payload's (the dispatch language).
      *
      * @param array<string,mixed> $payload
@@ -273,12 +298,16 @@ class BackInStockNotifier
     {
         $fallback = isset($payload['product']['name']) && is_scalar($payload['product']['name'])
             ? (string) $payload['product']['name'] : '';
+        // 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I2), task 596. A vendor controls the product name:
+        // tags and control characters out, cut to 40 characters, as the call request and community texts do
+        // (CommunitySmsData::name), for the catalog name and the payload name alike.
         if ($this->product_name === null) {
-            return $fallback;
+            return CommunitySmsData::name($fallback);
         }
         $name = call_user_func($this->product_name, $product_id, $lang, $fallback);
+        $name = CommunitySmsData::name($name);
 
-        return is_scalar($name) && (string) $name !== '' ? (string) $name : $fallback;
+        return $name !== '' ? $name : CommunitySmsData::name($fallback);
     }
 
     /**

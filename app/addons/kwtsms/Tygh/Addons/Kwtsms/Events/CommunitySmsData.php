@@ -264,9 +264,12 @@ final class CommunitySmsData implements DeclaredSmsData, PayloadEnricher
     /**
      * A catalog, page or vendor name: tags and control characters removed, cut to MAX_NAME characters.
      *
+     * 2026-11-17 15:12 +03: FIX-A (branch review 1.4.0 security I2), task 596. Public: the back-in-stock text cleans
+     * a vendor-controlled product name with this same helper.
+     *
      * @param mixed $name
      */
-    private static function name($name): string
+    public static function name($name): string
     {
         $name = is_scalar($name) && !is_bool($name) ? (string) $name : '';
         $name = trim((string) preg_replace('/[\x00-\x1F\x7F\s]+/u', ' ', strip_tags($name)));
