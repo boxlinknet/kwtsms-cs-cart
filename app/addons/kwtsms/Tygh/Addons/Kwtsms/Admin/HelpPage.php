@@ -168,7 +168,7 @@ class HelpPage
         }
         $since13[] = 'spike';
 
-        // 2026-11-17 07:41 +03: Task M3.13, task 596. The 1.4.0 sections follow the 1.3.0 ones: the new events, public
+        // 2026-11-17 07:29 +03: Task M3.13, task 596. The 1.4.0 sections follow the 1.3.0 ones: the new events, public
         // forms and CAPTCHA, back in stock, gift certificates, vendor alerts (Multi-Vendor only), conditions and
         // coalescing, template export and import, bulk resend, code statistics, test SMS safeguards, phones.
         $since14 = ['events', 'forms', 'bis', 'gift'];

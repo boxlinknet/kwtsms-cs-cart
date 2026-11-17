@@ -3207,7 +3207,7 @@ msgid "Other add-ons"
 msgstr "إضافات أخرى"
 
 # 2026-10-29 04:13 +03: Task M1.12, task 596. 1.2 ships phone rules and SMS codes; these add-ons come in 1.4.
-# 2026-11-17 07:36 +03: Task M3.13, task 596. 1.4.0 ships these add-ons: the rows are live; the badge text
+# 2026-11-17 07:29 +03: Task M3.13, task 596. 1.4.0 ships these add-ons: the rows are live; the badge text
 # kwtsms.integrations.later.installed is replaced by kwtsms.integrations.later.state.*.
 msgctxt "Languages::kwtsms.integrations.later.help"
 msgid "Add-ons with their own SMS events. Every switch starts OFF. Turn on the ones you want on the Templates page."
@@ -4829,7 +4829,7 @@ msgid "A reset link SMS was already sent to this account in the last 10 minutes.
 msgstr "تم إرسال رسالة رابط إعادة التعيين إلى هذا الحساب خلال آخر 10 دقائق."
 
 # 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12, P2-R13), task 596.
-# 2026-11-17 07:36 +03: Task M3.13, task 596. Call requests and discussion posts use this reason too, not only registration.
+# 2026-11-17 07:29 +03: Task M3.13, task 596. Call requests and discussion posts use this reason too, not only registration.
 msgctxt "Languages::kwtsms.logs.reason.antibot_required"
 msgid "Skipped: the CAPTCHA for this form is off."
 msgstr "تم التخطي: الكابتشا لهذا النموذج غير مفعلة."
@@ -8611,7 +8611,7 @@ msgctxt "Languages::kwtsms.conditions.unavailable"
 msgid "[n] saved method(s) are inactive or deleted. They still count in this condition until you save this form."
 msgstr "[n] من الطرق المحفوظة غير مفعلة أو محذوفة. ما زالت محسوبة في هذا الشرط إلى أن تحفظ هذا النموذج."
 
-# 2026-11-17 07:35 +03: Task M3.13, task 596. Help sections of 1.4.0 (events, forms, back in stock, gift certificates,
+# 2026-11-17 07:29 +03: Task M3.13, task 596. Help sections of 1.4.0 (events, forms, back in stock, gift certificates,
 # vendor alerts, conditions and coalescing, template transfer, bulk resend, code KPIs, test SMS safeguards, phones),
 # the live add-on rows of the Integrations page, the vendor family note and the conditions_unreadable Logs label.
 msgctxt "Languages::kwtsms.help.events.title"

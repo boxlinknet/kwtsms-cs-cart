@@ -283,7 +283,7 @@ CHANGED:   2026-10-29 04:23 +03: Task M1.12, task 596. Release 1.2.0: sections S
                 <p>{__("kwtsms.help.spike.p2")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="templates" pages=$h.pages}</p>
             </section>
 
-            {* 2026-11-17 07:44 +03: Task M3.13, task 596. The 1.4.0 sections. *}
+            {* 2026-11-17 07:29 +03: Task M3.13, task 596. The 1.4.0 sections. *}
             <section class="kwtsms-section kwtsms-help__section" id="kwtsms_help_events" aria-labelledby="kwtsms_help_events_title">
                 <h4 class="subheader" id="kwtsms_help_events_title">{__("kwtsms.help.events.title")}</h4>
                 <p>{__("kwtsms.help.events.p1")} {include file="addons/kwtsms/views/kwtsms/components/help_page_link.tpl" mode="integrations" pages=$h.pages}</p>

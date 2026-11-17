@@ -25,7 +25,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   (template "Back in stock", English and Arabic); other subscribers still get the e-mail. One SMS per customer and
   product per day. Settings > Back in stock SMS sets the most subscribers messaged per restock (default 500).
 
-<!-- 2026-11-17 07:58 +03: Task M3.13 (Help, Integrations, languages), task 596 -->
+<!-- 2026-11-17 07:29 +03: Task M3.13 (Help, Integrations, languages), task 596 -->
 - Help covers every new 1.4.0 feature in English and Arabic: the new events and their throttles, the public forms and
   their CAPTCHA scenarios, back in stock, gift certificates, vendor alerts (Multi-Vendor), conditions and combined
   SMS, template export and import, bulk resend, code statistics and unlock, the test SMS safeguards, IP lockdown,
@@ -40,7 +40,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   test message holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. The
   Dashboard line and the alert now say a message "may still hold" credits. No day or age is named.
 
-<!-- 2026-11-17 07:58 +03: Task M3.13, task 596 -->
+<!-- 2026-11-17 07:29 +03: Task M3.13, task 596 -->
 - The Logs label "Skipped: CAPTCHA for registration is off." now says "the CAPTCHA for this form" (call requests and
   discussion posts use it too), and a row skipped because its Conditions could not be read has its own label. The
   vendor row of the Templates page says where to turn vendor SMS on. On a narrow screen the switch note no longer runs

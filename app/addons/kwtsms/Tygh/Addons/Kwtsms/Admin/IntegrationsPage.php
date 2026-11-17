@@ -32,7 +32,7 @@
  *            2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Coming in 1.3" list became the live "Sign-in and
  *            security" rows (securityRows(): sign-in by code, two-step, recovery by code, checkout code, country
  *            selector, vendor phone self-verification in Multi-Vendor).
- *            2026-11-17 07:47 +03: Task M3.13 (1.4.0), task 596. The LATER_ADDONS rows are live (addonRow(): state of the
+ *            2026-11-17 07:29 +03: Task M3.13 (1.4.0), task 596. The LATER_ADDONS rows are live (addonRow(): state of the
  *            owning add-on, switches ON per event, SMS accepted today); ADDON_EVENTS maps each add-on to its events.
  */
 
