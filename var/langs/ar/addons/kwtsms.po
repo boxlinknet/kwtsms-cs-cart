@@ -8704,7 +8704,7 @@ msgstr "عندما تتغير خطة البائع يصل البائع والمد
 
 msgctxt "Languages::kwtsms.help.vendors14.p4"
 msgid "With Vendor Sender IDs on in Settings, the new order SMS to a vendor, and the SMS to a customer about that vendor's own order, go out under the Sender ID you picked for the vendor on the Vendor SMS page. SMS to the administrator, and the one SMS for a whole checkout, keep the store's Sender ID. A Sender ID that leaves your synced list falls back to the store's and raises an alert. KWT-SMS can't be chosen."
-msgstr "عند تفعيل معرفات مرسل البائعين في الإعدادات، تخرج رسالة الطلب الجديد إلى البائع، ورسالة العميل عن طلب ذلك البائع، بمعرّف المرسل الذي اخترته للبائع في صفحة SMS البائعين. أما رسائل المدير والرسالة الواحدة لعملية الدفع كلها فتبقى بمعرّف مرسل المتجر. وإذا خرج معرّف المرسل من قائمتك المتزامنة عاد إلى معرّف المتجر ورُفع تنبيه. ولا يمكن اختيار KWT-SMS."
+msgstr "عند تفعيل معرفات مرسل البائعين في الإعدادات، تخرج رسالة الطلب الجديد إلى البائع، ورسالة العميل عن طلب ذلك البائع، بمعرّف المرسل الذي اخترته للبائع في صفحة SMS البائعين. أما رسائل المدير والرسالة الواحدة لعملية الدفع كلها فتبقى بمعرّف مرسل المتجر. وإذا خرج معرّف المرسل من قائمتك المتزامنة عاد إلى معرّف المتجر ورُفع تنبيه. ولا يمكن اختيار KWT-SMS. ومعرّف المرسل الذي رفضه kwtSMS (ERR008) يُخفى من القائمة، ولا يعود إلا بعد تغيير معرّف مرسل المتجر نفسه."
 
 msgctxt "Languages::kwtsms.help.rules.title"
 msgid "Conditions and coalescing"
