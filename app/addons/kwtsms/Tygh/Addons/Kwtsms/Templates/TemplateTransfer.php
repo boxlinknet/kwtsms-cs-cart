@@ -108,28 +108,33 @@ class TemplateTransfer
     public function export(): string
     {
         $out = [];
-        // 2026-11-17 06:59 +03: M3.10b item 1, task 596. A stored row the import would refuse (an event or receiver the
-        // Templates page
-        // does not list on this store, an unknown language or storefront, a body the checks refuse) is not exported,
-        // so an untouched export re-imports as 100% unchanged. The same checkRow() decides both ways.
+        // 2026-11-17 07:07 +03: M3.10b item 1 change, task 596. Only a stored row the Templates page does not
+        // list for this store (event or receiver not listed, language not installed, storefront unknown) is
+        // left out. A listed row stays even if its body would be refused on import: the backup holds
+        // everything the admin can see.
         $languages = $this->languages();
         $storefronts = $this->storefronts();
         $ui = [];
-        $seen = [];
         foreach ($this->storedRows() as $r) {
-            $probe = [
-                'event_id' => (string) $r['event_id'], 'receiver' => (string) $r['receiver'],
-                'storefront_id' => (int) $r['storefront_id'], 'lang_code' => (string) $r['lang_code'],
-                'body' => (string) $r['body'],
-            ];
-            $row = [
-                'event_id' => $probe['event_id'], 'receiver' => $probe['receiver'],
-                'storefront_id' => $probe['storefront_id'], 'lang' => $probe['lang_code'],
-                'status' => self::STATUS_REFUSED, 'reason' => '', 'unknown' => [],
-                'stored' => '', 'key' => '', 'fp' => '',
-            ];
-            $this->checkRow($probe, $languages, $storefronts, $ui, $seen, $row);
-            if ($row['status'] === self::STATUS_REFUSED) {
+            $sf = (int) $r['storefront_id'];
+            if (!isset($languages[(string) $r['lang_code']])) {
+                continue;
+            }
+            if ($sf < 0 || ($sf > 0 && (count($storefronts) < 2 || !isset($storefronts[$sf])))) {
+                continue;
+            }
+            if (!isset($ui[$sf])) {
+                $ui[$sf] = (array) $this->templates->rowsForUi(null, $sf);
+            }
+            $listed = false;
+            foreach ($ui[$sf] as $candidate) {
+                $same = $candidate['event_id'] === (string) $r['event_id'];
+                if ($same && $candidate['receiver'] === (string) $r['receiver']) {
+                    $listed = true;
+                    break;
+                }
+            }
+            if (!$listed) {
                 continue;
             }
             $out[] = [
