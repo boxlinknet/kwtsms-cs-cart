@@ -47,6 +47,12 @@ class PostUpgrade140
      */
     public const CODE_TABLES_MISSING = 1401;
 
+    /**
+     * 2026-11-17 15:32 +03: language keys shipped in 1.3.0 and gone in 1.4.0 (review M4, task 596). INSERT IGNORE never
+     * removes a key, so step (5) deletes them (no code reads them; a fresh 1.4.0 install does not have them).
+     */
+    public const REMOVED_LANGVARS = ['kwtsms.integrations.later.installed'];
+
     /** The two tables the 1.4.0 migration creates (checked, never created here: DDL belongs to the migration). */
     private const TABLES = ['kwtsms_event_conditions', 'kwtsms_vendor_senders'];
 
@@ -173,6 +179,13 @@ class PostUpgrade140
         foreach (array_chunk((array) $scheme->getLanguageValues(true), 500) as $chunk) {
             db_query('REPLACE INTO ?:original_values ?m', $chunk);
         }
+        // 2026-11-17 15:32 +03: review M4, task 596: drop the keys 1.4.0 no longer ships (language_values and the
+        // original text, whose context is 'Languages::<name>').
+        db_query('DELETE FROM ?:language_values WHERE name IN (?a)', self::REMOVED_LANGVARS);
+        db_query(
+            'DELETE FROM ?:original_values WHERE msgctxt IN (?a)',
+            array_map(static fn (string $name): string => 'Languages::' . $name, self::REMOVED_LANGVARS)
+        );
 
         // The version is set only when the templates exist (a stale class can have left them out).
         $missing = self::missingTemplates();
