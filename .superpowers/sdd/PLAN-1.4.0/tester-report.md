@@ -499,3 +499,27 @@ e2e:alerts in the live rerun (2026-11-18 09:07 to 09:13): PASSED (cscart 154 che
 e2e:alerts with E2E_LIVE_VALIDATE=1 (2026-11-18 09:21 to 09:28, through the runner budget stop): PASSED on both stores (exit 0). The live step is the read-only /validate/ of the connected account, not an SMS send: ledger sends stay at 29 / 30 credits, balance after 975 (unchanged), no new msg-id. Log lines (logs-rerun/e2e-alerts.log): "connected account (1): /validate/ verdicts", "PASS gateway login for the live /validate/ step (read-only calls)", "PASS live: the Kuwait number is routable, ok verdict", "PASS live: the Saudi number is not on the account, cannot_route verdict" (numbers cscart 96551300001 and 966551234567, mve 96551300002; the Saudi number is only validated, never sent to). The 5 / 9 plan for this row was an overestimate: the step costs nothing. The live /validate/ path is now verified in 1.4.0. Budget used 29 / 45 sends, 30 / 55 credits.
 
 Live alert sends (coordinator ruling 2026-11-18): none. Since v1.3.0 the alert code changed only by one new alert type (AdminAlerts 'vendor_sender_invalid', bell and e-mail, no SMS); LowBalanceSms and the send path are byte-identical to 1.3.0, which was live-verified at its release. The live budget closes at 29 sends / 30 credits of 45 / 55.
+
+## Tester 5, M3.14 closing (2026-11-18 10:15 +03)
+
+### phone_rules
+R7 green (e2e-phone_rules-rerun7.log). Fixes were all in the tests (fresh `501`+5 digit owner number, `unthrottle` through `RateLimiter::deleteLike`, cookies cleared per register case).
+
+### Browser pass (BP_TAG m3, run 20261118-092907-3860920)
+- cscart: 589 cases, 6 FAIL; mve: 620 cases, 7 FAIL.
+- 12 of 13: the Arabic dashboard and dashboard-many held-line regexes. Test defect: they expected "في قائمة الانتظار" while the shipped .po (M3.13/M3.17 glossary) says "في طابور الارسال لدى kwtSMS". Fixed from the .po text (tests commit 3a5598a). The full Arabic dashboard rerun is NOT done (checks live in the full pass).
+- 1 of 13: `order-sms-dialog en 375` on mve, a click timeout. NOT a product defect: cscart passed at 375; the case rerun alone on mve passed and its screenshot (`mve-m3r-order-sms-dialog-en-375.png`) shows the dialog, Send SMS and Cancel fully inside the viewport, nothing covering them.
+- Screenshots: 257 files (EN and AR at 1280, 768, 375). Opened as contact sheets (top of each page, 560 to 800 px): cscart EN 375, AR 375, EN 1280, AR 1280, AR 768; mve AR 375. No overlap or clipping found. NOT yet opened: mve EN 375, mve 768 and 1280, cscart EN 768. Full-page height is covered by the automated no-horizontal-scroll checks only.
+
+### Perf (`M3.14/perf-analyze.log`)
+31 PASS, 10 FAIL, exit 1. All 10 FAIL lines have no `r_total_time_ms` (the harness treats a missing timing as FAIL): absent-number lookups (`phone_index.verifiedOwner`, `twofa.row`, `vendor_senders.pk_read` miss), rate.hit upserts (2) and failspike counts (5). None was slow, but the failspike counts are not proven fast; harness fix or a manual EXPLAIN ANALYZE is open. Slowest measured pass: `integrations.code attempts per purpose` 862 ms (target 1000).
+
+### Log sweep (`M3.14/log-sweep.log`)
+All needles (canaries, Mallory, pay now, 55512345) 0 lines in php, php-fresh and nginx. Exit 0.
+
+### Step5 (`M3.14/step5.log`)
+balance 975, queue_rows 33, error_logs 0. Balance proof: 1005 - 30 credits (29 sends) = 975 exact. queue_rows fell from 405 (01:00) to 33: not caused by us (no kwtSMS-side delete made); the monthly purge or Boss's cleanup.
+
+### Unit and store
+Unit: 7520 tests, 1 skipped (PhoneNormalizerKuwaitTest::testTheRuleEqualsTheClientLibrary, same skip as the first run, so the runner exits 66).
+Five store tests touched by the number replacement: AdminAlertsIntegrationsTest::testArabicIndicDigitsAndTheArabicCommaAreSaved failed (the Arabic-Indic input still spelled 98765432; fixed). Rerun: cscart OK 134/134 (log `logs/store-five.log`); mve see below.
