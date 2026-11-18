@@ -20,33 +20,68 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [1.4.0] - <date>
 
-<!-- 2026-11-14 11:40 +03: M3.3 back-in-stock SMS, task 596 -->
+Upgrading from 1.3.0, 1.2.0, 1.1.0 or 1.0.0: download `kwtsms-upgrade-1.3.0-1.4.0.zip`, `kwtsms-upgrade-1.2.0-1.4.0.zip`,
+`kwtsms-upgrade-1.1.0-1.4.0.zip` or `kwtsms-upgrade-1.0.0-1.4.0.zip`, rename it to `kwtsms.zip`, and upload it in
+Administration > Upgrade Center > Upload upgrade package (the Upgrade Center takes the package id from the file name).
+A fresh install uses `kwtsms-1.4.0.zip`. An upgrade keeps your credentials, settings, switches and edited texts and starts
+no new SMS: every new event, and every new option below, is off until you turn it on.
+
+<!-- 2026-11-18 06:34 +03: release prep, the 1.4.0 entry written from the merged work, task 596 -->
 ### Added
 
-- Back-in-stock SMS: when a product is restocked, subscribers who are registered customers with a phone number get an SMS
-  (template "Back in stock", English and Arabic); other subscribers still get the e-mail. One SMS per customer and
-  product per day. Settings > Back in stock SMS sets the most subscribers messaged per restock (default 500).
-
-<!-- 2026-11-17 07:29 +03: Task M3.13 (Help, Integrations, languages), task 596 -->
-- Help covers every new 1.4.0 feature in English and Arabic: the new events and their throttles, the public forms and
-  their CAPTCHA scenarios, back in stock, gift certificates, vendor alerts (Multi-Vendor), conditions and combined
-  SMS, template export and import, bulk resend, code statistics and unlock, the test SMS safeguards, IP lockdown,
-  Kuwait mobile numbers and the missing phone prompt.
-- The Integrations page lists each add-on with its own SMS events (returns, call requests, back in stock, gift
-  certificates, product reviews, discussion, vendor messages): whether the add-on is active, how many switches are on,
-  and the SMS accepted today.
+- SMS for the events of other CS-Cart add-ons, each with its own switches, English and Arabic templates and Logs rows,
+  and each shown on Templates only while its add-on is active:
+  - Returns (RMA): the status of a return, to the customer, the administrator and the vendor.
+  - Call requests: an alert to the administrator or the vendor when a visitor asks for a call, from the cart, a product
+    page or a vendor page. The public form is protected by the same CAPTCHA scenarios as registration.
+  - Back in stock: when a product is restocked, subscribers who are registered customers with a phone number get an SMS
+    (template "Back in stock"); other subscribers still get the e-mail. One SMS per customer and product per day.
+    Settings > Back in stock SMS sets the most subscribers messaged per restock (default 500, at most 500).
+  - Gift certificates: an SMS to the purchaser when the certificate changes status. The certificate code is masked in the
+    text and in the Logs.
+  - Product reviews, discussion posts and vendor messages: alerts to the administrator and the vendor.
+  - Vendor plan changes (Multi-Vendor): a plan alert to the vendor and the administrator.
+- Multi-Vendor: vendors can receive the status and update SMS of their orders from an allow-list, and each vendor can
+  have its own Sender ID for the SMS of its orders (off until you turn it on in Settings; a vendor without one uses the storefront Sender ID).
+- Conditions per event (Templates > Conditions): an SMS is sent only when the order matches the minimum order total,
+  payment methods and shipping methods you set, per storefront; staff alerts can also be held during your quiet hours.
+- One SMS per order: with "Send one SMS per order when several customer SMS happen in one save" on, a shipment saved with a status change, or two status changes in one
+  save, send the customer one SMS for that order. Code, password and security SMS are never combined.
+- Templates export and import: download your templates as a file, edit them, and import them back with a preview that
+  shows what changes, row by row, before anything is saved.
+- Bulk resend from the Logs: tick failed rows and resend them in one step, with an estimate of the credits first (up to
+  15 rows at a time).
+- Code statistics on the Dashboard while a code feature is on (codes sent over the last 30 days), and an Unlock button for
+  a number that has hit the code limit.
+- Test SMS safeguards: the Settings test SMS asks for the number twice and for a tick confirming you have permission to
+  send to it.
+- Ask for a missing phone (off until you turn it on under Settings > Phone and codes): a signed-in customer without a
+  mobile number is asked to add one, verified by a code, and can choose Later.
+- Kuwait mobile numbers (off until you turn it on under Settings > Phone and codes): refuse Kuwaiti landline and service
+  numbers (an 8-digit +965 number must start with 4, 5, 6 or 9) at registration and in the account, and skip them when
+  sending.
+- Help covers every new feature in English and Arabic: the new events and their limits, the public forms and their
+  CAPTCHA scenarios, back in stock, gift certificates, vendor alerts, conditions and combined SMS, template export and
+  import, bulk resend, code statistics and unlock, the test SMS safeguards, IP lockdown and the missing phone prompt.
+- The Integrations page lists each add-on with its own SMS events: whether the add-on is active, how many switches are
+  on, and the SMS accepted today.
 
 ### Changed
 
 - Texts about test messages (Settings, Dashboard, test-mode alert, Help and the test SMS note, English and Arabic) say a
   test message holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. The
   Dashboard line and the alert now say a message "may still hold" credits. No day or age is named.
-
-<!-- 2026-11-17 07:29 +03: Task M3.13, task 596 -->
 - The Logs label "Skipped: CAPTCHA for registration is off." now says "the CAPTCHA for this form" (call requests and
   discussion posts use it too), and a row skipped because its Conditions could not be read has its own label. The
   vendor row of the Templates page says where to turn vendor SMS on. On a narrow screen the switch note no longer runs
   under the page's side tab.
+- Hardening of the public forms and the vendor features: improved limits per address, per customer and per vendor
+  (a vendor's daily alerts and its share of the monthly quota are capped, a customer gets at most 5 texts a day from
+  gift certificate and vendor reply events), the CAPTCHA token is checked before the limits are spent, a number held by
+  another account gets the same answer as any other number, a request for a code
+  only replaces the codes of the same browser session, and a Resend refuses a row whose add-on is off or whose vendor
+  is not active.
+- The code table gets an index for the Dashboard figures; the upgrade adds it once.
 
 ### Notes
 
