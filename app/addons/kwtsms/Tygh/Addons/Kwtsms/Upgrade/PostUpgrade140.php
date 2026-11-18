@@ -42,7 +42,8 @@ class PostUpgrade140
     private const LOCK = 'kwtsms_post_upgrade_140';
 
     /**
-     * 2026-11-17 15:22 +03: exception code of "the 1.4.0 tables are missing" (review M3, task 596): the notice then names the
+     * 2026-11-17 15:22 +03: exception code of "the 1.4.0 tables are missing" (review M3, task 596): the notice then
+     * names the
      * Upgrade Center, because the DDL runs only from the migration and an admin page cannot create the tables.
      */
     public const CODE_TABLES_MISSING = 1401;
@@ -174,7 +175,8 @@ class PostUpgrade140
         }
 
         // (5) Language variables: INSERT IGNORE keeps an edited value; an unedited old text is refreshed.
-        // 2026-11-17 07:50 +03: Task M3.13 round 3, task 596. SHIPPED_1_3_0 plus the Arabic texts renamed to the glossary terms.
+        // 2026-11-17 07:50 +03: Task M3.13 round 3, task 596. SHIPPED_1_3_0 plus the Arabic texts renamed to the
+        // glossary terms.
         PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::shipped130());
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
@@ -256,7 +258,8 @@ class PostUpgrade140
     }
 
     /**
-     * The 1.3.0 texts that 1.4.0 rewrote: SHIPPED_1_3_0 and Shipped130Terms.php (the Arabic rename to the kwtSMS terms).
+     * The 1.3.0 texts that 1.4.0 rewrote: SHIPPED_1_3_0 and Shipped130Terms.php (the Arabic rename to the kwtSMS
+     * terms).
      * 2026-11-17 07:50 +03: Task M3.13 round 3, task 596.
      *
      * @return array<string,array<string,string>> name => lang => text
@@ -303,7 +306,8 @@ class PostUpgrade140
                         $e->getCode() === self::CODE_TABLES_MISSING
                             // 2026-11-17 15:22 +03: review M3, task 596: this fault is not healed by an admin page.
                             ? 'kwtsms ' . self::VERSION . ': the add-on files are new but the database tables are not. '
-                                . 'Run the 1.4.0 upgrade package again from the Upgrade Center (Administration, Upgrade center); '
+                                . 'Run the 1.4.0 upgrade package again from the Upgrade Center '
+                                . '(Administration, Upgrade center); '
                                 . 'order SMS stay off until it has finished. Details are in the kwtSMS debug '
                                 . 'log and the PHP error log.'
                             : 'kwtsms ' . self::VERSION . ': the post-upgrade step failed (' . get_class($e)

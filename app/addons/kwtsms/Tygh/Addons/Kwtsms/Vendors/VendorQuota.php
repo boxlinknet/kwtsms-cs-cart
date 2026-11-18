@@ -128,7 +128,10 @@ class VendorQuota
         }
         $usable = intdiv($limit * (100 - max(0, min(100, $reserve_percent))), 100);
 
-        return max(0, $usable - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0));
+        return max(
+            0,
+            $usable - $this->used($company_id, $this->monthStart()) - $this->queuedRecipients($company_id, 0)
+        );
     }
 
     /**

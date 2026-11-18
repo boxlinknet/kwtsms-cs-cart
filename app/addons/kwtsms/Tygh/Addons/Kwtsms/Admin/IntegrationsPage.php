@@ -32,7 +32,8 @@
  *            2026-11-07 02:46 +03: Task M2.7 (1.3.0), task 596. The "Coming in 1.3" list became the live "Sign-in and
  *            security" rows (securityRows(): sign-in by code, two-step, recovery by code, checkout code, country
  *            selector, vendor phone self-verification in Multi-Vendor).
- *            2026-11-17 07:29 +03: Task M3.13 (1.4.0), task 596. The LATER_ADDONS rows are live (addonRow(): state of the
+ *            2026-11-17 07:29 +03: Task M3.13 (1.4.0), task 596. The LATER_ADDONS rows are live (addonRow(): state of
+ * the
  *            owning add-on, switches ON per event, SMS accepted today); ADDON_EVENTS maps each add-on to its events.
  */
 
@@ -341,7 +342,8 @@ class IntegrationsPage
     }
 
     /**
-     * 2026-11-17 07:15 +03: Task M3.13, task 596. One row of the add-on list: state ('active', 'disabled' = installed but
+     * 2026-11-17 07:15 +03: Task M3.13, task 596. One row of the add-on list: state ('active', 'disabled' = installed
+     * but
      * off, 'missing'), the number of (event, receiver) switches ON over the add-on's events (0 while the add-on is not
      * active: leftover rows do nothing), the SMS accepted today over the same events and the Templates link (only for
      * an active add-on and an administrator who manages templates).

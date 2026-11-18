@@ -65,7 +65,8 @@ class EventConditions
         $none['staff_quiet'] = $cond['staff_quiet'] && $receiver !== 'C' && self::supportsQuiet($event_id);
         // Order conditions apply to an event that has an order; any other event ignores them.
         if ((int) ($order['order_id'] ?? 0) > 0) {
-            // 2026-11-17 01:30 +03: task M3.22 fix round 1 (I3, review M3.22), task 596. The stored ids are matched exactly
+            // 2026-11-17 01:30 +03: task M3.22 fix round 1 (I3, review M3.22), task 596. The stored ids are matched
+            // exactly
             // as saved: a list of only inactive methods still refuses (never widens to "any"), a mixed list still
             // matches an old order paid by a method since disabled. The dialog shows the unavailable count only.
             if ($cond['min_total'] !== '') {

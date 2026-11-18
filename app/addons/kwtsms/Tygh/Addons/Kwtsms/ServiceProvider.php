@@ -535,7 +535,8 @@ class ServiceProvider implements ServiceProviderInterface
                 },
                 static function (int $user_id): ?array {
                     // 2026-11-17 00:30 +03: Task M3.21 fix round 1 (I2), task 596. Two primary-key / user_id
-                    // lookups instead of a full fn_get_user_info() (profile fields, usergroups, hooks of other add-ons) per page view.
+                    // lookups instead of a full fn_get_user_info() (profile fields, usergroups, hooks of other add-ons)
+                    // per page view.
                     if (!function_exists('db_get_row')) {
                         return null;
                     }

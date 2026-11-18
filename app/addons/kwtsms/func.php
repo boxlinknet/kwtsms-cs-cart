@@ -1260,7 +1260,8 @@ function fn_kwtsms_missing_phone_redirect()
         if (!empty($session[\Tygh\Addons\Kwtsms\Auth\PendingLogin::STATE_KEY])) {
             return;
         }
-        // 2026-11-17 00:25 +03: Task M3.21 fix round 1 (I3), task 596. Only a real top-level page navigation (Accept names
+        // 2026-11-17 00:25 +03: Task M3.21 fix round 1 (I3), task 596. Only a real top-level page navigation (Accept
+        // names
         // text/html, Sec-Fetch-Mode navigate and Sec-Fetch-Dest document when sent, no prefetch) is redirected.
         if (!\Tygh\Addons\Kwtsms\Profiles\MissingPhonePrompt::isPageNavigation($_SERVER)) {
             return;
@@ -1279,7 +1280,8 @@ function fn_kwtsms_missing_phone_redirect()
             return;
         }
         $prompt->markShown((int) $auth['user_id']);
-        // 2026-11-17 00:20 +03: Task M3.21 fix round 2 (M2), task 596. The way core builds its own redirects: the current
+        // 2026-11-17 00:20 +03: Task M3.21 fix round 2 (M2), task 596. The way core builds its own redirects: the
+        // current
         // dispatch and its query as "index.php?dispatch=..." (config.current_url, made by the router from the resolved
         // dispatch, so the same with SEO URLs on or off and under a sub-directory), not the raw REQUEST_URI path that
         // fn_url()/fn_redirect() would prefix a second time.
@@ -1310,7 +1312,8 @@ function fn_kwtsms_missing_phone_write($user_id, $phone)
         $auth = Tygh::$app['session']['auth'];
         if (
             $user_id <= 1 || $phone === '' || !is_array($auth) || (int) ($auth['user_id'] ?? 0) !== $user_id
-            || !empty($auth['act_as_user']) // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I1), task 596: never while impersonating
+            // 2026-11-17 00:20 +03: Task M3.21 fix round 1 (I1), task 596: never while impersonating
+            || !empty($auth['act_as_user'])
             || !function_exists('fn_update_user') || !function_exists('fn_get_user_info')
         ) {
             return false;

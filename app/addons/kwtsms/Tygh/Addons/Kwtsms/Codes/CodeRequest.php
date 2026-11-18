@@ -245,7 +245,8 @@ class CodeRequest
     }
 
     /**
-     * 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. The host has a finish function (AfterResponse): call
+     * 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1), task 596. The host has a finish function (AfterResponse):
+     * call
      * before handle(). The register and phone change send then runs in afterResponse(), after the answer.
      */
     public function deferSend(bool $host_has_finish): void
@@ -708,8 +709,10 @@ class CodeRequest
             return $this->wait($issued->retry_after, $lang);
         }
 
-        // 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1, coordinator), task 596. On a host with a finish function the
-        // register and phone change answer is "code sent" as soon as the code is issued; the send (or the no-op of a held
+        // 2026-11-17 02:10 +03: task M3.22 fix round 1b (C1, coordinator), task 596. On a host with a finish function
+        // the
+        // register and phone change answer is "code sent" as soon as the code is issued; the send (or the no-op of a
+        // held
         // number) runs after the response in afterResponse(), so both answer at the same speed with no wait.
         if ($this->defer && !$staff && self::paddedPurpose($purpose)) {
             $this->pending = [
