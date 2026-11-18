@@ -124,7 +124,8 @@ DEPENDS:   components/navigation.tpl, components/log_outcome.tpl, logs.less, log
                 </div>
                 <div class="kwtsms-field">
                     <label for="kwtsms_f_phone">{__("kwtsms.logs.f.phone")}</label>
-                    <input type="text" id="kwtsms_f_phone" name="phone" value="{$f.phone|default:""}" dir="ltr" inputmode="tel" autocomplete="off" placeholder="98765432">
+                    {* 2026-11-18 11:59 +03: placeholder example number is 50000000 (the old one was a real person's number), task 596 *}
+                    <input type="text" id="kwtsms_f_phone" name="phone" value="{$f.phone|default:""}" dir="ltr" inputmode="tel" autocomplete="off" placeholder="50000000">
                 </div>
                 <div class="kwtsms-field">
                     <label for="kwtsms_f_order">{__("kwtsms.logs.f.order")}</label>

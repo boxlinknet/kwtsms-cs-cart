@@ -900,7 +900,8 @@ phone_check() {
   local res rc
   res="$(grep -rhoIE '(^|[^0-9])965[0-9]{8}([^0-9]|$)' "$pkg")"; rc=$?
   [ "$rc" -le 1 ] || return "$rc"
-  printf '%s\n' "$res" | grep -oE '965[0-9]{8}' | sort -u | grep -vxE '96598765432|96550000001|96550123401|96522334455'
+  # 2026-11-18 12:06 +03: the allowlist holds the new example 96550000000; the old example (a real person's number) is removed so the gate refuses it, task 596.
+  printf '%s\n' "$res" | grep -oE '965[0-9]{8}' | sort -u | grep -vxE '96550000000|96550000001|96550123401|96522334455'
   echo "CHECKED $(find "$pkg" -type f | wc -l)"
 }
 gate "no phone number other than the documented fictional ones" phone_check

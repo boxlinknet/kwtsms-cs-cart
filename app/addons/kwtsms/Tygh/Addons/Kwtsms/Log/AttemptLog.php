@@ -13,14 +13,15 @@
  *            values are masked in the reason. An audit write must not break the send: a failed insert
  *            returns 0. A failed count is NOT hidden (it would read as "no recent attempts" and skip the cap).
  * USAGE:     $log = new AttemptLog($store);   (wired in Task 1.6)
- *            $id = $log->record(['phone' => '96598765432', 'outcome' => 'blocked_country', 'reason' => '...',
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
+ *            $id = $log->record(['phone' => '96550000000', 'outcome' => 'blocked_country', 'reason' => '...',
  *                                'secret_values' => ['482913']]);          // row id, or 0 when the write failed
- *            $log->countRecent('phone', '96598765432', 3600, ['accepted', 'test_queued']);   // last hour
+ *            $log->countRecent('phone', '96550000000', 3600, ['accepted', 'test_queued']);   // last hour
  *            $log->countRecent('', '', 86400, ['accepted', 'test_queued']);                  // whole store
  *            Fields for countRecent: phone, ip, order_id, parent_order_id, or '' for no field.
  *            2026-10-21 00:05 +03: an optional 5th argument adds equality or IN filters on the other Logs filter keys,
  *            e.g. ['source' => ['api']] for the own rate bucket of fn_kwtsms_send() (PRD 5.2), Task 1.6, task 596.
- *            $log->countRecent('phone', '96598765432', 3600, ['accepted'], ['source' => ['api']]);
+ *            $log->countRecent('phone', '96550000000', 3600, ['accepted'], ['source' => ['api']]);
  *            2026-10-21 01:01 +03, Task 1.6 fix round 1 (N+1), task 596: recordMany($rows) writes a whole send's
  *            attempts in one INSERT and countsByPhone($phones, $outcomes, $sources) reads every cap count of a send
  *            in one grouped query, when the store implements BulkLogStoreInterface (one statement per row or

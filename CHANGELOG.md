@@ -68,6 +68,10 @@ no new SMS: every new event, and every new option below, is off until you turn i
 
 ### Changed
 
+<!-- 2026-11-18 11:59 +03: fixF, task 596 -->
+- The example phone number in texts and placeholders (Settings, Logs, Templates, error and Help texts, English and
+  Arabic) is 50000000 (96550000000 with the country code). An upgrade refreshes the unedited old texts and keeps an
+  edited one.
 - Texts about test messages (Settings, Dashboard, test-mode alert, Help and the test SMS note, English and Arabic) say a
   test message holds credits in your kwtSMS queue until you delete it or it's purged automatically once a month. The
   Dashboard line and the alert now say a message "may still hold" credits. No day or age is named.
@@ -567,7 +571,7 @@ tested the release candidate on CS-Cart Multi-Vendor Plus 4.20.1 (Arabic and Eng
 <!-- 2026-10-21 06:44 +03: entries for the Logs page, the order SMS tab, export and GDPR (Task 1.14), task 596 -->
 - Logs page with Messages, Attempts and Debug tabs: store time and kwtSMS time (Kuwait) on every row, a TEST badge and a
   Live or test filter, one canonical list of outcome labels ("Accepted by kwtSMS", never "Delivered"), filters by date,
-  status, event, receiver, order (with its parent), storefront, vendor, phone (98765432 finds 96598765432) and text (3
+  status, event, receiver, order (with its parent), storefront, vendor, phone (50000000 finds 96550000000) and text (3
   characters and at most 31 days). Filters come from a fixed key map, 10 to 200 rows per page, created_at the only sort.
 - A filter that no index reads in time order searches the newest 50,000 rows of the period and says so, so every list
   and count stays under a second on a store with a million attempts.

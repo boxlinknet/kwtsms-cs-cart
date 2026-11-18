@@ -169,8 +169,9 @@ DEPENDS:   templates.less (.kwtsms-editor), js/addons/kwtsms/{counter,templates}
                         {if $e.storefront_id}<input type="hidden" name="kwtsms_tpl[storefront_id]" value="{$e.storefront_id}">{/if}
                         <input type="hidden" name="kwtsms_tpl[body]" id="kwtsms_test_body" value="{$e.body}">
                         <label class="control-label" for="kwtsms_test_phone">{__("kwtsms.test_sms.phone")}</label>
+                        {* 2026-11-18 11:59 +03: placeholder example number is 5000 0000 (the old one was a real person's number), task 596 *}
                         <input type="text" id="kwtsms_test_phone" name="kwtsms_tpl[phone]" value="" class="input-medium" dir="ltr"
-                               inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432" required="required">
+                               inputmode="tel" autocomplete="off" maxlength="32" placeholder="5000 0000" required="required">
                         {* 2026-10-21 06:00 +03: an own flex line instead of the core .checkbox float, which left the box outside the panel in Arabic *}
                         {* 2026-11-16 23:47 +03: Task M3.19 (P3-77), task 596. The number again and the permission tick; the server checks both. *}
                         <label class="control-label" for="kwtsms_test_phone_confirm">{__("kwtsms.test_sms.phone_confirm")}</label>

@@ -20,7 +20,8 @@
  *            $r = $client->balance();     // ['result'=>'OK','available'=>150.0,'purchased'=>1000.0, ...meta]
  *            $r = $client->senderIds();   // ['senderids'=>['KWT-SMS', ...]]
  *            $r = $client->coverage();    // ['prefixes'=>['965', ...]]
- *            $r = $client->validate(['96598765432', '123']);
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
+ *            $r = $client->validate(['96550000000', '123']);
  *                // ['mobile'=>['OK'=>[], 'ER'=>[], 'NR'=>[]], 'calls'=>[...]]
  *            $r = $client->send('MyShop', $numbers, 'Hello', true);   // aggregate over the chunks, see below
  *            Meta on every result: result (OK|ERROR, a send or validate over several chunks may be PARTIAL),

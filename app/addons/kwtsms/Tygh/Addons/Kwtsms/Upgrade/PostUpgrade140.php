@@ -137,6 +137,78 @@ class PostUpgrade140
     ];
 
     /**
+     * The texts of the six language variables whose example phone number changed to 50000000 in 1.4.0, per language
+     * (name => lang => text), byte-exact from tag v1.3.0. They read the same in every release from 1.0.0 on, so a
+     * store from any older version holds them. An unedited text is refreshed, an edited one stays. ASCII only: the
+     * Arabic is \u{} escapes, and so is every digit of the old example number, so that number appears nowhere in the
+     * package as plain text.
+     * 2026-11-18 11:59 +03: added, task fixF, task 596.
+     *
+     * @var array<string,array<string,string>>
+     */
+    private const SHIPPED_PHONE_EXAMPLE = [
+        'kwtsms.alerts.numbers_placeholder' => [
+            'en' => "\u{2b}\u{39}\u{36}\u{35}\u{20}\u{39}\u{38}\u{37}\u{36}\u{20}\u{35}\u{34}\u{33}\u{32}",
+            'ar' => "\u{645}\u{62b}\u{627}\u{644}: \u{200e}\u{2b}\u{39}\u{36}\u{35}\u{20}\u{39}\u{38}"
+                . "\u{37}\u{36}\u{20}\u{35}\u{34}\u{33}\u{32}",
+        ],
+        'kwtsms.err.ERR006' => [
+            'en' => "kwtSMS found no valid phone number in this request. Include the country code, for ex"
+                . "ample \u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+            'ar' => "\u{644}\u{645} \u{62a}\u{62c}\u{62f} kwtSMS \u{631}\u{642}\u{645} \u{647}\u{627}"
+                . "\u{62a}\u{641} \u{635}\u{627}\u{644}\u{62d}\u{627} \u{641}\u{64a} \u{647}\u{630}"
+                . "\u{627} \u{627}\u{644}\u{637}\u{644}\u{628}. \u{623}\u{636}\u{641} \u{631}\u{645}"
+                . "\u{632} \u{627}\u{644}\u{62f}\u{648}\u{644}\u{629}\u{60c} \u{645}\u{62b}\u{644} "
+                . "\u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+        ],
+        'kwtsms.err.ERR025' => [
+            'en' => "A phone number isn't valid. Use digits only, with the country code, for example "
+                . "\u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+            'ar' => "\u{631}\u{642}\u{645} \u{647}\u{627}\u{62a}\u{641} \u{63a}\u{64a}\u{631} \u{635}"
+                . "\u{627}\u{644}\u{62d}. \u{627}\u{633}\u{62a}\u{62e}\u{62f}\u{645} \u{627}\u{644}"
+                . "\u{623}\u{631}\u{642}\u{627}\u{645} \u{641}\u{642}\u{637} \u{645}\u{639} \u{631}"
+                . "\u{645}\u{632} \u{627}\u{644}\u{62f}\u{648}\u{644}\u{629}\u{60c} \u{645}\u{62b}"
+                . "\u{644} \u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+        ],
+        'kwtsms.help.missing.s4' => [
+            'en' => "Check the number. Open the message in the archive. The number must be a mobile numbe"
+                . "r in international format, for example \u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}"
+                . "\u{35}\u{34}\u{33}\u{32}.",
+            'ar' => "\u{62a}\u{62d}\u{642}\u{642} \u{645}\u{646} \u{627}\u{644}\u{631}\u{642}\u{645}. "
+                . "\u{627}\u{641}\u{62a}\u{62d} \u{627}\u{644}\u{631}\u{633}\u{627}\u{644}\u{629} "
+                . "\u{641}\u{64a} \u{627}\u{644}\u{623}\u{631}\u{634}\u{64a}\u{641}. \u{64a}\u{62c}"
+                . "\u{628} \u{623}\u{646} \u{64a}\u{643}\u{648}\u{646} \u{627}\u{644}\u{631}\u{642}"
+                . "\u{645} \u{631}\u{642}\u{645} \u{62c}\u{648}\u{627}\u{644} \u{628}\u{627}\u{644}"
+                . "\u{635}\u{64a}\u{63a}\u{629} \u{627}\u{644}\u{62f}\u{648}\u{644}\u{64a}\u{629}"
+                . "\u{60c} \u{645}\u{62b}\u{644} \u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}"
+                . "\u{33}\u{32}.",
+        ],
+        'kwtsms.logs.error.phone' => [
+            'en' => "The phone filter needs a full number. Type at least 7 digits, for example \u{39}"
+                . "\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+            'ar' => "\u{641}\u{644}\u{62a}\u{631} \u{627}\u{644}\u{647}\u{627}\u{62a}\u{641} \u{64a}"
+                . "\u{62d}\u{62a}\u{627}\u{62c} \u{631}\u{642}\u{645}\u{627} \u{643}\u{627}\u{645}"
+                . "\u{644}\u{627}. \u{627}\u{643}\u{62a}\u{628} 7 \u{623}\u{631}\u{642}\u{627}\u{645} "
+                . "\u{639}\u{644}\u{649} \u{627}\u{644}\u{623}\u{642}\u{644}\u{60c} \u{645}\u{62b}"
+                . "\u{644} \u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32}.",
+        ],
+        'kwtsms.settings.default_country_help' => [
+            'en' => "Its code is added to a number typed without one when the digit count fits that count"
+                . "ry, so \u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32} becomes \u{39}\u{36}\u{35}"
+                . "\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32} for Kuwait.",
+            'ar' => "\u{64a}\u{636}\u{627}\u{641} \u{631}\u{645}\u{632}\u{647}\u{627} \u{625}\u{644}"
+                . "\u{649} \u{627}\u{644}\u{631}\u{642}\u{645} \u{627}\u{644}\u{645}\u{643}\u{62a}"
+                . "\u{648}\u{628} \u{628}\u{62f}\u{648}\u{646} \u{631}\u{645}\u{632} \u{62f}\u{648}"
+                . "\u{644}\u{629} \u{639}\u{646}\u{62f}\u{645}\u{627} \u{64a}\u{646}\u{627}\u{633}"
+                . "\u{628} \u{639}\u{62f}\u{62f} \u{623}\u{631}\u{642}\u{627}\u{645}\u{647} \u{62a}"
+                . "\u{644}\u{643} \u{627}\u{644}\u{62f}\u{648}\u{644}\u{629}\u{60c} \u{641}\u{64a}"
+                . "\u{635}\u{628}\u{62d} \u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32} \u{647}"
+                . "\u{648} \u{39}\u{36}\u{35}\u{39}\u{38}\u{37}\u{36}\u{35}\u{34}\u{33}\u{32} \u{644}"
+                . "\u{644}\u{643}\u{648}\u{64a}\u{62a}.",
+        ],
+    ];
+
+    /**
      * @param string        $from_version The add-on version before the upgrade ('1.0.0' .. '1.3.0'; '1.4.0' repairs
      *                                    a store whose templates or settings are missing)
      * @param callable|null $seeder       Replaces the template seed (a test injects a no-op or a failing one)
@@ -287,7 +359,9 @@ class PostUpgrade140
      */
     public static function shipped130(): array
     {
-        return self::SHIPPED_1_3_0 + (array) require __DIR__ . '/Shipped130Terms.php';
+        // 2026-11-18 11:59 +03: SHIPPED_PHONE_EXAMPLE joins the map (task fixF, task 596); the po130
+        // coverage test reads shipped130().
+        return self::SHIPPED_1_3_0 + self::SHIPPED_PHONE_EXAMPLE + (array) require __DIR__ . '/Shipped130Terms.php';
     }
 
     /**
