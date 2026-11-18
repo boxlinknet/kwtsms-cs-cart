@@ -981,8 +981,9 @@ DEPENDS:   components/navigation.tpl, styles.less, js/addons/kwtsms/backend.js, 
             <div class="control-group">
                 <label class="control-label cm-required" for="kwtsms_test_phone">{__("kwtsms.test_sms.phone")}:</label>
                 <div class="controls">
+                    {* 2026-11-18 11:59 +03: placeholder example number is 5000 0000 (the old one was a real person's number), task 596 *}
                     <input type="text" id="kwtsms_test_phone" name="kwtsms_test[phone]" value="" class="input-medium" dir="ltr"
-                           inputmode="tel" autocomplete="off" maxlength="32" placeholder="9876 5432">
+                           inputmode="tel" autocomplete="off" maxlength="32" placeholder="5000 0000">
                     <label class="checkbox"><input type="checkbox" id="kwtsms_test_intl" name="kwtsms_test[intl]" value="Y"> {__("kwtsms.test_sms.intl")}</label>
                     <p class="muted description">{__("kwtsms.test_sms.intl_help", ["[country]" => $kwtsms.default_country_label|fn_html_escape])}</p>
                 </div>

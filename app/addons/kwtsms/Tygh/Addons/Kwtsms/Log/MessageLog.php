@@ -15,7 +15,8 @@
  * USAGE:     $log = new MessageLog($store, $config);   (wired in Task 1.6)
  *            $id = $log->record([
  *                'source' => 'event', 'event_id' => 'kwtsms.order_placed.p12', 'receiver' => 'C',
- *                'recipients' => '96598765432', 'recipient_count' => 1, 'message' => 'Order 12 received',
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
+ *                'recipients' => '96550000000', 'recipient_count' => 1, 'message' => 'Order 12 received',
  *                'status' => 'test_queued', 'is_test' => 'Y', 'api_msg_id' => '...', 'balance_after' => 148.0,
  *                'api_request' => $json_without_credentials, 'api_response' => $reply,
  *                'secret_values' => ['482913'],        // not a column: strings to mask

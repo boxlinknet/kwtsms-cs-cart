@@ -13,7 +13,8 @@
  *            ignored, every value is checked against its own rule (canonical outcome codes, digits, Y/N, a pattern), so
  *            nothing the request holds can reach SQL other than as a typed placeholder value in DbLogStore. The page
  *            size is clamped to 10-200, the sort is created_at only (db_sort with a one-entry whitelist), the offset is
- *            capped (MAX_OFFSET), the phone is normalized (98765432 finds 96598765432) and the text filter needs at
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
+ *            capped (MAX_OFFSET), the phone is normalized (50000000 finds 96550000000) and the text filter needs at
  *            least 3 characters and a date range of at most 31 days. The Dashboard's problem links (Task 1.11: tab,
  *            outcome and outcome[], api_code, created_from) are part of the map.
  * USAGE:     $f = LogFilters::parse($_REQUEST, $config->defaultCountryCode(), time());

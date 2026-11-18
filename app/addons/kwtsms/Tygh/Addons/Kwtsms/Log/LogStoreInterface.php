@@ -10,7 +10,8 @@
  * WHY:       MessageLog, AttemptLog and DebugLog hold the rules (redaction, caps, 4-byte stripping); the
  *            store only moves rows. Behind an interface their unit tests run on an in-memory store, and
  *            the Logs page (a later task) and the retention cron use the same list/count/delete calls.
- * USAGE:     $id = $store->insert(Schema::ATTEMPTS, ['created_at' => time(), 'phone' => '96598765432', ...]);
+ * USAGE:     $id = $store->insert(Schema::ATTEMPTS, ['created_at' => time(), 'phone' => '96550000000', ...]);
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
  *            $rows = $store->select(Schema::MESSAGES, ['status' => 'failed', 'created_from' => $t], 50, 0);
  *            $n = $store->count(Schema::ATTEMPTS, ['phone' => $phone, 'created_from' => time() - 3600]);
  *            $store->deleteOlderThan(Schema::DEBUG, time() - 30 * 86400);   // chunks of 5000, returns the total

@@ -13,12 +13,13 @@
  *            called, so a number the gateway would reject, or a landline that can never receive an
  *            SMS, is refused locally with a stable reason code. D18 (Boss, 2026-10-20 18:10): a number
  *            typed without + or 00 whose digit count equals the local length of the default country
- *            gets that country code, so 98765432 is Kuwait, not Iran.
+ *            gets that country code, so an 8-digit number that starts like Iran's 98 is Kuwait, not Iran.
+ * 2026-11-18 11:59 +03: the example phone number in this comment is 50000000 (was another number), task 596.
  * USAGE:     All methods are static and pure (no state, no CS-Cart calls, no I/O).
- *              PhoneNormalizer::normalize('9876 5432', '965')        -> '96598765432'
- *              PhoneNormalizer::verify('96598765432')                -> [true, null]
+ *              PhoneNormalizer::normalize('5000 0000', '965')        -> '96550000000'
+ *              PhoneNormalizer::verify('96550000000')                -> [true, null]
  *              PhoneNormalizer::validateInput('a@b.c', '965')        -> [false, 'email', '']
- *              PhoneNormalizer::countryCode('96598765432')           -> '965'
+ *              PhoneNormalizer::countryCode('96550000000')           -> '965'
  *              PhoneNormalizer::callingCodeForIso('KW')              -> '965'
  *              PhoneNormalizer::countryOptions()                     -> [965 => 'Kuwait (+965)', ...]
  *            Reason codes of verify() and validateInput(): empty, email, too_short, too_long,
@@ -38,7 +39,7 @@
  *   1. D18 rule first: normalize() takes a country hint. If the raw input has no + or 00 and its digit
  *      count (leading zeros stripped) equals a local length of the hint country, the hint code is
  *      prefixed and country detection is skipped. Otherwise detection runs as upstream. Upstream has
- *      no hint, so 98765432 became "Iran, 6 local digits" there.
+ *      no hint, so an 8-digit number starting 98 became "Iran, 6 local digits" there.
  *   2. normalize() remembers whether the raw input starts with + or 00 (international marker): then
  *      the hint is ignored, as the country code is already in the number.
  *   3. The 22334455 case: with hint 965 it becomes 96522334455 and verify() rejects it as not_mobile
