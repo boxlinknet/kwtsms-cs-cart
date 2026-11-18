@@ -523,3 +523,5 @@ balance 975, queue_rows 33, error_logs 0. Balance proof: 1005 - 30 credits (29 s
 ### Unit and store
 Unit: 7520 tests, 1 skipped (PhoneNormalizerKuwaitTest::testTheRuleEqualsTheClientLibrary, same skip as the first run, so the runner exits 66).
 Five store tests touched by the number replacement: AdminAlertsIntegrationsTest::testArabicIndicDigitsAndTheArabicCommaAreSaved failed (the Arabic-Indic input still spelled 98765432; fixed). Rerun: cscart OK 134/134 (log `logs/store-five.log`); mve see below.
+Rerun of the five store tests after the fix (2026-11-18 10:13 +03, run 20261118-101318-3932461): cscart OK 134/134, mve 134 tests 0 failures. Tests commit a26ee20.
+Open at close: AR dashboard rerun; screenshot sheets not opened (mve EN 375, mve 768 and 1280, cscart EN 768); 5 failspike perf queries unproven; article sections 1, 2 and N4 to N7, N10 not re-confirmed.
