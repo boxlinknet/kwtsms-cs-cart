@@ -457,3 +457,39 @@ Admin timeout (logs, login_code_settings): NOT reproduced on a lone run. Timed i
 Lone reruns, sends delta 0 each: logs, login_code_settings, login_code, recover_code, phone_change, phone_country, bis_settings, ca2 all green. registration_code: the "no code" failure was a test race (the page reloads after the refused submit while notice() read it); no account was created (users checked in both DBs); notice() now waits and retries; rerun green. templates_transfer: M3.14p (3dfd338) mangled the jq line of the two-tab step and the 4c fixture had a string exported_at (the importer needs an integer, so the file was refused whole); fixed, rerun green on both stores (R5).
 
 phone_rules: OPEN. Product behaviour checked: 1.4.0 P5 (ce10a4e) answers a code request for a number held by another account like a sent code and sends nothing; the "in use" text comes at the form save. Test causes found and fixed in turn: the per-IP code buckets (cleared now through RateLimiter::deleteLike, no raw SQL), the fixed owner number reused across reruns (random per run now), the per-session 300 s resend cooldown (cookies cleared per register case), and last a defect of my own random numbers: +96558721131 is "The phone number is invalid" in the theme (second digit must be 0, 1 or 5; fixed in commit after 10ed60f, NOT yet rerun). Last run (R6, 08:42): cscart 8 fails (register-inuse x4, profile-inuse x4), mve 17. Last screenshots read: cscart register-inuse en 1280 and profile-inuse en 1280, both show the red "The phone number is invalid" for the random owner number (so the in-use rule was never reached). Best cause: the invalid random number; one rerun with the valid ranges should settle it. A separate agent reads the code meanwhile (coordinator).
+
+## Tester 5, M3.14 live rerun (budget 45 sends / 55 credits on top of 101 / 117)
+
+Guard on (pattern 965[569][0-9]{7}, test flag must be 1; the e2e scripts run behind the dev guard with the same check). Runner tests/tools/m314-rerun.sh (pre-step stop at 45/55, tally counted from the stamp 20261118-085655, proven with a stub dry run). Balance before 1005, after 975 (30 credits). 29 sends, 30 credits, all is_test=Y, test=1, every number inside 965[569]xxxxxxx. Steps: BackInStock, GiftCertificate green; Families and CodeFlows registration first failed for test defects (vendor message key company 0, vendor_sender_ids not switched on, message row read before its after-response write), fixed and rerun green; e2e settings, marketplace_shots, alerts, OrderTiming green.
+
+| run | case | msg-id | number | credits |
+|---|---|---|---|---|
+| 20261118-085656-3792466 | store-live-back-in-stock-sms | bd607b2f0cb3dd0f2d5d78eb9c32c4e4 | 96550190001 | 1 |
+| 20261118-085656-3792466 | store-live-back-in-stock-sms | 4063a481a7bd0b39123c3e0e9579359e | 96550190001 | 2 |
+| 20261118-085720-3793787 | store-live-gift-certificate-sms | 6018e10ce1ca3ee39ac2258aa4541d7d | 96550190001 | 1 |
+| 20261118-085720-3793787 | store-live-gift-certificate-sms | f840fef9e2c25a3daa37f21b396c4979 | 96550190001 | 1 |
+| 20261118-085748-3794951 | store-live-discussion-alert-sms-en | 4949bc4da2b1192d9c8b4fcade65fb67 | 96550190001 | 1 |
+| 20261118-085748-3794951 | store-live-discussion-alert-sms-ar | 360c8ece6ddd26928daf7c30152c631c | 96550190001 | 1 |
+| 20261118-085748-3794951 | store-live-vendor-message-sms-en | 4aafa5ae23174693ee167c0f6123cc6d | 96550190001 | 1 |
+| 20261118-085748-3794951 | store-live-plan-change-sms-en | 845968bf225afd2b1529d5ccb976cd04 | 96550193832 | 1 |
+| 20261118-085748-3794951 | store-live-plan-change-sms-ar | e4c32ebd81549ade7505cf04ef680070 | 96550193832 | 1 |
+| 20261118-085748-3794951 | store-live-vendor-sender-sms | 49e3751c793891cc661c632072399d2e | 96550193832 | 1 |
+| 20261118-085939-3797626 | m1.10b-phone-change-code-cscart | 4101d528362f0366d833fd70b8afc102 | 96555100013 | 1 |
+| 20261118-085939-3797626 | m1.10b-phone-change-notice-cscart | cc22ecb722e5c57b31a483cf84ae2ab9 | 96555100003 | 1 |
+| 20261118-085939-3797626 | m2.1-login-code-cscart | 1d1508e1c9bb719425496d4daf172b2c | 96555100005 | 1 |
+| 20261118-085939-3797626 | m1.10b-phone-change-code-mve | a0dd5a8cc34df64bb377aae27432728c | 96555100014 | 1 |
+| 20261118-085939-3797626 | m1.10b-phone-change-notice-mve | 3c49408b413fb9a626b258e20cdc6fdc | 96555100004 | 1 |
+| 20261118-085939-3797626 | m2.1-login-code-mve | 0f6b2e4860a303fff6789384b213d227 | 96555100006 | 1 |
+| 20261118-085939-3797626 | swept-cscart-otp.register | 25beb249b146b0c7ee066a6ea0c54ec4 | 96555100001 | 1 |
+| 20261118-085939-3797626 | swept-mve-otp.register | b46e737b0d36e181976cb87d4c5804dd | 96555100002 | 1 |
+| 20261118-090106-3800257 | swept-cscart-kwtsms.test_sms | f9d1a5f1898d5c94f9495e385dce74c3 | 96551000001 | 1 |
+| 20261118-090106-3800257 | swept-mve-kwtsms.test_sms | db7ab98f7e84006acc7873b95b7555f0 | 96551000002 | 1 |
+| 20261118-090540-3812263 | rc-marketplace-cscart-C | 01f8d18b2d80b7959800c797b7a93242 | 96551600401 | 1 |
+| 20261118-090540-3812263 | rc-marketplace-cscart-A | 742dc08d4e7775ad7a972287af1e0e2d | 96550190001 | 1 |
+| 20261118-090540-3812263 | rc-marketplace-mve-C | 5447d30d08c53a0ead5ac7c50dae4bce | 96551600402 | 1 |
+| 20261118-090540-3812263 | rc-marketplace-mve-A | 72b9612c760e24017154784efbcc0f34 | 96550190001 | 1 |
+| 20261118-091444-3831434 | store-live-vendor-message-sms-en | 6283e8a724ef167a22af3b7da72daa16 | 96550190001 | 1 |
+| 20261118-091444-3831434 | store-live-vendor-message-sms-ar | 0995ec944e0085994f7fbcb6b79cab94 | 96550190001 | 1 |
+| 20261118-091444-3831434 | store-live-vendor-sender-sms | 2d9b2e36403a4c5473df9a87ee59710a | 96550193832 | 1 |
+| 20261118-091507-3832793 | m1.10a-register-code-cscart | 9a45ad64703432184ecc7c7bfb0a8b32 | 96555100001 | 1 |
+| 20261118-091507-3832793 | m1.10a-register-code-mve | 2f8cd6089782b06fbb025633560bbabe | 96555100002 | 1 |
