@@ -225,3 +225,227 @@ A failed after-response send does update the cached state CodeAvailability reads
 | e2e-phpunit (real-mode OrderTimingTest part) | 6 | 6 |
 | Total | 42 | 48 |
 The last three rows are the runner's placeholder plan (M314_PLAN_E2E 6 6); the true count is to be confirmed from the scripts before the run. Request: 45 sends / 55 credits on top of the 101 / 117 spent. Not rerun: Coalescing, SendPathProcedureTest, ChecklistLiveTest, Rma, CallRequest, ReviewAlert, VendorStatus, BulkResend, FailSpike (passed).
+
+## Tester 5, recipient numbers: inventory, guard and queue cleanup list (2026-11-18 04:46 +03)
+
+Coordinator correction in force: 9655019xxxx is NOT an approved series (it exists only as OrderStore::ADMIN_PHONE). Decision on record: every live test send goes to Boss's own number with test=1; 96598765432 / 98765432 belong to a real person and must never be used. Nothing was renumbered; Boss decides the numbering.
+
+### Fail-closed recipient guard (built, empty = refuse every live send)
+- Config line: tests/Support/live-recipient-pattern.txt (first non-comment line = regex without delimiters, anchored ^(...)$). Shipped EMPTY, so every live send is refused until Boss sets it.
+- Code: tests/Support/RecipientGuard.php. Applied (a) in tests/devguard/func.php before any wire send is let through (store suites, store-live, e2e real mode; any non-read-only endpoint spelling), logging refusals to docs/evidence/1.0.0/devguard-blocked.log; (b) in LiveGuard::onRequestHook when KWTSMS_RECIPIENT_GUARD=1, which tests/run-live.sh now exports for live-send and store-live. cancel_all mode and KWTSMS_NO_SEND runs are unchanged (they never reach the wire).
+- Unit tests: tests/Unit/RecipientGuardTest.php (6 tests). Full unit suite: 7517 tests OK.
+
+### Numbers that REACHED the wire in tonight's live round (from the ledgers, 101 sends)
+| Run / class | Sends | Numbers |
+|---|---|---|
+| live-send | 8 | 96550500002 .. 96557400904 (7 numbers) |
+| store-live:RmaSmsLiveTest | 2 | 96550193839 |
+| store-live:CallRequestSmsLiveTest | 2 | 96550190001 |
+| store-live:BackInStockLiveTest | 2 | 96550190001 |
+| store-live:GiftCertificateSmsLiveTest | 2 | 96550190001 |
+| store-live:ReviewAlertSmsLiveTest | 2 | 96550190001 |
+| store-live:VendorStatusSmsLiveTest | 2 | 96550193831 |
+| store-live:CoalescingSmsLiveTest | 2 | 96550193839 |
+| store-live:BulkResendLiveTest | 6 | 96550193851,96550193852,96550193853 |
+| store-live:M314FamiliesLiveTest | 2 | 96550190001 |
+| store-live:FailSpikeLiveTest | 1 | 96550190001 |
+| store-live:CodeFlowsLiveTest | 22 | 96550190001 .. 96555100027 (19 numbers) |
+| store-live:SendPathProcedureTest | 43 | 96551600001 .. 96551600104 (43 numbers) |
+| store-live:ChecklistLiveTest | 5 | 96551600201 .. 96551600209 (5 numbers) |
+
+Source of each: live-send and the 9655160xxxx / 9655510xxxx / 9655740xxxx ranges come from Numbers::forCase(suite, case) = 9655 + 2-digit suite + 5-digit case (LiveSend suites 5/6/74, SendPathProcedureTest and ChecklistLiveTest suite 16, CodeFlowsLiveTest SUITE 51). The 9655019xxxx ones come from the literal ADMIN_PHONE and the store-live fixtures.
+
+### Phone numbers in tests/ by class or script (literal local numbers 8 digits, shown without 965; forCase suites listed)
+Scope: StoreLive, LiveSend, Live, E2e, Support, Store. Unit tests (73 files) use FakeTransport and cannot reach a send; they are not renumbered or listed. Store and E2e numbers are stored on customers, vendors or admin settings (cancel_all or NO_SEND keeps them off the wire). Flag **98765432** = the real person's number.
+
+```
+StoreLive/ApiClientSendInStoreTest.php |  | forCase suites: 5
+StoreLive/BulkResendLiveTest.php | 50193851,50193852,50193853 | forCase suites: -
+StoreLive/CallRequestSmsLiveTest.php | 50193840 | forCase suites: -
+StoreLive/ChecklistLiveTest.php | 22334455 | forCase suites: 16
+StoreLive/CheckoutTimingLiveTest.php |  | forCase suites: 16
+StoreLive/CoalescingSmsLiveTest.php | 50193839 | forCase suites: -
+StoreLive/CodeFlowsLiveTest.php |  | forCase suites: self::SUITE
+StoreLive/ConditionsSmsLiveTest.php | 50193839 | forCase suites: -
+StoreLive/GiftCertificateSmsLiveTest.php | 55501234 | forCase suites: -
+StoreLive/LoginTimingLiveTest.php |  | forCase suites: self::SUITE
+StoreLive/M314FamiliesLiveTest.php | 50193832 | forCase suites: -
+StoreLive/OrderSmsLiveTest.php | 50123401,50123402,50190001 | forCase suites: -
+StoreLive/Phase2PathsLiveTest.php | 50193811,50194001,50194002,50194003,50194004,50194005,50194006 | forCase suites: -
+StoreLive/PumpingLiveTest.php |  | forCase suites: 16
+StoreLive/RecoverTimingLiveTest.php |  | forCase suites: self::SUITE
+StoreLive/RmaSmsLiveTest.php | 50193839 | forCase suites: -
+StoreLive/SendPathProcedureTest.php |  | forCase suites: 16,self::SUITE
+StoreLive/VendorSmsLiveTest.php | 50193831 | forCase suites: -
+StoreLive/VendorStatusSmsLiveTest.php | 50193831 | forCase suites: -
+LiveSend/ApiClientSendTest.php |  | forCase suites: 5
+LiveSend/CodeNamedSendsLiveTest.php |  | forCase suites: 74
+LiveSend/CodeSmsLiveTest.php |  | forCase suites: 74
+LiveSend/SmsServiceTest.php |  | forCase suites: 6
+Live/ApiClientTest.php | 98765432 | forCase suites: 5 **98765432**
+E2e/alerts.sh | 50000011,51300001,51300002,98765432 | forCase suites: - **98765432**
+E2e/checkout.sh | 50190001 | forCase suites: -
+E2e/dashboard.sh | 50000001 | forCase suites: -
+E2e/dashboard_helper.php | 50000001,50000011,50100999,50190902,50190903 | forCase suites: -
+E2e/login_code_helper.php |  | forCase suites: 79
+E2e/logs.sh | 50190801,98765432 | forCase suites: - **98765432**
+E2e/logs_helper.php | 50190001,50190801,50190802,50190803,50190804,50190901,50190902,50190903,50190904,50190999,98765432 | forCase suites: - **98765432**
+E2e/marketplace_shots.sh | 51600401,51600402 | forCase suites: -
+E2e/optout.sh | 50123410,50123411 | forCase suites: -
+E2e/phone_rules_helper.php | 50123498 | forCase suites: -
+E2e/recover_code_helper.php |  | forCase suites: 74
+E2e/registration.sh | 50123402 | forCase suites: -
+E2e/settings.sh | 50190019 | forCase suites: -
+E2e/templates.sh | 50190002,99999999 | forCase suites: -
+E2e/turnstile.sh | 50123402 | forCase suites: -
+E2e/twofa_helper.php |  | forCase suites: 88,89
+E2e/vendor_phone_code_helper.php |  | forCase suites: 92
+E2e/vendors.sh | 50193841,50193849 | forCase suites: -
+E2e/xss_a14_helper.php | 50194099 | forCase suites: -
+Support/CapWorker.php | 56700001 | forCase suites: -
+Support/GiftFixture.php | 55501234 | forCase suites: -
+Support/LogStoreContract.php | 12345678,50000071,50000072,50000073,98765432 | forCase suites: - **98765432**
+Support/Numbers.php | 50300017 | forCase suites: 3
+Support/OrderSmsRig.php | 50190001 | forCase suites: -
+Support/OrderStore.php | 50190001 | forCase suites: -
+Support/RecipientGuard.php | 50000001,50000002 | forCase suites: -
+Support/SmsRig.php | 50600001 | forCase suites: -
+Support/TwoFactorStoreCase.php |  | forCase suites: static::SUITE
+Store/A14FormatsStoreTest.php | 22334455,50194301,50194302,50194303,50194304,50194305,50194306,50194311,50194312,50194313,50194314,50194315... | forCase suites: -
+Store/AccountPhoneCountryStoreTest.php | 50123401 | forCase suites: -
+Store/AdminAlertsIntegrationsTest.php | 51111111,98765432 | forCase suites: - **98765432**
+Store/ApiClientInStoreTest.php |  | forCase suites: 5
+Store/BackInStockStoreTest.php | 51953301,51953302,51953305 | forCase suites: -
+Store/BlindCaptchaEnumerationStoreTest.php |  | forCase suites: self::SUITE
+Store/CallRequestSmsStoreTest.php | 50000001,50000003,50000006,50000009,50194411,50194412,50197788,51000012 | forCase suites: -
+Store/CapRaceStoreTest.php |  | forCase suites: 67
+Store/CheckoutCodeStoreTest.php | 50812345,50899999,99999999 | forCase suites: -
+Store/CodeRequestStoreTest.php | 50123401,50999996,50999997,50999998,50999999 | forCase suites: 75
+Store/CodeSmsStoreTest.php | 50000001 | forCase suites: 74
+Store/CommunityAlertsStoreTest.php | 50194501,50194511,50194512,51000013,55512345 | forCase suites: -
+Store/ConfigStoreTest.php | 98765432 | forCase suites: - **98765432**
+Store/ControllerSecurityTest.php | 50193801 | forCase suites: -
+Store/DashboardStatsTest.php | 51000000,51000001,51000009 | forCase suites: -
+Store/DashboardStoreTest.php | 50190555,50190777,50190901,50190902,50190903,50190904,50190999,96550000,96550190 | forCase suites: -
+Store/DevGuardTest.php |  | forCase suites: 0
+Store/EventConditionsStoreTest.php | 99999999 | forCase suites: 37
+Store/FailClosedHooksStoreTest.php | 50123402 | forCase suites: -
+Store/GdprCodesStoreTest.php | 50123401,50123402,50123403,50123411,50123412,50123421,50123431,50123432,50123441,50123442 | forCase suites: -
+Store/LogStoreTest.php | 96598765,98765432 | forCase suites: - **98765432**
+Store/LoginByCodeStoreTest.php | 55512345 | forCase suites: self::SUITE
+Store/LogsStoreTest.php | 50190001,50190701,50190702,50190703,50190711,50190712,50190713,50190720,50190730,50190731,50190740,50190741... | forCase suites: - **98765432**
+Store/LowStockStoreTest.php | 50193811,50193812 | forCase suites: -
+Store/M113aAbuseStoreTest.php |  | forCase suites: self::SUITE
+Store/M28bAuthStoreTest.php | 55512345 | forCase suites: -
+Store/M28bEnumerationStoreTest.php |  | forCase suites: self::SUITE
+Store/M28bSweepXssStoreTest.php | 50001234,50004321,50007777 | forCase suites: -
+Store/M314BulkResendStoreTest.php | 50320999 | forCase suites: -
+Store/M314PublicInputSweepStoreTest.php | 50195999,55512345 | forCase suites: -
+Store/M314PumpingStoreTest.php | 55512345 | forCase suites: -
+Store/NoSendRunTest.php |  | forCase suites: 5
+Store/NotMobileLabelStoreTest.php | 22000123 | forCase suites: -
+Store/OrderSmsSenderStoreTest.php | 50193801,50193802 | forCase suites: -
+Store/OrderSmsTest.php | 50123401,50123402 | forCase suites: -
+Store/PhoneChangeStoreTest.php | 50877701 | forCase suites: -
+Store/PhoneIndexBackfillStoreTest.php | 50000008,50123402,50123403,50123404,50123405,50123406,50123407,50123410,50123411,50123420,50999999 | forCase suites: -
+Store/PhoneRulesStoreTest.php | 50123402,50123405,50123406,50123420,50123421,50123422,50123423 | forCase suites: -
+Store/PhoneUniqueStoreTest.php | 50123402,50123403,50123404,50123405,50123406,50123407,50123408,50123409,50123410,50123411,50123412,50123413... | forCase suites: -
+Store/RecoverByCodeStoreTest.php | 50999000 | forCase suites: self::SUITE
+Store/RegressionSecurityTest.php | 50999999,51600501 | forCase suites: -
+Store/SmsServiceStoreTest.php |  | forCase suites: 66,67,68,69
+Store/StaleCronDrainStoreTest.php | 51940001 | forCase suites: -
+Store/TemplatesFeaturesStoreTest.php | 50190002 | forCase suites: -
+Store/TemplatesHttpTest.php | 50190002 | forCase suites: -
+Store/TemplatesPageStoreTest.php | 99999999 | forCase suites: -
+Store/TestSmsSwitchStoreTest.php | 51000098,51000099 | forCase suites: -
+Store/TwoFactorEnrollStoreTest.php | 99999999 | forCase suites: static::SUITE
+Store/TwoFactorSafetyStoreTest.php | 99999999 | forCase suites: -
+Store/UnlockNumberStoreTest.php | 50000001 | forCase suites: -
+Store/UpgradeSchemaTest.php | 50000001 | forCase suites: -
+Store/VendorPhoneCodeStoreTest.php | 50123497,50123498,50123499,99999999 | forCase suites: -
+Store/VendorQueuedQuotaStoreTest.php | 51000011 | forCase suites: -
+Store/VendorSendersStoreTest.php | 99999999 | forCase suites: -
+Store/VendorSmsStoreTest.php | 50193899,99999999 | forCase suites: -
+```
+
+98765432 / 96598765432 appear in: E2e/alerts.sh (saved as the admin phone list, typed into the form), E2e/logs.sh, E2e/logs_helper.php, Live/ApiClientTest.php, Store/AdminAlertsIntegrationsTest.php, ConfigStoreTest.php, LogStoreTest.php, LogsStoreTest.php, TemplateRepositoryTest.php, Support/LogStoreContract.php, and 18 Unit files and 2 po fixtures. None of tonight's 101 ledger sends went to it (checked: 0 rows). e2e alerts.sh stores it as admin_phones in a cancel_all run (no wire), but it is a stored admin phone and must change before the rerun.
+
+### Msg-ids of tonight's sends to numbers outside 9655019xxxx (76 of 101), for Boss's queue cleanup. No kwtSMS-side delete was made.
+| run | case | msg_id | number |
+|---|---|---|---|
+| 20261118-005005-2816749 | 1.5-send | 0342650cc95cc6fe612620fe3322b3e9 | 96550500002 |
+| 20261118-005005-2816749 | 1.5-send | f9613893f2325d3e286b64b4544afa62 | 96550500002 |
+| 20261118-005005-2816749 | 1.6-live-send | 7ad4ab5c0c11e5ffa9cfe09333971fa4 | 96550600901 |
+| 20261118-005005-2816749 | 1.6-live-send | 4f2f248e54000a035aaa3356e9d3de94 | 96550600902 |
+| 20261118-005647-2833512 | task-1.16-96551600001 | 118a17e61c1cbb0337e51651232d029d | 96551600001 |
+| 20261118-005647-2833512 | task-1.16-96551600002 | f63fd17858f1115b087a2959ed243750 | 96551600002 |
+| 20261118-005647-2833512 | task-1.16-96551600003 | 9c5a4b8e9a417394fd24e59cf2b01686 | 96551600003 |
+| 20261118-005647-2833512 | task-1.16-96551600004 | feb1a96d7c00566a064fb2f48bdd1988 | 96551600004 |
+| 20261118-005647-2833512 | task-1.16-96551600005 | fda8f3bf07cf686b0f6c090c4b50cccd | 96551600005 |
+| 20261118-005647-2833512 | task-1.16-96551600006 | 68a842aaf921cd045c5309671cf0bcc0 | 96551600006 |
+| 20261118-005647-2833512 | task-1.16-96551600007 | 07480b5d970abbe2c2262bffba056cf2 | 96551600007 |
+| 20261118-005647-2833512 | task-1.16-96551600008 | 8a98f421e4b0a1f2e2ba95ef3a1c0e7d | 96551600008 |
+| 20261118-005647-2833512 | task-1.16-96551600009 | c5af7c71929c0da87d4b16c3499d0113 | 96551600009 |
+| 20261118-005647-2833512 | task-1.16-96551600010 | 35fb2fcde2ee61b02e0f0ff4387360ad | 96551600010 |
+| 20261118-005647-2833512 | task-1.16-96551600011 | f177ed5232773724fb9c43b55055ba99 | 96551600011 |
+| 20261118-005647-2833512 | task-1.16-96551600012 | e4acc3e3f1496d9719e446c393ccebbc | 96551600012 |
+| 20261118-005647-2833512 | task-1.16-96551600013 | 9dc96fb565d004528fd44dff0e7f7ae3 | 96551600013 |
+| 20261118-005647-2833512 | task-1.16-96551600014 | 004545a9512de112da235ae05c0fd3d4 | 96551600014 |
+| 20261118-005647-2833512 | task-1.16-96551600015 | ad528fae716ff5e808e634b88bfd04da | 96551600015 |
+| 20261118-005647-2833512 | task-1.16-96551600016 | 0be825bdca1f5eeb98ca9bcaf5c6f5f7 | 96551600016 |
+| 20261118-005647-2833512 | task-1.16-96551600017 | de62b48a8c53538a0b0deff38419720b | 96551600017 |
+| 20261118-005647-2833512 | task-1.16-96551600018 | c04e68a60cebaefe6da0b11ebfd37e19 | 96551600018 |
+| 20261118-005647-2833512 | task-1.16-96551600019 | bba4b9ec97932b58c838ff1c6b1b082f | 96551600019 |
+| 20261118-005647-2833512 | task-1.16-96551600020 | 5d56afbc48d443792803b51e226c3ced | 96551600020 |
+| 20261118-005647-2833512 | task-1.16-96551600021 | 12c146df3384364b3c748ef4602015fe | 96551600021 |
+| 20261118-005647-2833512 | task-1.16-96551600022 | abe24f4563c08a85d22a9fd85d20e9cb | 96551600022 |
+| 20261118-005647-2833512 | task-1.16-96551600023 | f521fec9b8444f50576cacac75d80fc8 | 96551600023 |
+| 20261118-005647-2833512 | task-1.16-96551600024 | 1cb3f19b0c8e6ed5c5cad74ded0588ef | 96551600024 |
+| 20261118-005647-2833512 | task-1.16-96551600026 | 40020f3aa6d79524a2a281a97e90852a | 96551600026 |
+| 20261118-005647-2833512 | task-1.16-96551600027 | 1b2066085d537d7f97d5c88141c90ef8 | 96551600027 |
+| 20261118-005647-2833512 | task-1.16-96551600030 | 071368e69c25be87358ba5a916c9df9b | 96551600030 |
+| 20261118-005647-2833512 | task-1.16-96551600031 | 8ea7e2f92cf93a75b0b8b00b610e4cdd | 96551600031 |
+| 20261118-005647-2833512 | task-1.16-96551600032 | e9000a745f27e9a0e9ca94ba1269563b | 96551600032 |
+| 20261118-005647-2833512 | task-1.16-96551600033 | 3b19de45077dcfc9306991675866ba96 | 96551600033 |
+| 20261118-005647-2833512 | task-1.16-96551600034 | bed784b19ae066aff49056b8591c4087 | 96551600034 |
+| 20261118-005647-2833512 | task-1.16-96551600035 | 091d55c95b8b478496a3e0fd41df469e | 96551600035 |
+| 20261118-005647-2833512 | task-1.16-96551600036 | 74afa3b2f41012fd33aa455484d35ad4 | 96551600036 |
+| 20261118-005647-2833512 | task-1.16-96551600037 | 3af504243813639ebd537f920f6e6a57 | 96551600037 |
+| 20261118-005647-2833512 | task-1.16-96551600038 | 0dfd7da1873ded53b378aa89551dad8c | 96551600038 |
+| 20261118-005647-2833512 | task-1.16-96551600039 | d0713a627a61a65537591c8be99caf08 | 96551600039 |
+| 20261118-005647-2833512 | task-1.16-96551600040 | b523eee4ddc0b06f196a134c1ea3b2c7 | 96551600040 |
+| 20261118-005647-2833512 | task-1.16-96551600041 | 7b91478718054b44e58d2cb8683c7447 | 96551600041 |
+| 20261118-005647-2833512 | task-1.16-96551600042 | 12281bc1150cce052c4c69d54c71c3ae | 96551600042 |
+| 20261118-005647-2833512 | task-1.16-96551600043 | b85e9dfef8a736d3571ba5456f41d31a | 96551600043 |
+| 20261118-005647-2833512 | task-1.16-96551600102 | 894f1a46460a2c3cccac3b0a8e4171f5 | 96551600102 |
+| 20261118-005647-2833512 | task-1.16-96551600103 | 7743f2c5fdd0f1411e7d2a9ebc468e98 | 96551600103 |
+| 20261118-005647-2833512 | task-1.16-96551600104 | a1a9c4f69b1f619cbe893fc98e3b18dc | 96551600104 |
+| 20261118-005741-2835457 | task-1.16-checklist-T1 | eea7a7c4188d60d32f9861ed51265465 | 96551600201 |
+| 20261118-005741-2835457 | task-1.16-checklist-T2 | c318beb5092523e2a6fc1b3d57094103 | 96551600202 |
+| 20261118-005741-2835457 | task-1.16-checklist-T3 | 276a6efdba96e571d8843fea66d90cda | 96551600203,96551600204,96551600205,96551600206,96551600207 |
+| 20261118-005741-2835457 | task-1.16-checklist-T9A | abe3808df110f4702861d98db2cb8311 | 96551600208 |
+| 20261118-005741-2835457 | task-1.16-checklist-T9B | 8595f0ef4c2df863be818ec0cfc88dd3 | 96551600209 |
+| 20261118-005443-2829477 | swept-cscart-otp.register | e4f1e8270d5454dd5ef77a5ec2fef702 | 96555100001 |
+| 20261118-005443-2829477 | swept-mve-otp.register | bc09b7edd991b4b350d44716d7987102 | 96555100002 |
+| 20261118-005443-2829477 | swept-cscart-otp.login | f7d06890e689df7216568d5d2eba6a2c | 96555100005 |
+| 20261118-005443-2829477 | swept-mve-otp.login | 7726a5312cb1f1350e267dd4285c7ea3 | 96555100006 |
+| 20261118-005443-2829477 | m2.2a-2fa-customer-cscart | d57da60518916e01d421f498764e26dc | 96555100007 |
+| 20261118-005443-2829477 | m2.2a-2fa-customer-mve | f2bf41f7aef315930ff875c542ed7b55 | 96555100008 |
+| 20261118-005443-2829477 | m2.2a-2fa-admin-cscart | 824cd157f05b956bcc77fa970d1e3436 | 96555100009 |
+| 20261118-005443-2829477 | m2.2a-2fa-admin-mve | f024ae7c8fe7fe1039a4d53cf5ee9501 | 96555100010 |
+| 20261118-005443-2829477 | m2.2b-proof-cscart | 4ea4a71e04dc1da321487f0fc342fe1e | 96555100011 |
+| 20261118-005443-2829477 | m2.2b-proof-mve | d486e6de6724e662a84b9ea2a05a3190 | 96555100012 |
+| 20261118-005443-2829477 | swept-cscart-otp.phone_change | 72aee9b4681c7d986994f313bce09427 | 96555100013 |
+| 20261118-005443-2829477 | swept-mve-otp.phone_change | cd8f72a7f02dffcd6f48e5fe487fd789 | 96555100014 |
+| 20261118-005443-2829477 | m2.3-recover-code-cscart | 2222888df0598dc136efb16c02dfc0c2 | 96555100021 |
+| 20261118-005443-2829477 | m2.3-recover-code-mve | 8ae9b9ed07e6c20173835cec8c5ac164 | 96555100022 |
+| 20261118-005443-2829477 | m2.4-checkout-code-cscart | 26ad0f4b114f57ba9b388616e7db7e50 | 96555100023 |
+| 20261118-005443-2829477 | swept-cscart-kwtsms.order_placed | 540911d6fe350a5a872cc5b9337664fe | 96555100023 |
+| 20261118-005443-2829477 | m2.4-checkout-code-mve | 1135e5f2870cb8325b3b3ef95bded3f6 | 96555100024 |
+| 20261118-005443-2829477 | swept-mve-kwtsms.order_placed | be32ff412ad8b04ea24d8ebdeaa028df | 96555100024 |
+| 20261118-005443-2829477 | m2.6-vendor-phone-mve-ar | 91f04bdcffa96f47709280f51ac4ea48 | 96555100026 |
+| 20261118-005443-2829477 | m2.6-vendor-phone-mve-en | ecb23348588738e253bfd652db2fe3f1 | 96555100027 |
+| 20261118-005005-2816749 | M1.4-code-sms-cscart | 746ec20362d73b04a1aa959053806073 | 96557400901 |
+| 20261118-005005-2816749 | M1.4-code-sms-mve | feee19863f510a4b4f6825c58261dba2 | 96557400902 |
+| 20261118-005005-2816749 | M1.13a-code-sms-storefront2 | 14be8579306fb141e299b509e997ca7a | 96557400903 |
+| 20261118-005005-2816749 | M1.13a-phone-changed-notice-ar | 6a0a12bb54b5305c74e97976353dd257 | 96557400904 |
