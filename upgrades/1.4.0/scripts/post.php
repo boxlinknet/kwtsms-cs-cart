@@ -37,7 +37,8 @@ if ($kwtsms_from === '1.0.0' || $kwtsms_from === '1.1.0') {
 if ($kwtsms_from === '1.0.0' || $kwtsms_from === '1.1.0' || $kwtsms_from === '1.2.0') {
     // The 1.3.0 content (from 1.2.0 with the rc wording refresh first). It writes version 1.3.0; it sees a stored
     // 1.2.0 after the step above and does not repeat it.
-    // 2026-11-17 15:14 +03: review M2, task 596. A failed 1.3.0 step is reported once: PostUpgrade140 would run it again as
+    // 2026-11-17 15:14 +03: review M2, task 596. A failed 1.3.0 step is reported once: PostUpgrade140 would run it
+    // again as
     // its step (1) and fail the same way (two notices, two debug rows). The self-heal retries both later.
     $kwtsms_130_ok = \Tygh\Addons\Kwtsms\Upgrade\PostUpgrade130::runReported($kwtsms_from);
 }

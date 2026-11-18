@@ -380,7 +380,8 @@ class TemplatesPage
             $note = 'code';
             $code_switch = $this->codeSwitch($event_id);
         } else {
-            // 2026-11-17 07:28 +03: Task M3.13 (parked from M3.6 review M1), task 596. The vendor row of a status family
+            // 2026-11-17 07:28 +03: Task M3.13 (parked from M3.6 review M1), task 596. The vendor row of a status
+            // family
             // has no per-status rows: its own note.
             $note = $receiver === 'V' ? 'generic_vendor' : 'generic';
         }

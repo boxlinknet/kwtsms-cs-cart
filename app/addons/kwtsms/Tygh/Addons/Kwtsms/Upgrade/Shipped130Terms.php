@@ -13,7 +13,8 @@
  *            PostRefresh::refreshUneditedValues(): a text the merchant edited stays, an unedited one is replaced.
  *            Round 4 (2026-11-17): the list is every key of tag v1.3.0 whose EN or AR msgstr differs now, proved by
  *            tests/Unit/PostUpgrade140LangRefreshTest against tests/fixtures/po130/.
- * USAGE:     PostUpgrade140::shipped130() (required once); generated from git show v1.3.0:var/langs/{en,ar}/addons/kwtsms.po.
+ * USAGE:     PostUpgrade140::shipped130() (required once); generated from git show
+ * v1.3.0:var/langs/{en,ar}/addons/kwtsms.po.
  * DEPENDS:   Nothing.
  */
 
