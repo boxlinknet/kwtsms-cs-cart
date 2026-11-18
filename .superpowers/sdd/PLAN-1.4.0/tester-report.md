@@ -525,3 +525,29 @@ Unit: 7520 tests, 1 skipped (PhoneNormalizerKuwaitTest::testTheRuleEqualsTheClie
 Five store tests touched by the number replacement: AdminAlertsIntegrationsTest::testArabicIndicDigitsAndTheArabicCommaAreSaved failed (the Arabic-Indic input still spelled 98765432; fixed). Rerun: cscart OK 134/134 (log `logs/store-five.log`); mve see below.
 Rerun of the five store tests after the fix (2026-11-18 10:13 +03, run 20261118-101318-3932461): cscart OK 134/134, mve 134 tests 0 failures. Tests commit a26ee20.
 Open at close: AR dashboard rerun; screenshot sheets not opened (mve EN 375, mve 768 and 1280, cscart EN 768); 5 failspike perf queries unproven; article sections 1, 2 and N4 to N7, N10 not re-confirmed.
+
+## 2026-11-18 10:34 +03 no-Docker review: article checklist and screenshot sheets (task 596)
+
+No Docker, playwright or SMS used. Read-only review of evidence and screenshots.
+
+### Article checklist (`docs/evidence/1.4.0/article-checklist.md`, untracked)
+- N4, N5, N6, N7, N10 filled: all PASS. M314PumpingStoreTest 2, M314RestockStoreTest 1, M314BulkResendStoreTest 4, M314ConditionsBypassStoreTest 2, UnlockNumberStoreTest 7 cases, 0 failures on cscart and mve (`docs/evidence/1.0.0/junit-20261117-221405-2640330-store-{cscart,mve}.xml`); store rerun green, 1172 OK on each store.
+- Sections 1 and 2: no FAIL against the 1.4.0 green runs, but not re-proved line by line on the wire; handset lines still need Boss.
+- Article rule FAILs: none.
+- Caveat: `e2e-code_request.log` shows a failure and its rerun log is missing; only junit `e2e-cscart` (378/378, 0 failures) proves the pass.
+
+### Screenshots opened: 130 of 130 target images (whole files and 3000 px slices of tall ones)
+No raw `kwtsms.xxx` key anywhere. RTL direction correct in every AR shot. Defects:
+
+1. HIGH, mve Templates storefront tab EN 375 (`mve-m3-templates-storefront-en-375`, slices 1 to 8): per-row layout collapses. The status name overlaps "All storefronts: Off", and the receiver name (Customer, Administrator, Vendor) overlaps the "All storefronts is Off..." text on every row. Unreadable.
+2. MEDIUM, mve Templates EN 375 (`mve-m3-templates-en-375`, slice 2, and storefront slices 1 and 2): "Any status change (generic)" label is squeezed into a narrow column and overlaps "No switch here. Turn vendor SMS on in Administration > Notifications."
+3. MEDIUM, Templates rows Call request, Buy with one click request, Testimonial post, Order/Category/Page discussion post (cscart templates EN 768 slices 3 and 4; templates-storefront EN 768 slices 2 to 4, and every mve Templates view): hint "Turn on CAPTCHA for registration to send this SMS." is wrong. It should name the Public forms CAPTCHA scenario.
+4. MEDIUM, mve Settings AR 1280 (`mve-m3-settings-ar-1280`, slices 1 to 3): the label column beside checkboxes is truncated and overlaps the checkbox (quiet hours, cron by URL, phone check, country selector, one account per phone, SMS code at registration, SMS code at phone change). Not seen at AR 768.
+5. MINOR, brand-name input and helper text truncated: "Gulf Gadgets (storef" / "Marketplace (storefr" (20 character limit on a placeholder), all Templates views EN and AR.
+6. MINOR, mve dashboard and dashboard-many EN 375: the Messages, Last 10 messages and Credits tables are clipped at the right edge (Credits and Result columns need a scroll).
+7. English inside Arabic screens: core order status names (Complete, Paid, Open, Failed, Declined, Backordered, Canceled, Awaiting call) in Logs, bulk-confirm, order SMS tab, Integrations, Settings and Templates; "Pending/Active/Disabled/Used" in the gift certificate row labels (colon lands at the left); vendor plan names; English country names in "Skipped by country" and the Settings country list; "Kuwait (+965)"; the English storefront footer and top bar in the AR registration shots.
+8. Placeholders "98765432" (Logs phone filter) and "9876 5432" (Send a test SMS) are fake-number examples.
+9. LOW, Integrations page EN and AR shows the internal class name "Active CAPTCHA driver: Tygh\Web\Antibot\NullDriver".
+10. INFO, Logs Attempts shows fixture event keys "e2e.c2" and "e2e.t116" (test data, not a translation key).
+11. Browser-native, not the add-on: "Choose File" / "No file chosen" in English inside the AR import control; Latin mm/dd/yyyy date input.
+12. Core, not the add-on: sidebar overlays on order dialog shots and the EN 375 help topic chip "Storefronts" (cut by the SIDEBAR toggle); offset Last name field on the 768 registration form; cookie banner over the AR 1280 form; import-preview crops are clipped.
