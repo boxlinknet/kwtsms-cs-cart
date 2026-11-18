@@ -4838,6 +4838,18 @@ msgctxt "Languages::kwtsms.templates.notice_captcha"
 msgid "Turn on CAPTCHA for registration to send this SMS."
 msgstr "فعّل الكابتشا للتسجيل لإرسال هذه الرسالة."
 
+msgctxt "Languages::kwtsms.templates.notice_captcha_call_request"
+msgid "Turn on CAPTCHA for the call request and buy now with one click form to send this SMS."
+msgstr "فعّل الكابتشا لنموذج اطلب واشتر الان بضغطة زر لإرسال هذه الرسالة."
+
+msgctxt "Languages::kwtsms.templates.notice_captcha_discussion"
+msgid "Turn on CAPTCHA for the comments and reviews forms to send this SMS."
+msgstr "فعّل الكابتشا لنماذج التعليقات والآراء لإرسال هذه الرسالة."
+
+msgctxt "Languages::kwtsms.templates.notice_captcha_form"
+msgid "Turn on CAPTCHA for this form to send this SMS."
+msgstr "فعّل الكابتشا لهذا النموذج لإرسال هذه الرسالة."
+
 msgctxt "Languages::kwtsms.templates.ph_valid_minutes"
 msgid "Valid minutes"
 msgstr "مدة الصلاحية بالدقائق"

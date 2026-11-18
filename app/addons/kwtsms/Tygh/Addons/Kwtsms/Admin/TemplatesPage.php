@@ -299,6 +299,25 @@ class TemplatesPage
     }
 
     /**
+     * The language key of the CAPTCHA note for an antibot scenario ('' for none).
+     * 2026-11-18 10:37 +03: added, Task fixE, task 596. The note named registration on every row; call requests and
+     * comments are gated by their own scenarios.
+     */
+    private function captchaNoteKey(string $scenario): string
+    {
+        if ($scenario === '') {
+            return '';
+        }
+        $keys = [
+            'register' => 'kwtsms.templates.notice_captcha',
+            'call_request' => 'kwtsms.templates.notice_captcha_call_request',
+            'discussion' => 'kwtsms.templates.notice_captcha_discussion',
+        ];
+
+        return $keys[$scenario] ?? 'kwtsms.templates.notice_captcha_form';
+    }
+
+    /**
      * The antibot scenario to name in the row's notice: $scenario while it is off, '' when it is on or the row has
      * none.
      * 2026-10-23 05:57 +03: added, Cleanup CA1-6 (A6 N2), task 596.
@@ -386,6 +405,9 @@ class TemplatesPage
             $note = $receiver === 'V' ? 'generic_vendor' : 'generic';
         }
 
+        // 2026-11-18 10:37 +03: Task fixE, task 596. Computed once: the scenario (while off) and its note key.
+        $public_form = $kind === 'declared' ? $this->captchaNotice((string) ($source['public_form'] ?? '')) : '';
+
         return [
             'key' => $key,
             'dom_id' => self::domId($key),
@@ -407,7 +429,9 @@ class TemplatesPage
             // 2026-10-23 05:57 +03: Cleanup CA1-6 (A6 N2), task 596. Only while that scenario is off (the notice says
             // to
             // turn it on); a scenario that is on shows nothing. No gate, or a gate that throws: the notice shows.
-            'public_form' => $kind === 'declared' ? $this->captchaNotice((string) ($source['public_form'] ?? '')) : '',
+            'public_form' => $public_form,
+            // 2026-11-18 10:37 +03: Task fixE, task 596. The language key of the CAPTCHA note, naming the row's form.
+            'public_form_note' => $this->captchaNoteKey($public_form),
             'switch_note' => $note,
             // 2026-10-24 12:34 +03: Task M1.4, task 596. Code rows: ['on' => bool, 'link' => settings URL]; else null.
             'code_switch' => $code_switch,

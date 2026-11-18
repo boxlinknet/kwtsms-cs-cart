@@ -221,7 +221,8 @@ DEPENDS:   components/navigation.tpl, templates.less, js/addons/kwtsms/{counter,
                         <p class="kwtsms-snippet" lang="{$t.lang}" dir="{$t.direction}">{$row.snippet}</p>
                     {/if}
                     {* 2026-10-22 20:28 +03: Task A6 fix round 1 (P2-R12), task 596. A registration row only sends while CAPTCHA for registration is on. *}
-                    {if $row.public_form}<p class="kwtsms-row__notice muted">{__("kwtsms.templates.notice_captcha")}</p>{/if}
+                    {* 2026-11-18 10:37 +03: Task fixE, task 596. The note names the row's own form (public_form_note), not always registration. *}
+                    {if $row.public_form}<p class="kwtsms-row__notice muted">{__($row.public_form_note)}</p>{/if}
                     <p class="kwtsms-row__meta">
                         <span class="kwtsms-badge kwtsms-badge--{$row.badge}">
                             {if $row.badge == "default_lang"}{__("kwtsms.templates.badge_default_lang", ["[language]" => $t.default_lang_name|fn_html_escape])}
