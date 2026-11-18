@@ -118,6 +118,25 @@ class PostUpgrade140
     ];
 
     /**
+     * The 1.1.0 text of kwtsms.integrations.later.help, per language (name => lang => text), byte-exact from tag
+     * v1.1.0-rc.1 (the v1.1.0 file). A store upgraded from 1.1.0 (or one that went through 1.2.0 and 1.3.0 without
+     * the refresh) still holds it and no other map lists it. An unedited text is refreshed, an edited one stays.
+     * ASCII only (\u{} escapes).
+     * 2026-11-18 11:26 +03: added, Task fixE2 (M3.15 dry run), task 596.
+     *
+     * @var array<string,array<string,string>>
+     */
+    private const SHIPPED_1_1_0 = [
+        'kwtsms.integrations.later.help' => [
+            'en' => 'Coming in 1.2.',
+            'ar' => "\u{642}\u{631}\u{64a}\u{628}\u{627} "
+                . "\u{641}\u{64a} "
+                . "\u{627}\u{644}\u{625}\u{635}\u{62f}\u{627}\u{631} "
+                . "1.2.",
+        ],
+    ];
+
+    /**
      * @param string        $from_version The add-on version before the upgrade ('1.0.0' .. '1.3.0'; '1.4.0' repairs
      *                                    a store whose templates or settings are missing)
      * @param callable|null $seeder       Replaces the template seed (a test injects a no-op or a failing one)
@@ -178,6 +197,8 @@ class PostUpgrade140
         // 2026-11-17 07:50 +03: Task M3.13 round 3, task 596. SHIPPED_1_3_0 plus the Arabic texts renamed to the
         // glossary terms.
         PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::shipped130());
+        // 2026-11-18 11:26 +03: Task fixE2, task 596. The 1.1.0 text of the Integrations help line (M3.15 dry run).
+        PostRefresh::refreshUneditedValues((array) $scheme->getLanguageValues(false), self::shipped110());
         foreach (array_chunk((array) $scheme->getLanguageValues(false), 500) as $chunk) {
             db_query('INSERT IGNORE INTO ?:language_values ?m', $chunk);
         }
@@ -267,6 +288,17 @@ class PostUpgrade140
     public static function shipped130(): array
     {
         return self::SHIPPED_1_3_0 + (array) require __DIR__ . '/Shipped130Terms.php';
+    }
+
+    /**
+     * The 1.1.0 texts that 1.4.0 rewrote and no earlier step refreshes: SHIPPED_1_1_0.
+     * 2026-11-18 11:26 +03: added, Task fixE2, task 596.
+     *
+     * @return array<string,array<string,string>> name => lang => text
+     */
+    public static function shipped110(): array
+    {
+        return self::SHIPPED_1_1_0;
     }
 
     /**
