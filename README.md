@@ -40,8 +40,9 @@ Send automated SMS notifications to your CS-Cart and Multi-Vendor customers and 
 <!-- 2026-10-23 14:11 +03: status for 1.1.0 release candidate, Task A15, task 596 -->
 <!-- 2026-10-29 18:29 +03: status for 1.2.0 release candidate, Task M1.13b, task 596 -->
 <!-- 2026-11-17 15:01 +03: status for 1.4.0, Task M3.15, task 596 -->
-> **Status:** version 1.4.0, prepared for release. The installable zip will be on
-> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases). The new add-on events (returns, call requests,
+<!-- 2026-11-26 16:23 +03: status for the published 1.4.0, task 596 -->
+> **Status:** version 1.4.0. The installable zip is on
+> [GitHub Releases](https://github.com/boxlinknet/kwtsms-cs-cart/releases/latest). The new add-on events (returns, call requests,
 > back in stock, gift certificates, reviews, discussion, vendor messages, vendor plans) are tested on CS-Cart 4.21.2;
 > 4.20.1 support for them is not yet verified.
 
